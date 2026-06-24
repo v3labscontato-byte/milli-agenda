@@ -7,7 +7,6 @@ import {
   MOCK_INADIMPLENCIA,
   MOCK_FLUXO,
   MOCK_LANCAMENTOS,
-  MOCK_METAS,
   RECEITA_SEMANAL,
   METODO_DISTRIBUICAO,
   FATURAMENTO_MENSAL,
@@ -20,7 +19,7 @@ import ReceitaChart from '@/components/financeiro/receita-chart'
 import PagamentosTable from '@/components/financeiro/pagamentos-table'
 import ComissoesTable from '@/components/financeiro/comissoes-table'
 import FluxoCaixa from '@/components/financeiro/fluxo-caixa'
-import MetasSection, { MetaDashboardCard } from '@/components/financeiro/metas-section'
+import MetasSection from '@/components/financeiro/metas-section'
 import PlanoContas from '@/components/financeiro/plano-contas'
 import ProcedimentosSection from '@/components/financeiro/procedimentos-section'
 import { cn } from '@/lib/utils'
@@ -186,15 +185,10 @@ export default function FinanceiroPage() {
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
   const [activeTab, setActiveTab]   = useState<TabId>('recebimentos')
-  // comissoes state now managed inside ComissoesTable (self-contained with COMISSAO_HISTORICO)
-
   const filtered = useMemo(
     () => filterByPeriod(MOCK_TRANSACTIONS, period, customFrom, customTo),
     [period, customFrom, customTo],
   )
-
-
-  const activeMeta = MOCK_METAS.find((m) => m.ativa) ?? null
 
   return (
     <div className="space-y-6 px-6 pb-10 pt-5">
@@ -218,13 +212,6 @@ export default function FinanceiroPage() {
         metodoData={METODO_DISTRIBUICAO}
         monthlyData={FATURAMENTO_MENSAL}
       />
-
-      {/* ── Meta summary card ── */}
-      {activeMeta && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <MetaDashboardCard meta={activeMeta} />
-        </div>
-      )}
 
       {/* ── Tabs ── */}
       <div>

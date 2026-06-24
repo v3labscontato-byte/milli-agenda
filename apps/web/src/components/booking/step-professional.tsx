@@ -38,7 +38,7 @@ export default function StepProfessional({ service, onSelect, onBack }: StepProf
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-1 rounded-lg px-4 py-3 text-[14px] text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-light"
+        className="flex min-h-[44px] items-center gap-1 rounded-lg px-4 py-3 text-[14px] text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-light"
       >
         <ChevronLeft size={18} aria-hidden="true" />
         <span className="font-medium">{service.emoji} {service.name}</span>

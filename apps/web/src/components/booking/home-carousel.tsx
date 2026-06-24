@@ -36,15 +36,16 @@ function CouponCard({ c }: { c: BookingCoupon }) {
       <button
         type="button"
         onClick={copy}
+        aria-label={copied ? 'Cupom copiado!' : 'Copiar código do cupom'}
         className={cn(
-          'shrink-0 rounded-xl border px-4 py-2 text-[13px] font-semibold transition-colors',
+          'shrink-0 rounded-xl border px-4 py-2.5 text-[13px] font-semibold transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
           copied
             ? 'border-success-medium bg-success-xlight text-success-medium'
             : 'border-primary text-primary hover:bg-primary hover:text-white',
         )}
       >
-        {copied ? '✓' : 'Usar'}
+        <span aria-live="polite" aria-atomic="true">{copied ? '✓' : 'Usar'}</span>
       </button>
     </div>
   )
@@ -148,9 +149,9 @@ function SlideAvaliacoes() {
       <div className="space-y-3">
         {REVIEWS.slice(0, 2).map((rev) => (
           <div key={rev.id} className="rounded-2xl border border-border bg-white p-4">
-            <div className="mb-2 flex items-center gap-0.5" aria-hidden="true">
+            <div className="mb-2 flex items-center gap-0.5" aria-label={`${rev.rating} de 5 estrelas`}>
               {Array.from({ length: rev.rating }).map((_, i) => (
-                <Star key={i} size={12} className="fill-warning text-warning" />
+                <Star key={i} size={12} className="fill-warning text-warning" aria-hidden="true" />
               ))}
             </div>
             <p className="text-[13px] leading-relaxed text-content-primary">"{rev.text}"</p>
@@ -176,11 +177,11 @@ const STEP_ICONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
 function SlideAfiliados() {
   const creditoFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(CLIENT.creditoAfiliado)
   return (
-    <div className="min-w-full bg-gradient-to-b from-[#F0FDF4] to-white px-5 py-4">
+    <div className="min-w-full bg-gradient-to-b from-primary-xlight to-white px-5 py-4">
       <h2 className="mb-1 text-[15px] font-semibold text-content-primary">💰 Ganhe indicando o salão!</h2>
       <p className="mb-4 text-[13px] text-content-secondary">
         Você ganha{' '}
-        <span className="font-bold text-green-600">{AFFILIATE_PCT}%</span>{' '}
+        <span className="font-bold text-primary">{AFFILIATE_PCT}%</span>{' '}
         por indicação{' '}
         <span className="text-content-subtle">(configurado pelo salão)</span>
       </p>
@@ -195,14 +196,14 @@ function SlideAfiliados() {
       </ol>
       <div className="mb-4 flex items-center gap-2">
         <span className="text-[13px] text-content-secondary">Seu saldo atual:</span>
-        <span className="tabular-nums text-[13px] font-semibold text-green-600">{creditoFmt}</span>
+        <span className="tabular-nums text-[13px] font-semibold text-success-medium">{creditoFmt}</span>
       </div>
       <Link
         href="/booking/afiliados"
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-5 py-2.5 text-[14px] font-semibold text-white',
-          'transition-colors hover:bg-green-700 active:scale-[0.97] motion-reduce:transition-none',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-1',
+          'inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-[14px] font-semibold text-white',
+          'transition-colors hover:bg-primary-dark active:scale-[0.97] motion-reduce:transition-none',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-1',
         )}
       >
         Quero participar →
@@ -267,7 +268,7 @@ export default function HomeCarousel() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div role="region" aria-label="Destaques" aria-roledescription="carrossel" className="flex flex-col gap-3">
       {/* Dots */}
       <div className="flex items-center justify-center gap-1.5" role="tablist" aria-label="Slides do carrossel">
         {activeSlides.map((slide, i) => (
@@ -278,11 +279,16 @@ export default function HomeCarousel() {
             onClick={() => goTo(i)}
             aria-label={`Slide ${i + 1} de ${TOTAL}`}
             aria-selected={current === i}
-            className={cn(
-              'h-2 rounded-full transition-all duration-300 motion-reduce:transition-none',
-              current === i ? 'w-6 bg-primary' : 'w-2 bg-border hover:bg-content-muted',
-            )}
-          />
+            className="flex h-11 items-center justify-center px-1 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
+          >
+            <span
+              className={cn(
+                'block h-2 rounded-full transition-all duration-300 motion-reduce:transition-none',
+                current === i ? 'w-6 bg-primary' : 'w-2 bg-border hover:bg-content-muted',
+              )}
+              aria-hidden="true"
+            />
+          </button>
         ))}
       </div>
 
@@ -303,12 +309,21 @@ export default function HomeCarousel() {
         </span>
 
         <div
-          className="flex transition-transform duration-300 ease-out motion-reduce:transition-none"
+          className="flex transition-transform duration-300 ease-out motion-reduce:transition-none [will-change:transform]"
           style={{ transform: `translateX(-${current * 100}%)` }}
         >
-          {activeSlides.map((slide) => {
+          {activeSlides.map((slide, idx) => {
             const Component = SLIDE_COMPONENTS[slide.type]
-            return <Component key={slide.id} />
+            return (
+              <div
+                key={slide.id}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${idx + 1} de ${TOTAL}`}
+              >
+                <Component />
+              </div>
+            )
           })}
         </div>
       </div>

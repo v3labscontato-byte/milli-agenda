@@ -5,16 +5,36 @@ import { startOfWeek } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
   MOCK_CALENDAR_APPOINTMENTS,
+  CALENDAR_PROFESSIONALS,
   getAppointmentsForDate,
   nextDay,
   prevDay,
   type CalendarAppointment,
 } from '@/lib/calendar-utils'
+import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
 import CalendarGrid from '@/components/agenda/calendar-grid'
 import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
 import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
+import AgendaTable from '@/components/agenda-table'
+
+function toAppointment(ca: CalendarAppointment): Appointment {
+  const prof = CALENDAR_PROFESSIONALS.find((p) => p.id === ca.professionalId)
+  const initials = ca.client.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+  return {
+    id: ca.id,
+    time: ca.startTime,
+    endTime: ca.endTime,
+    duration: ca.durationMinutes,
+    client: ca.client,
+    clientInitials: initials,
+    service: ca.service,
+    professional: prof?.name ?? ca.professionalId,
+    status: ca.status,
+    amount: ca.amount,
+  }
+}
 
 type View = 'week' | 'day'
 
@@ -142,18 +162,24 @@ export default function AgendaPage() {
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-hidden">
-        {view === 'week' ? (
+      {view === 'week' ? (
+        <div className="flex-1 overflow-hidden">
           <WeeklyOverview weekStart={weekStart} onDaySelect={handleDaySelect} />
-        ) : (
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto">
           <CalendarGrid
             appointments={filtered}
             selectedDate={selectedDate}
             onAppointmentClick={setSelectedAppt}
             onSlotClick={handleSlotClick}
           />
-        )}
-      </div>
+          <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-6">
+            <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">Atendimentos do Dia</h2>
+            <AgendaTable appointments={filtered.map(toAppointment)} />
+          </div>
+        </div>
+      )}
 
       <AppointmentModal
         appointment={selectedAppt}

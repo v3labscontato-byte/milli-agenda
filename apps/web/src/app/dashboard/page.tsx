@@ -1,7 +1,5 @@
-import { mockAppointments, mockKpis } from '@/lib/mock-data'
+import { mockKpis } from '@/lib/mock-data'
 import KpiStrip from '@/components/kpi-strip'
-import Upcoming from '@/components/upcoming'
-import AgendaTable from '@/components/agenda-table'
 import BookingsChart from '@/components/charts/bookings-chart'
 import WeeklyChart from '@/components/charts/weekly-chart'
 import ServicesChart from '@/components/charts/services-chart'
@@ -10,10 +8,6 @@ import VolumeChart from '@/components/charts/volume-chart'
 export const metadata = { title: 'Dashboard' }
 
 export default function DashboardPage() {
-  const upcoming = mockAppointments.filter(
-    (a) => a.status === 'SCHEDULED' || a.status === 'CONFIRMED',
-  )
-
   return (
     <div className="space-y-8 pb-10">
 
@@ -36,15 +30,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ④ Agenda de Hoje (flex-1) + Próximos Horários (w-80 fixo) */}
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-        <div className="min-w-0 flex-1">
-          <AgendaTable appointments={mockAppointments} />
-        </div>
-        <div className="w-full xl:w-80 xl:shrink-0">
-          <Upcoming appointments={upcoming} />
-        </div>
-      </div>
 
     </div>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle, CalendarClock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from '@/lib/calendar-utils'
@@ -44,17 +44,19 @@ function formatDateDisplay(dateStr: string): string {
 
 export default function AppointmentModal({ appointment, onClose, onReschedule }: AppointmentModalProps) {
   const [paymentOpen, setPaymentOpen] = useState(false)
+  const paymentOpenRef = useRef(false)
+  useEffect(() => { paymentOpenRef.current = paymentOpen }, [paymentOpen])
 
   useEffect(() => {
     if (!appointment) return
     const handler = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (paymentOpen) setPaymentOpen(false)
+      if (paymentOpenRef.current) setPaymentOpen(false)
       else onClose()
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [appointment, onClose, paymentOpen])
+  }, [appointment, onClose])
 
   // Reset payment modal when appointment changes
   useEffect(() => { setPaymentOpen(false) }, [appointment?.id])

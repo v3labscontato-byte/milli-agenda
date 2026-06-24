@@ -142,7 +142,7 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
               <select id="na-service" required value={form.service} onChange={handleServiceChange} className={INPUT}>
                 <option value="">Selecionar serviço…</option>
                 {ALL_SERVICES.map((s) => (
-                  <option key={s.name} value={s.name}>
+                  <option key={`${s.name}-${s.duration}`} value={s.name}>
                     {s.name} — {s.duration}min
                   </option>
                 ))}

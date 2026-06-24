@@ -56,7 +56,6 @@ export default function NewAppointmentModal({
   const [time, setTime]       = useState<string>('')
   const [client, setClient]   = useState<string>('')
 
-  // Sync state when modal opens (picks up latest prefill values each time)
   useEffect(() => {
     if (!open) return
     setProfId(initialProfessionalId ?? '')
@@ -64,7 +63,7 @@ export default function NewAppointmentModal({
     setDate(initialDate ?? '')
     setTime(initialTime ?? '')
     setClient(rescheduleClientName ?? '')
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, initialProfessionalId, initialService, initialDate, initialTime, rescheduleClientName])
 
   useEffect(() => {
     if (!open) return

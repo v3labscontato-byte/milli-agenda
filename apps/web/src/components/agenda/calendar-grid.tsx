@@ -166,10 +166,12 @@ export default function CalendarGrid({
                       key={prof.id}
                       rowSpan={rowSpan}
                       onClick={!appt ? () => onSlotClick(prof.id, slot, dateStr) : undefined}
+                      onKeyDown={!appt ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSlotClick(prof.id, slot, dateStr) } } : undefined}
+                      tabIndex={!appt ? 0 : undefined}
                       className={cn(
                         'border-b border-r border-[#F1F5F9] align-top group',
                         today ? 'bg-[#FAFCFF]' : 'bg-white',
-                        !appt && 'cursor-pointer hover:bg-[#EFF6FF]',
+                        !appt && 'cursor-pointer hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
                         appt && 'p-0.5',
                       )}
                       style={{ height: `${cellHeight}px` }}

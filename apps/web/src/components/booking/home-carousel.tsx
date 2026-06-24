@@ -5,11 +5,10 @@ import Link from 'next/link'
 import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  SALON, POPULAR_SERVICES, REVIEWS, CUPONS, PACOTES,
+  SALON, CLIENT, POPULAR_SERVICES, REVIEWS, CUPONS, PACOTES,
   formatPrice, formatDuration, type BookingCoupon,
 } from '@/lib/booking-mock'
-
-const TOTAL = 4
+import { CAROUSEL_CONFIG, type CarouselSlideConfig } from '@/lib/carousel-config'
 
 // ── Slide 1: Promoções ───────────────────────────────────────────────────────
 
@@ -163,9 +162,73 @@ function SlideAvaliacoes() {
   )
 }
 
+// ── Slide 5: Afiliados ───────────────────────────────────────────────────────
+
+const AFFILIATE_PCT = 5
+const AFFILIATE_STEPS = [
+  'Compartilhe seu link único',
+  'Amigo agenda pelo seu link',
+  'Amigo finaliza atendimento',
+  `Você ganha ${AFFILIATE_PCT}% do valor! 💰`,
+]
+const STEP_ICONS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
+
+function SlideAfiliados() {
+  const creditoFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(CLIENT.creditoAfiliado)
+  return (
+    <div className="min-w-full bg-gradient-to-b from-[#F0FDF4] to-white px-5 py-4">
+      <h2 className="mb-1 text-[15px] font-semibold text-content-primary">💰 Ganhe indicando o salão!</h2>
+      <p className="mb-4 text-[13px] text-content-secondary">
+        Você ganha{' '}
+        <span className="font-bold text-green-600">{AFFILIATE_PCT}%</span>{' '}
+        por indicação{' '}
+        <span className="text-content-subtle">(configurado pelo salão)</span>
+      </p>
+      <p className="mb-2 text-[12px] font-medium text-content-subtle">Como funciona:</p>
+      <ol className="mb-4 space-y-2" aria-label="Passos do programa de afiliados">
+        {AFFILIATE_STEPS.map((step, i) => (
+          <li key={i} className="flex items-center gap-2.5 rounded-xl border border-border bg-white px-3 py-2.5">
+            <span className="text-[15px]" aria-hidden="true">{STEP_ICONS[i]}</span>
+            <span className="text-[13px] text-content-primary">{step}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-[13px] text-content-secondary">Seu saldo atual:</span>
+        <span className="tabular-nums text-[13px] font-semibold text-green-600">{creditoFmt}</span>
+      </div>
+      <Link
+        href="/booking/afiliados"
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-xl bg-green-600 px-5 py-2.5 text-[14px] font-semibold text-white',
+          'transition-colors hover:bg-green-700 active:scale-[0.97] motion-reduce:transition-none',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-300 focus-visible:ring-offset-1',
+        )}
+      >
+        Quero participar →
+      </Link>
+    </div>
+  )
+}
+
+// ── Slide registry ────────────────────────────────────────────────────────────
+
+const SLIDE_COMPONENTS: Record<CarouselSlideConfig['type'], () => JSX.Element> = {
+  promocoes:  SlidePromocoes,
+  pacotes:    SlidePacotes,
+  servicos:   SlideServicos,
+  avaliacoes: SlideAvaliacoes,
+  afiliados:  SlideAfiliados,
+}
+
 // ── Main carousel ─────────────────────────────────────────────────────────────
 
 export default function HomeCarousel() {
+  const activeSlides = CAROUSEL_CONFIG
+    .filter((c) => c.enabled)
+    .sort((a, b) => a.order - b.order)
+  const TOTAL = activeSlides.length
+
   const [current, setCurrent] = useState(0)
   const [paused,  setPaused]  = useState(false)
   const touchStartX  = useRef<number | null>(null)
@@ -175,7 +238,7 @@ export default function HomeCarousel() {
     if (paused) return
     const id = setInterval(() => setCurrent((c) => (c + 1) % TOTAL), 5000)
     return () => clearInterval(id)
-  }, [paused])
+  }, [paused, TOTAL])
 
   function scheduleResume() {
     if (resumeTimer.current !== null) clearTimeout(resumeTimer.current)
@@ -207,9 +270,9 @@ export default function HomeCarousel() {
     <div className="flex flex-col gap-3">
       {/* Dots */}
       <div className="flex items-center justify-center gap-1.5" role="tablist" aria-label="Slides do carrossel">
-        {Array.from({ length: TOTAL }).map((_, i) => (
+        {activeSlides.map((slide, i) => (
           <button
-            key={i}
+            key={slide.id}
             role="tab"
             type="button"
             onClick={() => goTo(i)}
@@ -243,10 +306,10 @@ export default function HomeCarousel() {
           className="flex transition-transform duration-300 ease-out motion-reduce:transition-none"
           style={{ transform: `translateX(-${current * 100}%)` }}
         >
-          <SlidePromocoes />
-          <SlidePacotes />
-          <SlideServicos />
-          <SlideAvaliacoes />
+          {activeSlides.map((slide) => {
+            const Component = SLIDE_COMPONENTS[slide.type]
+            return <Component key={slide.id} />
+          })}
         </div>
       </div>
     </div>

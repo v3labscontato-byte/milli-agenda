@@ -1,16 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, ExternalLink } from 'lucide-react'
+import { Copy, Check, ExternalLink, ChevronUp, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_BOOKING_SITE, type BookingSiteConfig } from '@/lib/configuracoes-mock'
-import { Toggle, TextInput, FieldLabel, SectionCard, SaveButton, useSaveState } from './_primitives'
+import { CAROUSEL_CONFIG, type CarouselSlideConfig } from '@/lib/carousel-config'
+import { Toggle, TextInput, SectionCard, SaveButton, useSaveState } from './_primitives'
+
+// ── Carousel config helpers ───────────────────────────────────────────────────
+
+const SLIDE_ICONS: Record<CarouselSlideConfig['type'], string> = {
+  promocoes:  '🎁',
+  pacotes:    '📦',
+  servicos:   '✂',
+  avaliacoes: '⭐',
+  afiliados:  '💰',
+}
+
+const SLIDE_LABELS: Record<CarouselSlideConfig['type'], string> = {
+  promocoes:  'Promoções',
+  pacotes:    'Pacotes Especiais',
+  servicos:   'Serviços Populares',
+  avaliacoes: 'Avaliações',
+  afiliados:  'Programa Afiliados',
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function SectionSiteBooking() {
   const [cfg, setCfg] = useState<BookingSiteConfig>(MOCK_BOOKING_SITE)
   const [saveState, triggerSave] = useSaveState()
   const [copied, setCopied] = useState(false)
   const [domainStatus, setDomainStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle')
+
+  const [carouselCfg, setCarouselCfg] = useState<CarouselSlideConfig[]>(() =>
+    [...CAROUSEL_CONFIG].sort((a, b) => a.order - b.order),
+  )
+  const [carouselSaveState, triggerCarouselSave] = useSaveState()
 
   function set<K extends keyof BookingSiteConfig>(field: K, value: BookingSiteConfig[K]) {
     setCfg((prev) => ({ ...prev, [field]: value }))
@@ -27,6 +53,33 @@ export default function SectionSiteBooking() {
     await new Promise((r) => setTimeout(r, 1200))
     setDomainStatus('ok')
   }
+  void handleVerifyDomain
+
+  function toggleSlide(id: string) {
+    setCarouselCfg((prev) => {
+      const active = prev.filter((s) => s.enabled).length
+      const target = prev.find((s) => s.id === id)
+      if (!target) return prev
+      if (target.enabled && active <= 1) return prev
+      return prev.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s))
+    })
+  }
+
+  function moveItem(idx: number, dir: 'up' | 'down') {
+    setCarouselCfg((prev) => {
+      const sorted = [...prev].sort((a, b) => a.order - b.order)
+      const targetIdx = dir === 'up' ? idx - 1 : idx + 1
+      if (targetIdx < 0 || targetIdx >= sorted.length) return prev
+      return prev.map((s) => {
+        if (s.id === sorted[idx].id)       return { ...s, order: sorted[targetIdx].order }
+        if (s.id === sorted[targetIdx].id) return { ...s, order: sorted[idx].order }
+        return s
+      })
+    })
+  }
+
+  const sortedSlides = [...carouselCfg].sort((a, b) => a.order - b.order)
+  const activeCount  = carouselCfg.filter((s) => s.enabled).length
 
   return (
     <div className="h-full overflow-y-auto">
@@ -90,7 +143,7 @@ export default function SectionSiteBooking() {
                 aria-label="Verificar domínio"
                 className="shrink-0 rounded-md border border-[#E2E8F0] px-3 py-2 text-[12px] text-[#CBD5E1] cursor-not-allowed"
               >
-                {domainStatus === 'checking' ? 'Verificando…' : domainStatus === 'ok' ? 'Verificado' : 'Verificar'}
+                Verificar
               </button>
             </div>
           </div>
@@ -146,24 +199,78 @@ export default function SectionSiteBooking() {
           <div className="space-y-3">
             {(
               [
-                { field: 'showPrices'            as const, label: 'Mostrar preços no site'                   },
-                { field: 'showProfessionals'     as const, label: 'Mostrar profissionais disponíveis'         },
-                { field: 'allowProfessionalChoice' as const, label: 'Permitir que o cliente escolha o profissional' },
+                { field: 'showPrices'              as const, label: 'Mostrar preços no site'                        },
+                { field: 'showProfessionals'       as const, label: 'Mostrar profissionais disponíveis'              },
+                { field: 'allowProfessionalChoice' as const, label: 'Permitir que o cliente escolha o profissional'  },
               ] as const
             ).map(({ field, label }) => (
               <div key={field} className="flex items-center gap-3">
-                <Toggle
-                  checked={cfg[field]}
-                  onChange={(v) => set(field, v)}
-                  label={label}
-                />
+                <Toggle checked={cfg[field]} onChange={(v) => set(field, v)} label={label} />
                 <span className="text-[13px] text-[#0F172A]">{label}</span>
               </div>
             ))}
           </div>
         </SectionCard>
 
-        {/* Preview */}
+        {/* Carrossel do App */}
+        <SectionCard title="Carrossel do App Cliente">
+          <p className="mb-4 text-[12px] text-[#64748B]">
+            Configure quais seções aparecem no carrossel e em qual ordem.
+          </p>
+          <ul className="space-y-2" aria-label="Slides do carrossel">
+            {sortedSlides.map((slide, idx) => (
+              <li
+                key={slide.id}
+                className={cn(
+                  'flex items-center gap-3 rounded-md border px-3 py-2.5 transition-colors',
+                  slide.enabled ? 'border-[#E2E8F0] bg-white' : 'border-[#F1F5F9] bg-[#F8FAFC]',
+                )}
+              >
+                <span className="cursor-grab select-none text-[14px] text-[#CBD5E1]" aria-hidden="true">☰</span>
+                <Toggle
+                  checked={slide.enabled}
+                  onChange={() => toggleSlide(slide.id)}
+                  label={`${slide.enabled ? 'Desativar' : 'Ativar'} ${SLIDE_LABELS[slide.type]}`}
+                />
+                <span className="text-[16px]" aria-hidden="true">{SLIDE_ICONS[slide.type]}</span>
+                <span className={cn('min-w-0 flex-1 text-[13px]', slide.enabled ? 'font-medium text-[#0F172A]' : 'text-[#94A3B8]')}>
+                  {SLIDE_LABELS[slide.type]}
+                </span>
+                <div className="flex gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, 'up')}
+                    disabled={idx === 0}
+                    aria-label={`Mover ${SLIDE_LABELS[slide.type]} para cima`}
+                    className="flex h-7 w-7 items-center justify-center rounded text-[#475569] transition-colors hover:bg-[#F1F5F9] hover:text-[#0F172A] disabled:cursor-not-allowed disabled:text-[#CBD5E1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                  >
+                    <ChevronUp size={14} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveItem(idx, 'down')}
+                    disabled={idx === sortedSlides.length - 1}
+                    aria-label={`Mover ${SLIDE_LABELS[slide.type]} para baixo`}
+                    className="flex h-7 w-7 items-center justify-center rounded text-[#475569] transition-colors hover:bg-[#F1F5F9] hover:text-[#0F172A] disabled:cursor-not-allowed disabled:text-[#CBD5E1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                  >
+                    <ChevronDown size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-[12px] text-[#64748B]">
+              Preview:{' '}
+              <span className="font-medium text-[#0F172A]">
+                {activeCount} slide{activeCount !== 1 ? 's' : ''} ativo{activeCount !== 1 ? 's' : ''}
+              </span>
+            </p>
+            <SaveButton state={carouselSaveState} onClick={triggerCarouselSave} label="Salvar configuração" />
+          </div>
+        </SectionCard>
+
+        {/* Preview link */}
         <div className="flex items-center justify-between">
           <a
             href={`https://milliagenda.com/${cfg.slug}`}

@@ -1,0 +1,54 @@
+[build]
+builder = "nixpacks"
+
+# ─── API Service ──────────────────────────────────────────────────────────────
+
+[[services]]
+name = "api"
+source = "apps/api"
+
+[services.build]
+buildCommand = "npm run build"
+watchPatterns = ["apps/api/**", "packages/**"]
+
+[services.deploy]
+startCommand = "node dist/main"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+NODE_ENV = { default = "production" }
+API_PORT = { default = "3001" }
+API_HOST = { default = "0.0.0.0" }
+
+# ─── Web Service ──────────────────────────────────────────────────────────────
+
+[[services]]
+name = "web"
+source = "apps/web"
+
+[services.build]
+buildCommand = "npm run build"
+watchPatterns = ["apps/web/**", "packages/**"]
+
+[services.deploy]
+startCommand = "npm run start"
+healthcheckPath = "/"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[services.variables]
+NODE_ENV = { default = "production" }
+
+# ─── Environments ─────────────────────────────────────────────────────────────
+
+[environments.staging]
+  [environments.staging.deploy]
+  numReplicas = 1
+
+[environments.production]
+  [environments.production.deploy]
+  numReplicas = 2

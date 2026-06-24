@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Radix UI / shadcn compatibility variables */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.375rem;
+
+    /* Design system tokens used by sidebar and topbar */
+    --color-sidebar:            #0F172A;
+    --color-sidebar-hover:      #1E293B;
+    --color-sidebar-active:     #2563EB;
+    --color-sidebar-border:     #1E293B;
+    --color-sidebar-text:       #94A3B8;
+    --color-sidebar-text-active:#FFFFFF;
+    --color-sidebar-text-hover: #CBD5E1;
+
+    --color-primary:            #2563EB;
+    --color-primary-dark:       #1D4ED8;
+    --color-primary-light:      #DBEAFE;
+
+    --color-content-primary:    #0F172A;
+    --color-content-secondary:  #475569;
+
+    --color-bg-secondary:       #F1F5F9;
+    --color-border:             #E2E8F0;
+    --color-danger:             #EF4444;
+  }
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: #E2E8F0;
+  }
+
+  body {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #DBEAFE;
+  }
+}
+
+@layer utilities {
+  .font-tabular { font-variant-numeric: tabular-nums; }
+}
+
+/* Respect user motion preferences — required for WCAG 2.3.3 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

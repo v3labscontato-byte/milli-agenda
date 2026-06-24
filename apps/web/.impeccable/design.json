@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-24T00:00:00.000Z",
+  "title": "Design System: Milli Agenda",
+  "extensions": {
+    "colorMeta": {
+      "signal-blue":     { "role": "primary",  "displayName": "Signal Blue",     "tonalRamp": ["#1E3A8A","#1E40AF","#1D4ED8","#2563EB","#3B82F6","#60A5FA","#93C5FD","#DBEAFE"] },
+      "command-dark":    { "role": "neutral",   "displayName": "Command Dark",    "tonalRamp": ["#020408","#0F172A","#1E293B","#334155","#475569","#64748B","#94A3B8","#CBD5E1"] },
+      "working-surface": { "role": "neutral",   "displayName": "Working Surface", "tonalRamp": ["#CBD5E1","#E2E8F0","#F1F5F9","#F8FAFC","#FFFFFF","#FFFFFF","#FFFFFF","#FFFFFF"] },
+      "success":         { "role": "semantic",  "displayName": "Success Green",   "tonalRamp": ["#022C22","#065F46","#047857","#059669","#10B981","#34D399","#6EE7B7","#D1FAE5"] },
+      "warning":         { "role": "semantic",  "displayName": "Warning Amber",   "tonalRamp": ["#78350F","#92400E","#B45309","#D97706","#F59E0B","#FBBF24","#FCD34D","#FEF3C7"] },
+      "danger":          { "role": "semantic",  "displayName": "Danger Red",      "tonalRamp": ["#7F1D1D","#991B1B","#B91C1C","#DC2626","#EF4444","#F87171","#FCA5A5","#FEE2E2"] },
+      "purple":          { "role": "semantic",  "displayName": "Service Purple",  "tonalRamp": ["#3B0764","#4C1D95","#5B21B6","#6D28D9","#8B5CF6","#A78BFA","#C4B5FD","#F3E8FF"] }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display",  "purpose": "Page-level titles and large KPI labels. One per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers, dialog titles, primary panel headings." },
+      "title":    { "displayName": "Title",    "purpose": "Card headings, sub-section titles." },
+      "title-sm": { "displayName": "Title SM", "purpose": "Table column headers, form section labels." },
+      "body":     { "displayName": "Body",     "purpose": "All prose, descriptions, table cell data. The default." },
+      "label":    { "displayName": "Label",    "purpose": "Helper text, input labels, supplementary metadata." },
+      "caption":  { "displayName": "Caption",  "purpose": "Status badge text, system labels, tag overlines (uppercase only)." },
+      "kpi":      { "displayName": "KPI",      "purpose": "Dashboard metric numeric values exclusively. Never repurposed." }
+    },
+    "shadows": [
+      { "name": "card",     "value": "0 1px 3px 0 rgb(0 0 0 / 0.04)",     "purpose": "Default card and panel lift. Prevents edge loss on bright displays." },
+      { "name": "dropdown", "value": "0 4px 6px -1px rgb(0 0 0 / 0.08)", "purpose": "Menus, autocomplete popovers, select options." },
+      { "name": "modal",    "value": "0 20px 25px -5px rgb(0 0 0 / 0.08)","purpose": "Full modal dialogs only. Maximum depth in the system." },
+      { "name": "focus",    "value": "0 0 0 3px #DBEAFE",                  "purpose": "Keyboard-navigation focus indicator on :focus-visible only." }
+    ],
+    "motion": [
+      { "name": "fade-in",     "value": "fade-in 150ms ease-out", "purpose": "Async content reveal: translateY(4px)→0, opacity 0→1." },
+      { "name": "state-change","value": "150ms ease-out",          "purpose": "Default duration for all state transitions (color, border, bg)." }
+    ],
+    "breakpoints": [
+      { "name": "sidebar-collapse", "value": "1024px", "purpose": "Sidebar switches from 240px to 64px icon-only below this." },
+      { "name": "mobile",           "value": "640px",  "purpose": "Single-column stack. Sidebar becomes a bottom sheet or drawer." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button Primary",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary CTA. Used for the single most important action on a screen.",
+      "html": "<button class=\"ds-btn-primary\">Confirmar</button>",
+      "css": ".ds-btn-primary { background: #2563EB; color: #fff; padding: 8px 16px; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.6; border: none; border-radius: 4px; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-primary:hover { background: #1D4ED8; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px #DBEAFE; } .ds-btn-primary:active { background: #1E40AF; } .ds-btn-primary:disabled { background: #CBD5E1; color: #94A3B8; cursor: not-allowed; }"
+    },
+    {
+      "name": "Button Secondary",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action. Paired with a primary button or used for lower-priority actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #2563EB; padding: 8px 16px; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.6; border: 1px solid #2563EB; border-radius: 4px; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-secondary:hover { background: #EFF6FF; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px #DBEAFE; } .ds-btn-secondary:disabled { color: #94A3B8; border-color: #CBD5E1; cursor: not-allowed; }"
+    },
+    {
+      "name": "Button Danger",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action only. Delete appointment, cancel comanda. Never for warnings.",
+      "html": "<button class=\"ds-btn-danger\">Cancelar Agendamento</button>",
+      "css": ".ds-btn-danger { background: #EF4444; color: #fff; padding: 8px 16px; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.6; border: none; border-radius: 4px; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-danger:hover { background: #DC2626; } .ds-btn-danger:focus-visible { outline: none; box-shadow: 0 0 0 3px #FEE2E2; } .ds-btn-danger:active { background: #B91C1C; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input with label. Used across all forms.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-input-1\">Nome do cliente</label><input class=\"ds-input\" id=\"ds-input-1\" type=\"text\" placeholder=\"Maria Silva\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; } .ds-label { font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 12px; font-weight: 400; line-height: 1.5; color: #64748B; } .ds-input { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; line-height: 1.6; color: #0F172A; transition: border-color 150ms ease-out, box-shadow 150ms ease-out; } .ds-input::placeholder { color: #94A3B8; } .ds-input:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px #DBEAFE; } .ds-input:disabled { background: #F1F5F9; color: #CBD5E1; cursor: not-allowed; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "status-badge",
+      "description": "Appointment state indicator. All 8 lifecycle states. Always color + icon + label.",
+      "html": "<span class=\"ds-status ds-status--confirmed\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\"><circle cx=\"6\" cy=\"6\" r=\"5\" stroke=\"#10B981\" stroke-width=\"1.5\"/><path d=\"M3.5 6L5.5 8L8.5 4\" stroke=\"#10B981\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>CONFIRMADO</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; border: 1px solid; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 11px; font-weight: 500; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; } .ds-status--scheduled { background: #EFF6FF; color: #1D4ED8; border-color: #2563EB; } .ds-status--confirmed { background: #D1FAE5; color: #065F46; border-color: #10B981; } .ds-status--checkin { background: #FEF3C7; color: #92400E; border-color: #F59E0B; } .ds-status--inservice { background: #F3E8FF; color: #6B21A8; border-color: #8B5CF6; } .ds-status--awaiting { background: #FEE2E2; color: #991B1B; border-color: #EF4444; } .ds-status--completed { background: #D1FAE5; color: #065F46; border-color: #10B981; } .ds-status--noshow { background: #F1F5F9; color: #475569; border-color: #94A3B8; } .ds-status--cancelled { background: #FEE2E2; color: #991B1B; border-color: #EF4444; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard container for grouped content. Cards are never nested.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card__title\">Corte + Escova</h3><p class=\"ds-card__body\">Maria Silva — 10:30</p></div>",
+      "css": ".ds-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04); padding: 16px; } .ds-card__title { font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 16px; font-weight: 500; line-height: 1.4; color: #0F172A; margin: 0 0 4px; } .ds-card__body { font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; line-height: 1.6; color: #64748B; margin: 0; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "sidebar-nav",
+      "description": "Navigation item inside the Command Dark sidebar. Shows idle, hover, and active states.",
+      "html": "<nav class=\"ds-sidebar\"><a class=\"ds-nav-item ds-nav-item--active\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><rect x=\"2\" y=\"2\" width=\"5\" height=\"5\" rx=\"1\" fill=\"currentColor\"/><rect x=\"9\" y=\"2\" width=\"5\" height=\"5\" rx=\"1\" fill=\"currentColor\"/><rect x=\"2\" y=\"9\" width=\"5\" height=\"5\" rx=\"1\" fill=\"currentColor\"/><rect x=\"9\" y=\"9\" width=\"5\" height=\"5\" rx=\"1\" fill=\"currentColor\"/></svg>Agenda</a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><circle cx=\"8\" cy=\"6\" r=\"3\" stroke=\"currentColor\" stroke-width=\"1.5\"/><path d=\"M2 14c0-3.31 2.686-6 6-6s6 2.69 6 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"/></svg>Clientes</a></nav>",
+      "css": ".ds-sidebar { background: #0F172A; padding: 8px; display: flex; flex-direction: column; gap: 2px; } .ds-nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 14px; font-weight: 400; color: #94A3B8; text-decoration: none; transition: background 150ms ease-out, color 150ms ease-out; } .ds-nav-item:hover { background: #1E293B; color: #CBD5E1; } .ds-nav-item--active { background: #2563EB; color: #FFFFFF; font-weight: 500; }"
+    },
+    {
+      "name": "KPI Tile",
+      "kind": "card",
+      "refersTo": "kpi-tile",
+      "description": "Dashboard metric display. Numeric value + label only. Never repurposed for marketing.",
+      "html": "<div class=\"ds-kpi-card\"><span class=\"ds-kpi__value\">47</span><span class=\"ds-kpi__label\">Agendamentos Hoje</span></div>",
+      "css": ".ds-kpi-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04); padding: 24px; display: flex; flex-direction: column; gap: 4px; } .ds-kpi__value { font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #0F172A; } .ds-kpi__label { font-family: 'SF Pro Text', Inter, -apple-system, sans-serif; font-size: 11px; font-weight: 500; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; color: #64748B; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Operational Clock",
+    "overview": "The Milli Agenda design system exists to make a salon's operational tempo visible and actionable — at a glance, under pressure, with one hand free. Like the clock on the salon wall, every element must be instantly readable: what state, whose chair, what needs doing next. The aesthetic borrows directly from Stripe's operational density — high information, zero visual noise — and applies it to the rhythm of a Brazilian beauty business where a missed appointment or an unclear status costs real money.\n\nThis system explicitly rejects the glossy marketplace UI of Fresha and Booksy, where saturated conversion CTAs displace professional workflow. It rejects the gradient-and-glassmorphism dashboard aesthetic that reads as a Dribbble demo on first load and breaks under daily use. It equally rejects the generic teal-and-white SaaS neutral that achieves clarity by erasing context.\n\nDesign serves the shift, not the brand. The interface disappears while the work happens.",
+    "keyCharacteristics": [
+      "Operational density: Stripe-level information per screen-centimeter",
+      "Signal Blue used only for decision points — primary actions, active selections, focused fields",
+      "Eight appointment states, each uniquely identifiable by color + icon + label (never color alone)",
+      "Sidebar as command layer: dark, authoritative, always-collapse-aware",
+      "Flat surfaces by default; shadows mark layer relationships, not aesthetics",
+      "150ms state-change transitions; no page-load choreography"
+    ],
+    "rules": [
+      { "name": "The One-Accent Rule",     "body": "Signal Blue (#2563EB) is the only saturated accent in the neutral field. Status colors encode lifecycle state, not personality. The moment Signal Blue appears as decoration, the system loses its primary decision signal.",              "section": "colors" },
+      { "name": "The No-Decoration Rule",  "body": "Danger red, success green, warning amber, and purple each map to specific appointment lifecycle states. Using them for badges, promotions, or visual accent corrupts the operational vocabulary.",                                  "section": "colors" },
+      { "name": "The No-Fluid Rule",       "body": "All font sizes are fixed in px. Product UIs at consistent DPI gain nothing from clamp() type and lose layout predictability.",                                                                                                   "section": "typography" },
+      { "name": "The KPI-Only Rule",       "body": "The 28px/700 role is exclusive to dashboard metric values. A large bold number in any other context is the hero-metric SaaS cliché: prohibited.",                                                                              "section": "typography" },
+      { "name": "The Flat-By-Default Rule","body": "Surfaces rest flat. Shadows appear only to mark functional layer relationships. No ambient glows, no blur, no glassmorphism under any circumstance.",                                                                          "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Signal Blue (#2563EB) exclusively for primary CTA buttons, active sidebar nav, focused input borders, and selection indicators.",
+      "Do always render appointment status with color + icon + text label together. WCAG AA forbids color as the sole state indicator.",
+      "Do use fixed px sizes for all typography. No clamp() in product UI.",
+      "Do use only the three-shadow vocabulary (card / dropdown / modal).",
+      "Do target ≤ 3 interactions for any critical operation: schedule, check-in, charge.",
+      "Do prefer density over whitespace when density reduces navigation.",
+      "Do keep all motion to 150ms. Transitions convey state; anything longer performs for the user."
+    ],
+    "donts": [
+      "Don't reproduce Fresha or Booksy's marketplace UI patterns — saturated Book Now CTAs, consumer star ratings, promotional banners.",
+      "Don't use glassmorphism. Background blurs, frosted panels, and translucent cards are explicitly banned.",
+      "Don't use the startup gradient-dashboard aesthetic: glowing metric cards, gradient overlays, neon accent pulses.",
+      "Don't produce generic SaaS neutral. Milli Agenda is a Brazilian salon operations tool with a specific vocabulary.",
+      "Don't use display fonts in UI labels, data cells, buttons, or navigation.",
+      "Don't let semantic colors appear as decoration. Each maps to a specific appointment lifecycle state.",
+      "Don't use gradient text (background-clip: text + gradient). Never intentional.",
+      "Don't add page-load choreography. Motion conveys state change only.",
+      "Don't use border-left/border-right > 1px as a colored decorative stripe. Use full-width background blocks instead."
+    ]
+  }
+}

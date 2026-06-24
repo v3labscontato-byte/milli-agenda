@@ -2,7 +2,6 @@ import { mockAppointments, mockKpis } from '@/lib/mock-data'
 import KpiStrip from '@/components/kpi-strip'
 import Upcoming from '@/components/upcoming'
 import AgendaTable from '@/components/agenda-table'
-import AppointmentsNow from '@/components/appointments-now'
 import BookingsChart from '@/components/charts/bookings-chart'
 import WeeklyChart from '@/components/charts/weekly-chart'
 import ServicesChart from '@/components/charts/services-chart'
@@ -11,9 +10,6 @@ import VolumeChart from '@/components/charts/volume-chart'
 export const metadata = { title: 'Dashboard' }
 
 export default function DashboardPage() {
-  const activeNow = mockAppointments.filter(
-    (a) => a.status === 'IN_SERVICE' || a.status === 'AWAITING_PAYMENT',
-  )
   const upcoming = mockAppointments.filter(
     (a) => a.status === 'SCHEDULED' || a.status === 'CONFIRMED',
   )
@@ -24,10 +20,7 @@ export default function DashboardPage() {
       {/* ① KPI Strip */}
       <KpiStrip kpis={mockKpis} />
 
-      {/* ② Em Atendimento Agora */}
-      <AppointmentsNow appointments={activeNow} />
-
-      {/* ③ Analytics 2×2 */}
+      {/* ② Analytics 2×2 */}
       <section aria-labelledby="analytics-heading">
         <div className="mb-4">
           <h2 id="analytics-heading" className="text-[16px] font-medium leading-[1.4] text-[#0F172A]">

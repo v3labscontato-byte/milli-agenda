@@ -1,87 +1,77 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { ReceiptText } from 'lucide-react'
 import {
   MOCK_COMANDAS,
   nextNumber,
   type Comanda,
-  type ComandaItem,
-  type ComandaStatus,
   type ComandasFilter,
-  type Discount,
 } from '@/lib/comanda-mock'
 import ComandaKpiStrip from '@/components/comandas/comanda-kpi-strip'
-import ComandaList from '@/components/comandas/comanda-list'
-import ComandaDetail from '@/components/comandas/comanda-detail'
+import ComandaTable from '@/components/comandas/comanda-table'
 import NovaComandaModal, { type NovaComandaData } from '@/components/comandas/nova-comanda-modal'
+import PaymentModal from '@/components/shared/payment-modal'
+import { cn } from '@/lib/utils'
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function EmptyDetail({ onNew }: { onNew: () => void }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 bg-[#F8FAFC] px-8">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
-        <ReceiptText size={24} className="text-[#CBD5E1]" aria-hidden="true" />
-      </div>
-      <div className="text-center">
-        <p className="text-[14px] font-semibold text-[#475569]">Selecione uma comanda</p>
-        <p className="mt-1 text-[12px] text-[#94A3B8]">
-          Clique em qualquer comanda para ver os detalhes e gerenciar o atendimento.
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={onNew}
-        className="mt-2 flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
-      >
-        <ReceiptText size={13} aria-hidden="true" />
-        Abrir Nova Comanda
-      </button>
-    </div>
-  )
+function formatDateShort(date: Date): string {
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`
 }
+
+// ─── Filter pills config ──────────────────────────────────────────────────────
+
+const FILTER_PILLS: { label: string; value: ComandasFilter }[] = [
+  { label: 'Todas',        value: 'ALL'              },
+  { label: 'Abertas',      value: 'OPEN_IN_PROGRESS' },
+  { label: 'Aguard. Pagto', value: 'AWAITING_PAYMENT' },
+  { label: 'Pagas',        value: 'PAID'             },
+  { label: 'Canceladas',   value: 'CANCELLED'        },
+]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComandasPage() {
-  const [comandas, setComandas]     = useState<Comanda[]>(MOCK_COMANDAS)
+  const [comandas, setComandas]         = useState<Comanda[]>(MOCK_COMANDAS)
   const [statusFilter, setStatusFilter] = useState<ComandasFilter>('ALL')
-  const [selectedId, setSelectedId] = useState<string | null>(() => {
-    const first = MOCK_COMANDAS.find((c) => c.status === 'OPEN' || c.status === 'IN_PROGRESS')
-    return first?.id ?? MOCK_COMANDAS[0]?.id ?? null
-  })
-  const [novoOpen, setNovoOpen]     = useState(false)
+  const [searchQuery, setSearchQuery]   = useState('')
+  const [openId, setOpenId]             = useState<string | null>(null)
+  const [novoOpen, setNovoOpen]         = useState(false)
 
-  const selected = useMemo(
-    () => comandas.find((c) => c.id === selectedId) ?? null,
-    [comandas, selectedId],
+  const openComanda = useMemo(
+    () => comandas.find((c) => c.id === openId) ?? null,
+    [comandas, openId],
   )
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let result = comandas
 
-  const updateSelected = useCallback((fn: (c: Comanda) => Comanda) => {
-    setComandas((prev) => prev.map((c) => (c.id === selectedId ? fn(c) : c)))
-  }, [selectedId])
+    if (statusFilter !== 'ALL') {
+      if (statusFilter === 'OPEN_IN_PROGRESS') {
+        result = result.filter((c) => c.status === 'OPEN' || c.status === 'IN_PROGRESS')
+      } else {
+        result = result.filter((c) => c.status === statusFilter)
+      }
+    }
 
-  const handleAddItem = useCallback((item: Omit<ComandaItem, 'id'>) => {
-    updateSelected((c) => ({
-      ...c,
-      items: [...c.items, { ...item, id: `i-${Date.now()}` }],
-    }))
-  }, [updateSelected])
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (c) =>
+          c.clientName.toLowerCase().includes(q) ||
+          c.service.toLowerCase().includes(q) ||
+          c.professional.toLowerCase().includes(q) ||
+          c.number.includes(q),
+      )
+    }
 
-  const handleRemoveItem = useCallback((itemId: string) => {
-    updateSelected((c) => ({ ...c, items: c.items.filter((i) => i.id !== itemId) }))
-  }, [updateSelected])
+    return result
+  }, [comandas, statusFilter, searchQuery])
 
-  const handleApplyDiscount = useCallback((discount: Discount | null) => {
-    updateSelected((c) => ({ ...c, discount }))
-  }, [updateSelected])
-
-  const handleStatusChange = useCallback((status: ComandaStatus) => {
-    updateSelected((c) => ({ ...c, status }))
-  }, [updateSelected])
+  const handleFilterChange = useCallback((f: ComandasFilter) => {
+    setStatusFilter(f)
+    setSearchQuery('')
+  }, [])
 
   const handleCreate = useCallback((data: NovaComandaData) => {
     const id = `c-${Date.now()}`
@@ -108,19 +98,13 @@ export default function ComandasPage() {
     }
 
     setComandas((prev) => [comanda, ...prev])
-    setSelectedId(id)
     setStatusFilter('ALL')
   }, [comandas])
-
-  function handleFilterChange(f: ComandasFilter) {
-    setStatusFilter(f)
-    setSelectedId(null)
-  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
 
-      {/* ── KPI strip (full width, clickable filter cards) ── */}
+      {/* ── KPI strip ── */}
       <ComandaKpiStrip
         comandas={comandas}
         activeFilter={statusFilter}
@@ -128,45 +112,77 @@ export default function ComandasPage() {
         onNew={() => setNovoOpen(true)}
       />
 
-      {/* ── Split panel ── */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-
-        {/* Left: scrollable comanda list */}
-        <div className="w-[320px] shrink-0 overflow-hidden border-r border-[#E2E8F0] bg-white">
-          <ComandaList
-            comandas={comandas}
-            selectedId={selectedId}
-            statusFilter={statusFilter}
-            onStatusFilterChange={handleFilterChange}
-            onSelect={setSelectedId}
+      {/* ── Search + filter pills ── */}
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-5 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            type="search"
+            placeholder="Buscar cliente, serviço, profissional..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={cn(
+              'min-w-0 flex-1 rounded-md border border-[#E2E8F0] bg-[#F8FAFC]',
+              'px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#64748B]',
+              'focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
+            )}
           />
-        </div>
-
-        {/* Right: detail panel */}
-        <div className="min-w-0 flex-1 overflow-hidden">
-          {selected ? (
-            <ComandaDetail
-              key={selected.id}
-              comanda={selected}
-              onBack={() => setSelectedId(null)}
-              onAddItem={handleAddItem}
-              onRemoveItem={handleRemoveItem}
-              onApplyDiscount={handleApplyDiscount}
-              onStatusChange={handleStatusChange}
-              onNewComanda={() => setNovoOpen(true)}
-            />
-          ) : (
-            <EmptyDetail onNew={() => setNovoOpen(true)} />
-          )}
+          <div className="flex shrink-0 flex-wrap gap-1.5" role="group" aria-label="Filtrar por status">
+            {FILTER_PILLS.map(({ label, value }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setStatusFilter(value)}
+                aria-pressed={statusFilter === value}
+                className={cn(
+                  'rounded-sm border px-3 py-1.5 text-[12px] font-medium',
+                  'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                  statusFilter === value
+                    ? 'border-[#2563EB] bg-[#2563EB] text-white'
+                    : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── Full-width table ── */}
+      <div className="min-h-0 flex-1 overflow-auto bg-white">
+        <ComandaTable comandas={filtered} onOpen={setOpenId} />
+      </div>
+
+      {/* ── Nova Comanda modal ── */}
       <NovaComandaModal
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
         onCreate={handleCreate}
       />
+
+      {/* ── Payment modal ── */}
+      {openComanda && (
+        <PaymentModal
+          open={openId !== null}
+          commandId={openComanda.number}
+          clientName={openComanda.clientName}
+          professionalName={openComanda.professional}
+          serviceName={openComanda.service}
+          date={formatDateShort(openComanda.date)}
+          startTime={openComanda.startTime}
+          endTime={openComanda.endTime}
+          items={openComanda.items}
+          deposit={openComanda.deposit}
+          initialDiscount={openComanda.discount}
+          onClose={() => setOpenId(null)}
+          onConfirm={() => {
+            setComandas((prev) =>
+              prev.map((c) => (c.id === openId ? { ...c, status: 'PAID' } : c)),
+            )
+            setOpenId(null)
+          }}
+        />
+      )}
     </div>
   )
 }

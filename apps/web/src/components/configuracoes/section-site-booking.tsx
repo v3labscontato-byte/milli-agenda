@@ -31,7 +31,6 @@ export default function SectionSiteBooking() {
   const [cfg, setCfg] = useState<BookingSiteConfig>(MOCK_BOOKING_SITE)
   const [saveState, triggerSave] = useSaveState()
   const [copied, setCopied] = useState(false)
-  const [domainStatus, setDomainStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle')
 
   const [carouselCfg, setCarouselCfg] = useState<CarouselSlideConfig[]>(() =>
     [...CAROUSEL_CONFIG].sort((a, b) => a.order - b.order),
@@ -47,13 +46,6 @@ export default function SectionSiteBooking() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-
-  async function handleVerifyDomain() {
-    setDomainStatus('checking')
-    await new Promise((r) => setTimeout(r, 1200))
-    setDomainStatus('ok')
-  }
-  void handleVerifyDomain
 
   function toggleSlide(id: string) {
     setCarouselCfg((prev) => {

@@ -61,7 +61,7 @@ export function SaveButton({ state, onClick, label = 'Salvar alterações' }: Sa
       disabled={state === 'saving'}
       aria-busy={state === 'saving'}
       className={cn(
-        'flex items-center gap-2 rounded-sm px-4 py-2 text-[13px] font-medium',
+        'flex items-center gap-2 rounded-md px-4 py-2 text-[13px] font-medium',
         'transition-colors duration-150 motion-reduce:transition-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
         state === 'saved'
@@ -174,12 +174,12 @@ export function SectionCard({ title, children, className }: SectionCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
+        'rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
         className,
       )}
     >
       {title && (
-        <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+        <p className="mb-4 text-[14px] font-semibold text-[#0F172A]">
           {title}
         </p>
       )}

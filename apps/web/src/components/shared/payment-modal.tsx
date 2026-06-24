@@ -67,15 +67,13 @@ const METHODS: MethodConfig[] = [
 ]
 const METHOD_MAP = Object.fromEntries(METHODS.map((m) => [m.id, m])) as Record<PaymentMethodId, MethodConfig>
 
-let _counter = 0
 function newEntry(method: PaymentMethodId = 'pix'): PaymentEntry {
-  return { id: String(++_counter), method, amount: '', installments: 1 }
+  return { id: crypto.randomUUID(), method, amount: '', installments: 1 }
 }
 
 type LocalItem = PaymentItem & { _key: string }
-let _itemKey = 0
 function withKey(item: PaymentItem): LocalItem {
-  return { ...item, _key: `lk${++_itemKey}` }
+  return { ...item, _key: crypto.randomUUID() }
 }
 
 function cashChange(entry: PaymentEntry, allEntries: PaymentEntry[], due: number): number {

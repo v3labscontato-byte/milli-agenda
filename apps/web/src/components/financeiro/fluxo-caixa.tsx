@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ResponsiveContainer,
@@ -65,15 +65,17 @@ function FluxoCaixa({ entries }: FluxoCaixaProps) {
   }, [])
 
   const saldoFinal    = entries.at(-1)?.saldoAcum ?? 0
-  const totalEntradas = entries.reduce((s, e) => s + e.entradas, 0)
-  const totalSaidas   = entries.reduce((s, e) => s + e.saidas, 0)
+  const totalEntradas = useMemo(() => entries.reduce((s, e) => s + e.entradas, 0), [entries])
+  const totalSaidas   = useMemo(() => entries.reduce((s, e) => s + e.saidas, 0), [entries])
 
-  const chartData: ChartEntry[] = entries.map((e) => ({
+  const chartData: ChartEntry[] = useMemo(() => entries.map((e) => ({
     dateLabel: e.dateLabel,
     entradas:  e.entradas,
     saidas:    e.saidas,
     saldoAcum: e.saldoAcum,
-  }))
+  })), [entries])
+
+  const reversedEntries = useMemo(() => [...entries].reverse(), [entries])
 
   // Show every 4th label to avoid crowding
   const tickFormatter = (_: string, idx: number) => (idx % 4 === 0 ? entries[idx]?.dateLabel ?? '' : '')
@@ -157,7 +159,7 @@ function FluxoCaixa({ entries }: FluxoCaixaProps) {
               </tr>
             </thead>
             <tbody>
-              {[...entries].reverse().map((e, i, arr) => (
+              {reversedEntries.map((e, i, arr) => (
                 <tr
                   key={e.dateLabel}
                   className={cn(

@@ -42,14 +42,14 @@ function BarTooltip({ active, payload, label }: BarTooltipProps) {
 
 // ─── Donut tooltip ────────────────────────────────────────────────────────────
 
-interface DonutEntry { name?: string; value?: number; color?: string }
+interface DonutEntry { name?: string; value?: number; payload?: { total?: number } }
 interface DonutTooltipProps { active?: boolean; payload?: DonutEntry[] }
 
 function DonutTooltip({ active, payload }: DonutTooltipProps) {
   if (!active || !payload?.length) return null
   const d = payload[0]
-  const total = 8240
-  const pct = (((d.value ?? 0) / total) * 100).toFixed(1)
+  const total = d.payload?.total ?? 0
+  const pct = total > 0 ? (((d.value ?? 0) / total) * 100).toFixed(1) : '0.0'
   return (
     <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2 shadow-md">
       <p className="text-[12px] font-semibold text-[#0F172A]">{d.name}</p>
@@ -108,6 +108,7 @@ export default function ReceitaChart({ weeklyData, metodoData }: ReceitaChartPro
   if (!mounted) return <Skeleton />
 
   const total = metodoData.reduce((s, m) => s + m.value, 0)
+  const metodoDataWithTotal = metodoData.map((m) => ({ ...m, total }))
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -163,7 +164,7 @@ export default function ReceitaChart({ weeklyData, metodoData }: ReceitaChartPro
             <ResponsiveContainer width={140} height={140}>
               <PieChart>
                 <Pie
-                  data={metodoData}
+                  data={metodoDataWithTotal}
                   dataKey="value"
                   nameKey="label"
                   cx="50%" cy="50%"
@@ -171,7 +172,7 @@ export default function ReceitaChart({ weeklyData, metodoData }: ReceitaChartPro
                   strokeWidth={2} stroke="#fff"
                   isAnimationActive={!prefersReduced}
                 >
-                  {metodoData.map((m) => <Cell key={m.id} fill={m.color} />)}
+                  {metodoDataWithTotal.map((m) => <Cell key={m.id} fill={m.color} />)}
                 </Pie>
                 <Tooltip content={<DonutTooltip />} />
               </PieChart>

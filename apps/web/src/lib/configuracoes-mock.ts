@@ -282,3 +282,48 @@ export const HOUR_OPTIONS: string[] = Array.from({ length: 35 }, (_, i) => {
   const m = totalMinutes % 60
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 })
+
+// ─── Afiliados ─────────────────────────────────────────────────────────────────
+
+export interface AfiliadosConfig {
+  active: boolean
+  commissionPercent: number
+  minRedemptionBRL: number
+  expirationMonths: number
+}
+
+export const MOCK_AFILIADOS_CONFIG: AfiliadosConfig = {
+  active: true,
+  commissionPercent: 10,
+  minRedemptionBRL: 50,
+  expirationMonths: 12,
+}
+
+// ─── Fidelidade ────────────────────────────────────────────────────────────────
+
+export interface FidelidadeNivel {
+  name: string
+  minPts: number
+  color: string
+}
+
+export interface FidelidadeConfig {
+  active: boolean
+  pointsPerReal: number
+  pointValueBRL: number
+  pointsPerReview: number
+  niveis: FidelidadeNivel[]
+}
+
+export const MOCK_FIDELIDADE_CONFIG: FidelidadeConfig = {
+  active: true,
+  pointsPerReal: 1,
+  pointValueBRL: 0.10,
+  pointsPerReview: 50,
+  niveis: [
+    { name: 'Bronze',  minPts: 0,    color: '#CD7F32' },
+    { name: 'Silver',  minPts: 500,  color: '#94A3B8' },
+    { name: 'Gold',    minPts: 1500, color: '#F59E0B' },
+    { name: 'Diamond', minPts: 5000, color: '#7C3AED' },
+  ],
+}

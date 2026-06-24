@@ -10,6 +10,8 @@ import {
   Zap,
   Code2,
   Shield,
+  Percent,
+  Award,
 } from 'lucide-react'
 
 export type TabId =
@@ -21,6 +23,8 @@ export type TabId =
   | 'plano'
   | 'api'
   | 'lgpd'
+  | 'afiliados'
+  | 'fidelidade'
 
 interface Tab {
   id: TabId
@@ -37,6 +41,8 @@ const TABS: Tab[] = [
   { id: 'plano',        label: 'Plano',         icon: Zap        },
   { id: 'api',          label: 'API & Integr.', icon: Code2      },
   { id: 'lgpd',         label: 'LGPD',          icon: Shield     },
+  { id: 'afiliados',    label: 'Afiliados',     icon: Percent    },
+  { id: 'fidelidade',   label: 'Fidelidade',    icon: Award      },
 ]
 
 interface SettingsNavProps {
@@ -47,7 +53,7 @@ interface SettingsNavProps {
 export default function SettingsNav({ active, onChange }: SettingsNavProps) {
   return (
     <nav
-      className="flex h-full w-[200px] shrink-0 flex-col overflow-y-auto border-r border-[#E2E8F0] bg-white py-4"
+      className="flex h-full w-[220px] shrink-0 flex-col overflow-y-auto border-r border-[#E2E8F0] bg-white py-4"
       aria-label="Seções de configuração"
     >
       <p className="mb-2 px-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
@@ -63,12 +69,13 @@ export default function SettingsNav({ active, onChange }: SettingsNavProps) {
                 onClick={() => onChange(id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex w-full items-center gap-2.5 rounded-md px-3 py-2',
+                  'flex w-full items-center gap-2.5 rounded-md py-2 pl-[10px] pr-3',
+                  'border-l-2',
                   'text-[13px] transition-colors duration-150 motion-reduce:transition-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                   isActive
-                    ? 'bg-[#EFF6FF] font-medium text-[#2563EB]'
-                    : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]',
+                    ? 'border-l-[#2563EB] bg-[#EFF6FF] font-medium text-[#2563EB]'
+                    : 'border-l-transparent text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]',
                 )}
               >
                 <Icon size={14} aria-hidden="true" className="shrink-0" />

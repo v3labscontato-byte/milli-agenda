@@ -4,6 +4,8 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { txDateLabel, type Transaction, type TransactionStatus } from '@/lib/financeiro-mock'
+import { MOCK_TRANSACTIONS_HISTORICO } from '@/lib/financeiro-historico'
+import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,11 +95,9 @@ function EmptyState() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-interface PagamentosTableProps {
-  transactions: Transaction[]
-}
-
-function PagamentosTable({ transactions }: PagamentosTableProps) {
+function PagamentosTable() {
+  const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
+  const transactions = MOCK_TRANSACTIONS_HISTORICO[selectedMonth] ?? []
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
@@ -139,11 +139,13 @@ function PagamentosTable({ transactions }: PagamentosTableProps) {
   )
 
   return (
+    <div className="space-y-4">
+      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
     <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
       <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
         <div>
           <h3 className="text-[14px] font-semibold text-[#0F172A]">Recebimentos</h3>
-          <p className="mt-0.5 text-[12px] text-[#475569]">{transactions.length} transações no período</p>
+          <p className="mt-0.5 text-[12px] text-[#475569]">{transactions.length} transações no mês</p>
         </div>
         <button
           type="button"
@@ -219,6 +221,7 @@ function PagamentosTable({ transactions }: PagamentosTableProps) {
           )}
         </table>
       </div>
+    </div>
     </div>
   )
 }

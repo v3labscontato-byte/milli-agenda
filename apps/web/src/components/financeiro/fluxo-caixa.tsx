@@ -3,7 +3,8 @@
 import { memo, useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import { cn } from '@/lib/utils'
-import type { FluxoCaixaEntry, FluxoLancamento } from '@/lib/financeiro-mock'
+import { MOCK_FLUXO_HISTORICO, MOCK_LANCAMENTOS_HISTORICO } from '@/lib/financeiro-historico'
+import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -39,17 +40,15 @@ function Skeleton() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-interface FluxoCaixaProps {
-  entries: FluxoCaixaEntry[]
-  lancamentos: FluxoLancamento[]
-  totalEntradas: number
-  totalSaidas: number
-  saldoFinal: number
-}
-
-function FluxoCaixa({ entries, lancamentos, totalEntradas, totalSaidas, saldoFinal }: FluxoCaixaProps) {
+function FluxoCaixa() {
+  const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const [mounted, setMounted] = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
+  const entries = MOCK_FLUXO_HISTORICO[selectedMonth] ?? []
+  const lancamentos = MOCK_LANCAMENTOS_HISTORICO[selectedMonth] ?? []
+  const totalEntradas = useMemo(() => lancamentos.filter((l) => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0), [lancamentos])
+  const totalSaidas   = useMemo(() => lancamentos.filter((l) => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0),   [lancamentos])
+  const saldoFinal    = totalEntradas - totalSaidas
 
   useEffect(() => {
     setMounted(true)
@@ -87,6 +86,7 @@ function FluxoCaixa({ entries, lancamentos, totalEntradas, totalSaidas, saldoFin
 
   return (
     <div className="space-y-4">
+      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
       {/* KPI cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -135,7 +135,7 @@ function FluxoCaixa({ entries, lancamentos, totalEntradas, totalSaidas, saldoFin
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="border-b border-[#E2E8F0] px-5 py-4">
           <h3 className="text-[14px] font-semibold text-[#0F172A]">Lançamentos</h3>
-          <p className="mt-0.5 text-[12px] text-[#475569]">{lancamentos.length} movimentações no período</p>
+          <p className="mt-0.5 text-[12px] text-[#475569]">{lancamentos.length} movimentações no mês</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px]" aria-label="Lançamentos de caixa">

@@ -1,271 +1,182 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, X, Target, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import {
+  ComposedChart, Bar, Line, LineChart,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer,
+} from 'recharts'
+import { Target, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_METAS, type Meta, type MetaTipo } from '@/lib/financeiro-mock'
+import { MOCK_METAS_HISTORICO } from '@/lib/financeiro-historico'
+import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
 }
 
-type MetaStatus = 'atingida' | 'andamento' | 'nao_atingida'
+// ─── Tooltips ─────────────────────────────────────────────────────────────────
 
-function metaStatus(m: Meta): MetaStatus {
-  if (m.atual >= m.valor) return 'atingida'
-  const now = new Date()
-  const fim = new Date(m.dataFim + 'T23:59:59')
-  if (now > fim) return 'nao_atingida'
-  return 'andamento'
-}
-
-function diasRestantes(m: Meta): number {
-  const now = new Date(); now.setHours(0,0,0,0)
-  const fim = new Date(m.dataFim + 'T00:00:00')
-  const diff = Math.ceil((fim.getTime() - now.getTime()) / 86400000)
-  return Math.max(diff, 0)
-}
-
-const STATUS_STYLE = {
-  atingida:     { bar: 'bg-[#16A34A]', text: 'text-[#16A34A]', badge: 'bg-[#F0FDF4] text-[#16A34A]', label: 'Atingida'     },
-  andamento:    { bar: 'bg-[#2563EB]', text: 'text-[#2563EB]', badge: 'bg-[#EFF6FF] text-[#2563EB]', label: 'Em andamento' },
-  nao_atingida: { bar: 'bg-[#EF4444]', text: 'text-[#DC2626]', badge: 'bg-[#FEF2F2] text-[#DC2626]', label: 'Não atingida' },
-}
-
-const TIPO_LABEL: Record<MetaTipo, string> = { diaria: 'Diária', semanal: 'Semanal', mensal: 'Mensal' }
-
-// ─── Dashboard summary card (exported for use in main view) ──────────────────
-
-export function MetaDashboardCard({ meta }: { meta: Meta }) {
-  const s = metaStatus(meta)
-  const style = STATUS_STYLE[s]
-  const pct = Math.min(Math.round((meta.atual / meta.valor) * 100), 100)
-  const faltam = Math.max(meta.valor - meta.atual, 0)
-  const dias = diasRestantes(meta)
-  const porDia = dias > 0 ? Math.ceil(faltam / dias) : 0
-
+function MetaTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; value?: number }>; label?: string }) {
+  if (!active || !payload?.length) return null
+  const realizado = payload.find((p) => p.name === 'Realizado')?.value ?? 0
+  const meta      = payload.find((p) => p.name === 'Meta')?.value      ?? 0
   return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-            <Target size={14} className="text-[#2563EB]" aria-hidden="true" />
-          </div>
-          <p className="text-[13px] font-semibold text-[#0F172A]">Meta {TIPO_LABEL[meta.tipo]}</p>
-        </div>
-        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', style.badge)}>{style.label}</span>
-      </div>
-
-      <div className="mt-3 flex items-baseline gap-1">
-        <span className={cn('font-tabular text-[22px] font-bold', style.text)}>{fmtBRL(meta.atual)}</span>
-        <span className="text-[13px] text-[#94A3B8]">/ {fmtBRL(meta.valor)}</span>
-      </div>
-
-      <div className="mt-2.5">
-        <div className="relative h-2 w-full overflow-hidden rounded-full bg-[#F1F5F9]" aria-label={`${pct}% da meta`}>
-          <div className={cn('h-full rounded-full transition-all motion-reduce:transition-none', style.bar)}
-            style={{ width: `${pct}%` }} />
-        </div>
-        <p className="mt-1 text-right text-[11px] font-medium text-[#475569]">{pct}%</p>
-      </div>
-
-      {s === 'andamento' && (
-        <div className="mt-2 flex items-center gap-3 text-[11px] text-[#475569]">
-          {faltam > 0 && <span>Faltam <strong className="text-[#0F172A]">{fmtBRL(faltam)}</strong></span>}
-          {porDia > 0 && <span>· Nec. <strong className="text-[#0F172A]">{fmtBRL(porDia)}/dia</strong></span>}
-          {dias > 0   && <span>· {dias}d restantes</span>}
-        </div>
-      )}
-      {s === 'atingida' && (
-        <p className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[#16A34A]">
-          <CheckCircle2 size={12} aria-hidden="true" /> Meta alcançada!
-        </p>
-      )}
+    <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2 shadow-md">
+      <p className="mb-1 text-[12px] font-semibold text-[#0F172A]">{label}</p>
+      <p className="text-[11px] text-[#2563EB]">Realizado: {fmtBRL(realizado)}</p>
+      <p className="text-[11px] text-[#F59E0B]">Meta: {fmtBRL(meta)}</p>
     </div>
   )
 }
 
-// ─── Nova Meta Modal ──────────────────────────────────────────────────────────
-
-interface NovaMetaModalProps {
-  open: boolean
-  onClose: () => void
-  onSave: (m: Omit<Meta, 'id' | 'atual'>) => void
-}
-
-const EMPTY_FORM = { tipo: 'semanal' as MetaTipo, valor: '', dataInicio: '', dataFim: '', ativa: true }
-
-function NovaMetaModal({ open, onClose, onSave }: NovaMetaModalProps) {
-  const [form, setForm] = useState(EMPTY_FORM)
-
-  if (!open) return null
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const valor = Number(form.valor)
-    if (!valor || !form.dataInicio || !form.dataFim) return
-    onSave({ tipo: form.tipo, valor, dataInicio: form.dataInicio, dataFim: form.dataFim, ativa: form.ativa })
-    setForm(EMPTY_FORM)
-    onClose()
-  }
-
-  const INPUT = cn('w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
-    'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE] placeholder:text-[#64748B]')
-  const LABEL = 'text-[12px] font-medium text-[#475569]'
-
+function PctTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number }>; label?: string }) {
+  if (!active || !payload?.length) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Nova meta">
-      <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-              <Target size={14} className="text-[#2563EB]" aria-hidden="true" />
-            </div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Nova Meta</h2>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
-          <div className="space-y-1.5">
-            <label htmlFor="nm-tipo" className={LABEL}>Tipo</label>
-            <select id="nm-tipo" value={form.tipo} onChange={(e) => setForm((f) => ({ ...f, tipo: e.target.value as MetaTipo }))} className={INPUT}>
-              <option value="diaria">Diária</option>
-              <option value="semanal">Semanal</option>
-              <option value="mensal">Mensal</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="nm-valor" className={LABEL}>Valor da meta (R$)</label>
-            <input id="nm-valor" type="number" min="1" step="100" required placeholder="Ex.: 4000"
-              value={form.valor} onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))} className={INPUT} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label htmlFor="nm-inicio" className={LABEL}>Início</label>
-              <input id="nm-inicio" type="date" required value={form.dataInicio}
-                onChange={(e) => setForm((f) => ({ ...f, dataInicio: e.target.value }))} className={INPUT} />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="nm-fim" className={LABEL}>Fim</label>
-              <input id="nm-fim" type="date" required value={form.dataFim}
-                onChange={(e) => setForm((f) => ({ ...f, dataFim: e.target.value }))} className={INPUT} />
-            </div>
-          </div>
-          <div className="flex items-center justify-between rounded-lg border border-[#E2E8F0] px-4 py-3">
-            <span className="text-[13px] font-medium text-[#0F172A]">Meta ativa</span>
-            <button type="button" role="switch" aria-checked={form.ativa}
-              onClick={() => setForm((f) => ({ ...f, ativa: !f.ativa }))}
-              className={cn('relative h-5 w-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                form.ativa ? 'bg-[#2563EB]' : 'bg-[#CBD5E1]')}>
-              <span className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform',
-                form.ativa ? 'translate-x-4' : 'translate-x-0.5')} />
-            </button>
-          </div>
-          <div className="flex gap-2.5">
-            <button type="button" onClick={onClose}
-              className="flex-1 rounded-md border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-              Cancelar
-            </button>
-            <button type="submit"
-              className="flex-1 rounded-md bg-[#2563EB] py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
+    <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2 shadow-md">
+      <p className="mb-1 text-[12px] font-semibold text-[#0F172A]">{label}</p>
+      <p className="text-[11px] font-semibold text-[#7C3AED]">{payload[0].value}% atingido</p>
     </div>
   )
 }
 
-// ─── Metas Section (full tab) ─────────────────────────────────────────────────
+// ─── Status chip ──────────────────────────────────────────────────────────────
+
+function StatusChip({ pct }: { pct: number }) {
+  if (pct >= 100) return <span className="rounded-full bg-[#F0FDF4] px-2 py-0.5 text-[10px] font-semibold text-[#16A34A]">Atingida</span>
+  if (pct >= 80)  return <span className="rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[10px] font-semibold text-[#2563EB]">Em andamento</span>
+  return <span className="rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold text-[#DC2626]">Abaixo da meta</span>
+}
+
+// ─── Section ─────────────────────────────────────────────────────────────────
 
 export default function MetasSection() {
-  const [metas, setMetas] = useState<Meta[]>(MOCK_METAS)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
-  function handleSave(data: Omit<Meta, 'id' | 'atual'>) {
-    setMetas((prev) => [...prev, { ...data, id: `m-${Date.now()}`, atual: 0 }])
+  const selected = MOCK_METAS_HISTORICO.find((m) => m.mesKey === selectedMonth) ?? MOCK_METAS_HISTORICO.at(-1)!
+
+  const chartData = MOCK_METAS_HISTORICO.map((m) => ({ mes: m.mes, Realizado: m.realizado, Meta: m.meta }))
+  const lineData  = MOCK_METAS_HISTORICO.map((m) => ({ mes: m.mes, pct: m.pct }))
+
+  if (!mounted) {
+    return (
+      <div className="space-y-4" aria-hidden="true">
+        <div className="h-8 w-72 animate-pulse rounded-md bg-[#F1F5F9]" />
+        {[1,2,3].map((i) => <div key={i} className="h-48 animate-pulse rounded-lg bg-[#F1F5F9]" />)}
+      </div>
+    )
   }
-
-  function toggleAtiva(id: string) {
-    setMetas((prev) => prev.map((m) => m.id === id ? { ...m, ativa: !m.ativa } : m))
-  }
-
-  const ativas = metas.filter((m) => m.ativa)
-  const inativas = metas.filter((m) => !m.ativa)
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-[14px] font-semibold text-[#0F172A]">Metas Cadastradas</h3>
-          <p className="mt-0.5 text-[12px] text-[#475569]">{ativas.length} ativas · {inativas.length} inativas</p>
+      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
+
+      {/* Realizado vs Meta: bar + line */}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Realizado vs Meta</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">Evolução jan–jun/26</p>
         </div>
-        <button type="button" onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-md bg-[#2563EB] px-3 py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-          <Plus size={13} aria-hidden="true" /> Nova Meta
-        </button>
+        <div className="px-4 pb-4 pt-5">
+          <ResponsiveContainer width="100%" height={210}>
+            <ComposedChart data={chartData} margin={{ top: 4, right: 12, bottom: 0, left: 8 }}>
+              <CartesianGrid vertical={false} stroke="#F1F5F9" />
+              <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={52}
+                tickFormatter={(v: number) => `R$${Math.round(v / 1000)}k`} />
+              <Tooltip content={<MetaTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+              <Bar dataKey="Realizado" fill="#2563EB" radius={[3,3,0,0]} maxBarSize={52} isAnimationActive={false} />
+              <Line dataKey="Meta" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3, fill: '#F59E0B', strokeWidth: 0 }} isAnimationActive={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      {metas.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[#E2E8F0] py-16 text-center">
-          <Target size={32} className="mx-auto text-[#CBD5E1]" aria-hidden="true" />
-          <p className="mt-3 text-[13px] text-[#64748B]">Nenhuma meta cadastrada.</p>
+      {/* % Atingimento line chart */}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Taxa de Atingimento</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">% da meta mensal alcançado</p>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {metas.map((m) => {
-            const s = metaStatus(m)
-            const style = STATUS_STYLE[s]
-            const pct = Math.min(Math.round((m.atual / m.valor) * 100), 100)
-            const StatusIcon = s === 'atingida' ? CheckCircle2 : s === 'nao_atingida' ? AlertCircle : TrendingUp
-            return (
-              <div key={m.id} className={cn('rounded-lg border bg-white p-4 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
-                m.ativa ? 'border-[#E2E8F0]' : 'border-[#F1F5F9] opacity-60')}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className={cn('text-[10px] font-semibold uppercase tracking-wide', style.text)}>
-                      {TIPO_LABEL[m.tipo]}
-                    </span>
-                    <p className="mt-0.5 font-tabular text-[18px] font-bold text-[#0F172A]">{fmtBRL(m.valor)}</p>
-                  </div>
-                  <button type="button" role="switch" aria-checked={m.ativa} onClick={() => toggleAtiva(m.id)}
-                    aria-label={m.ativa ? 'Desativar meta' : 'Ativar meta'}
-                    className={cn('relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                      m.ativa ? 'bg-[#2563EB]' : 'bg-[#CBD5E1]')}>
-                    <span className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform',
-                      m.ativa ? 'translate-x-4' : 'translate-x-0.5')} />
-                  </button>
-                </div>
+        <div className="px-4 pb-4 pt-5">
+          <ResponsiveContainer width="100%" height={150}>
+            <LineChart data={lineData} margin={{ top: 4, right: 28, bottom: 0, left: 0 }}>
+              <CartesianGrid vertical={false} stroke="#F1F5F9" />
+              <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={36}
+                tickFormatter={(v: number) => `${v}%`} domain={[0, 120]} />
+              <Tooltip content={<PctTooltip />} />
+              <ReferenceLine y={100} stroke="#16A34A" strokeDasharray="4 2" strokeWidth={1.5}
+                label={{ value: '100%', position: 'insideRight', fontSize: 10, fill: '#16A34A' }} />
+              <Line dataKey="pct" stroke="#7C3AED" strokeWidth={2}
+                dot={{ r: 4, fill: '#7C3AED', strokeWidth: 0 }}
+                activeDot={{ r: 5 }} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B]">
-                    <span>{fmtBRL(m.atual)} atual</span><span>{pct}%</span>
-                  </div>
-                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[#F1F5F9]">
-                    <div className={cn('h-full rounded-full', style.bar)} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-
-                <div className="mt-2.5 flex items-center gap-1.5 text-[11px]">
-                  <StatusIcon size={11} className={style.text} aria-hidden="true" />
-                  <span className={style.text}>{style.label}</span>
-                  <span className="ml-auto text-[#94A3B8]">
-                    {m.dataInicio.split('-').reverse().join('/')} → {m.dataFim.split('-').reverse().join('/')}
-                  </span>
-                </div>
+      {/* KPI cards for selected month */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {([
+          { label:'Meta',          value:fmtBRL(selected.meta),     icon:Target,      color:'text-[#F59E0B]', bg:'bg-[#FFFBEB]'  },
+          { label:'Realizado',     value:fmtBRL(selected.realizado), icon:TrendingUp,  color:'text-[#2563EB]', bg:'bg-[#EFF6FF]'  },
+          {
+            label: '% Atingimento',
+            value: `${selected.pct}%`,
+            icon:  selected.pct >= 100 ? CheckCircle2 : AlertCircle,
+            color: selected.pct >= 100 ? 'text-[#16A34A]' : selected.pct >= 80 ? 'text-[#2563EB]' : 'text-[#DC2626]',
+            bg:    selected.pct >= 100 ? 'bg-[#F0FDF4]'   : selected.pct >= 80 ? 'bg-[#EFF6FF]'   : 'bg-[#FEF2F2]',
+          },
+        ] as const).map(({ label, value, icon: Icon, color, bg }) => (
+          <div key={label} className="rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+            <div className="flex items-center gap-2">
+              <div className={cn('flex h-7 w-7 items-center justify-center rounded-md', bg)}>
+                <Icon size={14} className={color} aria-hidden="true" />
               </div>
-            )
-          })}
-        </div>
-      )}
+              <p className="text-[12px] text-[#475569]">{label}</p>
+            </div>
+            <p className={cn('mt-3 font-tabular text-[22px] font-bold', color)}>{value}</p>
+            <p className="mt-1 text-[11px] text-[#94A3B8]">{selected.mes}</p>
+          </div>
+        ))}
+      </div>
 
-      <NovaMetaModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} />
+      {/* Histórico table */}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Histórico Mensal</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px]" aria-label="Histórico de metas">
+            <thead>
+              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                {['Mês','Meta','Realizado','% Ating.','Status'].map((h) => (
+                  <th key={h} className={cn('px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
+                    ['Meta','Realizado','% Ating.'].includes(h) ? 'text-right' : 'text-left')}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {MOCK_METAS_HISTORICO.map((m, i) => (
+                <tr key={m.mesKey}
+                  className={cn('transition-colors hover:bg-[#F8FAFC]',
+                    i < MOCK_METAS_HISTORICO.length - 1 && 'border-b border-[#F1F5F9]',
+                    m.mesKey === selectedMonth && 'bg-[#EFF6FF]')}>
+                  <td className="px-5 py-3 text-[13px] font-medium text-[#0F172A]">{m.mes}</td>
+                  <td className="px-5 py-3 text-right font-tabular text-[12px] text-[#475569]">{fmtBRL(m.meta)}</td>
+                  <td className="px-5 py-3 text-right font-tabular text-[12px] font-semibold text-[#0F172A]">{fmtBRL(m.realizado)}</td>
+                  <td className={cn('px-5 py-3 text-right font-tabular text-[12px] font-bold',
+                    m.pct >= 100 ? 'text-[#16A34A]' : m.pct >= 80 ? 'text-[#2563EB]' : 'text-[#DC2626]')}>{m.pct}%</td>
+                  <td className="px-5 py-3"><StatusChip pct={m.pct} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

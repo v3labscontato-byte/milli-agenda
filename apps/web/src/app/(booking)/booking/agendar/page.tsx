@@ -1,0 +1,106 @@
+'use client'
+
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import StepService from '@/components/booking/step-service'
+import StepProfessional from '@/components/booking/step-professional'
+import StepDatetime from '@/components/booking/step-datetime'
+import StepConfirm, { SuccessScreen } from '@/components/booking/step-confirm'
+import type { BookingService, BookingProfessional } from '@/lib/booking-mock'
+
+type Step = 1 | 2 | 3 | 4 | 5
+
+const STEP_LABELS = ['Serviço', 'Profissional', 'Data e Hora', 'Confirmação']
+
+function ProgressBar({ step }: { step: Step }) {
+  if (step === 5) return null
+  return (
+    <div className="border-b border-[#F1F5F9] px-5 py-3" aria-label={`Passo ${step} de 4`}>
+      <div className="flex gap-1.5">
+        {STEP_LABELS.map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              'h-1 flex-1 rounded-full transition-all duration-300',
+              i < step ? 'bg-[#2563EB]' : 'bg-[#E2E8F0]',
+            )}
+          />
+        ))}
+      </div>
+      <p className="mt-1.5 text-[11px] text-[#94A3B8]">
+        {STEP_LABELS[step - 1]} · Passo {step} de 4
+      </p>
+    </div>
+  )
+}
+
+export default function AgendarPage() {
+  const [step, setStep]               = useState<Step>(1)
+  const [service, setService]         = useState<BookingService | null>(null)
+  const [professional, setProfessional] = useState<BookingProfessional | null>(null)
+  const [date, setDate]               = useState<string | null>(null)
+  const [time, setTime]               = useState<string | null>(null)
+
+  function reset() {
+    setStep(1)
+    setService(null)
+    setProfessional(null)
+    setDate(null)
+    setTime(null)
+  }
+
+  return (
+    <div className="flex flex-col">
+      <ProgressBar step={step} />
+
+      <div
+        key={step}
+        className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+      >
+        {step === 1 && (
+          <StepService
+            onSelect={(svc) => { setService(svc); setStep(2) }}
+          />
+        )}
+
+        {step === 2 && service && (
+          <StepProfessional
+            service={service}
+            onBack={() => setStep(1)}
+            onSelect={(pro) => { setProfessional(pro); setStep(3) }}
+          />
+        )}
+
+        {step === 3 && service && professional && (
+          <StepDatetime
+            service={service}
+            professional={professional}
+            onBack={() => setStep(2)}
+            onSelect={(d, t) => { setDate(d); setTime(t); setStep(4) }}
+          />
+        )}
+
+        {step === 4 && service && professional && date && time && (
+          <StepConfirm
+            service={service}
+            professional={professional}
+            date={date}
+            time={time}
+            onBack={() => setStep(3)}
+            onConfirm={() => setStep(5)}
+          />
+        )}
+
+        {step === 5 && service && professional && date && time && (
+          <SuccessScreen
+            service={service}
+            professional={professional}
+            date={date}
+            time={time}
+            onNew={reset}
+          />
+        )}
+      </div>
+    </div>
+  )
+}

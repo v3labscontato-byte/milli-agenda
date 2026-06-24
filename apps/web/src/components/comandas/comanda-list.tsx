@@ -72,7 +72,7 @@ export default function ComandaList({
             aria-label="Buscar comanda"
             className={cn(
               'w-full rounded-md border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-8 pr-3',
-              'text-[13px] text-[#0F172A] placeholder:text-[#94A3B8]',
+              'text-[13px] text-[#0F172A] placeholder:text-[#64748B]',
               'focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
             )}
           />

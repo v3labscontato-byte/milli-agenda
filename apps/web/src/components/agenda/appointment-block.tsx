@@ -17,7 +17,7 @@ export default function AppointmentBlock({ appointment, onClick, heightPx }: App
       onClick={onClick}
       aria-label={`${appointment.client} — ${appointment.service} às ${appointment.startTime}`}
       className={cn(
-        'w-full h-full text-left rounded-md border-l-[3px] px-2 py-1 overflow-hidden',
+        'w-full h-full text-left rounded-md border px-2 py-1 overflow-hidden',
         'transition-opacity hover:opacity-80',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1',
         style.bg,

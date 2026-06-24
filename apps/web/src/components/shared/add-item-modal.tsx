@@ -145,11 +145,11 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
             <div className="space-y-4 px-5 py-4">
               <div>
                 <label className="mb-1.5 block text-[12px] font-medium text-[#475569]">Descrição</label>
-                <input type="text" value={adjName} onChange={(e) => setAdjName(e.target.value)} placeholder="Ex: Gorjeta especial" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                <input type="text" value={adjName} onChange={(e) => setAdjName(e.target.value)} placeholder="Ex: Gorjeta especial" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
               </div>
               <div>
                 <label className="mb-1.5 block text-[12px] font-medium text-[#475569]">Valor (R$)</label>
-                <input type="number" min="0" step="0.01" value={adjPrice} onChange={(e) => setAdjPrice(e.target.value)} placeholder="0,00" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                <input type="number" min="0" step="0.01" value={adjPrice} onChange={(e) => setAdjPrice(e.target.value)} placeholder="0,00" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] font-tabular placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
               </div>
             </div>
           ) : (
@@ -157,7 +157,7 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
               <div className="shrink-0 px-4 pt-3 pb-2">
                 <div className="relative">
                   <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
-                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar…" className="w-full rounded-md border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-[13px] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar…" className="w-full rounded-md border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-[13px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                 </div>
               </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle } from 'lucide-react'
+import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle, CalendarClock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
@@ -13,12 +13,14 @@ interface Action {
   variant: 'primary' | 'secondary' | 'danger'
 }
 
+const REAGENDAR: Action = { label: 'Reagendar', icon: CalendarClock, variant: 'secondary' }
+
 const ACTIONS: Partial<Record<AppointmentStatus, Action[]>> = {
-  CONFIRMED:        [{ label: 'Check-in',            icon: UserCheck,   variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
-  CHECKED_IN:       [{ label: 'Iniciar Atendimento',  icon: Scissors,    variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
+  SCHEDULED:        [REAGENDAR, { label: 'Confirmar',           icon: CheckSquare, variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
+  CONFIRMED:        [REAGENDAR, { label: 'Check-in',            icon: UserCheck,   variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
+  CHECKED_IN:       [REAGENDAR, { label: 'Iniciar',             icon: Scissors,    variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
   IN_SERVICE:       [{ label: 'Finalizar',            icon: CheckSquare, variant: 'secondary' }, { label: 'Cobrar',   icon: CreditCard, variant: 'primary' }],
   AWAITING_PAYMENT: [{ label: 'Cobrar Agora',         icon: CreditCard,  variant: 'primary'   }],
-  SCHEDULED:        [{ label: 'Confirmar',            icon: CheckSquare, variant: 'primary'   }, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
 }
 
 const BTN = {
@@ -30,6 +32,7 @@ const BTN = {
 interface AppointmentModalProps {
   appointment: CalendarAppointment | null
   onClose: () => void
+  onReschedule?: (appt: CalendarAppointment) => void
 }
 
 const PAYMENT_ACTIONS = new Set(['Cobrar', 'Cobrar Agora'])
@@ -39,7 +42,7 @@ function formatDateDisplay(dateStr: string): string {
   return `${d}/${m}/${y}`
 }
 
-export default function AppointmentModal({ appointment, onClose }: AppointmentModalProps) {
+export default function AppointmentModal({ appointment, onClose, onReschedule }: AppointmentModalProps) {
   const [paymentOpen, setPaymentOpen] = useState(false)
 
   useEffect(() => {
@@ -63,7 +66,8 @@ export default function AppointmentModal({ appointment, onClose }: AppointmentMo
   const actions = ACTIONS[appointment.status] ?? []
 
   function handleAction(label: string) {
-    if (PAYMENT_ACTIONS.has(label)) setPaymentOpen(true)
+    if (PAYMENT_ACTIONS.has(label)) { setPaymentOpen(true); return }
+    if (label === 'Reagendar' && appointment) { onClose(); onReschedule?.(appointment) }
   }
 
   function handlePaymentConfirm() {

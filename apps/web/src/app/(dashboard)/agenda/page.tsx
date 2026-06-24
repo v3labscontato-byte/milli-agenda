@@ -18,31 +18,64 @@ import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
 
 type View = 'week' | 'day'
 
+interface NewModalPrefill {
+  profId?: string
+  date?: string
+  time?: string
+  service?: string
+  client?: string
+  isReschedule?: boolean
+}
+
 export default function AgendaPage() {
   const [view, setView]                   = useState<View>('week')
   const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [filterProfId, setFilterProfId]   = useState<string | null>(null)
   const [selectedAppt, setSelectedAppt]   = useState<CalendarAppointment | null>(null)
   const [newModalOpen, setNewModalOpen]   = useState(false)
+  const [newModalPrefill, setNewModalPrefill] = useState<NewModalPrefill>({})
   const [searchQuery, setSearchQuery]     = useState('')
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
   const goToPrev  = useCallback(() => setSelectedDate((d) => prevDay(d)), [])
   const goToNext  = useCallback(() => setSelectedDate((d) => nextDay(d)), [])
-  const openNew   = useCallback(() => setNewModalOpen(true), [])
-  const closeNew  = useCallback(() => setNewModalOpen(false), [])
   const closeAppt = useCallback(() => setSelectedAppt(null), [])
 
-  // Clicking a weekly-overview cell navigates to day view filtered by that professional
+  const openNew = useCallback(() => {
+    setNewModalPrefill({})
+    setNewModalOpen(true)
+  }, [])
+
+  const closeNew = useCallback(() => {
+    setNewModalOpen(false)
+    setNewModalPrefill({})
+  }, [])
+
   const handleDaySelect = useCallback((professionalId: string, date: Date) => {
     setSelectedDate(date)
     setFilterProfId(professionalId)
     setView('day')
   }, [])
 
-  // Week start: always the Sunday of the week containing selectedDate
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
+  const handleSlotClick = useCallback((professionalId: string, time: string, date: string) => {
+    setNewModalPrefill({ profId: professionalId, date, time })
+    setNewModalOpen(true)
+  }, [])
 
+  const handleReschedule = useCallback((appt: CalendarAppointment) => {
+    setSelectedAppt(null)
+    setNewModalPrefill({
+      profId:      appt.professionalId,
+      date:        appt.date,
+      time:        appt.startTime,
+      service:     appt.service,
+      client:      appt.client,
+      isReschedule: true,
+    })
+    setNewModalOpen(true)
+  }, [])
+
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
   const dayAppointments = getAppointmentsForDate(selectedDate, MOCK_CALENDAR_APPOINTMENTS)
 
   const filtered = dayAppointments.filter((a) => {
@@ -56,7 +89,6 @@ export default function AgendaPage() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Sticky calendar header (date nav + search) */}
       <CalendarHeader
         selectedDate={selectedDate}
         onPrev={goToPrev}
@@ -96,7 +128,6 @@ export default function AgendaPage() {
           ))}
         </div>
 
-        {/* Show active prof filter badge in day view */}
         {view === 'day' && filterProfId && (
           <button
             type="button"
@@ -119,12 +150,27 @@ export default function AgendaPage() {
             appointments={filtered}
             selectedDate={selectedDate}
             onAppointmentClick={setSelectedAppt}
+            onSlotClick={handleSlotClick}
           />
         )}
       </div>
 
-      <AppointmentModal appointment={selectedAppt} onClose={closeAppt} />
-      <NewAppointmentModal open={newModalOpen} onClose={closeNew} />
+      <AppointmentModal
+        appointment={selectedAppt}
+        onClose={closeAppt}
+        onReschedule={handleReschedule}
+      />
+
+      <NewAppointmentModal
+        open={newModalOpen}
+        onClose={closeNew}
+        initialProfessionalId={newModalPrefill.profId}
+        initialDate={newModalPrefill.date}
+        initialTime={newModalPrefill.time}
+        initialService={newModalPrefill.service}
+        isReschedule={newModalPrefill.isReschedule}
+        rescheduleClientName={newModalPrefill.client}
+      />
     </div>
   )
 }

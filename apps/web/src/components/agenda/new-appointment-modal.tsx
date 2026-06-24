@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CALENDAR_PROFESSIONALS, type CalendarProfessional } from '@/lib/calendar-utils'
 
@@ -22,20 +22,49 @@ const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
   'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
   'focus:outline-none focus:ring-2 focus:ring-[#DBEAFE] focus:border-[#2563EB]',
-  'placeholder:text-[#94A3B8]',
+  'placeholder:text-[#64748B]',
+)
+const INPUT_HIGHLIGHT = cn(
+  'w-full rounded-md border-2 border-[#2563EB] bg-[#EFF6FF] px-3 py-2 text-[13px] text-[#0F172A]',
+  'focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
 
 interface NewAppointmentModalProps {
   open: boolean
   onClose: () => void
+  initialProfessionalId?: string
+  initialDate?: string
+  initialTime?: string
+  initialService?: string
+  isReschedule?: boolean
+  rescheduleClientName?: string
 }
 
-export default function NewAppointmentModal({ open, onClose }: NewAppointmentModalProps) {
-  const [profId, setProfId] = useState<string>('')
+export default function NewAppointmentModal({
+  open,
+  onClose,
+  initialProfessionalId,
+  initialDate,
+  initialTime,
+  initialService,
+  isReschedule = false,
+  rescheduleClientName,
+}: NewAppointmentModalProps) {
+  const [profId, setProfId]   = useState<string>('')
   const [service, setService] = useState<string>('')
-  const [date, setDate] = useState<string>('')
-  const [time, setTime] = useState<string>('')
-  const [client, setClient] = useState<string>('')
+  const [date, setDate]       = useState<string>('')
+  const [time, setTime]       = useState<string>('')
+  const [client, setClient]   = useState<string>('')
+
+  // Sync state when modal opens (picks up latest prefill values each time)
+  useEffect(() => {
+    if (!open) return
+    setProfId(initialProfessionalId ?? '')
+    setService(initialService ?? '')
+    setDate(initialDate ?? '')
+    setTime(initialTime ?? '')
+    setClient(rescheduleClientName ?? '')
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) return
@@ -44,8 +73,6 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
     return () => document.removeEventListener('keydown', handler)
   }, [open, onClose])
 
-  useEffect(() => { setService('') }, [profId])
-
   if (!open) return null
 
   const services = profId ? (SERVICES_BY_PROF[profId] ?? []) : []
@@ -53,34 +80,44 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Wire to real API — mock only logs
-    console.log('new appointment', { profId, service, date, time, client })
+    console.log(isReschedule ? 'reschedule' : 'new appointment', { profId, service, date, time, client })
     onClose()
   }
+
+  const title       = isReschedule ? `Reagendar — ${rescheduleClientName}` : 'Novo Agendamento'
+  const submitLabel = isReschedule ? 'Confirmar Reagendamento' : 'Confirmar Agendamento'
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Novo agendamento"
+      aria-label={title}
     >
       <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
 
       <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-              <Plus size={14} className="text-[#2563EB]" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-2">
+            <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-md', isReschedule ? 'bg-[#FFFBEB]' : 'bg-[#EFF6FF]')}>
+              {isReschedule
+                ? <Calendar size={14} className="text-[#D97706]" aria-hidden="true" />
+                : <Plus size={14} className="text-[#2563EB]" aria-hidden="true" />
+              }
             </div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Agendamento</h2>
+            <h2 className="truncate text-[15px] font-semibold text-[#0F172A]">{title}</h2>
+            {isReschedule && (
+              <span className="shrink-0 rounded-full bg-[#FFFBEB] px-2 py-0.5 text-[11px] font-medium text-[#D97706]">
+                Reagendamento
+              </span>
+            )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -95,7 +132,7 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
             <select
               id="prof"
               value={profId}
-              onChange={(e) => setProfId(e.target.value)}
+              onChange={(e) => { setProfId(e.target.value); setService('') }}
               required
               className={INPUT}
             >
@@ -115,7 +152,7 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
               onChange={(e) => setService(e.target.value)}
               required
               disabled={!profId}
-              className={cn(INPUT, !profId && 'opacity-50 cursor-not-allowed')}
+              className={cn(INPUT, !profId && 'cursor-not-allowed opacity-50')}
             >
               <option value="" disabled>
                 {profId ? 'Selecionar serviço…' : 'Selecione o profissional primeiro'}
@@ -127,24 +164,28 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
           {/* Data + Horário */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label htmlFor="date" className={LABEL}>Data</label>
+              <label htmlFor="date" className={cn(LABEL, isReschedule && 'font-semibold text-[#2563EB]')}>
+                Data
+              </label>
               <input
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className={INPUT}
+                className={isReschedule ? INPUT_HIGHLIGHT : INPUT}
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="time" className={LABEL}>Horário</label>
+              <label htmlFor="time" className={cn(LABEL, isReschedule && 'font-semibold text-[#2563EB]')}>
+                Horário
+              </label>
               <select
                 id="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 required
-                className={INPUT}
+                className={isReschedule ? INPUT_HIGHLIGHT : INPUT}
               >
                 <option value="" disabled>Horário…</option>
                 {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -154,16 +195,20 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
 
           {/* Cliente */}
           <div className="space-y-1.5">
-            <label htmlFor="client" className={LABEL}>Cliente</label>
+            <label htmlFor="client" className={LABEL}>
+              Cliente
+              {isReschedule && <span className="ml-1.5 text-[11px] text-[#94A3B8]">(bloqueado)</span>}
+            </label>
             <input
               id="client"
               type="text"
               value={client}
-              onChange={(e) => setClient(e.target.value)}
+              onChange={(e) => { if (!isReschedule) setClient(e.target.value) }}
               required
               placeholder="Nome do cliente…"
               autoComplete="off"
-              className={INPUT}
+              readOnly={isReschedule}
+              className={cn(INPUT, isReschedule && 'cursor-not-allowed bg-[#F8FAFC] text-[#94A3B8]')}
             />
           </div>
 
@@ -188,13 +233,19 @@ export default function NewAppointmentModal({ open, onClose }: NewAppointmentMod
           <button
             type="submit"
             className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-md bg-[#2563EB] py-2.5',
-              'text-[14px] font-medium text-white transition-colors hover:bg-[#1D4ED8]',
+              'flex w-full items-center justify-center gap-2 rounded-md py-2.5',
+              'text-[14px] font-medium text-white transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
+              isReschedule
+                ? 'bg-[#D97706] hover:bg-[#B45309]'
+                : 'bg-[#2563EB] hover:bg-[#1D4ED8]',
             )}
           >
-            <Plus size={14} aria-hidden="true" />
-            Confirmar Agendamento
+            {isReschedule
+              ? <Calendar size={14} aria-hidden="true" />
+              : <Plus size={14} aria-hidden="true" />
+            }
+            {submitLabel}
           </button>
         </form>
       </div>

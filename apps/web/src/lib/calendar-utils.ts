@@ -103,20 +103,20 @@ export interface CalendarAppointment {
 
 export interface StatusStyle {
   bg: string
-  border: string   // left-border colour
+  border: string
   text: string
   label: string
 }
 
 export const STATUS_STYLES: Record<AppointmentStatus, StatusStyle> = {
-  SCHEDULED:        { bg: 'bg-[#F8FAFC]',  border: 'border-l-[#94A3B8]', text: 'text-[#475569]', label: 'Agendado'        },
-  CONFIRMED:        { bg: 'bg-[#EFF6FF]',  border: 'border-l-[#2563EB]', text: 'text-[#1D4ED8]', label: 'Confirmado'      },
-  CHECKED_IN:       { bg: 'bg-[#F3E8FF]',  border: 'border-l-[#7C3AED]', text: 'text-[#6B21A8]', label: 'Check-in'        },
-  IN_SERVICE:       { bg: 'bg-[#D1FAE5]',  border: 'border-l-[#059669]', text: 'text-[#065F46]', label: 'Em Atend.'       },
-  AWAITING_PAYMENT: { bg: 'bg-[#FEF3C7]',  border: 'border-l-[#D97706]', text: 'text-[#B45309]', label: 'Aguard. Pagto'   },
-  COMPLETED:        { bg: 'bg-[#F0FDF4]',  border: 'border-l-[#10B981]', text: 'text-[#065F46]', label: 'Concluído'       },
-  NO_SHOW:          { bg: 'bg-[#F1F5F9]',  border: 'border-l-[#94A3B8]', text: 'text-[#64748B]', label: 'Não Compareceu'  },
-  CANCELLED:        { bg: 'bg-[#FEF2F2]',  border: 'border-l-[#EF4444]', text: 'text-[#991B1B]', label: 'Cancelado'       },
+  SCHEDULED:        { bg: 'bg-[#F8FAFC]',  border: 'border-[#CBD5E1]',  text: 'text-[#475569]', label: 'Agendado'        },
+  CONFIRMED:        { bg: 'bg-[#EFF6FF]',  border: 'border-[#93C5FD]',  text: 'text-[#1D4ED8]', label: 'Confirmado'      },
+  CHECKED_IN:       { bg: 'bg-[#F3E8FF]',  border: 'border-[#C4B5FD]',  text: 'text-[#6B21A8]', label: 'Check-in'        },
+  IN_SERVICE:       { bg: 'bg-[#D1FAE5]',  border: 'border-[#6EE7B7]',  text: 'text-[#065F46]', label: 'Em Atend.'       },
+  AWAITING_PAYMENT: { bg: 'bg-[#FEF3C7]',  border: 'border-[#FCD34D]',  text: 'text-[#B45309]', label: 'Aguard. Pagto'   },
+  COMPLETED:        { bg: 'bg-[#F0FDF4]',  border: 'border-[#6EE7B7]',  text: 'text-[#065F46]', label: 'Concluído'       },
+  NO_SHOW:          { bg: 'bg-[#F1F5F9]',  border: 'border-[#CBD5E1]',  text: 'text-[#64748B]', label: 'Não Compareceu'  },
+  CANCELLED:        { bg: 'bg-[#FEF2F2]',  border: 'border-[#FCA5A5]',  text: 'text-[#991B1B]', label: 'Cancelado'       },
 }
 
 // ─── Mock data (dates relative to today so navigation always shows data) ──────

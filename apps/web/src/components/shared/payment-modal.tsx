@@ -121,7 +121,7 @@ function PaymentEntryCard({ entry, entries, totalDue, canRemove, onUpdate, onRem
           <input type="number" min="0" step="0.01" value={entry.amount}
             onChange={(e) => onUpdate({ amount: e.target.value })} placeholder="0,00"
             aria-label={`Valor ${cfg.label}`}
-            className="w-full rounded-md border border-[#E2E8F0] py-2 pl-8 pr-3 font-tabular text-[14px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+            className="w-full rounded-md border border-[#E2E8F0] py-2 pl-8 pr-3 font-tabular text-[14px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
           />
         </div>
       </div>
@@ -287,7 +287,7 @@ export default function PaymentModal({
                           type="button"
                           onClick={() => setLocalItems((prev) => prev.filter((i) => i._key !== item._key))}
                           aria-label={`Remover ${item.name}`}
-                          className="flex h-5 w-5 items-center justify-center rounded text-[#CBD5E1] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DBEAFE]"
+                          className="flex h-6 w-6 items-center justify-center rounded text-[#CBD5E1] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DBEAFE]"
                         >
                           <X size={11} aria-hidden="true" />
                         </button>
@@ -368,7 +368,7 @@ export default function PaymentModal({
                       max={discountType === 'percent' ? '100' : undefined}
                       value={discountInput} onChange={(e) => setDiscountInput(e.target.value)}
                       placeholder={discountType === 'percent' ? '0 %' : '0,00'} aria-label="Valor do desconto"
-                      className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 font-tabular text-[13px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                      className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 font-tabular text-[13px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
                     />
                   </div>
                   <button type="button" onClick={applyDiscount}

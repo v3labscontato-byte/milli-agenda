@@ -44,6 +44,12 @@ function GridSkeleton() {
   )
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 // ─── Main grid ────────────────────────────────────────────────────────────────
 
 interface CalendarGridProps {
@@ -51,6 +57,7 @@ interface CalendarGridProps {
   selectedDate: Date
   isLoading?: boolean
   onAppointmentClick: (appt: CalendarAppointment) => void
+  onSlotClick: (professionalId: string, time: string, date: string) => void
 }
 
 export default function CalendarGrid({
@@ -58,10 +65,12 @@ export default function CalendarGrid({
   selectedDate,
   isLoading = false,
   onAppointmentClick,
+  onSlotClick,
 }: CalendarGridProps) {
   if (isLoading) return <GridSkeleton />
 
   const today = isTodayUtil(selectedDate)
+  const dateStr = toDateStr(selectedDate)
   const tableMinWidth = 80 + CALENDAR_PROFESSIONALS.length * 180
 
   // Pre-compute which slots are "covered" by a multi-slot appointment's rowspan
@@ -156,20 +165,30 @@ export default function CalendarGrid({
                     <td
                       key={prof.id}
                       rowSpan={rowSpan}
+                      onClick={!appt ? () => onSlotClick(prof.id, slot, dateStr) : undefined}
                       className={cn(
-                        'border-b border-r border-[#F1F5F9] align-top',
+                        'border-b border-r border-[#F1F5F9] align-top group',
                         today ? 'bg-[#FAFCFF]' : 'bg-white',
-                        !appt && 'hover:bg-[#F8FAFC]',
+                        !appt && 'cursor-pointer hover:bg-[#EFF6FF]',
                         appt && 'p-0.5',
                       )}
                       style={{ height: `${cellHeight}px` }}
                     >
-                      {appt && (
+                      {appt ? (
                         <AppointmentBlock
                           appointment={appt}
                           onClick={() => onAppointmentClick(appt)}
                           heightPx={cellHeight - 4}
                         />
+                      ) : (
+                        <span
+                          className="flex h-full items-center justify-center opacity-0 transition-opacity duration-100 group-hover:opacity-100 motion-reduce:transition-none"
+                          aria-hidden="true"
+                        >
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#2563EB] text-[11px] font-bold leading-none text-white">
+                            +
+                          </span>
+                        </span>
                       )}
                     </td>
                   )

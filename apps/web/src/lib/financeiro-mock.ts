@@ -477,3 +477,28 @@ export const COMISSAO_HISTORICO: Record<string, Comissao[]> = {
     { id:'ca2', profissionalName:'João Silva',  initials:'JS', avatarBg:'#2563EB', atendimentos:25, receita:1700, pctComissao:35, comissaoValue:595,  tipoPagamento:'quinzenal', diaPagamento:5, periodoRef:'Abr/2026', diasAtraso:0, status:'PAID', paidAt:'07/05' },
   ],
 }
+
+// ─── Despesas ─────────────────────────────────────────────────────────────────
+
+export interface DespesaCategoria { nome: string; valor: number; pct: number; cor: string }
+export interface DespesaMensal    { mes: string; total: number; fixas: number; variaveis: number }
+
+export const MOCK_DESPESAS_CATEGORIA: DespesaCategoria[] = [
+  { nome:'Comissões',     valor:4115, pct:34, cor:'#7C3AED' },
+  { nome:'Aluguel',       valor:1500, pct:12, cor:'#EF4444' },
+  { nome:'Impostos',      valor:480,  pct:4,  cor:'#F59E0B' },
+  { nome:'Contabilidade', valor:450,  pct:4,  cor:'#10B981' },
+  { nome:'Marketing',     valor:350,  pct:3,  cor:'#3B82F6' },
+  { nome:'Material',      valor:300,  pct:2,  cor:'#F97316' },
+  { nome:'Energia',       valor:280,  pct:2,  cor:'#06B6D4' },
+  { nome:'Outros',        valor:725,  pct:6,  cor:'#94A3B8' },
+]
+
+export const MOCK_DESPESAS_MENSAL: DespesaMensal[] = [
+  { mes:'Jan', total:7200, fixas:3200, variaveis:4000 },
+  { mes:'Fev', total:7500, fixas:3200, variaveis:4300 },
+  { mes:'Mar', total:8100, fixas:3200, variaveis:4900 },
+  { mes:'Abr', total:7800, fixas:3200, variaveis:4600 },
+  { mes:'Mai', total:8400, fixas:3200, variaveis:5200 },
+  { mes:'Jun', total:8200, fixas:3200, variaveis:5000 },
+]

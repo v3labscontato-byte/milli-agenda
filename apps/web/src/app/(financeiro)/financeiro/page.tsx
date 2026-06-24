@@ -22,6 +22,7 @@ import FluxoCaixa from '@/components/financeiro/fluxo-caixa'
 import MetasSection from '@/components/financeiro/metas-section'
 import PlanoContas from '@/components/financeiro/plano-contas'
 import ProcedimentosSection from '@/components/financeiro/procedimentos-section'
+import DespesasSection from '@/components/financeiro/despesas-section'
 import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -37,13 +38,13 @@ const PERIOD_OPTIONS: { label: string; value: PeriodFilter }[] = [
 ]
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'recebimentos',  label: 'Recebimentos'    },
-  { id: 'comissoes',     label: 'Comissões'       },
-  { id: 'inadimplencia', label: 'Inadimplência'   },
-  { id: 'fluxo',         label: 'Fluxo de Caixa'  },
-  { id: 'metas',          label: 'Metas'            },
-  { id: 'plano',          label: 'Plano de Contas'  },
-  { id: 'procedimentos',  label: 'Procedimentos'    },
+  { id: 'procedimentos',  label: 'Procedimentos'   },
+  { id: 'recebimentos',   label: 'Recebimentos'    },
+  { id: 'comissoes',      label: 'Comissões'       },
+  { id: 'inadimplencia',  label: 'Inadimplência'   },
+  { id: 'fluxo',          label: 'Fluxo de Caixa'  },
+  { id: 'metas',          label: 'Metas'           },
+  { id: 'plano',          label: 'Plano de Contas' },
 ]
 
 function fmtBRL(n: number) {
@@ -184,7 +185,7 @@ export default function FinanceiroPage() {
   const [period, setPeriod]         = useState<PeriodFilter>('month')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
-  const [activeTab, setActiveTab]   = useState<TabId>('recebimentos')
+  const [activeTab, setActiveTab]   = useState<TabId>('procedimentos')
   const filtered = useMemo(
     () => filterByPeriod(MOCK_TRANSACTIONS, period, customFrom, customTo),
     [period, customFrom, customTo],
@@ -212,6 +213,11 @@ export default function FinanceiroPage() {
         metodoData={METODO_DISTRIBUICAO}
         monthlyData={FATURAMENTO_MENSAL}
       />
+
+      {/* ── Despesas ── */}
+      <DespesasSection />
+
+      <hr className="border-[#E2E8F0]" />
 
       {/* ── Tabs ── */}
       <div>

@@ -129,7 +129,7 @@ interface ReceitaChartProps {
   monthlyData: FaturamentoMensal[]
 }
 
-const META_SEMANAL = 2000
+const META_SEMANAL = 4000
 
 export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: ReceitaChartProps) {
   const [mounted, setMounted] = useState(false)
@@ -274,9 +274,11 @@ export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: Re
                   <CartesianGrid vertical={false} stroke="#F1F5F9" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={48}
-                    tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} />
+                    tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} domain={[0, 16000]} />
                   <Tooltip content={<BarTooltip />} cursor={{ fill: '#F8FAFC' }} />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
+                  <ReferenceLine y={15000} stroke="#F59E0B" strokeDasharray="4 4" strokeWidth={2}
+                    label={{ value: 'Meta R$15k/mês', position: 'insideTopRight', fontSize: 11, fill: '#F59E0B' }} />
                   {MONTHLY_SERIES.map((s) => (
                     <Bar key={s.key} dataKey={s.key} name={s.label} stackId="a" fill={s.color}
                       radius={s.key === 'outros' ? [3,3,0,0] : [0,0,0,0]} isAnimationActive={!prefersReduced} />
@@ -295,9 +297,11 @@ export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: Re
                   <CartesianGrid vertical={false} stroke="#F1F5F9" />
                   <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={48}
-                    tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} />
+                    tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} domain={[0, 16000]} />
                   <Tooltip content={<BarTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
+                  <ReferenceLine y={15000} stroke="#F59E0B" strokeDasharray="4 4" strokeWidth={2}
+                    label={{ value: 'Meta R$15k/mês', position: 'insideTopRight', fontSize: 11, fill: '#F59E0B' }} />
                   {MONTHLY_SERIES.map((s) => (
                     <Area key={s.key} dataKey={s.key} name={s.label} stackId="a"
                       stroke={s.color} strokeWidth={1.5} fill={`url(#mgrad-${s.key})`}
@@ -326,10 +330,11 @@ export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: Re
                 <CartesianGrid vertical={false} stroke="#F1F5F9" />
                 <XAxis dataKey="semana" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={48}
-                  tickFormatter={(v: number) => `R$${(v/1000).toFixed(v >= 1000 ? 1 : 0)}k`} />
+                  tickFormatter={(v: number) => `R$${(v/1000).toFixed(v >= 1000 ? 1 : 0)}k`} domain={[0, 4500]} />
                 <Tooltip content={<BarTooltip />} cursor={{ fill: '#F8FAFC' }} />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
-                <ReferenceLine y={META_SEMANAL} stroke="#E2E8F0" strokeDasharray="4 3" strokeWidth={1.5} />
+                <ReferenceLine y={META_SEMANAL} stroke="#F59E0B" strokeDasharray="4 4" strokeWidth={2}
+                  label={{ value: 'Meta R$4k/sem', position: 'insideTopRight', fontSize: 11, fill: '#F59E0B' }} />
                 {BAR_SERIES.map((s) => (
                   <Bar key={s.key} dataKey={s.key} name={s.label} stackId="a" fill={s.color}
                     radius={s.key === 'outros' ? [3,3,0,0] : [0,0,0,0]} isAnimationActive={!prefersReduced} />

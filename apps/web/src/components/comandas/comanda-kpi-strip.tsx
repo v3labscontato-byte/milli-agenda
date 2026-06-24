@@ -94,7 +94,7 @@ export default function ComandaKpiStrip({
       </div>
 
       {/* KPI cards row */}
-      <div className="grid w-full grid-cols-5 gap-4 px-5 pb-4">
+      <div className="grid w-full grid-cols-2 gap-3 px-5 pb-4 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4">
         {cards.map(({ cfg, value, sub }) => {
           const isActive = cfg.filter !== null && activeFilter === cfg.filter
           const canClick = cfg.filter !== null

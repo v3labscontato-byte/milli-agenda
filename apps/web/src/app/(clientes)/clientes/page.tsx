@@ -87,7 +87,7 @@ export default function ClientesPage() {
           </button>
         </div>
 
-        <div className="grid w-full grid-cols-4 gap-4 px-6 pb-5">
+        <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
           <KpiCard
             label="Total de Clientes"
             value={stats.total}

@@ -55,10 +55,10 @@ function ApptStatusBadge({ status }: { status: UpcomingAppt['status'] }) {
 
 function TabPerfil({ c }: { c: Cliente }) {
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
       {/* Dados Pessoais */}
       <div>
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Dados Pessoais</p>
+        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Dados Pessoais</p>
         <dl className="space-y-3">
           {[
             { icon: Phone, label: 'Telefone', value: c.phone },
@@ -94,7 +94,7 @@ function TabPerfil({ c }: { c: Cliente }) {
 
       {/* Preferências */}
       <div>
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Preferências</p>
+        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Preferências</p>
         <dl className="space-y-3">
           <div>
             <dt className="text-[11px] text-[#94A3B8]">Profissional favorito</dt>
@@ -215,7 +215,7 @@ function TabAgendamentos({ c }: { c: Cliente }) {
   return (
     <div className="space-y-5">
       <div>
-        <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+        <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">
           Próximos ({upcoming.length})
         </p>
         {upcoming.length > 0 ? (
@@ -231,7 +231,7 @@ function TabAgendamentos({ c }: { c: Cliente }) {
 
       {past.length > 0 && (
         <div>
-          <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+          <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">
             Passados (últimos {past.length})
           </p>
           <div className="space-y-2">
@@ -249,7 +249,7 @@ function TabFinanceiro({ c }: { c: Cliente }) {
   return (
     <div className="space-y-5">
       {/* KPI cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { label: 'Total Gasto', value: `R$ ${c.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` },
           { label: 'Ticket Médio', value: `R$ ${c.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` },
@@ -265,7 +265,7 @@ function TabFinanceiro({ c }: { c: Cliente }) {
       {/* Services bar chart */}
       {c.serviceFreq.length > 0 && (
         <div>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+          <p className="mb-3 text-[12px] font-medium text-[#64748B]">
             Serviços
           </p>
           <div className="space-y-2.5">
@@ -295,7 +295,7 @@ function TabFinanceiro({ c }: { c: Cliente }) {
 
       {/* Últimos pagamentos */}
       <div>
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+        <p className="mb-3 text-[12px] font-medium text-[#64748B]">
           Últimos pagamentos
         </p>
         <div className="space-y-2">

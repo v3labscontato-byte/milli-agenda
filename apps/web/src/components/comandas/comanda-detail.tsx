@@ -152,7 +152,7 @@ export default function ComandaDetail({
           {/* Items */}
           <div className="px-5 py-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              <p className="text-[12px] font-medium text-[#64748B]">
                 Itens
               </p>
               {isEditable && (
@@ -214,7 +214,7 @@ export default function ComandaDetail({
           {/* Discount */}
           {isEditable && (
             <div className="border-t border-[#F1F5F9] px-5 py-4">
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              <p className="mb-3 text-[12px] font-medium text-[#64748B]">
                 Desconto
               </p>
               {discount ? (

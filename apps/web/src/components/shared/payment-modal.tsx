@@ -269,7 +269,7 @@ export default function PaymentModal({
           <div className="bg-white">
             <button type="button" onClick={() => setSummaryOpen((s) => !s)} aria-expanded={summaryOpen}
               className="flex w-full items-center justify-between px-5 py-3 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Resumo</span>
+              <span className="text-[12px] font-medium text-[#64748B]">Resumo</span>
               <ChevronDown size={14} className={cn('text-[#94A3B8] transition-transform duration-150 motion-reduce:transition-none', summaryOpen && 'rotate-180')} aria-hidden="true" />
             </button>
 
@@ -314,7 +314,7 @@ export default function PaymentModal({
           {/* Sinal pago */}
           {deposit && (
             <div className="bg-white px-5 py-4">
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Sinal Pago</p>
+              <p className="mb-3 text-[12px] font-medium text-[#64748B]">Sinal Pago</p>
               <div className="flex items-start gap-2.5">
                 <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-[#16A34A]" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
@@ -330,7 +330,7 @@ export default function PaymentModal({
 
           {/* Desconto */}
           <div className="bg-white px-5 py-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Desconto</p>
+            <p className="mb-3 text-[12px] font-medium text-[#64748B]">Desconto</p>
 
             {appliedDiscount ? (
               <div className="flex items-center justify-between rounded-md bg-[#F0FDF4] px-3 py-2.5">
@@ -394,7 +394,7 @@ export default function PaymentModal({
 
           {/* Formas de pagamento */}
           <div className="bg-white px-5 py-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Formas de Pagamento</p>
+            <p className="mb-3 text-[12px] font-medium text-[#64748B]">Formas de Pagamento</p>
 
             <div className="mb-4 grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-label="Selecionar forma de pagamento">
               {METHODS.map((m) => (
@@ -432,7 +432,7 @@ export default function PaymentModal({
 
           {/* Totais */}
           <div className="bg-white px-5 py-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Totais</p>
+            <p className="mb-3 text-[12px] font-medium text-[#64748B]">Totais</p>
             <div className="space-y-2 text-[13px]">
               <div className="flex justify-between">
                 <span className="text-[#475569]">Subtotal</span>

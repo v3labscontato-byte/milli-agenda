@@ -7,12 +7,12 @@ function UpcomingSkeleton() {
     <div className="space-y-px overflow-hidden rounded-lg border border-[#E2E8F0]" aria-hidden="true">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex items-start gap-3 bg-white px-4 py-3">
-          <div className="h-9 w-10 animate-pulse rounded bg-[#F1F5F9]" />
+          <div className="h-9 w-10 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3.5 w-32 animate-pulse rounded bg-[#F1F5F9]" />
-            <div className="h-3 w-24 animate-pulse rounded bg-[#F1F5F9]" />
+            <div className="h-3.5 w-32 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+            <div className="h-3 w-24 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
           </div>
-          <div className="h-5 w-20 animate-pulse rounded bg-[#F1F5F9]" />
+          <div className="h-5 w-20 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
         </div>
       ))}
     </div>
@@ -27,8 +27,8 @@ function EmptyState() {
       aria-label="Sem próximos horários"
     >
       <Clock size={20} className="mb-2 text-[#94A3B8]" aria-hidden="true" />
-      <p className="text-[14px] font-medium text-[#64748B]">Sem horários nos próximos slots</p>
-      <p className="mt-0.5 text-[12px] text-[#94A3B8]">Agendamentos confirmados aparecerão aqui</p>
+      <p className="text-[14px] font-medium text-[#475569]">Sem horários nos próximos slots</p>
+      <p className="mt-0.5 text-[12px] text-[#475569]">Agendamentos confirmados aparecerão aqui</p>
     </div>
   )
 }
@@ -62,20 +62,20 @@ export default function Upcoming({ appointments, isLoading = false }: UpcomingPr
           {appointments.map((appt) => (
             <li
               key={appt.id}
-              className="flex items-center gap-3 bg-white px-4 py-3 transition-colors hover:bg-[#F8FAFC]"
+              className="flex items-center gap-3 bg-white px-4 py-3"
             >
               {/* Time block — fixed width for vertical alignment */}
               <div className="w-10 shrink-0">
                 <p className="font-tabular text-[13px] font-semibold leading-tight text-[#0F172A]">
                   {appt.time}
                 </p>
-                <p className="text-[11px] leading-tight text-[#94A3B8]">{appt.duration}min</p>
+                <p className="text-[11px] leading-tight text-[#475569]">{appt.duration}min</p>
               </div>
 
               {/* Client + service */}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14px] font-medium text-[#0F172A]">{appt.client}</p>
-                <p className="truncate text-[12px] text-[#64748B]">
+                <p className="truncate text-[12px] text-[#475569]">
                   {appt.service} · {appt.professional.split(' ')[0]}
                 </p>
               </div>

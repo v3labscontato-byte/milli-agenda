@@ -48,7 +48,6 @@ function NavLink({ item, isActive, collapsed }: NavLinkProps) {
     <Link
       href={href}
       aria-current={isActive ? 'page' : undefined}
-      title={collapsed ? label : undefined}
       className={cn(
         'flex items-center gap-3 rounded-md px-3 py-2',
         'text-body transition-colors duration-150',
@@ -60,7 +59,10 @@ function NavLink({ item, isActive, collapsed }: NavLinkProps) {
       )}
     >
       <Icon size={16} className="shrink-0" aria-hidden="true" />
-      {!collapsed && <span className="truncate">{label}</span>}
+      {collapsed
+        ? <span className="sr-only">{label}</span>
+        : <span className="truncate">{label}</span>
+      }
     </Link>
   )
 }
@@ -75,7 +77,9 @@ export default function Sidebar() {
       className={cn(
         'flex h-full shrink-0 flex-col bg-[#0F172A]',
         'border-r border-[#1E293B]',
-        'transition-[width] duration-200 ease-out',
+        // transition-[width] animates a layout property — acceptable at 200ms on desktop;
+        // disabled entirely under prefers-reduced-motion via globals.css
+        'transition-[width] duration-200 ease-out motion-reduce:transition-none',
         collapsed ? 'w-16' : 'w-60',
       )}
       aria-label="Navegação principal"
@@ -98,7 +102,7 @@ export default function Sidebar() {
           aria-expanded={!collapsed}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md',
-            'text-[#64748B] transition-colors hover:bg-[#1E293B] hover:text-[#94A3B8]',
+            'text-[#94A3B8] transition-colors hover:bg-[#1E293B] hover:text-[#CBD5E1]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
           )}
         >
@@ -142,7 +146,7 @@ export default function Sidebar() {
           <li>
             <button
               onClick={() => { /* auth.signOut() */ }}
-              title={collapsed ? 'Sair' : undefined}
+              aria-label="Sair"
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-3 py-2',
                 'text-body text-[#94A3B8] transition-colors hover:bg-[#1E293B] hover:text-[#CBD5E1]',
@@ -150,7 +154,10 @@ export default function Sidebar() {
               )}
             >
               <LogOut size={16} className="shrink-0" aria-hidden="true" />
-              {!collapsed && <span className="truncate">Sair</span>}
+              {collapsed
+                ? <span className="sr-only">Sair</span>
+                : <span className="truncate">Sair</span>
+              }
             </button>
           </li>
         </ul>
@@ -159,7 +166,7 @@ export default function Sidebar() {
         {!collapsed && (
           <div className="mt-2 border-t border-[#1E293B] px-3 pt-3">
             <p className="truncate text-small font-semibold text-white">Admin</p>
-            <p className="truncate text-[11px] text-[#64748B]">admin@milli.com.br</p>
+            <p className="truncate text-[11px] text-[#94A3B8]">admin@milli.com.br</p>
           </div>
         )}
       </div>

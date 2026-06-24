@@ -36,7 +36,7 @@ const config: Config = {
         },
         content: {
           primary:   '#0F172A',
-          secondary: '#64748B',
+          secondary: '#475569',
           muted:     '#94A3B8',
           disabled:  '#CBD5E1',
           inverse:   '#FFFFFF',

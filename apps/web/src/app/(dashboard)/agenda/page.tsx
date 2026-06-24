@@ -1,0 +1,130 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { startOfWeek } from 'date-fns'
+import { cn } from '@/lib/utils'
+import {
+  MOCK_CALENDAR_APPOINTMENTS,
+  getAppointmentsForDate,
+  nextDay,
+  prevDay,
+  type CalendarAppointment,
+} from '@/lib/calendar-utils'
+import CalendarHeader from '@/components/agenda/calendar-header'
+import CalendarGrid from '@/components/agenda/calendar-grid'
+import WeeklyOverview from '@/components/agenda/weekly-overview'
+import AppointmentModal from '@/components/agenda/appointment-modal'
+import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
+
+type View = 'week' | 'day'
+
+export default function AgendaPage() {
+  const [view, setView]                   = useState<View>('week')
+  const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
+  const [filterProfId, setFilterProfId]   = useState<string | null>(null)
+  const [selectedAppt, setSelectedAppt]   = useState<CalendarAppointment | null>(null)
+  const [newModalOpen, setNewModalOpen]   = useState(false)
+  const [searchQuery, setSearchQuery]     = useState('')
+
+  const goToToday = useCallback(() => setSelectedDate(new Date()), [])
+  const goToPrev  = useCallback(() => setSelectedDate((d) => prevDay(d)), [])
+  const goToNext  = useCallback(() => setSelectedDate((d) => nextDay(d)), [])
+  const openNew   = useCallback(() => setNewModalOpen(true), [])
+  const closeNew  = useCallback(() => setNewModalOpen(false), [])
+  const closeAppt = useCallback(() => setSelectedAppt(null), [])
+
+  // Clicking a weekly-overview cell navigates to day view filtered by that professional
+  const handleDaySelect = useCallback((professionalId: string, date: Date) => {
+    setSelectedDate(date)
+    setFilterProfId(professionalId)
+    setView('day')
+  }, [])
+
+  // Week start: always the Sunday of the week containing selectedDate
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
+
+  const dayAppointments = getAppointmentsForDate(selectedDate, MOCK_CALENDAR_APPOINTMENTS)
+
+  const filtered = dayAppointments.filter((a) => {
+    const matchesSearch =
+      !searchQuery.trim() ||
+      a.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.service.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesProf = !filterProfId || a.professionalId === filterProfId
+    return matchesSearch && matchesProf
+  })
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Sticky calendar header (date nav + search) */}
+      <CalendarHeader
+        selectedDate={selectedDate}
+        onPrev={goToPrev}
+        onNext={goToNext}
+        onToday={goToToday}
+        onNew={openNew}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
+      {/* View toggle strip */}
+      <div className="flex items-center gap-3 border-b border-[#E2E8F0] bg-white px-6 py-2">
+        <div
+          className="flex overflow-hidden rounded-md border border-[#E2E8F0]"
+          role="group"
+          aria-label="Modo de visualização"
+        >
+          {(['week', 'day'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => {
+                setView(v)
+                if (v === 'week') setFilterProfId(null)
+              }}
+              aria-pressed={view === v}
+              className={cn(
+                'px-4 py-1.5 text-[13px] font-medium transition-colors',
+                'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                view === v
+                  ? 'bg-[#2563EB] text-white'
+                  : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]',
+              )}
+            >
+              {v === 'week' ? 'Semana' : 'Dia'}
+            </button>
+          ))}
+        </div>
+
+        {/* Show active prof filter badge in day view */}
+        {view === 'day' && filterProfId && (
+          <button
+            type="button"
+            onClick={() => setFilterProfId(null)}
+            aria-label="Remover filtro de profissional"
+            className="flex items-center gap-1 rounded-full bg-[#EFF6FF] px-2.5 py-0.5 text-[12px] font-medium text-[#2563EB] hover:bg-[#DBEAFE]"
+          >
+            {filterProfId}
+            <span aria-hidden="true" className="ml-0.5 opacity-60">×</span>
+          </button>
+        )}
+      </div>
+
+      {/* Content area */}
+      <div className="flex-1 overflow-hidden">
+        {view === 'week' ? (
+          <WeeklyOverview weekStart={weekStart} onDaySelect={handleDaySelect} />
+        ) : (
+          <CalendarGrid
+            appointments={filtered}
+            selectedDate={selectedDate}
+            onAppointmentClick={setSelectedAppt}
+          />
+        )}
+      </div>
+
+      <AppointmentModal appointment={selectedAppt} onClose={closeAppt} />
+      <NewAppointmentModal open={newModalOpen} onClose={closeNew} />
+    </div>
+  )
+}

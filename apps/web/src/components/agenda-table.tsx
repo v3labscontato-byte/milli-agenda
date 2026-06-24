@@ -27,10 +27,10 @@ function TableSkeleton() {
       <div className="h-10 bg-[#F8FAFC] border-b border-[#E2E8F0]" />
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 border-b border-[#E2E8F0] bg-white px-4 py-3 last:border-0">
-          <div className="h-3.5 w-10 animate-pulse rounded bg-[#F1F5F9]" />
-          <div className="h-3.5 w-28 animate-pulse rounded bg-[#F1F5F9]" />
-          <div className="h-3.5 w-24 animate-pulse rounded bg-[#F1F5F9]" />
-          <div className="ml-auto h-5 w-20 animate-pulse rounded bg-[#F1F5F9]" />
+          <div className="h-3.5 w-10 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+          <div className="h-3.5 w-28 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+          <div className="h-3.5 w-24 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+          <div className="ml-auto h-5 w-20 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
         </div>
       ))}
     </div>
@@ -60,7 +60,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
         >
           Agenda de Hoje
         </h2>
-        <p className="text-[12px] text-[#94A3B8]" aria-live="polite" aria-atomic="true">
+        <p className="text-[12px] text-[#475569]" aria-live="polite" aria-atomic="true">
           {isLoading ? '…' : `${filtered.length} agendamento${filtered.length !== 1 ? 's' : ''}`}
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                 'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                 isActive
                   ? 'border-[#2563EB] bg-[#2563EB] text-white'
-                  : 'border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#2563EB] hover:text-[#2563EB]',
+                  : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]',
               )}
             >
               {shortName}
@@ -103,13 +103,13 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
             <table className="w-full min-w-[640px] text-left">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8]">Hora</th>
-                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8]">Cliente</th>
-                  <th scope="col" className="hidden px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8] md:table-cell">Serviço</th>
-                  <th scope="col" className="hidden px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8] lg:table-cell">Profissional</th>
-                  <th scope="col" className="hidden px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8] xl:table-cell">Valor</th>
-                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8]">Status</th>
-                  <th scope="col" className="w-28 px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-[0.06em] text-[#94A3B8]">
+                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569]">Hora</th>
+                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569]">Cliente</th>
+                  <th scope="col" className="hidden px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569] md:table-cell">Serviço</th>
+                  <th scope="col" className="hidden px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569] lg:table-cell">Profissional</th>
+                  <th scope="col" className="hidden px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569] xl:table-cell">Valor</th>
+                  <th scope="col" className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569]">Status</th>
+                  <th scope="col" className="w-28 px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569]">
                     <span className="sr-only">Ações</span>
                   </th>
                 </tr>
@@ -118,8 +118,8 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-12 text-center">
-                      <p className="text-[14px] font-medium text-[#64748B]">Nenhum agendamento para este filtro</p>
-                      <p className="mt-0.5 text-[12px] text-[#94A3B8]">Tente selecionar outro profissional</p>
+                      <p className="text-[14px] font-medium text-[#475569]">Nenhum agendamento para este filtro</p>
+                      <p className="mt-0.5 text-[12px] text-[#475569]">Tente selecionar outro profissional</p>
                     </td>
                   </tr>
                 ) : (
@@ -140,15 +140,15 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                         <td className="px-4 py-3">
                           <p className="text-[14px] font-medium text-[#0F172A]">{appt.client}</p>
                           {/* Service shown inline on small screens where its column is hidden */}
-                          <p className="text-[12px] text-[#94A3B8] md:hidden">{appt.service}</p>
+                          <p className="text-[12px] text-[#475569] md:hidden">{appt.service}</p>
                         </td>
 
                         <td className="hidden px-4 py-3 md:table-cell">
-                          <span className="text-[14px] text-[#64748B]">{appt.service}</span>
+                          <span className="text-[14px] text-[#475569]">{appt.service}</span>
                         </td>
 
                         <td className="hidden px-4 py-3 lg:table-cell">
-                          <span className="text-[14px] text-[#64748B]">
+                          <span className="text-[14px] text-[#475569]">
                             {appt.professional.split(' ')[0]}
                           </span>
                         </td>
@@ -175,8 +175,8 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                               type="button"
                               aria-label={`Ver detalhes de ${appt.client}`}
                               className={cn(
-                                'flex h-7 w-7 items-center justify-center rounded',
-                                'text-[#94A3B8] transition-colors hover:bg-[#F1F5F9] hover:text-[#0F172A]',
+                                'flex h-8 w-8 items-center justify-center rounded',
+                                'text-[#475569] transition-colors hover:bg-[#F1F5F9] hover:text-[#0F172A]',
                                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                               )}
                             >

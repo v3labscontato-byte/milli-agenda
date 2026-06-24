@@ -7,19 +7,19 @@ function CardSkeleton() {
     <div className="rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]" aria-hidden="true">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1.5">
-          <div className="h-4 w-32 animate-pulse rounded bg-[#F1F5F9]" />
-          <div className="h-3.5 w-24 animate-pulse rounded bg-[#F1F5F9]" />
+          <div className="h-4 w-32 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+          <div className="h-3.5 w-24 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
         </div>
-        <div className="h-5 w-24 animate-pulse rounded bg-[#F1F5F9]" />
+        <div className="h-5 w-24 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
       </div>
       <div className="mt-4 flex items-end justify-between">
         <div className="space-y-1.5">
-          <div className="h-3 w-36 animate-pulse rounded bg-[#F1F5F9]" />
-          <div className="h-3 w-20 animate-pulse rounded bg-[#F1F5F9]" />
+          <div className="h-3 w-36 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
+          <div className="h-3 w-20 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
         </div>
-        <div className="h-4 w-14 animate-pulse rounded bg-[#F1F5F9]" />
+        <div className="h-4 w-14 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
       </div>
-      <div className="mt-3 h-8 w-full animate-pulse rounded bg-[#F1F5F9]" />
+      <div className="mt-3 h-8 w-full animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
     </div>
   )
 }
@@ -32,8 +32,8 @@ function EmptyState() {
       aria-label="Nenhum atendimento em andamento"
     >
       <Clock size={20} className="mb-2 text-[#94A3B8]" aria-hidden="true" />
-      <p className="text-[14px] font-medium text-[#64748B]">Nenhum atendimento em andamento</p>
-      <p className="mt-0.5 text-[12px] text-[#94A3B8]">Clientes em serviço aparecerão aqui</p>
+      <p className="text-[14px] font-medium text-[#475569]">Nenhum atendimento em andamento</p>
+      <p className="mt-0.5 text-[12px] text-[#475569]">Clientes em serviço aparecerão aqui</p>
     </div>
   )
 }
@@ -54,7 +54,7 @@ function AppointmentCard({ appt }: AppointmentCardProps) {
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[14px] font-semibold leading-tight text-[#0F172A]">{appt.client}</p>
-          <p className="mt-0.5 text-[13px] text-[#64748B]">{appt.service}</p>
+          <p className="mt-0.5 text-[13px] text-[#475569]">{appt.service}</p>
         </div>
         <StatusBadge status={appt.status} className="shrink-0" />
       </div>
@@ -62,12 +62,12 @@ function AppointmentCard({ appt }: AppointmentCardProps) {
       {/* Meta: professional, time range, elapsed */}
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-[12px] text-[#64748B]">
+          <p className="text-[12px] text-[#475569]">
             {appt.professional.split(' ')[0]} · {appt.time}–{appt.endTime}
           </p>
           {appt.startedAt && (
             /* Elapsed time helps receptionist know how far into the service the client is */
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-[#94A3B8]">
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-[#475569]">
               <Clock size={10} aria-hidden="true" />
               <span>Em andamento desde {appt.startedAt}</span>
             </p>
@@ -98,7 +98,7 @@ function AppointmentCard({ appt }: AppointmentCardProps) {
           type="button"
           className={[
             'flex w-full items-center justify-center gap-2 rounded-sm',
-            'border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#64748B]',
+            'border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]',
             'transition-colors hover:border-[#CBD5E1] hover:bg-[#F8FAFC] hover:text-[#0F172A]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
           ].join(' ')}

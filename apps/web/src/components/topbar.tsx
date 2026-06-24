@@ -1,13 +1,17 @@
 import { Bell, Plus } from 'lucide-react'
 
-export default function Topbar() {
+interface TopbarProps {
+  title?: string
+}
+
+export default function Topbar({ title = 'Dashboard' }: TopbarProps) {
   return (
     <header
       className="flex h-14 shrink-0 items-center justify-between border-b border-[#E2E8F0] bg-white px-6"
       role="banner"
     >
-      {/* Left: intentionally empty — page h1 lives in main content */}
-      <div aria-hidden="true" />
+      {/* Left: page title */}
+      <h1 className="text-[15px] font-semibold text-[#0F172A]">{title}</h1>
 
       {/* Right: global actions */}
       <div className="flex items-center gap-3">
@@ -16,7 +20,7 @@ export default function Topbar() {
           aria-label="Notificações (1 nova)"
           className={[
             'relative flex h-9 w-9 items-center justify-center rounded-md',
-            'text-[#64748B] transition-colors',
+            'text-[#475569] transition-colors',
             'hover:bg-[#F1F5F9] hover:text-[#0F172A]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
           ].join(' ')}

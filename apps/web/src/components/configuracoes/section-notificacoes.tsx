@@ -126,7 +126,7 @@ export default function SectionNotificacoes() {
                 <button
                   type="button"
                   onClick={() => setPrefs((p) => ({ ...p, whatsappConnected: true }))}
-                  className="rounded-sm bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                  className="rounded-md bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                 >
                   Conectar WhatsApp
                 </button>

@@ -12,13 +12,13 @@ interface PlanColumn {
   clients: string
   reports: string
   api: boolean
-  whitLabel: boolean
+  whiteLabel: boolean
 }
 
 const PLANS: PlanColumn[] = [
-  { tier: 'starter',  label: 'STARTER',  price: 49,  professionals: '2',      clients: '200',     reports: 'Básico',    api: false, whitLabel: false },
-  { tier: 'growth',   label: 'GROWTH',   price: 149, professionals: '6',      clients: 'Ilimit.', reports: 'Avançado',  api: false, whitLabel: false },
-  { tier: 'business', label: 'BUSINESS', price: 299, professionals: '15',     clients: 'Ilimit.', reports: 'Avançado',  api: true,  whitLabel: true  },
+  { tier: 'starter',  label: 'STARTER',  price: 49,  professionals: '2',  clients: '200',     reports: 'Básico',   api: false, whiteLabel: false },
+  { tier: 'growth',   label: 'GROWTH',   price: 149, professionals: '6',  clients: 'Ilimit.', reports: 'Avançado', api: false, whiteLabel: false },
+  { tier: 'business', label: 'BUSINESS', price: 299, professionals: '15', clients: 'Ilimit.', reports: 'Avançado', api: true,  whiteLabel: true  },
 ]
 
 export default function SectionPlano() {
@@ -92,7 +92,7 @@ export default function SectionPlano() {
           <button
             type="button"
             className={cn(
-              'mt-4 w-full rounded-sm bg-[#2563EB] py-2 text-[13px] font-medium text-white',
+              'mt-4 w-full rounded-md bg-[#2563EB] py-2 text-[13px] font-medium text-white',
               'transition-colors hover:bg-[#1D4ED8]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
             )}
@@ -104,7 +104,7 @@ export default function SectionPlano() {
         {/* Comparison table */}
         <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)] overflow-hidden">
           <div className="border-b border-[#E2E8F0] px-5 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Comparar Planos</p>
+            <p className="text-[14px] font-semibold text-[#0F172A]">Comparar Planos</p>
           </div>
           <table className="w-full" aria-label="Comparação de planos">
             <thead>
@@ -137,7 +137,7 @@ export default function SectionPlano() {
                   { label: 'Clientes',       key: 'clients'       as const, render: (v: PlanColumn) => v.clients             },
                   { label: 'Relatórios',     key: 'reports'       as const, render: (v: PlanColumn) => v.reports             },
                   { label: 'API pública',    key: 'api'           as const, render: (v: PlanColumn) => v.api    ? '✓' : '✗'  },
-                  { label: 'White Label',    key: 'whitLabel'     as const, render: (v: PlanColumn) => v.whitLabel ? '✓' : '✗' },
+                  { label: 'White Label',    key: 'whiteLabel'    as const, render: (v: PlanColumn) => v.whiteLabel ? '✓' : '✗' },
                 ] as const
               ).map(({ label, render }) => (
                 <tr key={label}>
@@ -168,7 +168,7 @@ export default function SectionPlano() {
         {/* Invoices */}
         <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
           <div className="border-b border-[#E2E8F0] px-5 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Histórico de Faturas</p>
+            <p className="text-[14px] font-semibold text-[#0F172A]">Histórico de Faturas</p>
           </div>
           <ul className="divide-y divide-[#F1F5F9]" role="list">
             {MOCK_INVOICES.map((inv) => (

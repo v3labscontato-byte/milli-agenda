@@ -8,6 +8,17 @@ import StepDatetime from '@/components/booking/step-datetime'
 import StepConfirm, { SuccessScreen } from '@/components/booking/step-confirm'
 import type { BookingService, BookingProfessional } from '@/lib/booking-mock'
 
+// Native CSS keyframe — no tailwindcss-animate dependency required
+const STEP_ANIM = `
+  @keyframes bkStepIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bk-step { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+`
+
 type Step = 1 | 2 | 3 | 4 | 5
 
 const STEP_LABELS = ['Serviço', 'Profissional', 'Data e Hora', 'Confirmação']
@@ -27,7 +38,7 @@ function ProgressBar({ step }: { step: Step }) {
           />
         ))}
       </div>
-      <p className="mt-1.5 text-[11px] text-[#94A3B8]">
+      <p className="mt-1.5 text-[11px] text-[#64748B]">
         {STEP_LABELS[step - 1]} · Passo {step} de 4
       </p>
     </div>
@@ -35,11 +46,11 @@ function ProgressBar({ step }: { step: Step }) {
 }
 
 export default function AgendarPage() {
-  const [step, setStep]               = useState<Step>(1)
-  const [service, setService]         = useState<BookingService | null>(null)
+  const [step, setStep]                 = useState<Step>(1)
+  const [service, setService]           = useState<BookingService | null>(null)
   const [professional, setProfessional] = useState<BookingProfessional | null>(null)
-  const [date, setDate]               = useState<string | null>(null)
-  const [time, setTime]               = useState<string | null>(null)
+  const [date, setDate]                 = useState<string | null>(null)
+  const [time, setTime]                 = useState<string | null>(null)
 
   function reset() {
     setStep(1)
@@ -51,16 +62,17 @@ export default function AgendarPage() {
 
   return (
     <div className="flex flex-col">
+      <style>{STEP_ANIM}</style>
       <ProgressBar step={step} />
 
+      {/* key forces remount → restarts the CSS animation on every step change */}
       <div
         key={step}
-        className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+        className="bk-step"
+        style={{ animation: 'bkStepIn 220ms cubic-bezier(0.16,1,0.3,1) both' }}
       >
         {step === 1 && (
-          <StepService
-            onSelect={(svc) => { setService(svc); setStep(2) }}
-          />
+          <StepService onSelect={(svc) => { setService(svc); setStep(2) }} />
         )}
 
         {step === 2 && service && (

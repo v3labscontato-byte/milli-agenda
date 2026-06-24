@@ -6,6 +6,16 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { SALON, formatDuration, formatPrice, type BookingService, type BookingProfessional } from '@/lib/booking-mock'
 
+const SUCCESS_ANIM = `
+  @keyframes bkScaleIn {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bk-scale-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+`
+
 function formatDateFull(iso: string, time: string): string {
   const d = new Date(iso + 'T12:00:00')
   const label = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -37,7 +47,11 @@ export function SuccessScreen({ service, professional, date, time, onNew }: Succ
 
   return (
     <div className="flex flex-col items-center px-6 py-12 text-center">
-      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#DCFCE7]">
+      <style>{SUCCESS_ANIM}</style>
+      <div
+        className="bk-scale-in mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#DCFCE7]"
+        style={{ animation: 'bkScaleIn 400ms cubic-bezier(0.16,1,0.3,1) both' }}
+      >
         <CheckCircle2 size={44} className="text-[#16A34A]" aria-hidden="true" />
       </div>
       <h2 className="text-[22px] font-bold text-[#0F172A]">Agendamento confirmado!</h2>
@@ -57,14 +71,14 @@ export function SuccessScreen({ service, professional, date, time, onNew }: Succ
       <div className="mt-8 flex w-full flex-col gap-3">
         <Link
           href="/booking/meus-agendamentos"
-          className="w-full rounded-xl bg-[#2563EB] py-3.5 text-center text-[15px] font-semibold text-white hover:bg-[#1D4ED8]"
+          className="w-full rounded-xl bg-[#2563EB] py-3.5 text-center text-[15px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2563EB]"
         >
           Ver meus agendamentos
         </Link>
         <button
           type="button"
           onClick={onNew}
-          className="w-full rounded-xl border border-[#E2E8F0] bg-white py-3.5 text-[15px] font-medium text-[#475569] hover:border-[#94A3B8]"
+          className="w-full rounded-xl border border-[#E2E8F0] bg-white py-3.5 text-[15px] font-medium text-[#475569] transition-colors hover:border-[#94A3B8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
         >
           Fazer outro agendamento
         </button>
@@ -87,11 +101,16 @@ export default function StepConfirm({ service, professional, date, time, onConfi
     onConfirm({ name, phone, email, notes })
   }
 
-  const inputCls = 'w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
+  // placeholder:text-[#64748B] → meets 4.6:1 on white
+  const inputCls = 'w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-[14px] text-[#0F172A] placeholder:text-[#64748B] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
 
   return (
     <div className="flex flex-col">
-      <button type="button" onClick={onBack} className="flex items-center gap-1 px-4 py-3 text-[14px] text-[#2563EB]">
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex items-center gap-1 px-4 py-3 text-[14px] text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE] rounded-lg"
+      >
         <ChevronLeft size={18} aria-hidden="true" />
         <span className="font-medium">Confirmar agendamento</span>
       </button>
@@ -146,7 +165,7 @@ export default function StepConfirm({ service, professional, date, time, onConfi
         <button
           type="submit"
           disabled={loading}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-70"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2563EB]"
         >
           {loading ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
@@ -155,7 +174,7 @@ export default function StepConfirm({ service, professional, date, time, onConfi
           )}
           {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
         </button>
-        <p className="mt-2 text-center text-[11px] text-[#94A3B8]">
+        <p className="mt-2 text-center text-[11px] text-[#64748B]">
           Você receberá confirmação por WhatsApp e email
         </p>
       </form>

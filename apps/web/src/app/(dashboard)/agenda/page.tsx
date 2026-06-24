@@ -166,7 +166,7 @@ export default function AgendaPage() {
       {view === 'week' ? (
         <div className="flex-1 overflow-auto">
           <WeeklyOverview weekStart={weekStart} onDaySelect={handleDaySelect} />
-          <div className="border-t border-[#E2E8F0] mt-4 px-6 pb-10 pt-6">
+          <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-4">
             <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">
               Atendimentos da Semana
             </h2>

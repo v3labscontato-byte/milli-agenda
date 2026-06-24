@@ -2,16 +2,20 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Star, Calendar, X } from 'lucide-react'
+import { Star, Calendar, X, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  SALON, CLIENT, POPULAR_SERVICES, UPCOMING_APPOINTMENTS, REVIEWS,
+  SALON, CLIENT, POPULAR_SERVICES, UPCOMING_APPOINTMENTS, REVIEWS, NOTIFICACOES,
   formatPrice, formatDuration, type BookingAppointment,
 } from '@/lib/booking-mock'
+import FidelidadeCard from '@/components/booking/fidelidade-card'
+import PacotesSection  from '@/components/booking/pacotes-section'
+import CuponsSection   from '@/components/booking/cupons-section'
 
 export default function BookingHomePage() {
   const [upcoming, setUpcoming] = useState<BookingAppointment[]>(UPCOMING_APPOINTMENTS)
-  const next = upcoming[0] ?? null
+  const next   = upcoming[0] ?? null
+  const unread = NOTIFICACOES.filter((n) => !n.read).length
 
   function cancelAppointment(id: string) {
     setUpcoming((prev) => prev.filter((a) => a.id !== id))
@@ -23,7 +27,7 @@ export default function BookingHomePage() {
       <div className="bg-gradient-to-b from-primary-xlight to-white px-5 pb-5 pt-6">
         <div className="flex items-start gap-3">
           <span className="text-[38px] leading-none" aria-hidden="true">{SALON.emoji}</span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-h2 font-bold text-content-primary">{SALON.name}</h1>
             <p className="mt-0.5 text-[13px] text-content-secondary">{SALON.address}</p>
             <div className="mt-1.5 flex items-center gap-1.5">
@@ -32,6 +36,18 @@ export default function BookingHomePage() {
               <span className="text-[13px] text-content-subtle">({SALON.reviewCount} avaliações)</span>
             </div>
           </div>
+          <Link
+            href="/booking/notificacoes"
+            aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-content-secondary transition-colors hover:bg-primary-xlight hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
+          >
+            <Bell size={20} aria-hidden="true" />
+            {unread > 0 && (
+              <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-danger-medium text-[9px] font-bold text-white" aria-hidden="true">
+                {unread}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 
@@ -41,26 +57,22 @@ export default function BookingHomePage() {
           <p id="greeting-heading" className="text-[16px] font-semibold text-content-primary">
             Olá, {CLIENT.name.split(' ')[0]}! 👋
           </p>
-
           {next ? (
             <div className="mt-3 rounded-2xl border border-primary-light bg-primary-xlight p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[12px] font-medium text-primary">Próximo agendamento</p>
-                  <p className="mt-2 text-[15px] font-semibold text-content-primary">
-                    {next.serviceEmoji} {next.service}
-                  </p>
+                  <p className="mt-2 text-[15px] font-semibold text-content-primary">{next.serviceEmoji} {next.service}</p>
                   <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-content-secondary">
-                    <Calendar size={12} aria-hidden="true" />
-                    {next.dateLabel}
+                    <Calendar size={12} aria-hidden="true" />{next.dateLabel}
                   </p>
                   <p className="mt-0.5 text-[13px] text-content-secondary">👤 {next.professional}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => cancelAppointment(next.id)}
-                  aria-label="Fechar lembrete de agendamento"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-primary-light active:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Fechar lembrete"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <X size={15} className="text-content-subtle" aria-hidden="true" />
                 </button>
@@ -91,11 +103,12 @@ export default function BookingHomePage() {
           )}
         </section>
 
-        {/* ── Popular services — list layout avoids identical card grid ── */}
+        {/* ── Fidelidade ── */}
+        <FidelidadeCard compact />
+
+        {/* ── Popular services ── */}
         <section aria-labelledby="popular-heading">
-          <h2 id="popular-heading" className="mb-3 text-[15px] font-semibold text-content-primary">
-            Serviços populares
-          </h2>
+          <h2 id="popular-heading" className="mb-3 text-[15px] font-semibold text-content-primary">Serviços populares</h2>
           <div className="overflow-hidden rounded-2xl border border-border bg-border" role="list">
             {POPULAR_SERVICES.map((svc, i) => (
               <Link
@@ -111,43 +124,41 @@ export default function BookingHomePage() {
                 )}
                 style={{ animationDelay: `${i * 60}ms` }}
               >
-                <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-xlight text-[20px]"
-                  aria-hidden="true"
-                >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-xlight text-[20px]" aria-hidden="true">
                   {svc.emoji}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-medium text-content-primary">{svc.name}</p>
                   <p className="mt-0.5 text-small text-content-subtle">{formatDuration(svc.durationMins)}</p>
                 </div>
-                <span className="shrink-0 text-[14px] font-semibold text-primary">
-                  {formatPrice(svc.price)}
-                </span>
+                <span className="shrink-0 text-[14px] font-semibold text-primary">{formatPrice(svc.price)}</span>
               </Link>
             ))}
           </div>
         </section>
+
+        {/* ── Pacotes ── */}
+        <PacotesSection limit={2} />
 
         {/* ── CTA ── */}
         <Link
           href="/booking/agendar"
           className={cn(
             'flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4',
-            'text-[15px] font-semibold text-white',
-            'transition-all hover:bg-primary-dark active:scale-[0.97]',
+            'text-[15px] font-semibold text-white transition-all hover:bg-primary-dark active:scale-[0.97]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary',
           )}
         >
           + Agendar agora
         </Link>
 
-        {/* ── Reviews — divider list avoids identical card grid ── */}
+        {/* ── Cupons ── */}
+        <CuponsSection limit={2} />
+
+        {/* ── Reviews ── */}
         <section aria-labelledby="reviews-heading">
           <div className="mb-4 flex items-center justify-between">
-            <h2 id="reviews-heading" className="text-[15px] font-semibold text-content-primary">
-              Avaliações recentes
-            </h2>
+            <h2 id="reviews-heading" className="text-[15px] font-semibold text-content-primary">Avaliações recentes</h2>
             <span className="flex items-center gap-1 text-[13px] font-medium text-content-subtle">
               <Star size={12} className="fill-warning text-warning" aria-hidden="true" />
               {SALON.rating} · {SALON.reviewCount}
@@ -157,10 +168,7 @@ export default function BookingHomePage() {
             {REVIEWS.map((rev, i) => (
               <div
                 key={rev.id}
-                className={cn(
-                  'pb-4 animate-fade-in motion-reduce:animate-none',
-                  i < REVIEWS.length - 1 && 'border-b border-background-secondary',
-                )}
+                className={cn('pb-4 animate-fade-in motion-reduce:animate-none', i < REVIEWS.length - 1 && 'border-b border-background-secondary')}
                 style={{ animationDelay: `${i * 60 + 200}ms` }}
               >
                 <div className="mb-1.5 flex items-center gap-0.5" aria-hidden="true">
@@ -169,9 +177,7 @@ export default function BookingHomePage() {
                   ))}
                 </div>
                 <p className="text-[14px] leading-relaxed text-content-primary">"{rev.text}"</p>
-                <p className="mt-1.5 text-small text-content-subtle">
-                  — {rev.clientName} · {rev.service}
-                </p>
+                <p className="mt-1.5 text-small text-content-subtle">— {rev.clientName} · {rev.service}</p>
               </div>
             ))}
           </div>

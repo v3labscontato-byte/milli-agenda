@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, User, Bell, Heart, FileText, LogOut, Trophy } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronRight, User, Bell, Heart, FileText, LogOut, Package, Tag, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CLIENT, formatPrice } from '@/lib/booking-mock'
+import { CLIENT, CLIENT_PACOTES, formatPrice, getLoyaltyConfig } from '@/lib/booking-mock'
 
-// CLIENT.avatarBg is always #7C3AED (purple-medium token)
+const loyaltyCfg = getLoyaltyConfig(CLIENT.pontos)
+
 function Avatar() {
   return (
     <div
@@ -20,32 +22,34 @@ function Avatar() {
 interface MenuItemProps {
   icon: React.ReactNode
   label: string
+  sublabel?: string
   danger?: boolean
+  href?: string
   onClick?: () => void
 }
 
-function MenuItem({ icon, label, danger, onClick }: MenuItemProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-4 transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
-        danger
-          ? 'hover:border-danger-light hover:bg-danger-light'
-          : 'hover:border-primary-light hover:bg-primary-xlight',
-      )}
-    >
+function MenuItem({ icon, label, sublabel, danger, href, onClick }: MenuItemProps) {
+  const cls = cn(
+    'flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-4 transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
+    danger
+      ? 'hover:border-danger-light hover:bg-danger-light'
+      : 'hover:border-primary-light hover:bg-primary-xlight',
+  )
+  const inner = (
+    <>
       <span className={cn('shrink-0', danger ? 'text-danger-medium' : 'text-content-secondary')} aria-hidden="true">
         {icon}
       </span>
-      <span className={cn('flex-1 text-left text-body font-medium', danger ? 'text-danger-medium' : 'text-content-primary')}>
-        {label}
-      </span>
+      <div className="min-w-0 flex-1 text-left">
+        <p className={cn('text-body font-medium', danger ? 'text-danger-medium' : 'text-content-primary')}>{label}</p>
+        {sublabel && <p className="text-[11px] text-content-subtle">{sublabel}</p>}
+      </div>
       {!danger && <ChevronRight size={16} className="shrink-0 text-content-muted" aria-hidden="true" />}
-    </button>
+    </>
   )
+  if (href) return <Link href={href} className={cls}>{inner}</Link>
+  return <button type="button" onClick={onClick} className={cls}>{inner}</button>
 }
 
 export default function PerfilPage() {
@@ -81,22 +85,47 @@ export default function PerfilPage() {
       </div>
 
       <div className="space-y-4 px-5 pb-6">
-        {/* Stats */}
+        {/* Loyalty summary */}
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-4">
-          <Trophy size={22} className="shrink-0 text-warning" aria-hidden="true" />
+          <span className="text-[22px]" aria-hidden="true">{loyaltyCfg.emoji}</span>
           <div className="min-w-0 flex-1">
             <p className="text-body font-semibold text-content-primary">
-              {CLIENT.visits} visitas · {formatPrice(CLIENT.totalSpent)} gastos
+              {CLIENT.pontos.toLocaleString('pt-BR')} pontos · {formatPrice(CLIENT.totalSpent)} gastos
             </p>
-            <p className="text-small text-content-subtle">Cliente desde {CLIENT.since}</p>
+            <p className="text-small text-content-subtle">
+              Nível {loyaltyCfg.label} · Cliente desde {CLIENT.since}
+            </p>
           </div>
         </div>
 
         {/* Menu */}
         <nav aria-label="Menu do perfil" className="space-y-2">
+          <MenuItem
+            icon={<span className="text-[16px]">🏆</span>}
+            label="Fidelidade"
+            sublabel={`${CLIENT.pontos.toLocaleString('pt-BR')} pts · ${loyaltyCfg.label}`}
+            href="/booking/perfil"
+          />
+          <MenuItem
+            icon={<Users size={18} />}
+            label="Programa de Afiliados"
+            sublabel={`${formatPrice(CLIENT.creditoAfiliado)} em créditos`}
+            href="/booking/afiliados"
+          />
+          <MenuItem
+            icon={<Package size={18} />}
+            label="Meus Pacotes"
+            sublabel={`${CLIENT.pacotesAtivos} pacotes ativos`}
+            href="/booking/pacotes"
+          />
+          <MenuItem
+            icon={<Tag size={18} />}
+            label="Cupons e Promoções"
+            sublabel="Ver cupons disponíveis"
+            href="/booking/notificacoes"
+          />
+          <MenuItem icon={<Bell size={18} />}     label="Notificações"         href="/booking/notificacoes" />
           <MenuItem icon={<User size={18} />}     label="Meus dados" />
-          <MenuItem icon={<Bell size={18} />}     label="Notificações" />
-          <MenuItem icon={<Heart size={18} />}    label="Profissional favorito" />
           <MenuItem icon={<FileText size={18} />} label="Políticas do salão" />
         </nav>
 

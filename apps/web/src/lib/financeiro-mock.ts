@@ -4,6 +4,7 @@ export type PaymentMethod = 'pix' | 'credito' | 'debito' | 'dinheiro' | 'voucher
 export type TransactionStatus = 'PAID' | 'PENDING'
 export type ComissaoStatus = 'PENDING' | 'PAID'
 export type PeriodFilter = 'today' | 'week' | 'month' | 'last30' | 'custom'
+export type MetaTipo = 'diaria' | 'semanal' | 'mensal'
 
 export interface Transaction {
   id: string
@@ -26,6 +27,10 @@ export interface Comissao {
   receita: number
   pctComissao: number
   comissaoValue: number
+  tipoPagamento: 'mensal' | 'quinzenal'
+  diaPagamento: number
+  periodoRef: string
+  diasAtraso: number
   status: ComissaoStatus
   paidAt?: string
 }
@@ -55,6 +60,13 @@ export interface WeeklyRevenue {
   outros: number
 }
 
+export interface FaturamentoMensal {
+  mes: string
+  servicos: number
+  produtos: number
+  outros: number
+}
+
 export interface MetodoDistrib {
   id: string
   label: string
@@ -78,6 +90,41 @@ export interface FinanceiroKpis {
   ticketMedio: number
   ticketTrend: string
   ticketTrendUp: boolean
+  receitaBruta: number
+  despesas: number
+  lucroLiquido: number
+  margem: number
+  metaAting: number
+  inadimplenciaPct: number
+  totalEntradas: number
+  saldoCaixa: number
+}
+
+export interface Meta {
+  id: string
+  tipo: MetaTipo
+  valor: number
+  atual: number
+  dataInicio: string
+  dataFim: string
+  ativa: boolean
+}
+
+export interface FluxoLancamento {
+  id: string
+  date: string
+  tipo: 'entrada' | 'saida'
+  categoria: string
+  descricao: string
+  valor: number
+}
+
+export interface PlanoConta {
+  id: string
+  nome: string
+  categoria: string
+  tipo: 'fixa' | 'variavel'
+  ativa: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -91,87 +138,92 @@ function dayAt(offsetDays: number, hh: number, mm = 0): Date {
 
 let _txId = 0
 function mk(
-  offset: number,
-  time: string,
-  client: string,
-  service: string,
-  prof: string,
-  method: PaymentMethod,
-  value: number,
-  status: TransactionStatus,
+  offset: number, time: string, client: string, service: string,
+  prof: string, method: PaymentMethod, value: number, status: TransactionStatus,
 ): Transaction {
   const [hh, mm] = time.split(':').map(Number)
-  return {
-    id: `tx-${++_txId}`,
-    date: dayAt(offset, hh, mm),
-    time,
-    clientName: client,
-    service,
-    professional: prof,
-    method,
-    value,
-    status,
-  }
+  return { id: `tx-${++_txId}`, date: dayAt(offset, hh, mm), time, clientName: client, service, professional: prof, method, value, status }
 }
 
-// ─── Transactions (30 items for the month) ───────────────────────────────────
-// Today PAID sum = R$642; PENDING sum = R$197
+function calcDiasAtraso(status: ComissaoStatus, tipoPagamento: 'mensal' | 'quinzenal', diaPagamento: number): number {
+  if (status === 'PAID') return 0
+  const d = new Date().getDate()
+  if (tipoPagamento === 'mensal') return d > diaPagamento ? d - diaPagamento : 0
+  const dueDay2 = diaPagamento + 15
+  if (d > dueDay2) return d - dueDay2
+  if (d > diaPagamento) return d - diaPagamento
+  return 0
+}
+
+// ─── Transactions ─────────────────────────────────────────────────────────────
 
 export const MOCK_TRANSACTIONS: Transaction[] = [
-  // ── Today (offset 0) — PAID ──────────────────────────────────────────────
   mk(0, '09:00', 'Maria Silva',       'Escova',             'Lena Santos', 'pix',      80,  'PAID'),
   mk(0, '10:15', 'Carlos Santos',     'Barba',              'João Silva',  'dinheiro', 40,  'PAID'),
   mk(0, '10:30', 'Paula Mendes',      'Coloração',          'Lena Santos', 'credito',  200, 'PAID'),
   mk(0, '11:00', 'Juliana Ferreira',  'Hidratação Capilar', 'Lisa Kim',    'pix',      100, 'PAID'),
   mk(0, '11:30', 'Roberto Lima',      'Corte + Barba',      'João Silva',  'debito',   80,  'PAID'),
   mk(0, '13:00', 'Beatriz Oliveira',  'Escova',             'Lisa Kim',    'pix',      142, 'PAID'),
-
-  // ── Pending — 6 items, sum = R$197 ───────────────────────────────────────
   mk(0, '14:00', 'Ana Lima',          'Manicure',           'Ana Costa',   'pix',      40,  'PENDING'),
   mk(0, '15:00', 'Rodrigo Alves',     'Corte Masculino',    'João Silva',  'debito',   45,  'PENDING'),
   mk(1, '16:30', 'Fernanda Souza',    'Pedicure',           'Ana Costa',   'pix',      30,  'PENDING'),
   mk(1, '09:00', 'Lucas Pereira',     'Corte Masculino',    'João Silva',  'credito',  40,  'PENDING'),
   mk(2, '14:00', 'Beatriz Santos',    'Escova',             'Lisa Kim',    'credito',  20,  'PENDING'),
   mk(2, '11:00', 'Marcos Oliveira',   'Barba',              'João Silva',  'dinheiro', 22,  'PENDING'),
-
-  // ── Jun 22-23 (offsets 1-2) ── PAID ──────────────────────────────────────
   mk(2, '09:30', 'Camila Torres',     'Coloração',          'Lena Santos', 'pix',      280, 'PAID'),
   mk(2, '14:00', 'Diego Souza',       'Corte + Barba',      'João Silva',  'dinheiro', 85,  'PAID'),
   mk(1, '10:00', 'Patricia Lima',     'Escova Progressiva', 'Lisa Kim',    'credito',  320, 'PAID'),
   mk(1, '15:00', 'Eduardo Costa',     'Corte Masculino',    'João Silva',  'pix',      65,  'PAID'),
-
-  // ── Jun 15-21 (offsets 3-9) — PAID ───────────────────────────────────────
   mk(3, '10:00', 'Sofia Ramos',       'Coloração + Hidrat.','Lena Santos', 'credito',  380, 'PAID'),
   mk(4, '09:00', 'Bruna Alves',       'Escova Progressiva', 'Lisa Kim',    'pix',      300, 'PAID'),
   mk(5, '11:30', 'Isabel Nunes',      'Coloração',          'Lena Santos', 'credito',  250, 'PAID'),
   mk(5, '14:00', 'Aline Barbosa',     'Design Sobrancelha', 'Ana Costa',   'pix',      30,  'PAID'),
   mk(6, '09:30', 'Renata Costa',      'Hidratação Capilar', 'Lena Santos', 'debito',   180, 'PAID'),
   mk(7, '10:00', 'Victor Moraes',     'Corte + Barba',      'João Silva',  'pix',      80,  'PAID'),
-
-  // ── Jun 8-14 (offsets 10-16) — PAID ──────────────────────────────────────
-  mk(10, '09:00', 'Tatiane Rocha',    'Coloração Completa', 'Lena Santos', 'credito',  420, 'PAID'),
-  mk(11, '10:30', 'Miguel Ferreira',  'Corte Masculino',    'João Silva',  'pix',      65,  'PAID'),
-  mk(12, '09:00', 'Gabriela Santos',  'Escova Progressiva', 'Lisa Kim',    'pix',      320, 'PAID'),
-  mk(13, '11:30', 'Mariana Lima',     'Hidratação Capilar', 'Lena Santos', 'debito',   180, 'PAID'),
-  mk(14, '10:00', 'Amanda Costa',     'Coloração',          'Lena Santos', 'credito',  250, 'PAID'),
-
-  // ── Jun 1-7 (offsets 17-23) — PAID ───────────────────────────────────────
-  mk(17, '09:00', 'Claudia Oliveira', 'Coloração + Hidrat.','Lena Santos', 'credito',  380, 'PAID'),
-  mk(18, '10:00', 'Rafael Souza',     'Barba',              'João Silva',  'dinheiro', 35,  'PAID'),
-  mk(19, '09:30', 'Fernanda Lima',    'Escova Progressiva', 'Lisa Kim',    'pix',      280, 'PAID'),
-  mk(20, '14:00', 'José Santos',      'Corte Masculino',    'João Silva',  'voucher',  65,  'PAID'),
+  mk(10,'09:00', 'Tatiane Rocha',     'Coloração Completa', 'Lena Santos', 'credito',  420, 'PAID'),
+  mk(11,'10:30', 'Miguel Ferreira',   'Corte Masculino',    'João Silva',  'pix',      65,  'PAID'),
+  mk(12,'09:00', 'Gabriela Santos',   'Escova Progressiva', 'Lisa Kim',    'pix',      320, 'PAID'),
+  mk(13,'11:30', 'Mariana Lima',      'Hidratação Capilar', 'Lena Santos', 'debito',   180, 'PAID'),
+  mk(14,'10:00', 'Amanda Costa',      'Coloração',          'Lena Santos', 'credito',  250, 'PAID'),
+  mk(17,'09:00', 'Claudia Oliveira',  'Coloração + Hidrat.','Lena Santos', 'credito',  380, 'PAID'),
+  mk(18,'10:00', 'Rafael Souza',      'Barba',              'João Silva',  'dinheiro', 35,  'PAID'),
+  mk(19,'09:30', 'Fernanda Lima',     'Escova Progressiva', 'Lisa Kim',    'pix',      280, 'PAID'),
+  mk(20,'14:00', 'José Santos',       'Corte Masculino',    'João Silva',  'voucher',  65,  'PAID'),
 ]
 
 // ─── Comissões ────────────────────────────────────────────────────────────────
 
 export const MOCK_COMISSOES: Comissao[] = [
-  { id: 'co-1', profissionalName: 'Lena Santos', initials: 'LS', avatarBg: '#7C3AED', atendimentos: 48, receita: 4320, pctComissao: 40, comissaoValue: 1728, status: 'PENDING' },
-  { id: 'co-2', profissionalName: 'João Silva',  initials: 'JS', avatarBg: '#2563EB', atendimentos: 35, receita: 2100, pctComissao: 35, comissaoValue: 735,  status: 'PENDING' },
-  { id: 'co-3', profissionalName: 'Lisa Kim',    initials: 'LK', avatarBg: '#DB2777', atendimentos: 28, receita: 3360, pctComissao: 40, comissaoValue: 1344, status: 'PENDING' },
-  { id: 'co-4', profissionalName: 'Ana Costa',   initials: 'AC', avatarBg: '#16A34A', atendimentos: 22, receita: 880,  pctComissao: 35, comissaoValue: 308,  status: 'PAID', paidAt: '20/06' },
+  {
+    id: 'co-1', profissionalName: 'Lena Santos', initials: 'LS', avatarBg: '#7C3AED',
+    atendimentos: 48, receita: 4320, pctComissao: 40, comissaoValue: 1728,
+    tipoPagamento: 'mensal', diaPagamento: 5, periodoRef: 'Jun/2026',
+    diasAtraso: calcDiasAtraso('PENDING', 'mensal', 5),
+    status: 'PENDING',
+  },
+  {
+    id: 'co-2', profissionalName: 'João Silva', initials: 'JS', avatarBg: '#2563EB',
+    atendimentos: 35, receita: 2100, pctComissao: 35, comissaoValue: 735,
+    tipoPagamento: 'quinzenal', diaPagamento: 5, periodoRef: 'Jun/2026',
+    diasAtraso: calcDiasAtraso('PENDING', 'quinzenal', 5),
+    status: 'PENDING',
+  },
+  {
+    id: 'co-3', profissionalName: 'Lisa Kim', initials: 'LK', avatarBg: '#DB2777',
+    atendimentos: 28, receita: 3360, pctComissao: 40, comissaoValue: 1344,
+    tipoPagamento: 'mensal', diaPagamento: 5, periodoRef: 'Jun/2026',
+    diasAtraso: calcDiasAtraso('PENDING', 'mensal', 5),
+    status: 'PENDING',
+  },
+  {
+    id: 'co-4', profissionalName: 'Ana Costa', initials: 'AC', avatarBg: '#16A34A',
+    atendimentos: 22, receita: 880, pctComissao: 35, comissaoValue: 308,
+    tipoPagamento: 'mensal', diaPagamento: 5, periodoRef: 'Jun/2026',
+    diasAtraso: 0, status: 'PAID', paidAt: '20/06',
+  },
 ]
 
-// ─── Inadimplência (3 items) ─────────────────────────────────────────────────
+// ─── Inadimplência ────────────────────────────────────────────────────────────
 
 export const MOCK_INADIMPLENCIA: Inadimplencia[] = [
   { id: 'id-1', dateLabel: '15/06', clientName: 'Pedro Alves',  service: 'Coloração', value: 200, daysOverdue: 9  },
@@ -179,109 +231,144 @@ export const MOCK_INADIMPLENCIA: Inadimplencia[] = [
   { id: 'id-3', dateLabel: '01/06', clientName: 'Marcos Lima',  service: 'Barba',     value: 40,  daysOverdue: 23 },
 ]
 
-// ─── Fluxo de Caixa (Jun 1–24) ───────────────────────────────────────────────
+// ─── Fluxo de Caixa (diário agregado) ────────────────────────────────────────
 
 const DAILY_CASHFLOW: Array<[number, number]> = [
-  [680, 0],    // Jun 1
-  [420, 200],  // Jun 2
-  [480, 0],    // Jun 3
-  [565, 0],    // Jun 4
-  [620, 1500], // Jun 5 (aluguel)
-  [450, 0],    // Jun 6
-  [0,   0],    // Jun 7 Sun
-  [520, 300],  // Jun 8 (insumos)
-  [380, 0],    // Jun 9
-  [620, 0],    // Jun 10
-  [290, 0],    // Jun 11
-  [700, 0],    // Jun 12
-  [580, 0],    // Jun 13
-  [0,   0],    // Jun 14 Sun
-  [370, 450],  // Jun 15 (insumos)
-  [620, 0],    // Jun 16
-  [450, 0],    // Jun 17
-  [710, 200],  // Jun 18
-  [580, 0],    // Jun 19
-  [480, 0],    // Jun 20
-  [0,   0],    // Jun 21 Sun
-  [450, 1500], // Jun 22 (aluguel)
-  [520, 0],    // Jun 23
-  [642, 0],    // Jun 24 (today)
+  [680,0],[420,200],[480,0],[565,0],[620,1500],[450,0],[0,0],
+  [520,300],[380,0],[620,0],[290,0],[700,0],[580,0],[0,0],
+  [370,450],[620,0],[450,0],[710,200],[580,0],[480,0],[0,0],
+  [450,1500],[520,0],[642,0],
 ]
 
 export const MOCK_FLUXO: FluxoCaixaEntry[] = (() => {
   let acc = 0
   return DAILY_CASHFLOW.map(([entradas, saidas], i) => {
-    const offset = DAILY_CASHFLOW.length - 1 - i // Jun 1 = offset 23
+    const offset = DAILY_CASHFLOW.length - 1 - i
     const date = dayAt(offset, 0)
     const saldoDia = entradas - saidas
     acc += saldoDia
     return {
       date,
-      dateLabel: `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`,
-      entradas,
-      saidas,
-      saldoDia,
-      saldoAcum: acc,
+      dateLabel: `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}`,
+      entradas, saidas, saldoDia, saldoAcum: acc,
     }
   })
 })()
 
+// ─── Lançamentos detalhados ───────────────────────────────────────────────────
+
+export const MOCK_LANCAMENTOS: FluxoLancamento[] = [
+  { id:'l01', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração - Paula Mendes',           valor:200  },
+  { id:'l02', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Escova - Maria Silva',               valor:80   },
+  { id:'l03', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Barba - Carlos Santos',              valor:40   },
+  { id:'l04', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Hidratação - Juliana Ferreira',      valor:100  },
+  { id:'l05', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Corte + Barba - Roberto Lima',       valor:80   },
+  { id:'l06', date:'24/06', tipo:'entrada', categoria:'Serviços',  descricao:'Escova - Beatriz Oliveira',          valor:142  },
+  { id:'l07', date:'22/06', tipo:'saida',   categoria:'Aluguel',   descricao:'Aluguel Comercial',                  valor:1500 },
+  { id:'l08', date:'22/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração - Camila Torres',          valor:280  },
+  { id:'l09', date:'21/06', tipo:'entrada', categoria:'Serviços',  descricao:'Escova Progressiva - Patricia Lima', valor:320  },
+  { id:'l10', date:'20/06', tipo:'entrada', categoria:'Serviços',  descricao:'Corte - Eduardo Costa',              valor:65   },
+  { id:'l11', date:'15/06', tipo:'saida',   categoria:'Material',  descricao:'Insumos e produtos capilares',       valor:450  },
+  { id:'l12', date:'15/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração + Hidrat. - Sofia Ramos',  valor:380  },
+  { id:'l13', date:'12/06', tipo:'entrada', categoria:'Serviços',  descricao:'Escova Progressiva - Gabriela Santos',valor:320 },
+  { id:'l14', date:'10/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração - Isabel Nunes',           valor:250  },
+  { id:'l15', date:'08/06', tipo:'saida',   categoria:'Material',  descricao:'Material de consumo',                valor:300  },
+  { id:'l16', date:'08/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração Completa - Tatiane Rocha', valor:420  },
+  { id:'l17', date:'05/06', tipo:'saida',   categoria:'Aluguel',   descricao:'Aluguel Comercial',                  valor:1500 },
+  { id:'l18', date:'05/06', tipo:'saida',   categoria:'Energia',   descricao:'Conta de Energia Elétrica',          valor:280  },
+  { id:'l19', date:'05/06', tipo:'saida',   categoria:'Comissão',  descricao:'Comissão Ana Costa — Maio/2026',     valor:308  },
+  { id:'l20', date:'02/06', tipo:'saida',   categoria:'Internet',  descricao:'Internet e Telefone',                valor:150  },
+  { id:'l21', date:'01/06', tipo:'entrada', categoria:'Serviços',  descricao:'Coloração - Claudia Oliveira',       valor:380  },
+  { id:'l22', date:'01/06', tipo:'entrada', categoria:'Serviços',  descricao:'Escova Progressiva - Fernanda Lima', valor:280  },
+]
+
 // ─── Chart data ───────────────────────────────────────────────────────────────
 
 export const RECEITA_SEMANAL: WeeklyRevenue[] = [
-  { semana: 'S1', servicos: 1100, produtos: 180, outros: 70 },
-  { semana: 'S2', servicos: 1420, produtos: 220, outros: 90 },
-  { semana: 'S3', servicos: 1580, produtos: 195, outros: 110 },
-  { semana: 'S4', servicos: 980,  produtos: 140, outros: 75 },
+  { semana:'S1', servicos:1100, produtos:180, outros:70 },
+  { semana:'S2', servicos:1420, produtos:220, outros:90 },
+  { semana:'S3', servicos:1580, produtos:195, outros:110 },
+  { semana:'S4', servicos:980,  produtos:140, outros:75 },
+]
+
+export const FATURAMENTO_MENSAL: FaturamentoMensal[] = [
+  { mes:'Jan', servicos:6800, produtos:1200, outros:500 },
+  { mes:'Fev', servicos:7400, produtos:1300, outros:500 },
+  { mes:'Mar', servicos:8200, produtos:1400, outros:500 },
+  { mes:'Abr', servicos:7900, produtos:1400, outros:500 },
+  { mes:'Mai', servicos:10000,produtos:1750, outros:550 },
+  { mes:'Jun', servicos:9500, produtos:1650, outros:550 },
 ]
 
 export const METODO_DISTRIBUICAO: MetodoDistrib[] = [
-  { id: 'pix',      label: 'PIX',        emoji: '🔵', value: 3708, color: '#16A34A' },
-  { id: 'credito',  label: 'Crédito',    emoji: '💳', value: 2060, color: '#7C3AED' },
-  { id: 'debito',   label: 'Débito',     emoji: '💳', value: 1236, color: '#2563EB' },
-  { id: 'dinheiro', label: 'Dinheiro',   emoji: '💵', value: 824,  color: '#D97706' },
-  { id: 'outros',   label: 'Outros',     emoji: '🎫', value: 412,  color: '#94A3B8' },
+  { id:'pix',      label:'PIX',      emoji:'🔵', value:3708, color:'#16A34A' },
+  { id:'credito',  label:'Crédito',  emoji:'💳', value:2060, color:'#7C3AED' },
+  { id:'debito',   label:'Débito',   emoji:'💳', value:1236, color:'#2563EB' },
+  { id:'dinheiro', label:'Dinheiro', emoji:'💵', value:824,  color:'#D97706' },
+  { id:'outros',   label:'Outros',   emoji:'🎫', value:412,  color:'#94A3B8' },
 ]
 
-// ─── KPIs (hardcoded for month overview) ─────────────────────────────────────
+// ─── Metas ────────────────────────────────────────────────────────────────────
+
+export const MOCK_METAS: Meta[] = [
+  { id:'m1', tipo:'semanal', valor:4000,  atual:3250, dataInicio:'2026-06-23', dataFim:'2026-06-27', ativa:true  },
+  { id:'m2', tipo:'mensal',  valor:15000, atual:8240, dataInicio:'2026-06-01', dataFim:'2026-06-30', ativa:true  },
+  { id:'m3', tipo:'diaria',  valor:800,   atual:642,  dataInicio:'2026-06-24', dataFim:'2026-06-24', ativa:true  },
+  { id:'m4', tipo:'semanal', valor:3500,  atual:3500, dataInicio:'2026-06-16', dataFim:'2026-06-22', ativa:false },
+]
+
+// ─── Plano de Contas ─────────────────────────────────────────────────────────
+
+export const MOCK_PLANO_CONTAS: PlanoConta[] = [
+  { id:'pc1',  nome:'Aluguel',       categoria:'Moradia',        tipo:'fixa',    ativa:true  },
+  { id:'pc2',  nome:'Energia',       categoria:'Utilidades',     tipo:'fixa',    ativa:true  },
+  { id:'pc3',  nome:'Água',          categoria:'Utilidades',     tipo:'fixa',    ativa:true  },
+  { id:'pc4',  nome:'Internet',      categoria:'Comunicação',    tipo:'fixa',    ativa:true  },
+  { id:'pc5',  nome:'Telefone',      categoria:'Comunicação',    tipo:'fixa',    ativa:false },
+  { id:'pc6',  nome:'Seguro',        categoria:'Proteção',       tipo:'fixa',    ativa:true  },
+  { id:'pc7',  nome:'Sistema',       categoria:'Tecnologia',     tipo:'fixa',    ativa:true  },
+  { id:'pc8',  nome:'Contabilidade', categoria:'Administrativo', tipo:'fixa',    ativa:true  },
+  { id:'pc9',  nome:'Comissões',     categoria:'Pessoal',        tipo:'variavel', ativa:true  },
+  { id:'pc10', nome:'Material',      categoria:'Insumos',        tipo:'variavel', ativa:true  },
+  { id:'pc11', nome:'Produtos',      categoria:'Insumos',        tipo:'variavel', ativa:true  },
+  { id:'pc12', nome:'Marketing',     categoria:'Vendas',         tipo:'variavel', ativa:true  },
+  { id:'pc13', nome:'Manutenção',    categoria:'Operacional',    tipo:'variavel', ativa:false },
+  { id:'pc14', nome:'Impostos',      categoria:'Fiscal',         tipo:'variavel', ativa:true  },
+  { id:'pc15', nome:'Outros',        categoria:'Geral',          tipo:'variavel', ativa:true  },
+]
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
 
 export const FINANCEIRO_KPIS: FinanceiroKpis = {
-  receitaMes: 8240,
-  receitaMesTrend: '+12% vs mês ant.',
-  receitaMesTrendUp: true,
-  receitaHoje: 642,
-  receitaHojeTrend: '+R$ 120 vs ontem',
-  receitaHojeTrendUp: true,
-  aReceber: 197,
-  pendingCount: 6,
-  taxaRecebimento: 92,
-  taxaMeta: 88,
-  taxaTrendUp: true,
-  ticketMedio: 285,
-  ticketTrend: '+R$ 15 vs mês ant.',
-  ticketTrendUp: true,
+  receitaMes: 8240, receitaMesTrend: '+12% vs mês ant.', receitaMesTrendUp: true,
+  receitaHoje: 642, receitaHojeTrend: '+R$ 120 vs ontem', receitaHojeTrendUp: true,
+  aReceber: 197, pendingCount: 6,
+  taxaRecebimento: 92, taxaMeta: 88, taxaTrendUp: true,
+  ticketMedio: 285, ticketTrend: '+R$ 15 vs mês ant.', ticketTrendUp: true,
+  receitaBruta: 15000,
+  despesas: 5200,
+  lucroLiquido: 9800,
+  margem: 65,
+  metaAting: 81,
+  inadimplenciaPct: 4,
+  totalEntradas: 12500,
+  saldoCaixa: 7300,
 }
 
-// ─── Period filter helper ─────────────────────────────────────────────────────
+// ─── Helpers (exported) ───────────────────────────────────────────────────────
 
 export function filterByPeriod(
-  txs: Transaction[],
-  filter: PeriodFilter,
-  customFrom?: string,
-  customTo?: string,
+  txs: Transaction[], filter: PeriodFilter, customFrom?: string, customTo?: string,
 ): Transaction[] {
   const now = new Date()
   const sod = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
   const todayStart = sod(now)
-
   switch (filter) {
-    case 'today':
-      return txs.filter((t) => sod(t.date).getTime() === todayStart.getTime())
+    case 'today': return txs.filter((t) => sod(t.date).getTime() === todayStart.getTime())
     case 'week': {
       const dow = todayStart.getDay()
       const diff = dow === 0 ? 6 : dow - 1
-      const monStart = new Date(todayStart)
-      monStart.setDate(todayStart.getDate() - diff)
+      const monStart = new Date(todayStart); monStart.setDate(todayStart.getDate() - diff)
       return txs.filter((t) => sod(t.date) >= monStart)
     }
     case 'month': {
@@ -289,30 +376,22 @@ export function filterByPeriod(
       return txs.filter((t) => sod(t.date) >= monStart)
     }
     case 'last30': {
-      const cutoff = new Date(todayStart)
-      cutoff.setDate(todayStart.getDate() - 29)
+      const cutoff = new Date(todayStart); cutoff.setDate(todayStart.getDate() - 29)
       return txs.filter((t) => sod(t.date) >= cutoff)
     }
     case 'custom': {
       if (!customFrom || !customTo) return txs
       const from = sod(new Date(customFrom + 'T00:00:00'))
-      const to = sod(new Date(customTo + 'T00:00:00'))
-      return txs.filter((t) => {
-        const d = sod(t.date)
-        return d >= from && d <= to
-      })
+      const to   = sod(new Date(customTo   + 'T00:00:00'))
+      return txs.filter((t) => { const d = sod(t.date); return d >= from && d <= to })
     }
   }
 }
 
-// ─── Date label helper ────────────────────────────────────────────────────────
-
 export function txDateLabel(date: Date, time: string): string {
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
+  const today = new Date(); const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
   const d = date.toDateString()
   if (d === today.toDateString()) return `Hoje ${time}`
   if (d === yesterday.toDateString()) return `Ontem ${time}`
-  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} ${time}`
+  return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')} ${time}`
 }

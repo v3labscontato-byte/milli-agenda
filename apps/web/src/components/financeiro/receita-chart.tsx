@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ReferenceLine, ResponsiveContainer, PieChart, Pie, Cell,
+  AreaChart, Area,
 } from 'recharts'
-import type { WeeklyRevenue, MetodoDistrib } from '@/lib/financeiro-mock'
+import { cn } from '@/lib/utils'
+import type { WeeklyRevenue, MetodoDistrib, FaturamentoMensal } from '@/lib/financeiro-mock'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -85,16 +87,24 @@ function Skeleton() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+const MONTHLY_SERIES = [
+  { key: 'servicos', label: 'Serviços', color: '#2563EB' },
+  { key: 'produtos', label: 'Produtos', color: '#16A34A' },
+  { key: 'outros',   label: 'Outros',   color: '#94A3B8' },
+] as const
+
 interface ReceitaChartProps {
   weeklyData: WeeklyRevenue[]
   metodoData: MetodoDistrib[]
+  monthlyData: FaturamentoMensal[]
 }
 
 const META_SEMANAL = 2000
 
-export default function ReceitaChart({ weeklyData, metodoData }: ReceitaChartProps) {
+export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: ReceitaChartProps) {
   const [mounted, setMounted] = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
+  const [monthlyChartType, setMonthlyChartType] = useState<'bar' | 'area'>('bar')
 
   useEffect(() => {
     setMounted(true)
@@ -200,6 +210,65 @@ export default function ReceitaChart({ weeklyData, metodoData }: ReceitaChartPro
               </li>
             ))}
           </ul>
+        </div>
+      </div>
+
+      {/* ── Faturamento Mensal (Jan–Jun) ── */}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="flex items-start justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">Faturamento Mensal</h3>
+            <p className="mt-0.5 text-[12px] text-[#475569]">Jan → Jun 2026 · Serviços · Produtos · Outros</p>
+          </div>
+          <div className="flex gap-1" role="group" aria-label="Tipo de gráfico">
+            {(['bar', 'area'] as const).map((t) => (
+              <button key={t} type="button" onClick={() => setMonthlyChartType(t)} aria-pressed={monthlyChartType === t}
+                className={cn('rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                  monthlyChartType === t ? 'bg-[#2563EB] text-white' : 'border border-[#E2E8F0] text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]')}>
+                {t === 'bar' ? 'Barras' : 'Área'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="px-5 pb-4 pt-5">
+          <ResponsiveContainer width="100%" height={220}>
+            {monthlyChartType === 'bar' ? (
+              <BarChart data={monthlyData} barCategoryGap="30%" barGap={2}>
+                <CartesianGrid vertical={false} stroke="#F1F5F9" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={52}
+                  tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip content={<BarTooltip />} cursor={{ fill: '#F8FAFC' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
+                {MONTHLY_SERIES.map((s) => (
+                  <Bar key={s.key} dataKey={s.key} name={s.label} stackId="a" fill={s.color}
+                    radius={s.key === 'outros' ? [3,3,0,0] : [0,0,0,0]} isAnimationActive={!prefersReduced} />
+                ))}
+              </BarChart>
+            ) : (
+              <AreaChart data={monthlyData}>
+                <defs>
+                  {MONTHLY_SERIES.map((s) => (
+                    <linearGradient key={s.key} id={`mgrad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor={s.color} stopOpacity={0.2} />
+                      <stop offset="95%" stopColor={s.color} stopOpacity={0}   />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid vertical={false} stroke="#F1F5F9" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={52}
+                  tickFormatter={(v: number) => `R$${(v/1000).toFixed(0)}k`} />
+                <Tooltip content={<BarTooltip />} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
+                {MONTHLY_SERIES.map((s) => (
+                  <Area key={s.key} dataKey={s.key} name={s.label} stackId="a"
+                    stroke={s.color} strokeWidth={1.5} fill={`url(#mgrad-${s.key})`}
+                    dot={false} isAnimationActive={!prefersReduced} />
+                ))}
+              </AreaChart>
+            )}
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

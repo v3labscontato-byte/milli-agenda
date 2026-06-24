@@ -7,8 +7,11 @@ import {
   MOCK_COMISSOES,
   MOCK_INADIMPLENCIA,
   MOCK_FLUXO,
+  MOCK_LANCAMENTOS,
+  MOCK_METAS,
   RECEITA_SEMANAL,
   METODO_DISTRIBUICAO,
+  FATURAMENTO_MENSAL,
   FINANCEIRO_KPIS,
   filterByPeriod,
   type Comissao,
@@ -19,25 +22,29 @@ import ReceitaChart from '@/components/financeiro/receita-chart'
 import PagamentosTable from '@/components/financeiro/pagamentos-table'
 import ComissoesTable from '@/components/financeiro/comissoes-table'
 import FluxoCaixa from '@/components/financeiro/fluxo-caixa'
+import MetasSection, { MetaDashboardCard } from '@/components/financeiro/metas-section'
+import PlanoContas from '@/components/financeiro/plano-contas'
 import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabId = 'recebimentos' | 'comissoes' | 'inadimplencia' | 'fluxo'
+type TabId = 'recebimentos' | 'comissoes' | 'inadimplencia' | 'fluxo' | 'metas' | 'plano'
 
 const PERIOD_OPTIONS: { label: string; value: PeriodFilter }[] = [
-  { label: 'Hoje',           value: 'today'  },
-  { label: 'Esta semana',    value: 'week'   },
-  { label: 'Este mês',       value: 'month'  },
+  { label: 'Hoje',            value: 'today'  },
+  { label: 'Esta semana',     value: 'week'   },
+  { label: 'Este mês',        value: 'month'  },
   { label: 'Últimos 30 dias', value: 'last30' },
-  { label: 'Personalizado',  value: 'custom' },
+  { label: 'Personalizado',   value: 'custom' },
 ]
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: 'recebimentos',  label: 'Recebimentos'  },
-  { id: 'comissoes',     label: 'Comissões'     },
-  { id: 'inadimplencia', label: 'Inadimplência' },
-  { id: 'fluxo',         label: 'Fluxo de Caixa'},
+  { id: 'recebimentos',  label: 'Recebimentos'    },
+  { id: 'comissoes',     label: 'Comissões'       },
+  { id: 'inadimplencia', label: 'Inadimplência'   },
+  { id: 'fluxo',         label: 'Fluxo de Caixa'  },
+  { id: 'metas',         label: 'Metas'           },
+  { id: 'plano',         label: 'Plano de Contas' },
 ]
 
 function fmtBRL(n: number) {
@@ -100,7 +107,7 @@ function PeriodBar({ active, customFrom, customTo, onChange, onCustomFrom, onCus
   )
 }
 
-// ─── Inadimplência section ─────────────────────────────────────────────────────
+// ─── Inadimplência section ────────────────────────────────────────────────────
 
 function InadimplenciaSection() {
   const total = MOCK_INADIMPLENCIA.reduce((s, i) => s + i.value, 0)
@@ -108,7 +115,7 @@ function InadimplenciaSection() {
   if (MOCK_INADIMPLENCIA.length === 0) {
     return (
       <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
-        <p className="text-[13px] text-[#64748B]">Nenhuma inadimplência registrada. 🎉</p>
+        <p className="text-[13px] text-[#64748B]">Nenhuma inadimplência registrada.</p>
       </div>
     )
   }
@@ -172,12 +179,14 @@ function InadimplenciaSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const TOTAL_SAIDAS = FINANCEIRO_KPIS.despesas
+
 export default function FinanceiroPage() {
-  const [period, setPeriod]       = useState<PeriodFilter>('month')
+  const [period, setPeriod]         = useState<PeriodFilter>('month')
   const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo]   = useState('')
-  const [activeTab, setActiveTab] = useState<TabId>('recebimentos')
-  const [comissoes, setComissoes] = useState<Comissao[]>(MOCK_COMISSOES)
+  const [customTo, setCustomTo]     = useState('')
+  const [activeTab, setActiveTab]   = useState<TabId>('recebimentos')
+  const [comissoes, setComissoes]   = useState<Comissao[]>(MOCK_COMISSOES)
 
   const filtered = useMemo(
     () => filterByPeriod(MOCK_TRANSACTIONS, period, customFrom, customTo),
@@ -193,6 +202,8 @@ export default function FinanceiroPage() {
       ),
     )
   }, [])
+
+  const activeMeta = MOCK_METAS.find((m) => m.ativa) ?? null
 
   return (
     <div className="space-y-6 px-6 pb-10 pt-5">
@@ -211,14 +222,25 @@ export default function FinanceiroPage() {
       <FinanceiroKpiStrip kpis={FINANCEIRO_KPIS} />
 
       {/* ── Charts ── */}
-      <ReceitaChart weeklyData={RECEITA_SEMANAL} metodoData={METODO_DISTRIBUICAO} />
+      <ReceitaChart
+        weeklyData={RECEITA_SEMANAL}
+        metodoData={METODO_DISTRIBUICAO}
+        monthlyData={FATURAMENTO_MENSAL}
+      />
+
+      {/* ── Meta summary card ── */}
+      {activeMeta && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <MetaDashboardCard meta={activeMeta} />
+        </div>
+      )}
 
       {/* ── Tabs ── */}
       <div>
         <div
           role="tablist"
           aria-label="Abas financeiro"
-          className="flex gap-0 border-b border-[#E2E8F0]"
+          className="flex flex-wrap gap-0 border-b border-[#E2E8F0]"
         >
           {TABS.map(({ id, label }) => (
             <button
@@ -253,7 +275,21 @@ export default function FinanceiroPage() {
             {activeTab === 'inadimplencia' && <InadimplenciaSection />}
           </div>
           <div role="tabpanel" id="panel-fluxo" aria-labelledby="tab-fluxo" hidden={activeTab !== 'fluxo'}>
-            {activeTab === 'fluxo' && <FluxoCaixa entries={MOCK_FLUXO} />}
+            {activeTab === 'fluxo' && (
+              <FluxoCaixa
+                entries={MOCK_FLUXO}
+                lancamentos={MOCK_LANCAMENTOS}
+                totalEntradas={FINANCEIRO_KPIS.totalEntradas}
+                totalSaidas={TOTAL_SAIDAS}
+                saldoFinal={FINANCEIRO_KPIS.saldoCaixa}
+              />
+            )}
+          </div>
+          <div role="tabpanel" id="panel-metas" aria-labelledby="tab-metas" hidden={activeTab !== 'metas'}>
+            {activeTab === 'metas' && <MetasSection />}
+          </div>
+          <div role="tabpanel" id="panel-plano" aria-labelledby="tab-plano" hidden={activeTab !== 'plano'}>
+            {activeTab === 'plano' && <PlanoContas />}
           </div>
         </div>
       </div>

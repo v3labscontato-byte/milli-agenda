@@ -8,17 +8,6 @@ import StepDatetime from '@/components/booking/step-datetime'
 import StepConfirm, { SuccessScreen } from '@/components/booking/step-confirm'
 import type { BookingService, BookingProfessional } from '@/lib/booking-mock'
 
-// Native CSS keyframe — no tailwindcss-animate dependency required
-const STEP_ANIM = `
-  @keyframes bkStepIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .bk-step { animation: none !important; opacity: 1 !important; transform: none !important; }
-  }
-`
-
 type Step = 1 | 2 | 3 | 4 | 5
 
 const STEP_LABELS = ['Serviço', 'Profissional', 'Data e Hora', 'Confirmação']
@@ -26,19 +15,19 @@ const STEP_LABELS = ['Serviço', 'Profissional', 'Data e Hora', 'Confirmação']
 function ProgressBar({ step }: { step: Step }) {
   if (step === 5) return null
   return (
-    <div className="border-b border-[#F1F5F9] px-5 py-3" aria-label={`Passo ${step} de 4`}>
+    <div className="border-b border-background-secondary px-5 py-3" aria-label={`Passo ${step} de 4`}>
       <div className="flex gap-1.5">
         {STEP_LABELS.map((_, i) => (
           <div
             key={i}
             className={cn(
               'h-1 flex-1 rounded-full transition-all duration-300',
-              i < step ? 'bg-[#2563EB]' : 'bg-[#E2E8F0]',
+              i < step ? 'bg-primary' : 'bg-border',
             )}
           />
         ))}
       </div>
-      <p className="mt-1.5 text-[11px] text-[#64748B]">
+      <p className="mt-1.5 text-[11px] text-content-subtle">
         {STEP_LABELS[step - 1]} · Passo {step} de 4
       </p>
     </div>
@@ -62,15 +51,10 @@ export default function AgendarPage() {
 
   return (
     <div className="flex flex-col">
-      <style>{STEP_ANIM}</style>
       <ProgressBar step={step} />
 
-      {/* key forces remount → restarts the CSS animation on every step change */}
-      <div
-        key={step}
-        className="bk-step"
-        style={{ animation: 'bkStepIn 220ms cubic-bezier(0.16,1,0.3,1) both' }}
-      >
+      {/* key forces remount → restarts animate-fade-in on every step change */}
+      <div key={step} className="animate-fade-in motion-reduce:animate-none">
         {step === 1 && (
           <StepService onSelect={(svc) => { setService(svc); setStep(2) }} />
         )}

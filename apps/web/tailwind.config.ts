@@ -37,6 +37,7 @@ const config: Config = {
         content: {
           primary:   '#0F172A',
           secondary: '#475569',
+          subtle:    '#64748B', // Slate 500 — mid contrast (4.6:1 on white)
           muted:     '#94A3B8',
           disabled:  '#CBD5E1',
           inverse:   '#FFFFFF',
@@ -46,11 +47,39 @@ const config: Config = {
           strong:  '#CBD5E1',
           focus:   '#2563EB',
         },
-        success: { DEFAULT: '#10B981', light: '#D1FAE5', dark: '#065F46', border: '#6EE7B7' },
-        warning: { DEFAULT: '#F59E0B', light: '#FEF3C7', dark: '#92400E', border: '#FCD34D' },
-        danger:  { DEFAULT: '#EF4444', light: '#FEE2E2', dark: '#991B1B', border: '#FCA5A5' },
-        info:    { DEFAULT: '#3B82F6', light: '#EFF6FF', dark: '#1D4ED8', border: '#93C5FD' },
-        purple:  { DEFAULT: '#8B5CF6', light: '#F3E8FF', dark: '#6B21A8', border: '#C4B5FD' },
+        success: {
+          DEFAULT: '#10B981',
+          xlight:  '#DCFCE7', // Green 100 — success screen bg
+          light:   '#D1FAE5',
+          medium:  '#16A34A', // Green 600 — checkmark icon
+          dark:    '#065F46',
+          border:  '#6EE7B7',
+        },
+        warning: {
+          DEFAULT: '#F59E0B',
+          light:   '#FEF3C7',
+          medium:  '#D97706', // Amber 600 — star hover
+          dark:    '#92400E',
+          border:  '#FCD34D',
+        },
+        danger: {
+          DEFAULT: '#EF4444',
+          light:   '#FEE2E2',
+          medium:  '#DC2626', // Red 600 — cancel buttons
+          strong:  '#B91C1C', // Red 700 — cancel hover
+          dark:    '#991B1B',
+          border:  '#FCA5A5',
+        },
+        info: {
+          DEFAULT: '#3B82F6', light: '#EFF6FF', dark: '#1D4ED8', border: '#93C5FD',
+        },
+        purple: {
+          DEFAULT: '#8B5CF6',
+          medium:  '#7C3AED', // Violet 600 — client avatar
+          light:   '#F3E8FF',
+          dark:    '#6B21A8',
+          border:  '#C4B5FD',
+        },
         status: {
           scheduled: { bg: '#EFF6FF',  text: '#1D4ED8', border: '#2563EB' },
           confirmed:  { bg: '#D1FAE5',  text: '#065F46', border: '#10B981' },
@@ -98,9 +127,15 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(4px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.6)' },
+          to:   { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
-        'fade-in': 'fade-in 150ms ease-out',
+        // ease-out-quart + fill-both so delayed items start invisible
+        'fade-in':  'fade-in 200ms cubic-bezier(0.16,1,0.3,1) both',
+        'scale-in': 'scale-in 400ms cubic-bezier(0.16,1,0.3,1) both',
       },
     },
   },

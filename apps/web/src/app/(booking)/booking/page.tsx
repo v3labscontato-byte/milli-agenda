@@ -1,28 +1,30 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { Star, Calendar, X, Bell } from 'lucide-react'
+import { Star, Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  SALON, CLIENT, POPULAR_SERVICES, UPCOMING_APPOINTMENTS, REVIEWS, NOTIFICACOES,
-  formatPrice, formatDuration, type BookingAppointment,
+  SALON, CLIENT, UPCOMING_APPOINTMENTS, NOTIFICACOES,
+  getLoyaltyConfig,
 } from '@/lib/booking-mock'
-import FidelidadeCard from '@/components/booking/fidelidade-card'
-import PacotesSection  from '@/components/booking/pacotes-section'
-import CuponsSection   from '@/components/booking/cupons-section'
+import HomeCarousel from '@/components/booking/home-carousel'
+
+const loyaltyCfg = getLoyaltyConfig(CLIENT.pontos)
+const next   = UPCOMING_APPOINTMENTS[0] ?? null
+const unread = NOTIFICACOES.filter((n) => !n.read).length
+
+function getRelativeDate(date: Date): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diff = Math.round((date.getTime() - today.getTime()) / 86_400_000)
+  if (diff <= 0) return 'Hoje'
+  if (diff === 1) return 'Amanhã'
+  return `Em ${diff} dias`
+}
 
 export default function BookingHomePage() {
-  const [upcoming, setUpcoming] = useState<BookingAppointment[]>(UPCOMING_APPOINTMENTS)
-  const next   = upcoming[0] ?? null
-  const unread = NOTIFICACOES.filter((n) => !n.read).length
-
-  function cancelAppointment(id: string) {
-    setUpcoming((prev) => prev.filter((a) => a.id !== id))
-  }
-
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-full flex-col">
       {/* ── Salon header ── */}
       <div className="bg-gradient-to-b from-primary-xlight to-white px-5 pb-5 pt-6">
         <div className="flex items-start gap-3">
@@ -51,96 +53,47 @@ export default function BookingHomePage() {
         </div>
       </div>
 
-      <div className="space-y-6 px-5 py-5">
-        {/* ── Greeting + next appointment ── */}
-        <section aria-labelledby="greeting-heading">
-          <p id="greeting-heading" className="text-[16px] font-semibold text-content-primary">
-            Olá, {CLIENT.name.split(' ')[0]}! 👋
-          </p>
-          {next ? (
-            <div className="mt-3 rounded-2xl border border-primary-light bg-primary-xlight p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[12px] font-medium text-primary">Próximo agendamento</p>
-                  <p className="mt-2 text-[15px] font-semibold text-content-primary">{next.serviceEmoji} {next.service}</p>
-                  <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-content-secondary">
-                    <Calendar size={12} aria-hidden="true" />{next.dateLabel}
-                  </p>
-                  <p className="mt-0.5 text-[13px] text-content-secondary">👤 {next.professional}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => cancelAppointment(next.id)}
-                  aria-label="Fechar lembrete"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  <X size={15} className="text-content-subtle" aria-hidden="true" />
-                </button>
-              </div>
-              <div className="mt-3 flex gap-2">
-                <Link
-                  href="/booking/meus-agendamentos"
-                  className="flex-1 rounded-xl border border-primary py-3 text-center text-[13px] font-medium text-primary transition-colors hover:bg-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
-                >
-                  Ver detalhes
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => cancelAppointment(next.id)}
-                  className="flex-1 rounded-xl border border-danger-border bg-white py-3 text-[13px] font-medium text-danger-medium transition-colors hover:bg-danger-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-border"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-3 rounded-2xl border border-border bg-background px-4 py-5 text-center">
-              <p className="text-body text-content-subtle">Nenhum agendamento próximo</p>
-              <Link href="/booking/agendar" className="mt-2 inline-block text-[13px] font-medium text-primary">
-                Agendar agora →
-              </Link>
-            </div>
+      {/* ── Greeting + compact summary card ── */}
+      <div className="px-5 pb-4 pt-4">
+        <p className="mb-3 text-[16px] font-semibold text-content-primary">
+          Olá, {CLIENT.name.split(' ')[0]}! 👋
+        </p>
+
+        <Link
+          href="/booking/meus-agendamentos"
+          aria-label="Ver meus agendamentos e fidelidade"
+          className={cn(
+            'block rounded-2xl border border-primary-light bg-primary-xlight px-4 py-3',
+            'transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
           )}
-        </section>
-
-        {/* ── Fidelidade ── */}
-        <FidelidadeCard compact />
-
-        {/* ── Popular services ── */}
-        <section aria-labelledby="popular-heading">
-          <h2 id="popular-heading" className="mb-3 text-[15px] font-semibold text-content-primary">Serviços populares</h2>
-          <div className="overflow-hidden rounded-2xl border border-border bg-border" role="list">
-            {POPULAR_SERVICES.map((svc, i) => (
-              <Link
-                key={svc.id}
-                href="/booking/agendar"
-                role="listitem"
-                className={cn(
-                  'flex items-center gap-3 bg-white px-4 py-3.5 transition-colors',
-                  'hover:bg-primary-xlight active:bg-primary-light',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-light',
-                  'animate-fade-in motion-reduce:animate-none',
-                  i < POPULAR_SERVICES.length - 1 && 'border-b border-background-secondary',
-                )}
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-xlight text-[20px]" aria-hidden="true">
-                  {svc.emoji}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-medium text-content-primary">{svc.name}</p>
-                  <p className="mt-0.5 text-small text-content-subtle">{formatDuration(svc.durationMins)}</p>
-                </div>
-                <span className="shrink-0 text-[14px] font-semibold text-primary">{formatPrice(svc.price)}</span>
-              </Link>
-            ))}
+        >
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-[13px] font-semibold text-content-primary">
+              {loyaltyCfg.emoji} {CLIENT.pontos.toLocaleString('pt-BR')} pts · {loyaltyCfg.label}
+            </p>
+            {next && (
+              <p className="shrink-0 text-[11px] font-medium text-primary">
+                {getRelativeDate(next.date)}
+              </p>
+            )}
           </div>
-        </section>
+          {next ? (
+            <p className="mt-1 truncate text-[12px] text-content-secondary">
+              Próximo: {next.serviceEmoji} {next.service} {next.startTime} c/ {next.professional}
+            </p>
+          ) : (
+            <p className="mt-1 text-[12px] text-content-subtle">Nenhum agendamento próximo · Agendar →</p>
+          )}
+        </Link>
+      </div>
 
-        {/* ── Pacotes ── */}
-        <PacotesSection limit={2} />
+      {/* ── Carousel ── */}
+      <div className="flex-1">
+        <HomeCarousel />
+      </div>
 
-        {/* ── CTA ── */}
+      {/* ── Sticky CTA ── */}
+      <div className="sticky bottom-[72px] border-t border-background-secondary bg-white/95 px-5 py-3 backdrop-blur-sm">
         <Link
           href="/booking/agendar"
           className={cn(
@@ -151,37 +104,6 @@ export default function BookingHomePage() {
         >
           + Agendar agora
         </Link>
-
-        {/* ── Cupons ── */}
-        <CuponsSection limit={2} />
-
-        {/* ── Reviews ── */}
-        <section aria-labelledby="reviews-heading">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 id="reviews-heading" className="text-[15px] font-semibold text-content-primary">Avaliações recentes</h2>
-            <span className="flex items-center gap-1 text-[13px] font-medium text-content-subtle">
-              <Star size={12} className="fill-warning text-warning" aria-hidden="true" />
-              {SALON.rating} · {SALON.reviewCount}
-            </span>
-          </div>
-          <div className="space-y-4">
-            {REVIEWS.map((rev, i) => (
-              <div
-                key={rev.id}
-                className={cn('pb-4 animate-fade-in motion-reduce:animate-none', i < REVIEWS.length - 1 && 'border-b border-background-secondary')}
-                style={{ animationDelay: `${i * 60 + 200}ms` }}
-              >
-                <div className="mb-1.5 flex items-center gap-0.5" aria-hidden="true">
-                  {Array.from({ length: rev.rating }).map((_, j) => (
-                    <Star key={j} size={12} className="fill-warning text-warning" />
-                  ))}
-                </div>
-                <p className="text-[14px] leading-relaxed text-content-primary">"{rev.text}"</p>
-                <p className="mt-1.5 text-small text-content-subtle">— {rev.clientName} · {rev.service}</p>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   )

@@ -1,18 +1,113 @@
 'use client'
 
-import { useState } from 'react'
-import { Upload } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Camera, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_SALON_INFO, STATES_BR, TIMEZONES, type SalonInfo } from '@/lib/configuracoes-mock'
 import { FieldLabel, TextInput, SelectInput, SectionCard, SaveButton, useSaveState } from './_primitives'
 
+// ── Upload helpers ────────────────────────────────────────────────────────────
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/svg+xml']
+
+function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload  = (e) => {
+      const result = e.target?.result
+      if (typeof result === 'string') resolve(result)
+      else reject(new Error('Failed to read file'))
+    }
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+type UploadStatus = 'idle' | 'saving' | 'saved'
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function SectionMeuSalao() {
-  const [form, setForm] = useState<SalonInfo>(MOCK_SALON_INFO)
+  const [form, setForm]         = useState<SalonInfo>(MOCK_SALON_INFO)
   const [saveState, triggerSave] = useSaveState()
+
+  // Identidade visual
+  const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
+  const [coverPreview,  setCoverPreview]  = useState<string | null>(null)
+  const [logoError,     setLogoError]     = useState('')
+  const [coverError,    setCoverError]    = useState('')
+  const [logoStatus,    setLogoStatus]    = useState<UploadStatus>('idle')
+  const [coverStatus,   setCoverStatus]   = useState<UploadStatus>('idle')
+  const logoInputRef  = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   function set<K extends keyof SalonInfo>(field: K, value: SalonInfo[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
+
+  async function processUpload(
+    file: File,
+    maxMB: number,
+    extraTypes: string[],
+    setPreview: (v: string | null) => void,
+    setError:   (v: string)        => void,
+    setStatus:  (v: UploadStatus)  => void,
+  ) {
+    setError('')
+    const allowed = [...ALLOWED_IMAGE_TYPES, ...extraTypes].filter((v, i, a) => a.indexOf(v) === i)
+    if (!allowed.includes(file.type)) {
+      setError('Formato inválido. Use JPG, PNG ou SVG.')
+      return
+    }
+    if (file.size > maxMB * 1024 * 1024) {
+      setError(`Arquivo muito grande. Máximo: ${maxMB} MB.`)
+      return
+    }
+    try {
+      const dataUrl = await readFileAsDataURL(file)
+      setPreview(dataUrl)
+      setStatus('saving')
+      await new Promise<void>((r) => setTimeout(r, 1000))
+      setStatus('saved')
+      setTimeout(() => setStatus('idle'), 2500)
+    } catch {
+      setError('Erro ao processar a imagem. Tente novamente.')
+    }
+  }
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) void processUpload(file, 2, [], setLogoPreview, setLogoError, setLogoStatus)
+  }
+
+  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) void processUpload(file, 5, [], setCoverPreview, setCoverError, setCoverStatus)
+  }
+
+  function handleLogoRemove() {
+    if (!window.confirm('Tem certeza que deseja remover o logo?')) return
+    setLogoPreview(null)
+    setLogoError('')
+    setLogoStatus('idle')
+    if (logoInputRef.current) logoInputRef.current.value = ''
+  }
+
+  function handleCoverRemove() {
+    if (!window.confirm('Tem certeza que deseja remover a foto de capa?')) return
+    setCoverPreview(null)
+    setCoverError('')
+    setCoverStatus('idle')
+    if (coverInputRef.current) coverInputRef.current.value = ''
+  }
+
+  const initials = form.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .toUpperCase() || '??'
 
   return (
     <div className="h-full overflow-y-auto">
@@ -25,30 +120,177 @@ export default function SectionMeuSalao() {
           </p>
         </div>
 
-        {/* Logo */}
-        <SectionCard title="Logo">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC]">
-              <span className="text-[10px] font-semibold text-[#94A3B8]">LOGO</span>
+        {/* ── Identidade Visual ── */}
+        <SectionCard title="Identidade Visual">
+          <div className="space-y-6">
+
+            {/* Logo */}
+            <div>
+              <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Logo do Salão</p>
+              <div className="rounded-lg border border-[#E2E8F0] p-4">
+                <div className="flex items-start gap-4">
+                  {/* Preview / avatar */}
+                  {logoPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoPreview}
+                      alt="Preview do logo"
+                      className="h-16 w-16 shrink-0 rounded-full border-2 border-[#E2E8F0] object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#2563EB] text-[18px] font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      {initials}
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-medium text-[#0F172A]">{form.name || 'Salão'}</p>
+                    <p className="mt-0.5 text-[12px] text-[#64748B]">
+                      {logoPreview ? 'Clique para alterar o logo' : 'Clique para adicionar o logo'}
+                    </p>
+                    <p className="text-[11px] text-[#94A3B8]">Formatos: JPG, PNG, SVG · Máximo: 2 MB</p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <input
+                        ref={logoInputRef}
+                        id="logo-input"
+                        type="file"
+                        accept="image/jpeg,image/png,image/svg+xml"
+                        onChange={handleLogoChange}
+                        className="sr-only"
+                        aria-label="Selecionar arquivo do logo"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={logoStatus === 'saving'}
+                        className={cn(
+                          'flex items-center gap-1.5 rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] text-[#475569]',
+                          'transition-colors hover:border-[#2563EB] hover:text-[#2563EB]',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                          'disabled:cursor-not-allowed disabled:opacity-50',
+                        )}
+                      >
+                        <Camera size={12} aria-hidden="true" />
+                        {logoPreview ? 'Alterar logo' : 'Adicionar logo'}
+                      </button>
+
+                      {logoPreview && (
+                        <button
+                          type="button"
+                          onClick={handleLogoRemove}
+                          className={cn(
+                            'flex items-center gap-1.5 rounded-md border border-[#FEE2E2] px-3 py-1.5 text-[12px] text-[#DC2626]',
+                            'transition-colors hover:bg-[#FEF2F2]',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FCA5A5]',
+                          )}
+                        >
+                          <Trash2 size={12} aria-hidden="true" />
+                          Remover
+                        </button>
+                      )}
+                    </div>
+
+                    {logoStatus === 'saving' && (
+                      <p className="mt-2 text-[11px] text-[#64748B]">Salvando…</p>
+                    )}
+                    {logoStatus === 'saved' && (
+                      <p className="mt-2 text-[11px] text-[#10B981]">✓ Imagem salva!</p>
+                    )}
+                    {logoError && (
+                      <p className="mt-2 text-[11px] text-[#DC2626]" role="alert">{logoError}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <button
-                type="button"
-                className={cn(
-                  'flex items-center gap-2 rounded-md border border-[#E2E8F0] px-3 py-1.5',
-                  'text-[12px] text-[#475569] transition-colors hover:border-[#2563EB] hover:text-[#2563EB]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+
+            {/* Cover */}
+            <div>
+              <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Foto de Capa</p>
+              <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
+                {coverPreview ? (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={coverPreview} alt="Preview da foto de capa" className="h-32 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={handleCoverRemove}
+                      className={cn(
+                        'absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-black/50 px-2.5 py-1',
+                        'text-[11px] font-medium text-white',
+                        'transition-colors hover:bg-black/70',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                      )}
+                    >
+                      <Trash2 size={11} aria-hidden="true" />
+                      Remover
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    className={cn(
+                      'flex h-32 w-full flex-col items-center justify-center gap-1',
+                      'border-2 border-dashed border-[#E2E8F0] bg-[#F8FAFC]',
+                      'transition-colors hover:border-[#2563EB] hover:bg-[#EFF6FF]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
+                    )}
+                    aria-label="Adicionar foto de capa"
+                  >
+                    <span className="text-[20px]" aria-hidden="true">📷</span>
+                    <span className="text-[12px] text-[#94A3B8]">Clique para adicionar foto de capa</span>
+                    <span className="text-[11px] text-[#CBD5E1]">Tamanho ideal: 1200×400 px</span>
+                    <span className="text-[11px] text-[#CBD5E1]">Formatos: JPG, PNG · Máximo: 5 MB</span>
+                  </button>
                 )}
-              >
-                <Upload size={12} aria-hidden="true" />
-                Alterar logo
-              </button>
-              <p className="text-[11px] text-[#94A3B8]">PNG ou JPG, máximo 2 MB.</p>
+
+                <div className="flex items-center gap-2 border-t border-[#E2E8F0] bg-white px-3 py-2.5">
+                  <input
+                    ref={coverInputRef}
+                    id="cover-input"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    onChange={handleCoverChange}
+                    className="sr-only"
+                    aria-label="Selecionar foto de capa"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={coverStatus === 'saving'}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] text-[#475569]',
+                      'transition-colors hover:border-[#2563EB] hover:text-[#2563EB]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                      'disabled:cursor-not-allowed disabled:opacity-50',
+                    )}
+                  >
+                    <Camera size={12} aria-hidden="true" />
+                    {coverPreview ? 'Alterar foto de capa' : 'Adicionar foto de capa'}
+                  </button>
+
+                  <div className="ml-auto text-right">
+                    {coverStatus === 'saving' && <p className="text-[11px] text-[#64748B]">Salvando…</p>}
+                    {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]">✓ Imagem salva!</p>}
+                    {coverError && <p className="text-[11px] text-[#DC2626]" role="alert">{coverError}</p>}
+                  </div>
+                </div>
+
+                <p className="px-3 pb-2 text-[10px] text-[#CBD5E1]">
+                  Em produção, a imagem será enviada para o servidor.
+                </p>
+              </div>
             </div>
+
           </div>
         </SectionCard>
 
-        {/* Dados do salão */}
+        {/* ── Dados do Salão ── */}
         <SectionCard title="Dados do Salão">
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -178,7 +420,7 @@ export default function SectionMeuSalao() {
           </div>
         </SectionCard>
 
-        {/* Redes sociais */}
+        {/* ── Redes Sociais ── */}
         <SectionCard title="Redes Sociais">
           <div className="space-y-4">
             <div className="space-y-1.5">

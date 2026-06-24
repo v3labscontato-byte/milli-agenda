@@ -89,8 +89,13 @@ export const SALON = {
   emoji: '🌸',
   name: 'Salão Bella Vista',
   address: 'Rua das Flores, 123 — SP',
+  city: 'São Paulo, SP',
   rating: 4.8,
   reviewCount: 312,
+  phone: '(11) 99999-9999',
+  logoUrl: '/placeholder-logo.svg' as string | null,
+  coverUrl: null as string | null,
+  primaryColor: '#2563EB',
 }
 
 // ─── Client ───────────────────────────────────────────────────────────────────

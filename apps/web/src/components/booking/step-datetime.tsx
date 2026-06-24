@@ -157,6 +157,13 @@ export default function StepDatetime({ service, professional, onSelect, onBack }
         })}
       </div>
 
+      {/* Empty state hint — fills dead zone and guides user before a date is picked */}
+      {!selectedDate && (
+        <p className="mt-4 px-6 text-center text-[12px] text-content-subtle">
+          Toque em uma data com <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" aria-hidden="true" /> para ver os horários disponíveis
+        </p>
+      )}
+
       {/* Time slots — key remounts section → animate-fade-in fires on each date change */}
       {selectedDate && (
         <div

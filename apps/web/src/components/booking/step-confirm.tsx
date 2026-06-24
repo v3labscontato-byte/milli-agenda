@@ -127,22 +127,22 @@ export default function StepConfirm({ service, professional, date, time, onConfi
         <p className="mb-3 text-[14px] font-semibold text-content-primary">Seus dados</p>
         <div className="space-y-3">
           <div>
-            <label htmlFor="c-name" className="sr-only">Nome</label>
-            <input id="c-name" type="text" required placeholder="Nome completo" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+            <label htmlFor="c-name" className="mb-1 block text-[12px] font-medium text-content-secondary">Nome completo</label>
+            <input id="c-name" type="text" required placeholder="ex: Maria Silva" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="c-phone" className="sr-only">Telefone</label>
+            <label htmlFor="c-phone" className="mb-1 block text-[12px] font-medium text-content-secondary">Telefone</label>
             <input id="c-phone" type="tel" required placeholder="(00) 00000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="c-email" className="sr-only">Email</label>
+            <label htmlFor="c-email" className="mb-1 block text-[12px] font-medium text-content-secondary">Email</label>
             <input id="c-email" type="email" required placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="c-notes" className="sr-only">Observações</label>
+            <label htmlFor="c-notes" className="mb-1 block text-[12px] font-medium text-content-secondary">Observações <span className="font-normal text-content-subtle">(opcional)</span></label>
             <textarea
               id="c-notes"
-              placeholder="Observações (opcional)"
+              placeholder="ex: prefiro franja mais curta"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}

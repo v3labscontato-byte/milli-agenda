@@ -75,7 +75,7 @@ export default function BookingHomePage() {
                 <button
                   type="button"
                   onClick={() => cancelAppointment(next.id)}
-                  className="flex-1 rounded-xl border border-border bg-white py-3 text-[13px] font-medium text-content-secondary transition-colors hover:border-danger-medium hover:text-danger-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-border"
+                  className="flex-1 rounded-xl border border-danger-border bg-white py-3 text-[13px] font-medium text-danger-medium transition-colors hover:bg-danger-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-border"
                 >
                   Cancelar
                 </button>

@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import {
   MOCK_TRANSACTIONS,
-  MOCK_COMISSOES,
   MOCK_INADIMPLENCIA,
   MOCK_FLUXO,
   MOCK_LANCAMENTOS,
@@ -14,7 +13,6 @@ import {
   FATURAMENTO_MENSAL,
   FINANCEIRO_KPIS,
   filterByPeriod,
-  type Comissao,
   type PeriodFilter,
 } from '@/lib/financeiro-mock'
 import FinanceiroKpiStrip from '@/components/financeiro/financeiro-kpi-strip'
@@ -24,11 +22,12 @@ import ComissoesTable from '@/components/financeiro/comissoes-table'
 import FluxoCaixa from '@/components/financeiro/fluxo-caixa'
 import MetasSection, { MetaDashboardCard } from '@/components/financeiro/metas-section'
 import PlanoContas from '@/components/financeiro/plano-contas'
+import ProcedimentosSection from '@/components/financeiro/procedimentos-section'
 import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabId = 'recebimentos' | 'comissoes' | 'inadimplencia' | 'fluxo' | 'metas' | 'plano'
+type TabId = 'recebimentos' | 'comissoes' | 'inadimplencia' | 'fluxo' | 'metas' | 'plano' | 'procedimentos'
 
 const PERIOD_OPTIONS: { label: string; value: PeriodFilter }[] = [
   { label: 'Hoje',            value: 'today'  },
@@ -43,8 +42,9 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'comissoes',     label: 'Comissões'       },
   { id: 'inadimplencia', label: 'Inadimplência'   },
   { id: 'fluxo',         label: 'Fluxo de Caixa'  },
-  { id: 'metas',         label: 'Metas'           },
-  { id: 'plano',         label: 'Plano de Contas' },
+  { id: 'metas',          label: 'Metas'            },
+  { id: 'plano',          label: 'Plano de Contas'  },
+  { id: 'procedimentos',  label: 'Procedimentos'    },
 ]
 
 function fmtBRL(n: number) {
@@ -186,22 +186,13 @@ export default function FinanceiroPage() {
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
   const [activeTab, setActiveTab]   = useState<TabId>('recebimentos')
-  const [comissoes, setComissoes]   = useState<Comissao[]>(MOCK_COMISSOES)
+  // comissoes state now managed inside ComissoesTable (self-contained with COMISSAO_HISTORICO)
 
   const filtered = useMemo(
     () => filterByPeriod(MOCK_TRANSACTIONS, period, customFrom, customTo),
     [period, customFrom, customTo],
   )
 
-  const handleMarkPaid = useCallback((id: string) => {
-    setComissoes((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, status: 'PAID' as const, paidAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) }
-          : c,
-      ),
-    )
-  }, [])
 
   const activeMeta = MOCK_METAS.find((m) => m.ativa) ?? null
 
@@ -269,7 +260,7 @@ export default function FinanceiroPage() {
             {activeTab === 'recebimentos' && <PagamentosTable transactions={filtered} />}
           </div>
           <div role="tabpanel" id="panel-comissoes" aria-labelledby="tab-comissoes" hidden={activeTab !== 'comissoes'}>
-            {activeTab === 'comissoes' && <ComissoesTable comissoes={comissoes} onMarkPaid={handleMarkPaid} />}
+            {activeTab === 'comissoes' && <ComissoesTable />}
           </div>
           <div role="tabpanel" id="panel-inadimplencia" aria-labelledby="tab-inadimplencia" hidden={activeTab !== 'inadimplencia'}>
             {activeTab === 'inadimplencia' && <InadimplenciaSection />}
@@ -290,6 +281,9 @@ export default function FinanceiroPage() {
           </div>
           <div role="tabpanel" id="panel-plano" aria-labelledby="tab-plano" hidden={activeTab !== 'plano'}>
             {activeTab === 'plano' && <PlanoContas />}
+          </div>
+          <div role="tabpanel" id="panel-procedimentos" aria-labelledby="tab-procedimentos" hidden={activeTab !== 'procedimentos'}>
+            {activeTab === 'procedimentos' && <ProcedimentosSection />}
           </div>
         </div>
       </div>

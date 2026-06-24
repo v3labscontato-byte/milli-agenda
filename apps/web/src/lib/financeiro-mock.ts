@@ -67,6 +67,31 @@ export interface FaturamentoMensal {
   outros: number
 }
 
+export interface ProcedimentoRanking {
+  rank: number
+  nome: string
+  qtd: number
+  receita: number
+  pct: number
+}
+
+export interface ProfissionalRanking {
+  rank: number
+  nome: string
+  initials: string
+  avatarBg: string
+  atendimentos: number
+  receita: number
+  avaliacao: number
+}
+
+export interface ProdutoRanking {
+  rank: number
+  nome: string
+  qtd: number
+  receita: number
+}
+
 export interface MetodoDistrib {
   id: string
   label: string
@@ -98,6 +123,10 @@ export interface FinanceiroKpis {
   inadimplenciaPct: number
   totalEntradas: number
   saldoCaixa: number
+  receitaSemana: number
+  metaDiaria: number
+  metaSemanal: number
+  metaMensal: number
 }
 
 export interface Meta {
@@ -124,6 +153,10 @@ export interface PlanoConta {
   nome: string
   categoria: string
   tipo: 'fixa' | 'variavel'
+  valor: number
+  diaPagamento: number
+  pagoMesAtual: boolean
+  recorrente: boolean
   ativa: boolean
 }
 
@@ -320,21 +353,21 @@ export const MOCK_METAS: Meta[] = [
 // ─── Plano de Contas ─────────────────────────────────────────────────────────
 
 export const MOCK_PLANO_CONTAS: PlanoConta[] = [
-  { id:'pc1',  nome:'Aluguel',       categoria:'Moradia',        tipo:'fixa',    ativa:true  },
-  { id:'pc2',  nome:'Energia',       categoria:'Utilidades',     tipo:'fixa',    ativa:true  },
-  { id:'pc3',  nome:'Água',          categoria:'Utilidades',     tipo:'fixa',    ativa:true  },
-  { id:'pc4',  nome:'Internet',      categoria:'Comunicação',    tipo:'fixa',    ativa:true  },
-  { id:'pc5',  nome:'Telefone',      categoria:'Comunicação',    tipo:'fixa',    ativa:false },
-  { id:'pc6',  nome:'Seguro',        categoria:'Proteção',       tipo:'fixa',    ativa:true  },
-  { id:'pc7',  nome:'Sistema',       categoria:'Tecnologia',     tipo:'fixa',    ativa:true  },
-  { id:'pc8',  nome:'Contabilidade', categoria:'Administrativo', tipo:'fixa',    ativa:true  },
-  { id:'pc9',  nome:'Comissões',     categoria:'Pessoal',        tipo:'variavel', ativa:true  },
-  { id:'pc10', nome:'Material',      categoria:'Insumos',        tipo:'variavel', ativa:true  },
-  { id:'pc11', nome:'Produtos',      categoria:'Insumos',        tipo:'variavel', ativa:true  },
-  { id:'pc12', nome:'Marketing',     categoria:'Vendas',         tipo:'variavel', ativa:true  },
-  { id:'pc13', nome:'Manutenção',    categoria:'Operacional',    tipo:'variavel', ativa:false },
-  { id:'pc14', nome:'Impostos',      categoria:'Fiscal',         tipo:'variavel', ativa:true  },
-  { id:'pc15', nome:'Outros',        categoria:'Geral',          tipo:'variavel', ativa:true  },
+  { id:'pc1',  nome:'Aluguel',       categoria:'Moradia',        tipo:'fixa',     valor:1500, diaPagamento:5,  pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc2',  nome:'Energia',       categoria:'Utilidades',     tipo:'fixa',     valor:280,  diaPagamento:10, pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc3',  nome:'Água',          categoria:'Utilidades',     tipo:'fixa',     valor:95,   diaPagamento:10, pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc4',  nome:'Internet',      categoria:'Comunicação',    tipo:'fixa',     valor:150,  diaPagamento:15, pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc5',  nome:'Telefone',      categoria:'Comunicação',    tipo:'fixa',     valor:80,   diaPagamento:15, pagoMesAtual:false, recorrente:true,  ativa:false },
+  { id:'pc6',  nome:'Seguro',        categoria:'Proteção',       tipo:'fixa',     valor:220,  diaPagamento:1,  pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc7',  nome:'Sistema (Milli)',categoria:'Tecnologia',    tipo:'fixa',     valor:149,  diaPagamento:24, pagoMesAtual:false, recorrente:true,  ativa:true  },
+  { id:'pc8',  nome:'Contabilidade', categoria:'Administrativo', tipo:'fixa',     valor:450,  diaPagamento:20, pagoMesAtual:true,  recorrente:true,  ativa:true  },
+  { id:'pc9',  nome:'Comissões',     categoria:'Pessoal',        tipo:'variavel', valor:0,    diaPagamento:5,  pagoMesAtual:false, recorrente:true,  ativa:true  },
+  { id:'pc10', nome:'Material',      categoria:'Insumos',        tipo:'variavel', valor:300,  diaPagamento:15, pagoMesAtual:false, recorrente:false, ativa:true  },
+  { id:'pc11', nome:'Produtos',      categoria:'Insumos',        tipo:'variavel', valor:180,  diaPagamento:20, pagoMesAtual:false, recorrente:false, ativa:true  },
+  { id:'pc12', nome:'Marketing',     categoria:'Vendas',         tipo:'variavel', valor:350,  diaPagamento:28, pagoMesAtual:false, recorrente:true,  ativa:true  },
+  { id:'pc13', nome:'Manutenção',    categoria:'Operacional',    tipo:'variavel', valor:200,  diaPagamento:30, pagoMesAtual:false, recorrente:false, ativa:false },
+  { id:'pc14', nome:'Impostos',      categoria:'Fiscal',         tipo:'variavel', valor:480,  diaPagamento:31, pagoMesAtual:false, recorrente:true,  ativa:true  },
+  { id:'pc15', nome:'Outros',        categoria:'Geral',          tipo:'variavel', valor:100,  diaPagamento:25, pagoMesAtual:false, recorrente:false, ativa:true  },
 ]
 
 // ─── KPIs ─────────────────────────────────────────────────────────────────────
@@ -353,6 +386,10 @@ export const FINANCEIRO_KPIS: FinanceiroKpis = {
   inadimplenciaPct: 4,
   totalEntradas: 12500,
   saldoCaixa: 7300,
+  receitaSemana: 3250,
+  metaDiaria: 800,
+  metaSemanal: 4000,
+  metaMensal: 15000,
 }
 
 // ─── Helpers (exported) ───────────────────────────────────────────────────────
@@ -394,4 +431,49 @@ export function txDateLabel(date: Date, time: string): string {
   if (d === today.toDateString()) return `Hoje ${time}`
   if (d === yesterday.toDateString()) return `Ontem ${time}`
   return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')} ${time}`
+}
+
+// ─── Procedimentos ranking ────────────────────────────────────────────────────
+
+export const MOCK_PROCEDIMENTOS: ProcedimentoRanking[] = [
+  { rank:1,  nome:'Coloração Completa',  qtd:18, receita:3240, pct:20 },
+  { rank:2,  nome:'Corte Feminino',      qtd:44, receita:2860, pct:18 },
+  { rank:3,  nome:'Escova Progressiva',  qtd:12, receita:2640, pct:16 },
+  { rank:4,  nome:'Corte Masculino',     qtd:38, receita:1710, pct:11 },
+  { rank:5,  nome:'Manicure',            qtd:48, receita:1920, pct:12 },
+  { rank:6,  nome:'Escova',              qtd:28, receita:1540, pct:10 },
+  { rank:7,  nome:'Barba',               qtd:32, receita:1120, pct:7  },
+  { rank:8,  nome:'Pedicure',            qtd:22, receita:1100, pct:7  },
+  { rank:9,  nome:'Hidratação Capilar',  qtd:15, receita:1050, pct:7  },
+  { rank:10, nome:'Design Sobrancelha',  qtd:10, receita:300,  pct:2  },
+]
+
+export const MOCK_PROF_RANKING: ProfissionalRanking[] = [
+  { rank:1, nome:'Lisa Kim',      initials:'LK', avatarBg:'#DB2777', atendimentos:28, receita:5600, avaliacao:5.0 },
+  { rank:2, nome:'Lena Santos',   initials:'LS', avatarBg:'#7C3AED', atendimentos:44, receita:4900, avaliacao:4.9 },
+  { rank:3, nome:'Carlos Mendes', initials:'CM', avatarBg:'#2563EB', atendimentos:32, receita:3200, avaliacao:4.6 },
+  { rank:4, nome:'Ana Costa',     initials:'AC', avatarBg:'#16A34A', atendimentos:72, receita:2880, avaliacao:4.8 },
+  { rank:5, nome:'João Ferreira', initials:'JF', avatarBg:'#D97706', atendimentos:38, receita:1520, avaliacao:4.7 },
+]
+
+export const MOCK_PRODUTOS: ProdutoRanking[] = [
+  { rank:1, nome:'Máscara Hidratante',   qtd:30, receita:1650 },
+  { rank:2, nome:'Shampoo Profissional', qtd:45, receita:2025 },
+  { rank:3, nome:'Vitamina Capilar',     qtd:38, receita:1330 },
+  { rank:4, nome:'Finalizador',          qtd:25, receita:1000 },
+  { rank:5, nome:'Óleo Capilar',         qtd:20, receita:760  },
+]
+
+// ─── Comissões por mês ────────────────────────────────────────────────────────
+
+export const COMISSAO_HISTORICO: Record<string, Comissao[]> = {
+  'jun-26': MOCK_COMISSOES,
+  'mai-26': [
+    { id:'cm1', profissionalName:'Lena Santos', initials:'LS', avatarBg:'#7C3AED', atendimentos:40, receita:3950, pctComissao:40, comissaoValue:1580, tipoPagamento:'mensal',    diaPagamento:5, periodoRef:'Mai/2026', diasAtraso:0, status:'PAID', paidAt:'08/06' },
+    { id:'cm2', profissionalName:'João Silva',  initials:'JS', avatarBg:'#2563EB', atendimentos:28, receita:1942, pctComissao:35, comissaoValue:680,  tipoPagamento:'quinzenal', diaPagamento:5, periodoRef:'Mai/2026', diasAtraso:0, status:'PAID', paidAt:'08/06' },
+  ],
+  'abr-26': [
+    { id:'ca1', profissionalName:'Lena Santos', initials:'LS', avatarBg:'#7C3AED', atendimentos:36, receita:3550, pctComissao:40, comissaoValue:1420, tipoPagamento:'mensal',    diaPagamento:5, periodoRef:'Abr/2026', diasAtraso:0, status:'PAID', paidAt:'07/05' },
+    { id:'ca2', profissionalName:'João Silva',  initials:'JS', avatarBg:'#2563EB', atendimentos:25, receita:1700, pctComissao:35, comissaoValue:595,  tipoPagamento:'quinzenal', diaPagamento:5, periodoRef:'Abr/2026', diasAtraso:0, status:'PAID', paidAt:'07/05' },
+  ],
 }

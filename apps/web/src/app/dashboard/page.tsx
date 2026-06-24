@@ -2,6 +2,7 @@ import { mockAppointments, mockKpis } from '@/lib/mock-data'
 import KpiStrip from '@/components/kpi-strip'
 import Upcoming from '@/components/upcoming'
 import AgendaTable from '@/components/agenda-table'
+import AppointmentsNow from '@/components/appointments-now'
 import BookingsChart from '@/components/charts/bookings-chart'
 import WeeklyChart from '@/components/charts/weekly-chart'
 import ServicesChart from '@/components/charts/services-chart'
@@ -10,17 +11,23 @@ import VolumeChart from '@/components/charts/volume-chart'
 export const metadata = { title: 'Dashboard' }
 
 export default function DashboardPage() {
+  const activeNow = mockAppointments.filter(
+    (a) => a.status === 'IN_SERVICE' || a.status === 'AWAITING_PAYMENT',
+  )
   const upcoming = mockAppointments.filter(
     (a) => a.status === 'SCHEDULED' || a.status === 'CONFIRMED',
   )
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-8 pb-10">
 
       {/* ① KPI Strip */}
       <KpiStrip kpis={mockKpis} />
 
-      {/* ② Analytics 2×2 */}
+      {/* ② Em Atendimento Agora */}
+      <AppointmentsNow appointments={activeNow} />
+
+      {/* ③ Analytics 2×2 */}
       <section aria-labelledby="analytics-heading">
         <div className="mb-4">
           <h2 id="analytics-heading" className="text-[16px] font-medium leading-[1.4] text-[#0F172A]">
@@ -36,7 +43,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ③ Agenda de Hoje (flex-1) + Próximos Horários (w-80 fixo) */}
+      {/* ④ Agenda de Hoje (flex-1) + Próximos Horários (w-80 fixo) */}
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1">
           <AgendaTable appointments={mockAppointments} />

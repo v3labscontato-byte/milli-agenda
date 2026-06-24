@@ -1,0 +1,54 @@
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { DatabaseService } from '../../infra/database/database.service'
+import { getAvailableSlots } from '@milli/business-rules'
+import { CreateProfissionalDto } from './dto/create-profissional.dto'
+
+@Injectable()
+export class ProfissionaisService {
+  constructor(private readonly db: DatabaseService) {}
+
+  findAll(tenantId: string) {
+    return this.db.professional.findMany({
+      where: { tenantId, active: true },
+      orderBy: { name: 'asc' },
+    })
+  }
+
+  async findOne(tenantId: string, id: string) {
+    const prof = await this.db.professional.findFirst({ where: { id, tenantId } })
+    if (!prof) throw new NotFoundException('Professional not found')
+    return prof
+  }
+
+  async disponibilidade(tenantId: string, id: string, date: string, durationMin: number) {
+    await this.findOne(tenantId, id)
+    const dateObj = new Date(date)
+    const [schedules, appointments] = await Promise.all([
+      this.db.schedule.findMany({ where: { tenantId, professionalId: id, active: true } }),
+      this.db.appointment.findMany({
+        where: {
+          tenantId,
+          professionalId: id,
+          startAt: { gte: dateObj, lt: new Date(dateObj.getTime() + 86_400_000) },
+          status: { notIn: ['CANCELLED', 'NO_SHOW'] },
+        },
+        select: { startAt: true, endAt: true },
+      }),
+    ])
+    return getAvailableSlots(dateObj, schedules, appointments, durationMin)
+  }
+
+  create(tenantId: string, dto: CreateProfissionalDto) {
+    return this.db.professional.create({ data: { tenantId, ...dto } })
+  }
+
+  async update(tenantId: string, id: string, dto: Partial<CreateProfissionalDto>) {
+    await this.findOne(tenantId, id)
+    return this.db.professional.update({ where: { id }, data: dto })
+  }
+
+  async remove(tenantId: string, id: string) {
+    await this.findOne(tenantId, id)
+    return this.db.professional.update({ where: { id }, data: { active: false } })
+  }
+}

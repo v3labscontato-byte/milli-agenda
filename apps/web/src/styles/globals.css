@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design System: Milli Agenda CSS Variables ──────────────────────────── */
+
+@layer base {
+  :root {
+    /* Primary */
+    --color-primary:        #2563EB;
+    --color-primary-dark:   #1D4ED8;
+    --color-primary-light:  #DBEAFE;
+    --color-primary-xlight: #EFF6FF;
+    --color-primary-50:  #EFF6FF;
+    --color-primary-100: #DBEAFE;
+    --color-primary-200: #BFDBFE;
+    --color-primary-300: #93C5FD;
+    --color-primary-400: #60A5FA;
+    --color-primary-500: #3B82F6;
+    --color-primary-600: #2563EB;
+    --color-primary-700: #1D4ED8;
+    --color-primary-800: #1E40AF;
+    --color-primary-900: #1E3A8A;
+
+    /* Sidebar */
+    --color-sidebar:             #0F172A;
+    --color-sidebar-hover:       #1E293B;
+    --color-sidebar-active:      #2563EB;
+    --color-sidebar-border:      #1E293B;
+    --color-sidebar-text:        #94A3B8;
+    --color-sidebar-text-active: #FFFFFF;
+    --color-sidebar-text-hover:  #CBD5E1;
+
+    /* Background */
+    --color-bg:           #F8FAFC;
+    --color-bg-surface:   #FFFFFF;
+    --color-bg-secondary: #F1F5F9;
+
+    /* Content / Typography */
+    --color-content-primary:   #0F172A;
+    --color-content-secondary: #64748B;
+    --color-content-muted:     #94A3B8;
+    --color-content-disabled:  #CBD5E1;
+    --color-content-inverse:   #FFFFFF;
+
+    /* Border */
+    --color-border:       #E2E8F0;
+    --color-border-strong: #CBD5E1;
+    --color-border-focus:  #2563EB;
+
+    /* Semantic: Success */
+    --color-success:        #10B981;
+    --color-success-light:  #D1FAE5;
+    --color-success-dark:   #065F46;
+    --color-success-border: #6EE7B7;
+
+    /* Semantic: Warning */
+    --color-warning:        #F59E0B;
+    --color-warning-light:  #FEF3C7;
+    --color-warning-dark:   #92400E;
+    --color-warning-border: #FCD34D;
+
+    /* Semantic: Danger */
+    --color-danger:        #EF4444;
+    --color-danger-light:  #FEE2E2;
+    --color-danger-dark:   #991B1B;
+    --color-danger-border: #FCA5A5;
+
+    /* Semantic: Info */
+    --color-info:        #3B82F6;
+    --color-info-light:  #EFF6FF;
+    --color-info-dark:   #1D4ED8;
+    --color-info-border: #93C5FD;
+
+    /* Semantic: Purple */
+    --color-purple:        #8B5CF6;
+    --color-purple-light:  #F3E8FF;
+    --color-purple-dark:   #6B21A8;
+    --color-purple-border: #C4B5FD;
+
+    /* Status: Appointment */
+    --status-scheduled-bg:     #EFF6FF;
+    --status-scheduled-text:   #1D4ED8;
+    --status-scheduled-border: #2563EB;
+
+    --status-confirmed-bg:     #D1FAE5;
+    --status-confirmed-text:   #065F46;
+    --status-confirmed-border: #10B981;
+
+    --status-checkin-bg:     #FEF3C7;
+    --status-checkin-text:   #92400E;
+    --status-checkin-border: #F59E0B;
+
+    --status-inservice-bg:     #F3E8FF;
+    --status-inservice-text:   #6B21A8;
+    --status-inservice-border: #8B5CF6;
+
+    --status-awaiting-bg:     #FEE2E2;
+    --status-awaiting-text:   #991B1B;
+    --status-awaiting-border: #EF4444;
+
+    --status-completed-bg:     #D1FAE5;
+    --status-completed-text:   #065F46;
+    --status-completed-border: #10B981;
+
+    --status-noshow-bg:     #F1F5F9;
+    --status-noshow-text:   #475569;
+    --status-noshow-border: #94A3B8;
+
+    --status-cancelled-bg:     #FEE2E2;
+    --status-cancelled-text:   #991B1B;
+    --status-cancelled-border: #EF4444;
+
+    /* Payment Methods */
+    --payment-pix:      #10B981;
+    --payment-cash:     #64748B;
+    --payment-debit:    #2563EB;
+    --payment-credit:   #8B5CF6;
+    --payment-voucher:  #F59E0B;
+    --payment-transfer: #3B82F6;
+
+    /* Typography */
+    --font-sans: 'SF Pro Text', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Border Radius */
+    --radius-sm:  4px;
+    --radius-md:  6px;
+    --radius-lg:  8px;
+    --radius-xl:  12px;
+    --radius-2xl: 16px;
+
+    /* Shadows */
+    --shadow-card:     0 1px 3px 0 rgb(0 0 0 / 0.04);
+    --shadow-dropdown: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+    --shadow-modal:    0 20px 25px -5px rgb(0 0 0 / 0.08);
+    --shadow-focus:    0 0 0 3px #DBEAFE;
+
+    /* Layout */
+    --sidebar-width:           240px;
+    --sidebar-width-collapsed: 64px;
+  }
+}
+
+/* ─── Base Styles ─────────────────────────────────────────────────────────── */
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-content-primary);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+/* ─── Status Badge Utilities ──────────────────────────────────────────────── */
+
+@layer utilities {
+  .status-scheduled { background: var(--status-scheduled-bg); color: var(--status-scheduled-text); border-color: var(--status-scheduled-border); }
+  .status-confirmed  { background: var(--status-confirmed-bg);  color: var(--status-confirmed-text);  border-color: var(--status-confirmed-border); }
+  .status-checkin    { background: var(--status-checkin-bg);    color: var(--status-checkin-text);    border-color: var(--status-checkin-border); }
+  .status-inservice  { background: var(--status-inservice-bg);  color: var(--status-inservice-text);  border-color: var(--status-inservice-border); }
+  .status-awaiting   { background: var(--status-awaiting-bg);   color: var(--status-awaiting-text);   border-color: var(--status-awaiting-border); }
+  .status-completed  { background: var(--status-completed-bg);  color: var(--status-completed-text);  border-color: var(--status-completed-border); }
+  .status-noshow     { background: var(--status-noshow-bg);     color: var(--status-noshow-text);     border-color: var(--status-noshow-border); }
+  .status-cancelled  { background: var(--status-cancelled-bg);  color: var(--status-cancelled-text);  border-color: var(--status-cancelled-border); }
+}

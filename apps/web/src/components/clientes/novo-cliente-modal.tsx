@@ -94,7 +94,7 @@ export default function NovoClienteModal({ open, onClose }: NovoClienteModalProp
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-5 py-5">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+          <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
             {/* Nome — full width */}
             <div className="col-span-2 space-y-1.5">
               <label htmlFor="nc-nome" className={LABEL}>Nome completo *</label>

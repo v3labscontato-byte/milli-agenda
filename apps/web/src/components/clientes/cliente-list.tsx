@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Cliente } from '@/lib/clientes-mock'
@@ -91,7 +91,7 @@ interface ClienteListProps {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function ClienteList({
+function ClienteList({
   clientes,
   isLoading = false,
   isFiltered = false,
@@ -238,3 +238,5 @@ export default function ClienteList({
     </div>
   )
 }
+
+export default memo(ClienteList)

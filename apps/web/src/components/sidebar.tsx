@@ -53,11 +53,11 @@ function NavLink({ item, isActive, collapsed }: NavLinkProps) {
       className={cn(
         'flex items-center gap-3 rounded-md px-3 py-2',
         'text-body transition-colors duration-150',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 focus-visible:ring-offset-[#0F172A]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-sidebar)]',
         // Full-width bg block for active — never border-left stripe (DESIGN.md rule)
         isActive
-          ? 'bg-[#2563EB] text-white font-medium'
-          : 'text-[#94A3B8] hover:bg-[#1E293B] hover:text-[#CBD5E1]',
+          ? 'bg-[var(--color-sidebar-active)] text-[var(--color-sidebar-text-active)] font-medium'
+          : 'text-[var(--color-sidebar-text)] hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
       )}
     >
       <Icon size={16} className="shrink-0" aria-hidden="true" />
@@ -75,12 +75,9 @@ export default function Sidebar() {
 
   return (
     <aside
-      // bg-sidebar = #0F172A from tailwind config
       className={cn(
-        'flex h-full shrink-0 flex-col bg-[#0F172A]',
-        'border-r border-[#1E293B]',
-        // transition-[width] animates a layout property — acceptable at 200ms on desktop;
-        // disabled entirely under prefers-reduced-motion via globals.css
+        'flex h-full shrink-0 flex-col bg-[var(--color-sidebar)]',
+        'border-r border-[var(--color-sidebar-border)]',
         'transition-[width] duration-200 ease-out motion-reduce:transition-none',
         collapsed ? 'w-16' : 'w-60',
       )}
@@ -89,7 +86,7 @@ export default function Sidebar() {
       {/* Logo + collapse toggle */}
       <div
         className={cn(
-          'flex h-14 shrink-0 items-center border-b border-[#1E293B] px-3',
+          'flex h-14 shrink-0 items-center border-b border-[var(--color-sidebar-border)] px-3',
           collapsed ? 'justify-center' : 'justify-between',
         )}
       >
@@ -104,8 +101,8 @@ export default function Sidebar() {
           aria-expanded={!collapsed}
           className={cn(
             'flex h-8 w-8 items-center justify-center rounded-md',
-            'text-[#94A3B8] transition-colors hover:bg-[#1E293B] hover:text-[#CBD5E1]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+            'text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
           )}
         >
           <ChevronLeft
@@ -134,7 +131,7 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom: settings + logout + user */}
-      <div className="shrink-0 border-t border-[#1E293B] px-2 py-3">
+      <div className="shrink-0 border-t border-[var(--color-sidebar-border)] px-2 py-3">
         <ul className="space-y-0.5" role="list">
           {BOTTOM_ITEMS.map((item) => (
             <li key={item.href}>
@@ -151,8 +148,8 @@ export default function Sidebar() {
               aria-label="Sair"
               className={cn(
                 'flex w-full items-center gap-3 rounded-md px-3 py-2',
-                'text-body text-[#94A3B8] transition-colors hover:bg-[#1E293B] hover:text-[#CBD5E1]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                'text-body text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
               )}
             >
               <LogOut size={16} className="shrink-0" aria-hidden="true" />
@@ -166,9 +163,9 @@ export default function Sidebar() {
 
         {/* User identity — visible only when expanded */}
         {!collapsed && (
-          <div className="mt-2 border-t border-[#1E293B] px-3 pt-3">
+          <div className="mt-2 border-t border-[var(--color-sidebar-border)] px-3 pt-3">
             <p className="truncate text-small font-semibold text-white">Admin</p>
-            <p className="truncate text-[11px] text-[#94A3B8]">admin@milli.com.br</p>
+            <p className="truncate text-[11px] text-[var(--color-sidebar-text)]">admin@milli.com.br</p>
           </div>
         )}
       </div>

@@ -9,19 +9,35 @@ const CATEGORY_LABELS: Record<string, string> = {
   CABELO:   'Cabelo',
   UNHAS:    'Unhas',
   ESTÉTICA: 'Estética',
+  BARBA:    'Barba',
 }
+
+const CATEGORY_ICONS: Record<string, string> = {
+  CABELO:   '✂',
+  UNHAS:    '💅',
+  ESTÉTICA: '🌿',
+  BARBA:    '🪒',
+}
+
+const CATEGORY_ORDER = ['CABELO', 'UNHAS', 'ESTÉTICA', 'BARBA']
+
+// Derive available categories from the mock in preferred order
+const CATEGORIES = CATEGORY_ORDER.filter((cat) => SERVICES.some((s) => s.category === cat))
 
 interface StepServiceProps {
   onSelect: (service: BookingService) => void
 }
 
 export default function StepService({ onSelect }: StepServiceProps) {
-  const [query, setQuery] = useState('')
+  const [query, setQuery]           = useState('')
+  const [selectedCat, setSelectedCat] = useState('') // '' = Todos
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
-    return q ? SERVICES.filter((s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)) : SERVICES
-  }, [query])
+    let result = selectedCat ? SERVICES.filter((s) => s.category === selectedCat) : SERVICES
+    if (q) result = result.filter((s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q))
+    return result
+  }, [query, selectedCat])
 
   const grouped = useMemo(() => {
     const map = new Map<string, BookingService[]>()
@@ -32,6 +48,14 @@ export default function StepService({ onSelect }: StepServiceProps) {
     return map
   }, [filtered])
 
+  const pillCls = (active: boolean) => cn(
+    'flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-[13px] font-medium transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
+    active
+      ? 'bg-primary text-white'
+      : 'border border-border bg-white text-content-secondary hover:border-primary-light hover:text-primary',
+  )
+
   return (
     <div className="flex flex-col">
       <div className="px-4 pb-3 pt-1">
@@ -39,7 +63,7 @@ export default function StepService({ onSelect }: StepServiceProps) {
       </div>
 
       {/* Search */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-3">
         <label htmlFor="svc-search" className="sr-only">Buscar serviço</label>
         <div className="relative">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-content-subtle" aria-hidden="true" />
@@ -54,10 +78,39 @@ export default function StepService({ onSelect }: StepServiceProps) {
         </div>
       </div>
 
-      {/* Grouped list */}
-      <div className="flex-1">
+      {/* Category pills */}
+      <div
+        className="flex gap-2 overflow-x-auto px-4 pb-4"
+        role="group"
+        aria-label="Filtrar por categoria"
+      >
+        <button
+          type="button"
+          onClick={() => setSelectedCat('')}
+          aria-pressed={selectedCat === ''}
+          className={pillCls(selectedCat === '')}
+        >
+          ✨ Todos
+        </button>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setSelectedCat(selectedCat === cat ? '' : cat)}
+            aria-pressed={selectedCat === cat}
+            className={pillCls(selectedCat === cat)}
+          >
+            {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat] ?? cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Grouped list — key forces remount on category change, restarting stagger animations */}
+      <div key={selectedCat} className="flex-1">
         {grouped.size === 0 && (
-          <p className="px-4 py-8 text-center text-body text-content-subtle">Nenhum serviço encontrado.</p>
+          <p className="px-4 py-8 text-center text-body text-content-subtle">
+            Nenhum serviço encontrado.
+          </p>
         )}
         {(() => {
           let staggerIdx = 0

@@ -81,25 +81,26 @@ export default function ComandasPage() {
     })()
     const endTime = `${Math.floor(endMins / 60).toString().padStart(2, '0')}:${(endMins % 60).toString().padStart(2, '0')}`
 
-    const comanda: Comanda = {
-      id,
-      number:       nextNumber(comandas),
-      clientName:   data.clientName,
-      service:      data.service,
-      professional: data.professional,
-      date:         new Date(),
-      startTime:    data.startTime || '09:00',
-      endTime,
-      items:        [{ id: `i-${Date.now()}`, name: data.service, category: 'service', quantity: 1, unitPrice: data.serviceValue }],
-      discount:     null,
-      deposit:      null,
-      status:       'OPEN',
-      openedAt:     new Date(),
-    }
-
-    setComandas((prev) => [comanda, ...prev])
+    setComandas((prev) => {
+      const comanda: Comanda = {
+        id,
+        number:       nextNumber(prev),
+        clientName:   data.clientName,
+        service:      data.service,
+        professional: data.professional,
+        date:         new Date(),
+        startTime:    data.startTime || '09:00',
+        endTime,
+        items:        [{ id: `i-${Date.now()}`, name: data.service, category: 'service', quantity: 1, unitPrice: data.serviceValue }],
+        discount:     null,
+        deposit:      null,
+        status:       'OPEN',
+        openedAt:     new Date(),
+      }
+      return [comanda, ...prev]
+    })
     setStatusFilter('ALL')
-  }, [comandas])
+  }, [])
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

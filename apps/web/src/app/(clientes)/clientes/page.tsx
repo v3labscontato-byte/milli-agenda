@@ -151,7 +151,7 @@ export default function ClientesPage() {
               const active = tagFilter === tag
               return (
                 <button
-                  key={label}
+                  key={tag ?? 'all'}
                   type="button"
                   onClick={() => setTagFilter(active ? null : tag)}
                   aria-pressed={active}

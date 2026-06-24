@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { MOCK_BUSINESS_HOURS, HOUR_OPTIONS, type BusinessHours, type DaySchedule } from '@/lib/configuracoes-mock'
 import { Toggle, SelectInput, SectionCard, SaveButton, useSaveState } from './_primitives'
 
-function HourSelect({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+function HourSelect({ id, value, onChange, label }: { id: string; value: string; onChange: (v: string) => void; label: string }) {
   return (
-    <SelectInput id={id} value={value} onChange={onChange} className="w-24">
+    <SelectInput id={id} value={value} onChange={onChange} className="w-24" aria-label={label}>
       {HOUR_OPTIONS.map((h) => (
         <option key={h} value={h}>{h}</option>
       ))}
@@ -58,12 +58,14 @@ export default function SectionHorarios() {
                       id={`start-${day.day}`}
                       value={day.start}
                       onChange={(v) => updateDay(i, { start: v })}
+                      label={`Abertura — ${day.dayLabel}`}
                     />
                     <span className="text-[12px] text-[#94A3B8]">até</span>
                     <HourSelect
                       id={`end-${day.day}`}
                       value={day.end}
                       onChange={(v) => updateDay(i, { end: v })}
+                      label={`Fechamento — ${day.dayLabel}`}
                     />
                   </>
                 )}
@@ -95,6 +97,7 @@ export default function SectionHorarios() {
                   onChange={(v) =>
                     setHours((prev) => ({ ...prev, lunchBreak: { ...prev.lunchBreak, start: v } }))
                   }
+                  label="Início do intervalo de almoço"
                 />
                 <span className="text-[12px] text-[#94A3B8]">até</span>
                 <HourSelect
@@ -103,6 +106,7 @@ export default function SectionHorarios() {
                   onChange={(v) =>
                     setHours((prev) => ({ ...prev, lunchBreak: { ...prev.lunchBreak, end: v } }))
                   }
+                  label="Fim do intervalo de almoço"
                 />
               </div>
             )}

@@ -40,6 +40,8 @@ export default function SectionMeuSalao() {
   const [coverStatus,   setCoverStatus]   = useState<UploadStatus>('idle')
   const logoInputRef  = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  const [confirmLogoRemove,  setConfirmLogoRemove]  = useState(false)
+  const [confirmCoverRemove, setConfirmCoverRemove] = useState(false)
 
   function set<K extends keyof SalonInfo>(field: K, value: SalonInfo[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -86,18 +88,18 @@ export default function SectionMeuSalao() {
   }
 
   function handleLogoRemove() {
-    if (!window.confirm('Tem certeza que deseja remover o logo?')) return
     setLogoPreview(null)
     setLogoError('')
     setLogoStatus('idle')
+    setConfirmLogoRemove(false)
     if (logoInputRef.current) logoInputRef.current.value = ''
   }
 
   function handleCoverRemove() {
-    if (!window.confirm('Tem certeza que deseja remover a foto de capa?')) return
     setCoverPreview(null)
     setCoverError('')
     setCoverStatus('idle')
+    setConfirmCoverRemove(false)
     if (coverInputRef.current) coverInputRef.current.value = ''
   }
 
@@ -178,10 +180,10 @@ export default function SectionMeuSalao() {
                         {logoPreview ? 'Alterar logo' : 'Adicionar logo'}
                       </button>
 
-                      {logoPreview && (
+                      {logoPreview && !confirmLogoRemove && (
                         <button
                           type="button"
-                          onClick={handleLogoRemove}
+                          onClick={() => setConfirmLogoRemove(true)}
                           className={cn(
                             'flex items-center gap-1.5 rounded-md border border-[#FEE2E2] px-3 py-1.5 text-[12px] text-[#DC2626]',
                             'transition-colors hover:bg-[#FEF2F2]',
@@ -192,14 +194,36 @@ export default function SectionMeuSalao() {
                           Remover
                         </button>
                       )}
+                      {logoPreview && confirmLogoRemove && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={handleLogoRemove}
+                            className="flex items-center gap-1 rounded-md bg-[#EF4444] px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FCA5A5]"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmLogoRemove(false)}
+                            className="rounded-md border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    {logoStatus === 'saving' && (
-                      <p className="mt-2 text-[11px] text-[#64748B]">Salvando…</p>
-                    )}
-                    {logoStatus === 'saved' && (
-                      <p className="mt-2 text-[11px] text-[#10B981]">✓ Imagem salva!</p>
-                    )}
+                    <div role="status" aria-live="polite">
+                      {logoStatus === 'saving' && (
+                        <p className="mt-2 text-[11px] text-[#64748B]">Salvando…</p>
+                      )}
+                      {logoStatus === 'saved' && (
+                        <p className="mt-2 text-[11px] text-[#10B981]">
+                          <span aria-hidden="true">✓ </span>Imagem salva!
+                        </p>
+                      )}
+                    </div>
                     {logoError && (
                       <p className="mt-2 text-[11px] text-[#DC2626]" role="alert">{logoError}</p>
                     )}
@@ -216,19 +240,38 @@ export default function SectionMeuSalao() {
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={coverPreview} alt="Preview da foto de capa" className="h-32 w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={handleCoverRemove}
-                      className={cn(
-                        'absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-black/50 px-2.5 py-1',
-                        'text-[11px] font-medium text-white',
-                        'transition-colors hover:bg-black/70',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-                      )}
-                    >
-                      <Trash2 size={11} aria-hidden="true" />
-                      Remover
-                    </button>
+                    {!confirmCoverRemove ? (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmCoverRemove(true)}
+                        className={cn(
+                          'absolute right-2 top-2 flex items-center gap-1.5 rounded-md bg-black/50 px-2.5 py-1',
+                          'text-[11px] font-medium text-white',
+                          'transition-colors hover:bg-black/70',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                        )}
+                      >
+                        <Trash2 size={11} aria-hidden="true" />
+                        Remover
+                      </button>
+                    ) : (
+                      <div className="absolute right-2 top-2 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleCoverRemove}
+                          className="rounded-md bg-[#EF4444] px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        >
+                          Confirmar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmCoverRemove(false)}
+                          className="rounded-md bg-black/50 px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-black/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <button
@@ -275,8 +318,10 @@ export default function SectionMeuSalao() {
                   </button>
 
                   <div className="ml-auto text-right">
-                    {coverStatus === 'saving' && <p className="text-[11px] text-[#64748B]">Salvando…</p>}
-                    {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]">✓ Imagem salva!</p>}
+                    <div role="status" aria-live="polite">
+                      {coverStatus === 'saving' && <p className="text-[11px] text-[#64748B]">Salvando…</p>}
+                      {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]"><span aria-hidden="true">✓ </span>Imagem salva!</p>}
+                    </div>
                     {coverError && <p className="text-[11px] text-[#DC2626]" role="alert">{coverError}</p>}
                   </div>
                 </div>
@@ -303,7 +348,7 @@ export default function SectionMeuSalao() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <FieldLabel htmlFor="salon-phone">Telefone</FieldLabel>
                 <TextInput
@@ -346,8 +391,8 @@ export default function SectionMeuSalao() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-1.5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="sm:col-span-2 space-y-1.5">
                 <FieldLabel htmlFor="salon-neighborhood">Bairro</FieldLabel>
                 <TextInput
                   id="salon-neighborhood"
@@ -367,8 +412,8 @@ export default function SectionMeuSalao() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2 space-y-1.5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="sm:col-span-2 space-y-1.5">
                 <FieldLabel htmlFor="salon-city">Cidade</FieldLabel>
                 <TextInput
                   id="salon-city"
@@ -391,7 +436,7 @@ export default function SectionMeuSalao() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <FieldLabel htmlFor="salon-tz">Fuso horário</FieldLabel>
                 <SelectInput

@@ -96,6 +96,7 @@ export default function AgendaPage() {
   }, [])
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
+  const allAppointments = MOCK_CALENDAR_APPOINTMENTS
   const dayAppointments = getAppointmentsForDate(selectedDate, MOCK_CALENDAR_APPOINTMENTS)
 
   const filtered = dayAppointments.filter((a) => {
@@ -163,8 +164,14 @@ export default function AgendaPage() {
 
       {/* Content area */}
       {view === 'week' ? (
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           <WeeklyOverview weekStart={weekStart} onDaySelect={handleDaySelect} />
+          <div className="border-t border-[#E2E8F0] mt-4 px-6 pb-10 pt-6">
+            <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">
+              Atendimentos da Semana
+            </h2>
+            <AgendaTable appointments={allAppointments.map(toAppointment)} />
+          </div>
         </div>
       ) : (
         <div className="flex-1 overflow-auto">
@@ -174,10 +181,6 @@ export default function AgendaPage() {
             onAppointmentClick={setSelectedAppt}
             onSlotClick={handleSlotClick}
           />
-          <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-6">
-            <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">Atendimentos do Dia</h2>
-            <AgendaTable appointments={filtered.map(toAppointment)} />
-          </div>
         </div>
       )}
 

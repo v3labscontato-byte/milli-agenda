@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, ExternalLink, ChevronUp, ChevronDown } from 'lucide-react'
+import { Copy, Check, ExternalLink, ChevronUp, ChevronDown, Tag, Package, Scissors, Star, Banknote } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_BOOKING_SITE, type BookingSiteConfig } from '@/lib/configuracoes-mock'
 import { CAROUSEL_CONFIG, type CarouselSlideConfig } from '@/lib/carousel-config'
@@ -9,12 +9,12 @@ import { Toggle, TextInput, SectionCard, SaveButton, useSaveState } from './_pri
 
 // ── Carousel config helpers ───────────────────────────────────────────────────
 
-const SLIDE_ICONS: Record<CarouselSlideConfig['type'], string> = {
-  promocoes:  '🎁',
-  pacotes:    '📦',
-  servicos:   '✂',
-  avaliacoes: '⭐',
-  afiliados:  '💰',
+const SLIDE_ICONS: Record<CarouselSlideConfig['type'], React.ElementType> = {
+  promocoes:  Tag,
+  pacotes:    Package,
+  servicos:   Scissors,
+  avaliacoes: Star,
+  afiliados:  Banknote,
 }
 
 const SLIDE_LABELS: Record<CarouselSlideConfig['type'], string> = {
@@ -210,7 +210,9 @@ export default function SectionSiteBooking() {
             Configure quais seções aparecem no carrossel e em qual ordem.
           </p>
           <ul className="space-y-2" aria-label="Slides do carrossel">
-            {sortedSlides.map((slide, idx) => (
+            {sortedSlides.map((slide, idx) => {
+              const SlideIcon = SLIDE_ICONS[slide.type]
+              return (
               <li
                 key={slide.id}
                 className={cn(
@@ -224,7 +226,7 @@ export default function SectionSiteBooking() {
                   onChange={() => toggleSlide(slide.id)}
                   label={`${slide.enabled ? 'Desativar' : 'Ativar'} ${SLIDE_LABELS[slide.type]}`}
                 />
-                <span className="text-[16px]" aria-hidden="true">{SLIDE_ICONS[slide.type]}</span>
+                <SlideIcon size={15} className={cn('shrink-0', slide.enabled ? 'text-[#475569]' : 'text-[#CBD5E1]')} aria-hidden="true" />
                 <span className={cn('min-w-0 flex-1 text-[13px]', slide.enabled ? 'font-medium text-[#0F172A]' : 'text-[#94A3B8]')}>
                   {SLIDE_LABELS[slide.type]}
                 </span>
@@ -249,7 +251,8 @@ export default function SectionSiteBooking() {
                   </button>
                 </div>
               </li>
-            ))}
+              )
+            })}
           </ul>
           <div className="mt-4 flex items-center justify-between">
             <p className="text-[12px] text-[#64748B]">

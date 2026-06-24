@@ -57,7 +57,7 @@ export default function SectionAfiliados() {
         </SectionCard>
 
         <SectionCard title="Comissão">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <FieldLabel htmlFor="aff-commission">Percentual de comissão</FieldLabel>
               <div className="relative">
@@ -69,7 +69,6 @@ export default function SectionAfiliados() {
                   value={cfg.commissionPercent}
                   onChange={(e) => set('commissionPercent', Number(e.target.value))}
                   disabled={!cfg.active}
-                  aria-label="Percentual de comissão"
                   className={cn(NUM, 'pr-8', !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
                 />
                 <span
@@ -99,7 +98,6 @@ export default function SectionAfiliados() {
                   value={cfg.minRedemptionBRL}
                   onChange={(e) => set('minRedemptionBRL', Number(e.target.value))}
                   disabled={!cfg.active}
-                  aria-label="Valor mínimo para resgate em reais"
                   className={cn(NUM, 'pl-9', !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
                 />
               </div>

@@ -152,10 +152,20 @@ export default function SectionPlano() {
                         className={cn(
                           'px-4 py-3 text-center text-[13px]',
                           p.tier === plan.tier ? 'bg-[#EFF6FF]' : '',
-                          isCheck ? 'text-[#10B981]' : isCross ? 'text-[#CBD5E1]' : 'text-[#0F172A]',
+                          !isCheck && !isCross ? 'text-[#0F172A]' : '',
                         )}
                       >
-                        {val}
+                        {isCheck ? (
+                          <>
+                            <CheckCircle2 size={13} className="mx-auto text-[#10B981]" aria-hidden="true" />
+                            <span className="sr-only">Sim</span>
+                          </>
+                        ) : isCross ? (
+                          <>
+                            <XCircle size={13} className="mx-auto text-[#CBD5E1]" aria-hidden="true" />
+                            <span className="sr-only">Não</span>
+                          </>
+                        ) : val}
                       </td>
                     )
                   })}

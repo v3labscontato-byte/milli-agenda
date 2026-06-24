@@ -27,7 +27,7 @@ export function Toggle({ checked, onChange, label, id }: ToggleProps) {
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full',
+        'relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full',
         'transition-colors duration-150 motion-reduce:transition-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-2',
         checked ? 'bg-[#2563EB]' : 'bg-[#CBD5E1]',
@@ -35,9 +35,9 @@ export function Toggle({ checked, onChange, label, id }: ToggleProps) {
     >
       <span
         className={cn(
-          'pointer-events-none block h-3.5 w-3.5 rounded-full bg-white shadow-sm',
+          'pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm',
           'transition-transform duration-150 motion-reduce:transition-none',
-          checked ? 'translate-x-[18px]' : 'translate-x-0.5',
+          checked ? 'translate-x-[22px]' : 'translate-x-0.5',
         )}
         aria-hidden="true"
       />
@@ -140,15 +140,17 @@ interface SelectInputProps {
   children: React.ReactNode
   className?: string
   disabled?: boolean
+  'aria-label'?: string
 }
 
-export function SelectInput({ id, value, onChange, children, className, disabled }: SelectInputProps) {
+export function SelectInput({ id, value, onChange, children, className, disabled, 'aria-label': ariaLabel }: SelectInputProps) {
   return (
     <select
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
+      aria-label={ariaLabel}
       className={cn(
         'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
         'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',

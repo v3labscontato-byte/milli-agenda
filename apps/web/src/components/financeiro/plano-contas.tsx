@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, X, BookOpen, CheckCircle2, Clock, AlertCircle, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_PLANO_CONTAS, type PlanoConta } from '@/lib/financeiro-mock'
+import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 const CATEGORIAS_FIXAS     = ['Moradia','Utilidades','Comunicação','Proteção','Tecnologia','Administrativo']
 const CATEGORIAS_VARIAVEIS = ['Pessoal','Insumos','Vendas','Operacional','Fiscal','Geral']
@@ -27,6 +28,17 @@ function proxVencimento(c: PlanoConta): string {
   const nextMonth = c.pagoMesAtual ? now.getMonth() + 1 : now.getMonth()
   const d = new Date(now.getFullYear(), nextMonth, c.diaPagamento)
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`
+}
+
+const MONTH_ORDER = ['jan-26','fev-26','mar-26','abr-26','mai-26','jun-26']
+
+function getStatusForMonth(c: PlanoConta, monthKey: string): ContaStatus {
+  if (!c.ativa || c.valor === 0) return 'pendente'
+  const sel = MONTH_ORDER.indexOf(monthKey)
+  const cur = MONTH_ORDER.indexOf(CURRENT_MONTH)
+  if (sel < cur) return 'pago'
+  if (sel > cur) return 'pendente'
+  return getContaStatus(c)
 }
 
 function StatusBadge({ status }: { status: ContaStatus }) {
@@ -161,6 +173,7 @@ export default function PlanoContas() {
   const [contas, setContas] = useState<PlanoConta[]>(MOCK_PLANO_CONTAS)
   const [modalOpen, setModalOpen] = useState(false)
   const [filtro, setFiltro] = useState<'all'|'fixa'|'variavel'>('all')
+  const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
 
   function handleSave(data: Omit<PlanoConta, 'id'|'pagoMesAtual'>) {
     setContas((prev) => [...prev, { ...data, id: `pc-${Date.now()}`, pagoMesAtual: false }])
@@ -179,6 +192,7 @@ export default function PlanoContas() {
 
   return (
     <div className="space-y-5">
+      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-[14px] font-semibold text-[#0F172A]">Plano de Contas</h3>
@@ -216,7 +230,7 @@ export default function PlanoContas() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-12 text-center text-[13px] text-[#94A3B8]">Nenhuma conta encontrada.</td></tr>
               ) : filtered.map((c, i) => {
-                const st = getContaStatus(c)
+                const st = getStatusForMonth(c, selectedMonth)
                 return (
                   <tr key={c.id} className={cn('group transition-colors hover:bg-[#F8FAFC]', i < filtered.length - 1 && 'border-b border-[#F1F5F9]', !c.ativa && 'opacity-60')}>
                     <td className="px-4 py-3">
@@ -239,7 +253,7 @@ export default function PlanoContas() {
                     <td className="px-4 py-3"><StatusBadge status={st} /></td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                        {st !== 'pago' && c.ativa && (
+                        {st !== 'pago' && c.ativa && selectedMonth === CURRENT_MONTH && (
                           <button type="button" onClick={() => markPago(c.id)}
                             className="rounded-sm bg-[#F0FDF4] px-2 py-1 text-[11px] font-medium text-[#16A34A] hover:bg-[#DCFCE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
                             Marcar Pago

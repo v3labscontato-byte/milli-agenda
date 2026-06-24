@@ -212,33 +212,33 @@ export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: Re
             <h3 className="text-[14px] font-semibold text-[#0F172A]">Por Método</h3>
             <p className="mt-0.5 text-[12px] text-[#475569]">Distribuição do período</p>
           </div>
-          <div className="px-5 pb-5 pt-4">
-            <div className="relative mx-auto" style={{ width: 140, height: 140 }}>
-              <ResponsiveContainer width={140} height={140}>
-                <PieChart>
-                  <Pie data={metodoDataWithTotal} dataKey="value" nameKey="label"
-                    cx="50%" cy="50%" innerRadius={44} outerRadius={64} strokeWidth={2} stroke="#fff"
-                    isAnimationActive={!prefersReduced}>
-                    {metodoDataWithTotal.map((m) => <Cell key={m.id} fill={m.color} />)}
-                  </Pie>
-                  <Tooltip content={<DonutTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
+          <div className="flex items-center gap-5 px-5 pb-5 pt-4">
+            {/* Donut à esquerda */}
+            <div className="relative shrink-0" style={{ width: 220, height: 220 }}>
+              <PieChart width={220} height={220}>
+                <Pie data={metodoDataWithTotal} dataKey="value" nameKey="label"
+                  cx="50%" cy="50%" innerRadius={65} outerRadius={100} strokeWidth={2} stroke="#fff"
+                  isAnimationActive={!prefersReduced}>
+                  {metodoDataWithTotal.map((m) => <Cell key={m.id} fill={m.color} />)}
+                </Pie>
+                <Tooltip content={<DonutTooltip />} />
+              </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-tabular text-[15px] font-bold text-[#0F172A]">{fmtBRL(total)}</span>
-                <span className="text-[9px] text-[#475569]">total</span>
+                <span className="font-tabular text-[22px] font-bold text-[#0F172A]">{fmtBRL(total)}</span>
+                <span className="text-[10px] text-[#475569]">total</span>
               </div>
             </div>
-            <ul className="mt-4 space-y-2" aria-label="Métodos de pagamento">
+            {/* Legendas à direita */}
+            <ul className="flex-1 space-y-2.5" aria-label="Métodos de pagamento">
               {metodoData.map((m) => (
                 <li key={m.id} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: m.color }} aria-hidden="true" />
-                    <span className="truncate text-[12px] text-[#475569]">{m.label}</span>
+                    <span className="truncate text-[13px] text-[#475569]">{m.label}</span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="font-tabular text-[11px] font-medium text-[#0F172A]">{fmtBRL(m.value)}</span>
-                    <span className="w-8 text-right text-[11px] text-[#475569]">{((m.value / total) * 100).toFixed(0)}%</span>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="font-tabular text-[13px] font-semibold text-[#0F172A]">{fmtBRL(m.value)}</span>
+                    <span className="w-8 text-right text-[11px] text-[#64748B]">{((m.value / total) * 100).toFixed(0)}%</span>
                   </div>
                 </li>
               ))}

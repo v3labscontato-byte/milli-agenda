@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  PieChart, Pie, Cell, LineChart, Line,
+  BarChart, Bar, Cell, LabelList, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { MOCK_DESPESAS_CATEGORIA, MOCK_DESPESAS_MENSAL } from '@/lib/financeiro-mock'
@@ -12,20 +12,7 @@ function fmtBRL(n: number) {
 }
 
 const TOTAL_DESPESAS = MOCK_DESPESAS_CATEGORIA.reduce((s, d) => s + d.valor, 0)
-
-// ─── Tooltips ─────────────────────────────────────────────────────────────────
-
-interface PieTEntry { name?: string; value?: number; payload?: { pct?: number } }
-function PieTooltip({ active, payload }: { active?: boolean; payload?: PieTEntry[] }) {
-  if (!active || !payload?.length) return null
-  const d = payload[0]
-  return (
-    <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2 shadow-md">
-      <p className="text-[12px] font-semibold text-[#0F172A]">{d.name}</p>
-      <p className="text-[12px] text-[#475569]">{fmtBRL(d.value ?? 0)} · {d.payload?.pct ?? 0}%</p>
-    </div>
-  )
-}
+const SORTED_CATEGORIAS = [...MOCK_DESPESAS_CATEGORIA].sort((a, b) => b.valor - a.valor)
 
 interface LineTEntry { dataKey?: string | number; value?: number; color?: string }
 interface LineTooltipProps { active?: boolean; payload?: LineTEntry[]; label?: string }
@@ -81,47 +68,40 @@ export default function DespesasSection() {
       ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
-          {/* ── Donut: por categoria ── */}
+          {/* ── Barra horizontal: por categoria ── */}
           <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
             <div className="border-b border-[#E2E8F0] px-5 py-3.5">
               <h4 className="text-[13px] font-semibold text-[#0F172A]">Por Categoria</h4>
-              <p className="mt-0.5 text-[11px] text-[#475569]">Jun 2026</p>
+              <p className="mt-0.5 text-[11px] text-[#475569]">Jun 2026 — maior → menor</p>
             </div>
-            <div className="flex items-center gap-4 px-5 pb-5 pt-4">
-              {/* Pie */}
-              <div className="relative shrink-0" style={{ width: 160, height: 160 }}>
-                <ResponsiveContainer width={160} height={160}>
-                  <PieChart>
-                    <Pie
-                      data={MOCK_DESPESAS_CATEGORIA} dataKey="valor" nameKey="nome"
-                      cx="50%" cy="50%" innerRadius={52} outerRadius={72}
-                      strokeWidth={2} stroke="#fff" isAnimationActive={!prefersReduced}
-                    >
-                      {MOCK_DESPESAS_CATEGORIA.map((d, i) => <Cell key={i} fill={d.cor} />)}
-                    </Pie>
-                    <Tooltip content={<PieTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="tabular-nums text-[12px] font-bold text-[#0F172A]">{fmtBRL(TOTAL_DESPESAS)}</span>
-                  <span className="text-[9px] text-[#64748B]">total</span>
-                </div>
-              </div>
-              {/* Legend */}
-              <ul className="min-w-0 flex-1 space-y-1.5" aria-label="Categorias de despesas">
-                {MOCK_DESPESAS_CATEGORIA.map((d) => (
-                  <li key={d.nome} className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: d.cor }} aria-hidden="true" />
-                      <span className="truncate text-[11px] text-[#475569]">{d.nome}</span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="tabular-nums text-[11px] font-medium text-[#0F172A]">{fmtBRL(d.valor)}</span>
-                      <span className="w-6 text-right text-[11px] text-[#64748B]">{d.pct}%</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            <div className="px-2 pb-4 pt-3">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart
+                  layout="vertical"
+                  data={SORTED_CATEGORIAS}
+                  margin={{ left: 100, right: 60, top: 8, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F5F9" />
+                  <XAxis type="number"
+                    tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`}
+                    tick={{ fontSize: 11, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="nome" width={95}
+                    tick={{ fontSize: 12, fill: '#0F172A' }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    formatter={(v: unknown) => [fmtBRL(Number(v)), 'Valor']}
+                    contentStyle={{ fontSize: 12, borderRadius: 6 }}
+                    cursor={{ fill: '#F8FAFC' }}
+                  />
+                  <Bar dataKey="valor" radius={[0, 4, 4, 0]} maxBarSize={28} isAnimationActive={!prefersReduced}>
+                    {SORTED_CATEGORIAS.map((entry) => (
+                      <Cell key={entry.nome} fill={entry.cor} />
+                    ))}
+                    <LabelList dataKey="valor" position="right"
+                      formatter={(v: unknown) => fmtBRL(Number(v))}
+                      style={{ fontSize: 11, fill: '#475569' }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 

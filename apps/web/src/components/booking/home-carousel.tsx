@@ -38,7 +38,7 @@ function CouponCard({ c }: { c: BookingCoupon }) {
         onClick={copy}
         aria-label={copied ? 'Cupom copiado!' : 'Copiar código do cupom'}
         className={cn(
-          'shrink-0 rounded-xl border px-4 py-2.5 text-[13px] font-semibold transition-colors',
+          'shrink-0 min-h-[44px] rounded-xl border px-4 py-2.5 text-[13px] font-semibold transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
           copied
             ? 'border-success-medium bg-success-xlight text-success-medium'
@@ -320,6 +320,7 @@ export default function HomeCarousel() {
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${idx + 1} de ${TOTAL}`}
+                className="min-w-full"
               >
                 <Component />
               </div>

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Calendar,
+  Receipt,
   Users,
   Scissors,
   ListChecks,
@@ -26,6 +27,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard'      },
   { href: '/agenda',          icon: Calendar,        label: 'Agenda'         },
+  { href: '/comandas',        icon: Receipt,         label: 'Comandas'       },
   { href: '/clientes',        icon: Users,           label: 'Clientes'       },
   { href: '/profissionais',   icon: Scissors,        label: 'Profissionais'  },
   { href: '/servicos',        icon: ListChecks,      label: 'Serviços'       },

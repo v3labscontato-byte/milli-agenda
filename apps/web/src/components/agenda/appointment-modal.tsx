@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
+import PaymentModal from '@/components/shared/payment-modal'
 
 interface Action {
   label: string
@@ -31,13 +32,29 @@ interface AppointmentModalProps {
   onClose: () => void
 }
 
+const PAYMENT_ACTIONS = new Set(['Cobrar', 'Cobrar Agora'])
+
+function formatDateDisplay(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-')
+  return `${d}/${m}/${y}`
+}
+
 export default function AppointmentModal({ appointment, onClose }: AppointmentModalProps) {
+  const [paymentOpen, setPaymentOpen] = useState(false)
+
   useEffect(() => {
     if (!appointment) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (paymentOpen) setPaymentOpen(false)
+      else onClose()
+    }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [appointment, onClose])
+  }, [appointment, onClose, paymentOpen])
+
+  // Reset payment modal when appointment changes
+  useEffect(() => { setPaymentOpen(false) }, [appointment?.id])
 
   if (!appointment) return null
 
@@ -45,7 +62,17 @@ export default function AppointmentModal({ appointment, onClose }: AppointmentMo
   const prof = CALENDAR_PROFESSIONALS.find((p) => p.id === appointment.professionalId)
   const actions = ACTIONS[appointment.status] ?? []
 
+  function handleAction(label: string) {
+    if (PAYMENT_ACTIONS.has(label)) setPaymentOpen(true)
+  }
+
+  function handlePaymentConfirm() {
+    setPaymentOpen(false)
+    onClose()
+  }
+
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
@@ -118,6 +145,7 @@ export default function AppointmentModal({ appointment, onClose }: AppointmentMo
                 <button
                   key={action.label}
                   type="button"
+                  onClick={() => handleAction(action.label)}
                   className={cn(
                     'flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[13px] font-medium',
                     'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
@@ -133,5 +161,23 @@ export default function AppointmentModal({ appointment, onClose }: AppointmentMo
         )}
       </div>
     </div>
+    <PaymentModal
+      open={paymentOpen}
+      clientName={appointment.client}
+      professionalName={prof?.name ?? ''}
+      serviceName={appointment.service}
+      date={formatDateDisplay(appointment.date)}
+      startTime={appointment.startTime}
+      endTime={appointment.endTime}
+      items={
+        appointment.services?.length
+          ? appointment.services
+          : [{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]
+      }
+      deposit={appointment.deposit}
+      onClose={() => setPaymentOpen(false)}
+      onConfirm={handlePaymentConfirm}
+    />
+    </>
   )
 }

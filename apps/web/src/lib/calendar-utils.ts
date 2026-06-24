@@ -72,6 +72,18 @@ export const CALENDAR_PROFESSIONALS: CalendarProfessional[] = [
 
 // ─── Calendar appointment type ────────────────────────────────────────────────
 
+export interface ServiceLineItem {
+  name: string
+  quantity: number
+  unitPrice: number
+}
+
+export interface DepositInfo {
+  amount: number
+  method: string
+  paidAt: string
+}
+
 export interface CalendarAppointment {
   id: string
   date: string        // 'YYYY-MM-DD'
@@ -83,6 +95,8 @@ export interface CalendarAppointment {
   professionalId: string
   amount: number
   status: AppointmentStatus
+  services?: ServiceLineItem[]   // line items; if absent, derived from service + amount
+  deposit?: DepositInfo | null   // pre-paid deposit/signal
 }
 
 // ─── Status colours ───────────────────────────────────────────────────────────
@@ -121,13 +135,13 @@ export const MOCK_CALENDAR_APPOINTMENTS: CalendarAppointment[] = [
 
   // ── Today ──────────────────────────────────────────────────────────────────
   { id: 't1',  date: d(0),  startTime: '08:30', endTime: '10:00', durationMinutes: 90,  client: 'Ana Clara Borges', service: 'Coloração',          professionalId: 'lisa', amount: 200, status: 'CONFIRMED'        },
-  { id: 't2',  date: d(0),  startTime: '11:00', endTime: '12:00', durationMinutes: 60,  client: 'Patrícia Mendes',  service: 'Escova',             professionalId: 'lisa', amount: 80,  status: 'IN_SERVICE'       },
+  { id: 't2',  date: d(0),  startTime: '11:00', endTime: '12:00', durationMinutes: 60,  client: 'Patrícia Mendes',  service: 'Escova',             professionalId: 'lisa', amount: 120, status: 'IN_SERVICE',       services: [{ name: 'Escova', quantity: 1, unitPrice: 80 }, { name: 'Hidratação Capilar', quantity: 1, unitPrice: 40 }], deposit: { amount: 30, method: 'PIX', paidAt: '20/06' } },
   { id: 't3',  date: d(0),  startTime: '14:00', endTime: '14:45', durationMinutes: 45,  client: 'Rafaela Costa',    service: 'Corte',              professionalId: 'lisa', amount: 75,  status: 'SCHEDULED'        },
   { id: 't4',  date: d(0),  startTime: '09:00', endTime: '09:30', durationMinutes: 30,  client: 'Diego Santos',     service: 'Barba',              professionalId: 'joao', amount: 40,  status: 'COMPLETED'        },
   { id: 't5',  date: d(0),  startTime: '10:30', endTime: '11:15', durationMinutes: 45,  client: 'Bruno Almeida',    service: 'Corte',              professionalId: 'joao', amount: 65,  status: 'CONFIRMED'        },
   { id: 't6',  date: d(0),  startTime: '14:30', endTime: '15:30', durationMinutes: 60,  client: 'Felipe Rodrigues', service: 'Corte + Barba',      professionalId: 'joao', amount: 100, status: 'SCHEDULED'        },
   { id: 't7',  date: d(0),  startTime: '09:00', endTime: '09:45', durationMinutes: 45,  client: 'Mariana Lima',     service: 'Manicure',           professionalId: 'ana',  amount: 45,  status: 'CHECKED_IN'       },
-  { id: 't8',  date: d(0),  startTime: '10:00', endTime: '11:00', durationMinutes: 60,  client: 'Camila Ferreira',  service: 'Pedicure',           professionalId: 'ana',  amount: 55,  status: 'AWAITING_PAYMENT' },
+  { id: 't8',  date: d(0),  startTime: '10:00', endTime: '11:00', durationMinutes: 60,  client: 'Camila Ferreira',  service: 'Pedicure',           professionalId: 'ana',  amount: 55,  status: 'AWAITING_PAYMENT', deposit: { amount: 20, method: 'Dinheiro', paidAt: '24/06' } },
   { id: 't9',  date: d(0),  startTime: '13:30', endTime: '14:15', durationMinutes: 45,  client: 'Isabela Santos',   service: 'Manicure',           professionalId: 'ana',  amount: 45,  status: 'SCHEDULED'        },
   { id: 't10', date: d(0),  startTime: '08:00', endTime: '10:00', durationMinutes: 120, client: 'Beatriz Oliveira', service: 'Coloração',          professionalId: 'lena', amount: 220, status: 'COMPLETED'        },
   { id: 't11', date: d(0),  startTime: '10:30', endTime: '11:30', durationMinutes: 60,  client: 'Juliana Costa',    service: 'Hidratação',         professionalId: 'lena', amount: 90,  status: 'IN_SERVICE'       },

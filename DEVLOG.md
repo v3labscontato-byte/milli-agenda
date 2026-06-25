@@ -277,3 +277,10 @@ _Nenhuma no momento._
 **Status:** Concluido
 **O que foi feito:** Removidos mocks do dashboard. Os 4 graficos (bookings/services/weekly/volume) foram conectados a API real (/reports/appointments, /reports/professionals, /reports/revenue, /reports/cashflow) via novos hooks em use-relatorios.ts (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). 4 estados (loading/empty/error/success) implementados em todos. Tenant novo ve zeros e graficos vazios. Hotfix aplicado apos colisao de merge nos arquivos compartilhados use-relatorios.ts/relatorios.ts. tsc --noEmit limpo.
 
+
+### [2026-06-25] CLAUDE 2 (agent-dashboard) — Dashboard: charts API real, hotfix colisao merge
+**Status:** ? Concluído
+**Arquivos alterados:** bookings-chart.tsx, services-chart.tsx, weekly-chart.tsx, volume-chart.tsx, use-relatorios.ts, relatorios.ts
+**O que foi feito:** 4 charts reescritos com hooks reais (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). Empty/Loading/Error states em todos. Hotfix aplicado após colisão de merge com agent-financeiro nos arquivos compartilhados.
+**Lição:** use-relatorios.ts e relatorios.ts são arquivos compartilhados — edições paralelas causam colisão. Serializar na próxima rodada.
+

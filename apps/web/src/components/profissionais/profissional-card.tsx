@@ -88,14 +88,14 @@ function getSpecialtyColors(specialty: string | null | undefined) {
   return SPECIALTY_COLORS[key] ?? SPECIALTY_COLORS.default
 }
 
-export function RoleBadge({ role }: { role: ProfissionalRole }) {
-  const s = ROLE_STYLES[role]
+export function RoleBadge({ role }: { role: string | null | undefined }) {
+  const s = ROLE_STYLES[role as ProfissionalRole] ?? { bg: '#F1F5F9', text: '#475569' }
   return (
     <span
       className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text }}
     >
-      {role}
+      {role ?? 'Sem cargo'}
     </span>
   )
 }
@@ -120,8 +120,8 @@ export const STATUS_STYLES: Record<ProfissionalStatus, { bg: string; text: strin
   inactive: { bg: '#F1F5F9', text: '#64748B', label: 'Inativo'  },
 }
 
-export function StatusBadge({ status }: { status: ProfissionalStatus }) {
-  const s = STATUS_STYLES[status]
+export function StatusBadge({ status }: { status: string | null | undefined }) {
+  const s = STATUS_STYLES[status as ProfissionalStatus] ?? { bg: '#F1F5F9', text: '#64748B', label: status ?? 'Inativo' }
   return (
     <span
       className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"

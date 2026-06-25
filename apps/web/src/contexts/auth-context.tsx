@@ -25,11 +25,17 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string, tenantSlug: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
+
+function getTenantSlug(): string {
+  const parts = window.location.hostname.split('.')
+  if (parts.length >= 3) return parts[0]
+  return process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'bella-vista'
+}
 
 function setCookie(name: string, value: string) {
   document.cookie = `${name}=${value}; path=/; SameSite=Lax`
@@ -65,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  async function login(email: string, password: string, tenantSlug: string) {
+  async function login(email: string, password: string) {
+    const tenantSlug = getTenantSlug()
     const res = await authApi.login({ email, password, tenantSlug })
 
     localStorage.setItem('accessToken', res.accessToken)

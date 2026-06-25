@@ -8,7 +8,7 @@ import { ApiError } from '@/lib/api/client'
 
 const INPUT_BASE = [
   'w-full rounded-lg border bg-white px-4 py-3 text-[14px] text-[#0F172A]',
-  'placeholder:text-[#94A3B8]',
+  'placeholder:text-[#64748B]',
   'focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
   'disabled:opacity-60',
 ].join(' ')
@@ -19,22 +19,20 @@ export default function LoginPage() {
   const { login } = useAuth()
   const router    = useRouter()
 
-  const [slug,     setSlug]     = useState('')
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPwd,  setShowPwd]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [apiError, setApiError] = useState('')
-  const [errors,   setErrors]   = useState({ slug: '', email: '', password: '' })
+  const [errors,   setErrors]   = useState({ email: '', password: '' })
 
   function validate() {
-    const e = { slug: '', email: '', password: '' }
-    if (!slug.trim())     e.slug     = 'Informe o slug do salão'
+    const e = { email: '', password: '' }
     if (!email.trim())    e.email    = 'Informe o e-mail'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'E-mail inválido'
     if (!password.trim()) e.password = 'Informe a senha'
     setErrors(e)
-    return !e.slug && !e.email && !e.password
+    return !e.email && !e.password
   }
 
   async function handleLogin() {
@@ -42,7 +40,7 @@ export default function LoginPage() {
     if (!validate()) return
     setLoading(true)
     try {
-      await login(email, password, slug)
+      await login(email, password)
       router.push('/dashboard')
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -69,27 +67,6 @@ export default function LoginPage() {
           {/* Fields */}
           <div className="space-y-5">
 
-            {/* Slug */}
-            <div className="space-y-1.5">
-              <label htmlFor="l-slug" className="block text-[13px] font-medium text-[#475569]">
-                Slug do salão
-              </label>
-              <input
-                id="l-slug"
-                type="text"
-                placeholder="seu-salao"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))
-                  if (errors.slug) setErrors((p) => ({ ...p, slug: '' }))
-                }}
-                disabled={loading}
-                autoComplete="organization"
-                className={`${INPUT_BASE} ${errors.slug ? INPUT_ERR : INPUT_OK}`}
-              />
-              {errors.slug && <p className="text-[12px] text-[#EF4444]">{errors.slug}</p>}
-            </div>
-
             {/* Email */}
             <div className="space-y-1.5">
               <label htmlFor="l-email" className="block text-[13px] font-medium text-[#475569]">
@@ -108,7 +85,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 className={`${INPUT_BASE} ${errors.email ? INPUT_ERR : INPUT_OK}`}
               />
-              {errors.email && <p className="text-[12px] text-[#EF4444]">{errors.email}</p>}
+              {errors.email && <p className="text-[12px] text-[#DC2626]">{errors.email}</p>}
             </div>
 
             {/* Password */}
@@ -142,7 +119,7 @@ export default function LoginPage() {
                   }
                 </button>
               </div>
-              {errors.password && <p className="text-[12px] text-[#EF4444]">{errors.password}</p>}
+              {errors.password && <p className="text-[12px] text-[#DC2626]">{errors.password}</p>}
             </div>
 
             {/* API error */}

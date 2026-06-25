@@ -38,7 +38,7 @@ export default function SectionTiposProfissionais() {
   const fetchRoles = useCallback(async () => {
     if (!FEATURES.realProfissionais) { setIsLoading(false); return }
     try {
-      const res = await fetch(`${API_URL}/professionals/roles`, {
+      const res = await fetch(`${API_URL}/api/v1/professionals/roles`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       })
       if (res.ok) {
@@ -62,7 +62,7 @@ export default function SectionTiposProfissionais() {
       return
     }
     try {
-      const res = await fetch(`${API_URL}/professionals/roles`, {
+      const res = await fetch(`${API_URL}/api/v1/professionals/roles`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName, description: newDesc || undefined }),
@@ -104,7 +104,7 @@ export default function SectionTiposProfissionais() {
       return
     }
     try {
-      await fetch(`${API_URL}/professionals/roles/${id}`, {
+      await fetch(`${API_URL}/api/v1/professionals/roles/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${getToken()}` },
       })

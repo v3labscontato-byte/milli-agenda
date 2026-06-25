@@ -49,7 +49,7 @@ export default function SectionCategoriasServicos() {
     }
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/services/categories`, {
+      const res = await fetch(`${API_URL}/api/v1/services/categories`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (res.ok) {
@@ -79,7 +79,7 @@ export default function SectionCategoriasServicos() {
     }
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/services/categories`, {
+      const res = await fetch(`${API_URL}/api/v1/services/categories`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -112,7 +112,7 @@ export default function SectionCategoriasServicos() {
     }
     try {
       const token = getToken()
-      const res = await fetch(`${API_URL}/services/categories/${id}`, {
+      const res = await fetch(`${API_URL}/api/v1/services/categories/${id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -141,7 +141,7 @@ export default function SectionCategoriasServicos() {
     }
     try {
       const token = getToken()
-      await fetch(`${API_URL}/services/categories/${id}`, {
+      await fetch(`${API_URL}/api/v1/services/categories/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -164,7 +164,7 @@ export default function SectionCategoriasServicos() {
       return
     }
     const token = getToken()
-    const res = await fetch(`${API_URL}/services/categories`, {
+    const res = await fetch(`${API_URL}/api/v1/services/categories`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, color }),

@@ -16,8 +16,8 @@ const STEP_LABELS: Record<Step, string> = {
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
-const WORK_TIMES = Array.from({ length: 29 }, (_, i) => {
-  const total = 7 * 60 + i * 30
+const WORK_TIMES = Array.from({ length: 31 }, (_, i) => {
+  const total = 6 * 60 + i * 30
   const h = Math.floor(total / 60)
   const m = total % 60
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
@@ -114,10 +114,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
         name: name.trim(),
         phone: phone || undefined,
         email: email || undefined,
-        role: specialty,
-        workDays,
-        workStart: startTime,
-        workEnd: endTime,
+        specialty: specialty || undefined,
         commissionPct: Number(commissionPct) || undefined,
       })
       onClose()

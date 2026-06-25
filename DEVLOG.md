@@ -231,7 +231,7 @@ _Nenhuma no momento._
 - [ ] Claude 2: Onboarding wizard completo
 - [ ] Beta com primeiros clientes
 
-### [2026-06-25] CLAUDE 2 (agent-auth) — Auth: forgot-password, reset-password, forca senha
+### [2026-06-25] CLAUDE 2 (agent-auth) ï¿½ Auth: forgot-password, reset-password, forca senha
 **Status:** Concluido
 **Arquivos alterados:** forgot-password/page.tsx, reset-password/page.tsx, login/page.tsx, cadastro/page.tsx, middleware.ts, lib/api/auth.ts, lib/password-strength.ts
 **O que foi feito:** Paginas de recuperacao e redefinicao de senha com indicador de forca. Rotas publicas no middleware. forgotPassword e resetPassword em auth.ts. Plano pre-selecionado via ?plan= no cadastro.
@@ -278,16 +278,16 @@ _Nenhuma no momento._
 **O que foi feito:** Removidos mocks do dashboard. Os 4 graficos (bookings/services/weekly/volume) foram conectados a API real (/reports/appointments, /reports/professionals, /reports/revenue, /reports/cashflow) via novos hooks em use-relatorios.ts (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). 4 estados (loading/empty/error/success) implementados em todos. Tenant novo ve zeros e graficos vazios. Hotfix aplicado apos colisao de merge nos arquivos compartilhados use-relatorios.ts/relatorios.ts. tsc --noEmit limpo.
 
 
-### [2026-06-25] CLAUDE 2 (agent-dashboard) — Dashboard: charts API real, hotfix colisao merge
-**Status:** ? Concluído
+### [2026-06-25] CLAUDE 2 (agent-dashboard) ï¿½ Dashboard: charts API real, hotfix colisao merge
+**Status:** ? Concluï¿½do
 **Arquivos alterados:** bookings-chart.tsx, services-chart.tsx, weekly-chart.tsx, volume-chart.tsx, use-relatorios.ts, relatorios.ts
-**O que foi feito:** 4 charts reescritos com hooks reais (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). Empty/Loading/Error states em todos. Hotfix aplicado após colisão de merge com agent-financeiro nos arquivos compartilhados.
-**Lição:** use-relatorios.ts e relatorios.ts são arquivos compartilhados — edições paralelas causam colisão. Serializar na próxima rodada.
+**O que foi feito:** 4 charts reescritos com hooks reais (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). Empty/Loading/Error states em todos. Hotfix aplicado apï¿½s colisï¿½o de merge com agent-financeiro nos arquivos compartilhados.
+**Liï¿½ï¿½o:** use-relatorios.ts e relatorios.ts sï¿½o arquivos compartilhados ï¿½ ediï¿½ï¿½es paralelas causam colisï¿½o. Serializar na prï¿½xima rodada.
 
 
-### [2026-06-25] ORCHESTRATOR — Correção pós-epics + ajuste de modelos
+### [2026-06-25] ORCHESTRATOR ï¿½ Correï¿½ï¿½o pï¿½s-epics + ajuste de modelos
 **Status:** ?? Em andamento
-**Tarefas:** mocks financeiro, mocks configurações, modelo por agente
+**Tarefas:** mocks financeiro, mocks configuraï¿½ï¿½es, modelo por agente
 
 
 ### [2026-06-25] fix-agentes â€” Modelos ajustados por agente
@@ -296,23 +296,23 @@ _Nenhuma no momento._
 **Haiku:** Dashboard, Agenda, Clientes, Profissionais, ServiÃ§os, Comandas, ConfiguraÃ§Ãµes
 **Economia estimada:** ~70% reduÃ§Ã£o no custo de tokens por rodada
 
-### [2026-06-25] fix-configuracoes — Correção mocks remanescentes
-**Status:** ? Concluído
-**O que foi feito:** WhatsApp/email/PIX fictícios removidos. Plano real do banco. Trial calculado de trialEndsAt.
-**Backlog:** Integração WhatsApp Business real, SMTP real, Billing/subscription real
+### [2026-06-25] fix-configuracoes ï¿½ Correï¿½ï¿½o mocks remanescentes
+**Status:** ? Concluï¿½do
+**O que foi feito:** WhatsApp/email/PIX fictï¿½cios removidos. Plano real do banco. Trial calculado de trialEndsAt.
+**Backlog:** Integraï¿½ï¿½o WhatsApp Business real, SMTP real, Billing/subscription real
 
 
-### [2026-06-25] fix-financeiro — Correção mocks remanescentes
-**Status:** ? Concluído
-**O que foi feito:** Todos os valores hardcoded removidos do caminho real-API. buildRealKpis não espalha mais FINANCEIRO_KPIS (metas/trends zerados). ReceitaChart conectado a cashflow.entries no modo real, com empty/loading/error states; donut de método mostra 'Sem pagamentos no período' (API não fornece método). Zeros reais para tenant sem dados.
+### [2026-06-25] fix-financeiro ï¿½ Correï¿½ï¿½o mocks remanescentes
+**Status:** ? Concluï¿½do
+**O que foi feito:** Todos os valores hardcoded removidos do caminho real-API. buildRealKpis nï¿½o espalha mais FINANCEIRO_KPIS (metas/trends zerados). ReceitaChart conectado a cashflow.entries no modo real, com empty/loading/error states; donut de mï¿½todo mostra 'Sem pagamentos no perï¿½odo' (API nï¿½o fornece mï¿½todo). Zeros reais para tenant sem dados.
 
 
-### [2026-06-25] ORCHESTRATOR — Correção pós-epics + modelos concluídos
-**Status:** ? Concluído
-**Financeiro:** Guard FEATURES.realRelatorios em 5 seções sem backend (despesas, procedimentos, metas, plano de contas, pagamentos histórico). Em produção mostram Empty State. Em dev mostram mocks. tsc limpo ?
-**Configurações:** WhatsApp/email/PIX fictícios removidos. Plano real do banco. Trial calculado de trialEndsAt ?
+### [2026-06-25] ORCHESTRATOR ï¿½ Correï¿½ï¿½o pï¿½s-epics + modelos concluï¿½dos
+**Status:** ? Concluï¿½do
+**Financeiro:** Guard FEATURES.realRelatorios em 5 seï¿½ï¿½es sem backend (despesas, procedimentos, metas, plano de contas, pagamentos histï¿½rico). Em produï¿½ï¿½o mostram Empty State. Em dev mostram mocks. tsc limpo ?
+**Configuraï¿½ï¿½es:** WhatsApp/email/PIX fictï¿½cios removidos. Plano real do banco. Trial calculado de trialEndsAt ?
 **Modelos:** Sonnet para Auth/Financeiro/Infra/Booking, Haiku para os demais. ~70% economia estimada ?
-**Pendente:** NEXT_PUBLIC_USE_REAL_API=true deve estar setado no Railway frontend para ativar os guards em produção
+**Pendente:** NEXT_PUBLIC_USE_REAL_API=true deve estar setado no Railway frontend para ativar os guards em produï¿½ï¿½o
 
 
 ### [2026-06-25] ORCHESTRATOR â€” Fase 1: Base do Onboarding Inteligente
@@ -381,3 +381,23 @@ _Nenhuma no momento._
 - SmartFormMeta: 2 steps (Tipo/Periodo, Valor) -- localStorage por ora
 - SmartFormSalao: 3 steps (Identidade, Contato/Endereco, Revisar) -- com ViaCEP
 **Proximo:** Fase 4 -- Conteudo do Site (promocoes, pacotes, avaliacoes)
+
+### [2026-06-25] ORCHESTRATOR â€” Fix agenda dias passados + vista dia
+**Status:** ðŸ”„ Em andamento
+**Bugs:**
+- Dias passados mostram "10 livres" em verde (deve ser cinza)
+- Click no dia exibe ID do profissional em vez do nome
+- Vista do dia nÃ£o exibe agenda / texto "para hoje" sem data real
+
+### [2026-06-25] ORCHESTRATOR â€” Hotfix profissionais + metas
+**Status:** âœ… ConcluÃ­do
+**Bugs:**
+- commissionPct vem como string do banco â†’ operaÃ§Ãµes aritmÃ©ticas quebram
+- rating.toFixed() em undefined crashando profissional-modal
+- metas-section bloqueada por FEATURES.realRelatorios guard
+
+### [2026-06-25] ORCHESTRATOR â€” Hotfix .bg + agenda dia
+**Status:** ðŸ”„ Em andamento
+**Bugs:**
+- Profissionais: Cannot read .bg de undefined (specialty null do banco)
+- Agenda vista dia: carrega mas nÃ£o mostra agendamentos

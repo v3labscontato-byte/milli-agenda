@@ -398,43 +398,14 @@ export default function SmartFormAppCliente({ open, onClose, onSave, initialSlug
               </div>
 
               {/* Resumo */}
-              <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Resumo</p>
-                <dl className="space-y-1.5 text-[12px]">
-                  <div className="flex gap-2">
-                    <dt className="text-[#64748B]">Nome:</dt>
-                    <dd className="font-medium text-[#0F172A]">{displayName || '—'}</dd>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <dt className="text-[#64748B]">Cor:</dt>
-                    <dd className="flex items-center gap-1.5">
-                      <span className="inline-block h-3 w-3 rounded-sm border border-[#E2E8F0]" style={{ backgroundColor: primaryColor }} aria-hidden="true" />
-                      <span className="font-medium text-[#0F172A]">{primaryColor.toUpperCase()}</span>
-                    </dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-[#64748B]">Tema:</dt>
-                    <dd className="font-medium text-[#0F172A]">{theme === 'light' ? 'Claro' : 'Escuro'}</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-[#64748B]">Slides:</dt>
-                    <dd className="font-medium text-[#0F172A]">{enabledSlides.length} ativos</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-[#64748B]">Cancelamento:</dt>
-                    <dd className="font-medium text-[#0F172A]">{cancelPolicy}</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-[#64748B]">Reagendamento:</dt>
-                    <dd className="font-medium text-[#0F172A]">{reschedulePolicy}</dd>
-                  </div>
-                  {minValue > 0 && (
-                    <div className="flex gap-2">
-                      <dt className="text-[#64748B]">Valor mínimo:</dt>
-                      <dd className="font-medium text-[#0F172A]">R$ {minValue.toFixed(2)}</dd>
-                    </div>
-                  )}
-                </dl>
+              <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-[12px]">
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Resumo</p>
+                <p className="font-semibold text-[#0F172A]">{displayName || '—'}</p>
+                <p className="mt-0.5 text-[#64748B]">
+                  {enabledSlides.length} slides · tema {theme === 'light' ? 'claro' : 'escuro'}
+                  {minValue > 0 && ` · mín. R$ ${minValue.toFixed(2)}`}
+                </p>
+                <p className="mt-0.5 text-[#64748B]">Cancelamento: {cancelPolicy}</p>
               </div>
             </div>
           )}
@@ -470,7 +441,7 @@ export default function SmartFormAppCliente({ open, onClose, onSave, initialSlug
                 </button>
                 <button
                   type="button"
-                  onClick={handleSave}
+                  onClick={() => { void handleSave() }}
                   disabled={saving}
                   className={cn(
                     'rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white',

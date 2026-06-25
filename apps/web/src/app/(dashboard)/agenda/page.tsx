@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { startOfWeek, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
@@ -63,6 +64,7 @@ interface NewModalPrefill {
 }
 
 export default function AgendaPage() {
+  const router = useRouter()
   const [view, setView]                   = useState<View>('week')
   const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [filterProfId, setFilterProfId]   = useState<string | null>(null)
@@ -251,6 +253,7 @@ export default function AgendaPage() {
               setNewModalPrefill({ profId: filterProfId ?? undefined, date: toDateString(selectedDate), time: `${String(hour).padStart(2, '0')}:00` })
               setNewModalOpen(true)
             }}
+            onOpenComanda={(appointmentId) => router.push(`/comandas?appointmentId=${appointmentId}`)}
           />
         </div>
       )}

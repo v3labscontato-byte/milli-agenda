@@ -508,3 +508,25 @@ _Nenhuma no momento._
 - apps/web/src/hooks/use-profissionais.ts (mapApiProfissional)
 - apps/web/src/app/(profissionais)/profissionais/page.tsx (stats + filter)
 **npx tsc --noEmit:** ✅ 0 erros
+
+### [2026-06-25] AGENT_AGENDA — Design restaurado com cards coloridos + legenda + botao fechar comanda
+**Status:** Concluido
+
+### [2026-06-25] AGENT_COMANDAS — Suporte a appointmentId para abrir comanda da agenda
+**Status:** ✅ Concluído
+**O que foi feito:**
+- **Frontend** (apps/web):
+  - Adicionado suporte a parâmetro `?appointmentId=<id>` na URL de comandas
+  - `apps/web/src/app/(comandas)/comandas/page.tsx`: Importado `useSearchParams()`, `agendaApi`. Adicionado estado `prefillData` e `useEffect` que detecta appointmentId, busca dados do appointment pela API (`agendaApi.get()`), pré-preenche os dados (clientName, clientPhone, professionalId, serviceId, startTime) e abre automaticamente o modal de nova comanda.
+  - `apps/web/src/components/comandas/nova-comanda-modal.tsx`: Adicionado prop `prefill?: Partial<NovaComandaData>`. Modificado `useEffect` para aplicar prefill quando modal abre e dados estão disponíveis.
+- **Backend**: Sem alterações no schema (não requer migration)
+**Fluxo:**
+1. Usuário clica "Fechar Comanda" em um agendamento na agenda
+2. Frontend redireciona para `/comandas?appointmentId=<id>`
+3. Modal de nova comanda abre automaticamente com dados pré-preenchidos do agendamento
+4. Usuário confirma e comanda é criada
+**Arquivos alterados:**
+- apps/web/src/app/(comandas)/comandas/page.tsx
+- apps/web/src/components/comandas/nova-comanda-modal.tsx
+**npx tsc --noEmit:** ✅ 0 erros
+**Próximo:** Integrar botão "Fechar Comanda" na agenda para disparar navegação com appointmentId

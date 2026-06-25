@@ -8,11 +8,12 @@ interface DayTimelineProps {
   appointments: CalendarAppointment[]
   date: Date
   onNewAppointment?: (date: Date, hour: number) => void
+  onOpenComanda?: (appointmentId: string) => void
 }
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6) // 06 às 22
 
-export function DayTimeline({ appointments, date, onNewAppointment }: DayTimelineProps) {
+export function DayTimeline({ appointments, date, onNewAppointment, onOpenComanda }: DayTimelineProps) {
   const dateStr = format(date, 'yyyy-MM-dd')
   const dayAppts = appointments.filter(a => a.date === dateStr)
 
@@ -68,13 +69,25 @@ export function DayTimeline({ appointments, date, onNewAppointment }: DayTimelin
                           key={appt.id}
                           className={`rounded-md border px-2 py-1.5 text-[12px] ${colors.bg} ${colors.border} border`}
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium" style={{ color: colors.text }}>
-                              {appt.startTime}
-                            </span>
-                            <span className="font-semibold text-[#0F172A]">{appt.client}</span>
+                          <div className="flex items-center justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium" style={{ color: colors.text }}>
+                                  {appt.startTime}
+                                </span>
+                                <span className="font-semibold text-[#0F172A]">{appt.client}</span>
+                              </div>
+                              <p className="mt-0.5 text-[#475569]">{appt.service}</p>
+                            </div>
+                            <div className="flex shrink-0 flex-col gap-1">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onOpenComanda?.(appt.id) }}
+                                className="rounded bg-[#2563EB] px-2 py-0.5 text-[10px] font-medium text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                              >
+                                Fechar Comanda
+                              </button>
+                            </div>
                           </div>
-                          <p className="mt-0.5 text-[#475569]">{appt.service}</p>
                         </div>
                       )
                     })}

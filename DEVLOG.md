@@ -530,3 +530,11 @@ _Nenhuma no momento._
 - apps/web/src/components/comandas/nova-comanda-modal.tsx
 **npx tsc --noEmit:** ✅ 0 erros
 **Próximo:** Integrar botão "Fechar Comanda" na agenda para disparar navegação com appointmentId
+
+### [2026-06-25] ORCHESTRATOR — Esteira de testes: 26/30 (86%)
+**Passou:** 26 / **Falhou:** 3 / **Aviso:** 1
+**Falhas:**
+- T03: Login invalido retorna 400 (deveria ser 401) — auth.service corrigir HTTP status
+- T19: POST /commands com apenas appointmentId retorna 400 — comandas.service nao aceita so appointmentId
+- T23/T24: GET+POST /reports/goals retorna 500 — migration goal nao rodou no Railway (DB sem tabela goals)
+**Proximo:** Corrigir as 3 falhas em ordem de prioridade

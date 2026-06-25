@@ -16,7 +16,7 @@ export function useRelatorios() {
     setError(null)
     relatoriosApi.kpis()
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { kpis: KpiData[] }).kpis ?? [])
+        if (!cancelled) setData((res as KpiData[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar relatórios')

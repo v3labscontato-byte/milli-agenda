@@ -16,7 +16,7 @@ export function useAgenda(params?: { date?: string; professionalId?: string }) {
     setError(null)
     agendaApi.list(params)
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { data: CalendarAppointment[] }).data)
+        if (!cancelled) setData((res as CalendarAppointment[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar agendamentos')

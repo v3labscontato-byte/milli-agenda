@@ -16,7 +16,7 @@ export function useComandas() {
     setError(null)
     comandasApi.list()
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { data: Comanda[] }).data)
+        if (!cancelled) setData((res as Comanda[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar comandas')

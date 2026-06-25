@@ -16,7 +16,7 @@ export function useClientes(params?: { search?: string }) {
     setError(null)
     clientesApi.list(params)
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { data: Cliente[] }).data)
+        if (!cancelled) setData((res as Cliente[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar clientes')

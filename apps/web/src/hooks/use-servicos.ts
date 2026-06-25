@@ -16,7 +16,7 @@ export function useServicos() {
     setError(null)
     servicosApi.list()
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { data: Servico[] }).data)
+        if (!cancelled) setData((res as Servico[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar serviços')

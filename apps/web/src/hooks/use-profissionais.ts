@@ -16,7 +16,7 @@ export function useProfissionais() {
     setError(null)
     profissionaisApi.list()
       .then((res: unknown) => {
-        if (!cancelled) setData((res as { data: Profissional[] }).data)
+        if (!cancelled) setData((res as Profissional[]) ?? [])
       })
       .catch(() => {
         if (!cancelled) setError('Erro ao carregar profissionais')

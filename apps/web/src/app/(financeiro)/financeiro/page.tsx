@@ -23,6 +23,7 @@ import MetasSection from '@/components/financeiro/metas-section'
 import PlanoContas from '@/components/financeiro/plano-contas'
 import ProcedimentosSection from '@/components/financeiro/procedimentos-section'
 import DespesasSection from '@/components/financeiro/despesas-section'
+import SmartFormMeta from '@/components/shared/smart-form-meta'
 import { cn } from '@/lib/utils'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -245,6 +246,7 @@ export default function FinanceiroPage() {
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
   const [activeTab, setActiveTab]   = useState<TabId>('procedimentos')
+  const [metaOpen, setMetaOpen]     = useState(false)
 
   const range = useMemo(
     () => periodToRange(PERIOD_MAP[period], customFrom, customTo),
@@ -266,6 +268,7 @@ export default function FinanceiroPage() {
   const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length) : FINANCEIRO_KPIS
 
   return (
+    <>
     <div className="space-y-6 px-6 pb-10 pt-5">
 
       {/* ── Period filter ── */}
@@ -352,7 +355,24 @@ export default function FinanceiroPage() {
             )}
           </div>
           <div role="tabpanel" id="panel-metas" aria-labelledby="tab-metas" hidden={activeTab !== 'metas'}>
-            {activeTab === 'metas' && <MetasSection />}
+            {activeTab === 'metas' && (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setMetaOpen(true)}
+                    className={cn(
+                      'rounded-md bg-[#2563EB] px-3 py-1.5 text-[12px] font-semibold text-white',
+                      'transition-colors hover:bg-[#1D4ED8]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                    )}
+                  >
+                    + Nova Meta
+                  </button>
+                </div>
+                <MetasSection />
+              </div>
+            )}
           </div>
           <div role="tabpanel" id="panel-plano" aria-labelledby="tab-plano" hidden={activeTab !== 'plano'}>
             {activeTab === 'plano' && <PlanoContas />}
@@ -364,5 +384,8 @@ export default function FinanceiroPage() {
       </div>
 
     </div>
+
+    <SmartFormMeta open={metaOpen} onClose={() => setMetaOpen(false)} />
+    </>
   )
 }

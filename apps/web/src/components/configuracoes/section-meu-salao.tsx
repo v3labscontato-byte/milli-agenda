@@ -5,6 +5,7 @@ import { Camera, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useConfiguracoes } from '@/hooks/use-configuracoes'
 import { FieldLabel, TextInput, SectionCard, SaveButton, type SaveState } from './_primitives'
+import SmartFormSalao from '@/components/shared/smart-form-salao'
 
 // ── Upload helpers ────────────────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ export default function SectionMeuSalao() {
   const [form, setForm]           = useState<SalonForm>(EMPTY_FORM)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [saveError, setSaveError] = useState('')
+  const [smartSalaoOpen, setSmartSalaoOpen] = useState(false)
 
   // Identidade visual
   const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
@@ -180,14 +182,24 @@ export default function SectionMeuSalao() {
   }
 
   return (
+    <>
     <div className="h-full overflow-y-auto">
       <div className="mx-auto w-full max-w-2xl space-y-5 px-8 py-6">
 
-        <div>
-          <h2 className="text-[16px] font-semibold text-[#0F172A]">Informações do Salão</h2>
-          <p className="mt-0.5 text-[13px] text-[#64748B]">
-            Dados exibidos no site de agendamento e nas comunicações com clientes.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-[16px] font-semibold text-[#0F172A]">Informações do Salão</h2>
+            <p className="mt-0.5 text-[13px] text-[#64748B]">
+              Dados exibidos no site de agendamento e nas comunicações com clientes.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSmartSalaoOpen(true)}
+            className="shrink-0 text-[13px] text-[#2563EB] hover:text-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+          >
+            Assistente de configuração →
+          </button>
         </div>
 
         {/* ── Identidade Visual ── */}
@@ -455,5 +467,8 @@ export default function SectionMeuSalao() {
         </div>
       </div>
     </div>
+
+    <SmartFormSalao open={smartSalaoOpen} onClose={() => setSmartSalaoOpen(false)} />
+    </>
   )
 }

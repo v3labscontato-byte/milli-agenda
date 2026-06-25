@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Pencil, Trash2, Plus, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FEATURES } from '@/lib/features'
+import SmartFormCategoria from '@/components/shared/smart-form-categoria'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
@@ -39,6 +40,7 @@ export default function SectionCategoriasServicos() {
   const [newColor, setNewColor] = useState(PRESET_COLORS[0])
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState(PRESET_COLORS[0])
+  const [smartCatOpen, setSmartCatOpen] = useState(false)
 
   const fetchCategories = useCallback(async () => {
     if (!FEATURES.realServicos) {
@@ -155,6 +157,21 @@ export default function SectionCategoriasServicos() {
     setEditColor(cat.color)
   }
 
+  const handleSmartCreate = async (name: string, color: string) => {
+    if (!FEATURES.realServicos) {
+      const id = Math.random().toString(36).substr(2, 9)
+      setCategories(prev => [...prev, { id, name, color, order: prev.length + 1 }])
+      return
+    }
+    const token = getToken()
+    const res = await fetch(`${API_URL}/services/categories`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, color }),
+    })
+    if (res.ok) await fetchCategories()
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -164,6 +181,7 @@ export default function SectionCategoriasServicos() {
   }
 
   return (
+    <>
     <div className="flex h-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-4">
         <h2 className="text-[15px] font-semibold text-[#0F172A]">Categorias de Serviços</h2>
@@ -251,7 +269,7 @@ export default function SectionCategoriasServicos() {
           )}
 
           {!isAdding && (
-            <div className="border-t border-[#E2E8F0] p-4">
+            <div className="flex items-center justify-between border-t border-[#E2E8F0] p-4">
               <button
                 onClick={() => {
                   setIsAdding(true)
@@ -262,6 +280,12 @@ export default function SectionCategoriasServicos() {
               >
                 <Plus size={16} />
                 Nova Categoria
+              </button>
+              <button
+                onClick={() => setSmartCatOpen(true)}
+                className="text-[12px] text-[#64748B] hover:text-[#2563EB] transition-colors"
+              >
+                Usar assistente →
               </button>
             </div>
           )}
@@ -315,5 +339,12 @@ export default function SectionCategoriasServicos() {
         </div>
       </div>
     </div>
+
+    <SmartFormCategoria
+      open={smartCatOpen}
+      onClose={() => setSmartCatOpen(false)}
+      onCreated={handleSmartCreate}
+    />
+    </>
   )
 }

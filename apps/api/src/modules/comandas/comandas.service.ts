@@ -5,13 +5,19 @@ import { CommandStatus } from '@milli/shared-types'
 import { CreateComandaDto } from './dto/create-comanda.dto'
 import { AddItemDto } from './dto/add-item.dto'
 
+type FindAllFilters = { status?: string; clientId?: string }
+
 @Injectable()
 export class ComandasService {
   constructor(private readonly db: DatabaseService) {}
 
-  findAll(tenantId: string) {
+  findAll(tenantId: string, filters: FindAllFilters = {}) {
     return this.db.command.findMany({
-      where: { tenantId },
+      where: {
+        tenantId,
+        ...(filters.status   ? { status: filters.status as CommandStatus } : {}),
+        ...(filters.clientId ? { clientId: filters.clientId }              : {}),
+      },
       include: { client: true, items: true },
       orderBy: { openedAt: 'desc' },
     })
@@ -49,6 +55,27 @@ export class ComandasService {
     })
 
     return this.recalculate(id)
+  }
+
+  async removeItem(tenantId: string, commandId: string, itemId: string) {
+    const cmd = await this.findOne(tenantId, commandId)
+    if (cmd.status === CommandStatus.CLOSED || cmd.status === CommandStatus.CANCELLED) {
+      throw new BadRequestException('Cannot remove items from a closed/cancelled command')
+    }
+    await this.db.commandItem.delete({ where: { id: itemId } })
+    return this.recalculate(commandId)
+  }
+
+  async applyDiscount(tenantId: string, id: string, discountAmount: number) {
+    const cmd = await this.findOne(tenantId, id)
+    if (cmd.status === CommandStatus.CLOSED || cmd.status === CommandStatus.CANCELLED) {
+      throw new BadRequestException('Cannot apply discount to a closed/cancelled command')
+    }
+    const finalAmount = Math.max(0, Number(cmd.totalAmount) - discountAmount)
+    return this.db.command.update({
+      where: { id },
+      data: { discountAmount, finalAmount },
+    })
   }
 
   async close(tenantId: string, id: string) {

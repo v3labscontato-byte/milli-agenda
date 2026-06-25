@@ -9,17 +9,19 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto'
 import { TransitionStatusDto } from './dto/transition-status.dto'
 
 @UseGuards(JwtAuthGuard)
-@Controller('agenda')
+@Controller('appointments')
 export class AgendaController {
   constructor(private readonly agendaService: AgendaService) {}
 
   @Get()
   findAll(
     @TenantFromJwt() tenantId: string,
-    @Query('date') date?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
     @Query('professionalId') professionalId?: string,
+    @Query('status') status?: string,
   ) {
-    return this.agendaService.findAll(tenantId, { date, professionalId })
+    return this.agendaService.findAll(tenantId, { from, to, professionalId, status })
   }
 
   @Get(':id')
@@ -30,6 +32,15 @@ export class AgendaController {
   @Post()
   create(@TenantFromJwt() tenantId: string, @Body() dto: CreateAppointmentDto) {
     return this.agendaService.create(tenantId, dto)
+  }
+
+  @Patch(':id')
+  update(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: Partial<CreateAppointmentDto>,
+  ) {
+    return this.agendaService.update(tenantId, id, dto)
   }
 
   @Patch(':id/status')

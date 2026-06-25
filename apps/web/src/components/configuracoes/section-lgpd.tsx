@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { AlertTriangle, Search, Download, UserX } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_LGPD_LOGS } from '@/lib/configuracoes-mock'
 import { Toggle, SelectInput, SectionCard, SaveButton, useSaveState } from './_primitives'
 
+// TODO: conectar API quando endpoints /settings/lgpd e /settings/access-logs existirem
 export default function SectionLgpd() {
-  const [cookieConsent, setCookieConsent]       = useState(true)
-  const [bookingConsent, setBookingConsent]     = useState(true)
+  const [cookieConsent, setCookieConsent]       = useState(false)
+  const [bookingConsent, setBookingConsent]     = useState(false)
   const [retentionYears, setRetentionYears]     = useState('2')
   const [exportSearch, setExportSearch]         = useState('')
   const [anonSearch, setAnonSearch]             = useState('')
@@ -188,17 +188,9 @@ export default function SectionLgpd() {
 
         {/* Logs de acesso */}
         <SectionCard title="Logs de Acesso (últimos 30 dias)">
-          <ul className="divide-y divide-[#F1F5F9]" role="list" aria-label="Histórico de acessos a dados">
-            {MOCK_LGPD_LOGS.map((log) => (
-              <li key={log.id} className="flex items-center gap-4 py-2.5 text-[12px]">
-                <span className="w-12 shrink-0 font-tabular text-[#94A3B8]">{log.date}</span>
-                <span className="w-10 shrink-0 font-tabular text-[#94A3B8]">{log.time}</span>
-                <span className="text-[#475569]">Admin</span>
-                <span className="text-[#475569]">{log.action}</span>
-                <span className="font-medium text-[#0F172A]">{log.subject}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="py-4 text-center text-[13px] text-[#94A3B8]">
+            Nenhum acesso registrado nos últimos 30 dias.
+          </p>
         </SectionCard>
 
         <div className="flex justify-end pb-6">

@@ -9,4 +9,5 @@ export const FEATURES = {
   realRelatorios:    USE_REAL_API,
   realServicos:      USE_REAL_API,
   realProfissionais: USE_REAL_API,
+  realConfiguracoes: USE_REAL_API,
 }

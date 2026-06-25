@@ -3,17 +3,18 @@
 import { useState } from 'react'
 import { Copy, Eye, EyeOff, Trash2, Plus, CheckCircle2, Circle, Zap, Calendar, Mail } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_API_KEYS, MOCK_WEBHOOKS, type ApiKey, type Webhook } from '@/lib/configuracoes-mock'
+import { type ApiKey, type Webhook } from '@/lib/configuracoes-mock'
 import { Toggle, SectionCard } from './_primitives'
 
+// TODO: conectar API quando endpoints /settings/api-keys e /settings/webhooks existirem
 export default function SectionApi() {
-  const [keys, setKeys] = useState<ApiKey[]>(MOCK_API_KEYS)
-  const [webhooks, setWebhooks] = useState<Webhook[]>(MOCK_WEBHOOKS)
+  const [keys, setKeys] = useState<ApiKey[]>([])
+  const [webhooks, setWebhooks] = useState<Webhook[]>([])
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
   const [gcalConnected, setGcalConnected] = useState(false)
   const [outlookConnected, setOutlookConnected] = useState(false)
-  const [whatsappConnected, setWhatsappConnected] = useState(true)
+  const [whatsappConnected, setWhatsappConnected] = useState(false)
 
   function toggleReveal(id: string) {
     setRevealed((prev) => {
@@ -163,6 +164,10 @@ export default function SectionApi() {
                 </div>
               </div>
             ))}
+
+            {webhooks.length === 0 && (
+              <p className="py-4 text-center text-[13px] text-[#94A3B8]">Nenhum webhook configurado.</p>
+            )}
 
             <button
               type="button"

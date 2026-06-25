@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Camera, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_SALON_INFO, STATES_BR, TIMEZONES, type SalonInfo } from '@/lib/configuracoes-mock'
-import { FieldLabel, TextInput, SelectInput, SectionCard, SaveButton, useSaveState } from './_primitives'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
+import { FieldLabel, TextInput, SectionCard, SaveButton, type SaveState } from './_primitives'
 
 // ── Upload helpers ────────────────────────────────────────────────────────────
 
@@ -25,11 +25,23 @@ function readFileAsDataURL(file: File): Promise<string> {
 
 type UploadStatus = 'idle' | 'saving' | 'saved'
 
+interface SalonForm {
+  name: string
+  phone: string
+  email: string
+  document: string
+}
+
+const EMPTY_FORM: SalonForm = { name: '', phone: '', email: '', document: '' }
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function SectionMeuSalao() {
-  const [form, setForm]         = useState<SalonInfo>(MOCK_SALON_INFO)
-  const [saveState, triggerSave] = useSaveState()
+  const { settings, loading, error, saving, update } = useConfiguracoes()
+
+  const [form, setForm]           = useState<SalonForm>(EMPTY_FORM)
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [saveError, setSaveError] = useState('')
 
   // Identidade visual
   const [logoPreview,   setLogoPreview]   = useState<string | null>(null)
@@ -43,8 +55,40 @@ export default function SectionMeuSalao() {
   const [confirmLogoRemove,  setConfirmLogoRemove]  = useState(false)
   const [confirmCoverRemove, setConfirmCoverRemove] = useState(false)
 
-  function set<K extends keyof SalonInfo>(field: K, value: SalonInfo[K]) {
+  useEffect(() => {
+    if (settings) {
+      setForm({
+        name:     settings.name ?? '',
+        phone:    settings.phone ?? '',
+        email:    settings.email ?? '',
+        document: settings.document ?? '',
+      })
+      setLogoPreview(settings.logoUrl ?? null)
+    }
+  }, [settings])
+
+  function set<K extends keyof SalonForm>(field: K, value: SalonForm[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  async function handleSave() {
+    setSaveError('')
+    setSaveState('saving')
+    const result = await update({
+      name:     form.name,
+      phone:    form.phone,
+      email:    form.email,
+      document: form.document,
+      logoUrl:  logoPreview ?? undefined,
+    })
+    if (result.success) {
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 2000)
+    } else {
+      setSaveError(result.error ?? 'Erro ao salvar')
+      setSaveState('error')
+      setTimeout(() => setSaveState('idle'), 3000)
+    }
   }
 
   async function processUpload(
@@ -110,6 +154,30 @@ export default function SectionMeuSalao() {
     .map((w) => w[0] ?? '')
     .join('')
     .toUpperCase() || '??'
+
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl space-y-5 px-8 py-6">
+          <div className="h-6 w-48 animate-pulse rounded bg-[#E2E8F0]" />
+          <div className="h-40 animate-pulse rounded-lg bg-[#E2E8F0]" />
+          <div className="h-64 animate-pulse rounded-lg bg-[#E2E8F0]" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl px-8 py-6">
+          <div className="rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] p-4 text-[13px] text-[#DC2626]" role="alert">
+            {error}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -220,7 +288,7 @@ export default function SectionMeuSalao() {
                       )}
                       {logoStatus === 'saved' && (
                         <p className="mt-2 text-[11px] text-[#10B981]">
-                          <span aria-hidden="true">✓ </span>Imagem salva!
+                          <span aria-hidden="true">✓ </span>Imagem carregada! Clique em salvar para aplicar.
                         </p>
                       )}
                     </div>
@@ -232,7 +300,7 @@ export default function SectionMeuSalao() {
               </div>
             </div>
 
-            {/* Cover */}
+            {/* Cover — TODO: conectar API quando endpoint /settings/cover existir */}
             <div>
               <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Foto de Capa</p>
               <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
@@ -320,15 +388,11 @@ export default function SectionMeuSalao() {
                   <div className="ml-auto text-right">
                     <div role="status" aria-live="polite">
                       {coverStatus === 'saving' && <p className="text-[11px] text-[#64748B]">Salvando…</p>}
-                      {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]"><span aria-hidden="true">✓ </span>Imagem salva!</p>}
+                      {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]"><span aria-hidden="true">✓ </span>Imagem carregada!</p>}
                     </div>
                     {coverError && <p className="text-[11px] text-[#DC2626]" role="alert">{coverError}</p>}
                   </div>
                 </div>
-
-                <p className="px-3 pb-2 text-[10px] text-[#CBD5E1]">
-                  Em produção, a imagem será enviada para o servidor.
-                </p>
               </div>
             </div>
 
@@ -372,126 +436,22 @@ export default function SectionMeuSalao() {
             </div>
 
             <div className="space-y-1.5">
-              <FieldLabel htmlFor="salon-cnpj">CNPJ</FieldLabel>
+              <FieldLabel htmlFor="salon-document">CNPJ / CPF</FieldLabel>
               <TextInput
-                id="salon-cnpj"
-                value={form.cnpj}
-                onChange={(v) => set('cnpj', v)}
+                id="salon-document"
+                value={form.document}
+                onChange={(v) => set('document', v)}
                 placeholder="00.000.000/0001-00"
               />
             </div>
-
-            <div className="space-y-1.5">
-              <FieldLabel htmlFor="salon-address">Endereço</FieldLabel>
-              <TextInput
-                id="salon-address"
-                value={form.address}
-                onChange={(v) => set('address', v)}
-                placeholder="Rua, número"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="sm:col-span-2 space-y-1.5">
-                <FieldLabel htmlFor="salon-neighborhood">Bairro</FieldLabel>
-                <TextInput
-                  id="salon-neighborhood"
-                  value={form.neighborhood}
-                  onChange={(v) => set('neighborhood', v)}
-                  placeholder="Bairro"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <FieldLabel htmlFor="salon-cep">CEP</FieldLabel>
-                <TextInput
-                  id="salon-cep"
-                  value={form.cep}
-                  onChange={(v) => set('cep', v)}
-                  placeholder="00000-000"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="sm:col-span-2 space-y-1.5">
-                <FieldLabel htmlFor="salon-city">Cidade</FieldLabel>
-                <TextInput
-                  id="salon-city"
-                  value={form.city}
-                  onChange={(v) => set('city', v)}
-                  placeholder="Cidade"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <FieldLabel htmlFor="salon-state">UF</FieldLabel>
-                <SelectInput
-                  id="salon-state"
-                  value={form.state}
-                  onChange={(v) => set('state', v)}
-                >
-                  {STATES_BR.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </SelectInput>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <FieldLabel htmlFor="salon-tz">Fuso horário</FieldLabel>
-                <SelectInput
-                  id="salon-tz"
-                  value={form.timezone}
-                  onChange={(v) => set('timezone', v)}
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz} value={tz}>{tz}</option>
-                  ))}
-                </SelectInput>
-              </div>
-              <div className="space-y-1.5">
-                <FieldLabel htmlFor="salon-currency">Moeda</FieldLabel>
-                <SelectInput
-                  id="salon-currency"
-                  value={form.currency}
-                  onChange={(v) => set('currency', v)}
-                >
-                  <option value="BRL">BRL — Real Brasileiro</option>
-                  <option value="USD">USD — Dólar Americano</option>
-                  <option value="EUR">EUR — Euro</option>
-                </SelectInput>
-              </div>
-            </div>
           </div>
         </SectionCard>
 
-        {/* ── Redes Sociais ── */}
-        <SectionCard title="Redes Sociais">
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <FieldLabel htmlFor="salon-instagram">Instagram</FieldLabel>
-              <TextInput
-                id="salon-instagram"
-                value={form.instagram}
-                onChange={(v) => set('instagram', v)}
-                placeholder="@seusalao"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <FieldLabel htmlFor="salon-whatsapp">WhatsApp</FieldLabel>
-              <TextInput
-                id="salon-whatsapp"
-                value={form.whatsapp}
-                onChange={(v) => set('whatsapp', v)}
-                placeholder="(11) 99999-9999"
-                type="tel"
-              />
-            </div>
-          </div>
-        </SectionCard>
-
-        <div className="flex justify-end pb-6">
-          <SaveButton state={saveState} onClick={triggerSave} />
+        <div className="flex flex-col items-end gap-2 pb-6">
+          {saveError && (
+            <p className="text-[12px] text-[#DC2626]" role="alert">{saveError}</p>
+          )}
+          <SaveButton state={saving ? 'saving' : saveState} onClick={() => { void handleSave() }} />
         </div>
       </div>
     </div>

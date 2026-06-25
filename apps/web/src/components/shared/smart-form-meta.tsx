@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Check, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api/client'
 
 type MetaTipo = 'receita' | 'agendamentos' | 'clientes' | 'avaliacoes'
 type Periodo = 'diaria' | 'semanal' | 'mensal'
@@ -34,11 +35,12 @@ export default function SmartFormMeta({ open, onClose }: SmartFormMetaProps) {
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (open) {
       setStep(1); setTipo('receita'); setPeriodo('mensal')
-      setValor(''); setSaving(false)
+      setValor(''); setSaving(false); setError('')
       const now = new Date()
       const y = now.getFullYear()
       const m = String(now.getMonth() + 1).padStart(2, '0')
@@ -58,16 +60,22 @@ export default function SmartFormMeta({ open, onClose }: SmartFormMetaProps) {
 
   const tipoInfo = TIPOS.find((t) => t.id === tipo)!
 
-  function handleSave() {
+  async function handleSave() {
     if (!valor) return
-    setSaving(true)
-    // TODO: POST /reports/goals quando tabela Goal existir no banco
+    setSaving(true); setError('')
     try {
-      const metas = JSON.parse(localStorage.getItem('milli_metas') || '[]') as unknown[]
-      metas.push({ id: Date.now(), tipo, periodo, valor: Number(valor), dataInicio, dataFim, criadaEm: new Date().toISOString() })
-      localStorage.setItem('milli_metas', JSON.stringify(metas))
-    } catch { /* noop */ }
-    onClose()
+      await api.post('/api/v1/reports/goals', {
+        tipo,
+        periodo,
+        valor: Number(valor),
+        dataInicio: new Date(dataInicio).toISOString(),
+        dataFim: new Date(dataFim).toISOString(),
+      })
+      onClose()
+    } catch {
+      setError('Erro ao criar meta. Tente novamente.')
+      setSaving(false)
+    }
   }
 
   if (!open) return null
@@ -160,6 +168,7 @@ export default function SmartFormMeta({ open, onClose }: SmartFormMetaProps) {
                     className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                 </div>
               </div>
+              {error && <p className="text-[12px] text-[#DC2626]">{error}</p>}
               {valor && (
                 <div className="rounded-lg bg-[#F8FAFC] px-4 py-3 text-[13px] text-[#475569]">
                   Meta de <strong className="text-[#0F172A]">{tipoInfo.prefix} {valor}</strong> em {tipoInfo.label.toLowerCase()} para o período de <strong className="text-[#0F172A]">{dataInicio} a {dataFim}</strong>
@@ -181,7 +190,7 @@ export default function SmartFormMeta({ open, onClose }: SmartFormMetaProps) {
               Próximo <ChevronRight size={14} />
             </button>
           ) : (
-            <button type="button" onClick={handleSave} disabled={!valor || saving}
+            <button type="button" onClick={() => { void handleSave() }} disabled={!valor || saving}
               className="flex items-center gap-1.5 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
               {saving ? 'Criando…' : <><Check size={13} /> Criar meta</>}
             </button>

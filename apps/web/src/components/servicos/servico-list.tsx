@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo, useState } from 'react'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Pencil, Check, X } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Pencil, Check, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Servico } from '@/lib/servicos-mock'
 import { formatBRL, formatDuration } from '@/lib/servicos-mock'
@@ -26,9 +26,10 @@ interface Props {
   isFiltered?: boolean
   onView: (s: Servico) => void
   onUpdate?: (id: string, data: { durationMin?: number; price?: number }) => Promise<void>
+  onDelete?: (id: string) => Promise<void>
 }
 
-function ServicoList({ servicos, isFiltered = false, onView, onUpdate }: Props) {
+function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onDelete }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
@@ -295,19 +296,31 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate }: Props) 
 
               {/* Detalhes */}
               <td className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => onView(s)}
-                  aria-label={`Ver detalhes de ${s.name}`}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2 py-1.5',
-                    'text-[#94A3B8] transition-colors',
-                    'hover:text-[#2563EB]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onView(s)}
+                    aria-label={`Ver detalhes de ${s.name}`}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-md px-2 py-1.5',
+                      'text-[#94A3B8] transition-colors',
+                      'hover:text-[#2563EB]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                    )}
+                  >
+                    <Eye size={15} aria-hidden="true" />
+                  </button>
+                  {onDelete && (
+                    <button
+                      type="button"
+                      onClick={() => { void onDelete(s.id) }}
+                      aria-label={`Excluir ${s.name}`}
+                      className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[#DC2626] opacity-0 group-hover:opacity-100 transition-colors hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                    >
+                      <Trash2 size={15} aria-hidden="true" />
+                    </button>
                   )}
-                >
-                  <Eye size={15} aria-hidden="true" />
-                </button>
+                </div>
               </td>
             </tr>
           ))}

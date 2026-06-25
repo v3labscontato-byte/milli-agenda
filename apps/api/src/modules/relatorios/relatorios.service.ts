@@ -226,4 +226,28 @@ export class RelatoriosService {
       daysOverdue: Math.floor((now.getTime() - a.endAt.getTime()) / (1000 * 60 * 60 * 24)),
     }))
   }
+
+  async createGoal(tenantId: string, dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string }) {
+    return this.db.goal.create({
+      data: {
+        tenantId,
+        tipo: dto.tipo,
+        periodo: dto.periodo,
+        valor: dto.valor,
+        dataInicio: new Date(dto.dataInicio),
+        dataFim: new Date(dto.dataFim),
+      },
+    })
+  }
+
+  async listGoals(tenantId: string) {
+    return this.db.goal.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  async deleteGoal(tenantId: string, id: string) {
+    return this.db.goal.delete({ where: { id, tenantId } })
+  }
 }

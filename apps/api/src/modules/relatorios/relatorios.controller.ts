@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { RelatoriosService } from './relatorios.service'
@@ -61,5 +61,23 @@ export class RelatoriosController {
   @Get('overdue')
   overdue(@TenantFromJwt() tenantId: string) {
     return this.relatoriosService.overdue(tenantId)
+  }
+
+  @Post('goals')
+  createGoal(
+    @TenantFromJwt() tenantId: string,
+    @Body() dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string },
+  ) {
+    return this.relatoriosService.createGoal(tenantId, dto)
+  }
+
+  @Get('goals')
+  listGoals(@TenantFromJwt() tenantId: string) {
+    return this.relatoriosService.listGoals(tenantId)
+  }
+
+  @Delete('goals/:id')
+  deleteGoal(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.relatoriosService.deleteGoal(tenantId, id)
   }
 }

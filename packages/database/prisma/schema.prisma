@@ -94,6 +94,7 @@ model Tenant {
   notifications Notification[]
   apiKeys       ApiKey[]
   auditLogs     AuditLog[]
+  goals         Goal[]
 
   @@index([slug])
   @@map("tenants")
@@ -500,4 +501,21 @@ model ServiceCategory {
 
   @@index([tenantId])
   @@map("service_categories")
+}
+
+model Goal {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tipo       String
+  periodo    String
+  valor      Decimal  @db.Decimal(12, 2)
+  dataInicio DateTime
+  dataFim    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("goals")
 }

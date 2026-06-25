@@ -1,8 +1,8 @@
-import { IsEmail, IsEnum, IsString, Matches, MinLength } from 'class-validator'
+import { IsEmail, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator'
 
 export enum PlanOption {
-  STARTER = 'starter',
-  PRO = 'pro',
+  STARTER    = 'starter',
+  PRO        = 'pro',
   ENTERPRISE = 'enterprise',
 }
 
@@ -23,12 +23,14 @@ export class RegisterDto {
   email: string
 
   @IsString()
-  @MinLength(8)
+  @MinLength(6)
   password: string
 
+  @IsOptional()
   @IsString()
-  phone: string
+  phone?: string
 
+  @IsOptional()
   @IsEnum(PlanOption)
-  plan: PlanOption = PlanOption.STARTER
+  plan?: PlanOption
 }

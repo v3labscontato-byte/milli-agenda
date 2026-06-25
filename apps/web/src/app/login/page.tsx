@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { ApiError } from '@/lib/api/client'
@@ -153,13 +154,22 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-6 flex flex-col items-center gap-2">
+          <div className="mt-6 flex flex-col items-center gap-3">
             <button
               type="button"
               className="rounded text-[13px] text-[#2563EB] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
             >
               Esqueceu a senha?
             </button>
+            <p className="text-[12px] text-[#475569]">
+              Não tem conta?{' '}
+              <Link
+                href="/cadastro"
+                className="font-medium text-[#2563EB] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+              >
+                Cadastre seu salão grátis →
+              </Link>
+            </p>
             <p className="text-[11px] text-[#94A3B8]">Milli Agenda © 2026</p>
           </div>
 

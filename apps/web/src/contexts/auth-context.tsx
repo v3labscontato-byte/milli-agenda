@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { api } from '@/lib/api/client'
-import { authApi } from '@/lib/api/auth'
+import { authApi, type RegisterPayload, type LoginResponse } from '@/lib/api/auth'
 
 export interface AuthUser {
   id: string
@@ -26,6 +26,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
   logout: () => void
 }
 
@@ -74,23 +75,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, password: string) {
     const tenantSlug = getTenantSlug()
     const res = await authApi.login({ email, password, tenantSlug })
+    storeAuth(res)
+  }
 
+  function storeAuth(res: LoginResponse) {
     localStorage.setItem('accessToken', res.accessToken)
     localStorage.setItem('refreshToken', res.refreshToken)
     localStorage.setItem('tenantSlug', res.tenant.slug)
     localStorage.setItem('user', JSON.stringify(res.user))
     localStorage.setItem('tenant', JSON.stringify(res.tenant))
-
     setCookie('accessToken', res.accessToken)
-
     api.setToken(res.accessToken)
+    setState({ user: res.user, tenant: res.tenant, isLoading: false, isAuthenticated: true })
+  }
 
-    setState({
-      user: res.user,
-      tenant: res.tenant,
-      isLoading: false,
-      isAuthenticated: true,
-    })
+  async function register(payload: RegisterPayload) {
+    const res = await authApi.register(payload)
+    storeAuth(res)
   }
 
   function logout() {
@@ -102,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

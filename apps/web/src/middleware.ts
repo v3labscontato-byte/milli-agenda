@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isPublicPage = pathname.startsWith('/booking')
-  const isAuthPage   = pathname === '/login'
+  const isAuthPage   = pathname === '/login' || pathname === '/cadastro'
 
   if (isPublicPage) return NextResponse.next()
 

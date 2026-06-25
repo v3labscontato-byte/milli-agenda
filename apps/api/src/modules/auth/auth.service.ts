@@ -12,6 +12,13 @@ const PLAN_MAP: Record<PlanOption, PlanSlug> = {
   [PlanOption.ENTERPRISE]: PlanSlug.ENTERPRISE,
 }
 
+function toPublicUser(u: { id: string; name: string; email: string; role: string }) {
+  return { id: u.id, name: u.name, email: u.email, roles: [u.role] }
+}
+function toPublicTenant(t: { id: string; name: string; slug: string }) {
+  return { id: t.id, name: t.name, slug: t.slug }
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
@@ -30,13 +37,15 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 12)
 
+    const plan = dto.plan ? PLAN_MAP[dto.plan] : PlanSlug.STARTER
+
     const tenant = await this.db.tenant.create({
       data: {
         name: dto.salonName,
         slug: dto.slug,
         phone: dto.phone,
         email: dto.email,
-        plan: PLAN_MAP[dto.plan],
+        plan,
         active: true,
       },
     })
@@ -52,7 +61,8 @@ export class AuthService {
       },
     })
 
-    return this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
+    const tokens = this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
+    return { ...tokens, user: toPublicUser(user), tenant: toPublicTenant(tenant) }
   }
 
   async login(dto: LoginDto) {
@@ -68,7 +78,8 @@ export class AuthService {
       const valid = await bcrypt.compare(dto.password, user.passwordHash)
       if (!valid) throw new UnauthorizedException('Invalid credentials')
 
-      return this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
+      const tokens = this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
+      return { ...tokens, user: toPublicUser(user), tenant: toPublicTenant(tenant) }
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err
       this.logger.error('Login error:', err)

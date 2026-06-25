@@ -16,9 +16,22 @@ export interface LoginResponse {
   }
 }
 
+export interface RegisterPayload {
+  salonName: string
+  slug: string
+  ownerName: string
+  email: string
+  password: string
+  phone?: string
+  plan?: 'starter' | 'pro' | 'enterprise'
+}
+
 export const authApi = {
   login: (data: { email: string; password: string; tenantSlug: string }) =>
     api.post<LoginResponse>('/api/v1/auth/login', data),
+
+  register: (data: RegisterPayload) =>
+    api.post<LoginResponse>('/api/v1/auth/register', data),
 
   refresh: (refreshToken: string) =>
     api.post<{ accessToken: string }>('/api/v1/auth/refresh', { refreshToken }),

@@ -13,6 +13,7 @@ import { ComandasModule } from './modules/comandas/comandas.module'
 import { PagamentosModule } from './modules/pagamentos/pagamentos.module'
 import { RelatoriosModule } from './modules/relatorios/relatorios.module'
 import { SettingsModule } from './modules/settings/settings.module'
+import { TemplateEngineModule } from './modules/template-engine/template-engine.module'
 
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
@@ -30,6 +31,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     PagamentosModule,
     RelatoriosModule,
     SettingsModule,
+    TemplateEngineModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

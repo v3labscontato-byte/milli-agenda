@@ -51,4 +51,29 @@ export class ProfissionaisService {
     await this.findOne(tenantId, id)
     return this.db.professional.update({ where: { id }, data: { active: false } })
   }
+
+  getRoles(tenantId: string) {
+    return this.db.professionalRole.findMany({
+      where: { tenantId, status: true },
+      orderBy: { order: 'asc' },
+    })
+  }
+
+  createRole(tenantId: string, dto: { name: string; description?: string }) {
+    return this.db.professionalRole.create({
+      data: { tenantId, name: dto.name, description: dto.description },
+    })
+  }
+
+  async updateRole(tenantId: string, id: string, dto: { name?: string; description?: string; order?: number }) {
+    const role = await this.db.professionalRole.findFirst({ where: { id, tenantId } })
+    if (!role) throw new NotFoundException('Role not found')
+    return this.db.professionalRole.update({ where: { id }, data: dto })
+  }
+
+  async deleteRole(tenantId: string, id: string) {
+    const role = await this.db.professionalRole.findFirst({ where: { id, tenantId } })
+    if (!role) throw new NotFoundException('Role not found')
+    return this.db.professionalRole.update({ where: { id }, data: { status: false } })
+  }
 }

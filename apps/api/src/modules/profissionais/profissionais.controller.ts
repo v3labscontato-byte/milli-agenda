@@ -14,6 +14,30 @@ export class ProfissionaisController {
     return this.profissionaisService.findAll(tenantId)
   }
 
+  @Get('roles')
+  getRoles(@TenantFromJwt() tenantId: string) {
+    return this.profissionaisService.getRoles(tenantId)
+  }
+
+  @Post('roles')
+  createRole(@TenantFromJwt() tenantId: string, @Body() dto: { name: string; description?: string }) {
+    return this.profissionaisService.createRole(tenantId, dto)
+  }
+
+  @Patch('roles/:id')
+  updateRole(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: { name?: string; description?: string; order?: number },
+  ) {
+    return this.profissionaisService.updateRole(tenantId, id, dto)
+  }
+
+  @Delete('roles/:id')
+  deleteRole(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.profissionaisService.deleteRole(tenantId, id)
+  }
+
   @Get(':id')
   findOne(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
     return this.profissionaisService.findOne(tenantId, id)

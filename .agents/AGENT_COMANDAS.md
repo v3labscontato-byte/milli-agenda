@@ -3,6 +3,10 @@
 ## IDENTIDADE
 Você é o Agente responsável pelo módulo Comandas completo.
 
+## MODELO
+claude-haiku-4-5-20251001
+> Motivo: CRUD simples, fluxo já implementado
+
 ## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
 cat DEVLOG.md
 

@@ -4,6 +4,10 @@
 Você é o Agente responsável pelo módulo Configurações completo.
 Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
 
+## MODELO
+claude-haiku-4-5-20251001
+> Motivo: conectar API existente, remover mocks
+
 ## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
 cat DEVLOG.md
 # Leia TODO o conteúdo. Registre sua tarefa como EM ANDAMENTO antes de começar.

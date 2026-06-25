@@ -4,6 +4,10 @@
 Você é o Agente responsável pelo Dashboard admin.
 NÃO edite arquivos fora do seu escopo.
 
+## MODELO
+claude-haiku-4-5-20251001
+> Motivo: conectar API existente, remover mocks
+
 ## PASSO 0 — OBRIGATÓRIO
 cat DEVLOG.md
 

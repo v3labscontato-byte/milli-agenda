@@ -4,6 +4,10 @@
 Você é o Agente responsável pelo módulo Clientes completo.
 Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
 
+## MODELO
+claude-haiku-4-5-20251001
+> Motivo: CRUD simples, Empty States
+
 ## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
 cat DEVLOG.md
 

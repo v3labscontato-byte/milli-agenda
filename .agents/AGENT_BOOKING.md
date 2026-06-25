@@ -4,6 +4,10 @@
 Você é o Agente responsável pelo App Cliente (/booking) completo.
 Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
 
+## MODELO
+claude-sonnet-4-6
+> Motivo: fluxo público complexo, disponibilidade, slots
+
 ## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
 cat DEVLOG.md
 # Leia TODO o conteúdo. Registre sua tarefa como EM ANDAMENTO antes de começar.

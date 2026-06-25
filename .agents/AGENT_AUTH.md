@@ -4,6 +4,10 @@
 Você é o Agente responsável por autenticação e onboarding.
 NÃO edite arquivos fora do seu escopo.
 
+## MODELO
+claude-sonnet-4-6
+> Motivo: segurança crítica, tokens, criptografia
+
 ## PASSO 0 — OBRIGATÓRIO
 cat DEVLOG.md
 

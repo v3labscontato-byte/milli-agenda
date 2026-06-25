@@ -3,6 +3,10 @@
 ## IDENTIDADE
 Você é o Agente responsável pela infraestrutura completa do projeto.
 
+## MODELO
+claude-sonnet-4-6
+> Motivo: infraestrutura crítica, migrations, deploy
+
 ## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
 cat DEVLOG.md
 

@@ -8,9 +8,9 @@ import { formatBRL, formatDuration } from '@/lib/servicos-mock'
 import { CategoryBadge, ServicoStatusBadge, DurationChip } from './servico-card'
 import { ProfissionalAvatar } from '@/components/profissionais/profissional-card'
 
-type Tab = 'detalhes' | 'desempenho' | 'profissionais'
+type Tab = 'detalhes' | 'desempenho' | 'profissionais' | 'fotos'
 
-const TABS: { id: Tab; label: string }[] = [
+const BASE_TABS: { id: Tab; label: string }[] = [
   { id: 'detalhes',      label: 'Detalhes'     },
   { id: 'desempenho',    label: 'Desempenho'   },
   { id: 'profissionais', label: 'Profissionais' },
@@ -208,6 +208,28 @@ function TabProfissionais({ s }: { s: Servico }) {
   )
 }
 
+// ─── Tab: Fotos ───────────────────────────────────────────────────────────────
+
+function TabFotos({ s }: { s: Servico }) {
+  if (s.photos.length === 0) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#E2E8F0]">
+        <p className="text-[13px] text-[#94A3B8]">Nenhuma foto cadastrada</p>
+      </div>
+    )
+  }
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {s.photos.map((src, i) => (
+        <div key={i} className="aspect-square overflow-hidden rounded-lg border border-[#E2E8F0]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={`${s.name} — foto ${i + 1}`} className="h-full w-full object-cover" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 interface ServicoModalProps {
@@ -217,6 +239,10 @@ interface ServicoModalProps {
 
 export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
   const [tab, setTab] = useState<Tab>('detalhes')
+
+  const tabs = servico && servico.photos.length > 0
+    ? [...BASE_TABS, { id: 'fotos' as Tab, label: `Fotos (${servico.photos.length})` }]
+    : BASE_TABS
 
   useEffect(() => {
     if (servico) setTab('detalhes')
@@ -275,7 +301,7 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
 
         {/* Tabs */}
         <div className="flex shrink-0 border-b border-[#F1F5F9]" role="tablist">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               role="tab"
@@ -300,6 +326,7 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
           {tab === 'detalhes'      && <TabDetalhes      s={s} />}
           {tab === 'desempenho'    && <TabDesempenho    s={s} />}
           {tab === 'profissionais' && <TabProfissionais s={s} />}
+          {tab === 'fotos'         && <TabFotos         s={s} />}
         </div>
       </div>
     </div>

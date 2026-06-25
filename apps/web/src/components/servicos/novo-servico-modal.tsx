@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { X, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ServicoCategory, ServicoStatus } from '@/lib/servicos-mock'
+import PhotoUpload from '@/components/shared/photo-upload'
 import { MOCK_SERVICOS } from '@/lib/servicos-mock'
 
 const CATEGORIES: ServicoCategory[] = ['Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha']
@@ -26,11 +27,12 @@ interface FormState {
   description: string
   professionals: string[]
   status: ServicoStatus
+  photos: string[]
 }
 
 const EMPTY: FormState = {
   nome: '', category: '', duration: '60', price: '', description: '',
-  professionals: [], status: 'active',
+  professionals: [], status: 'active', photos: [],
 }
 
 interface NovoServicoModalProps {
@@ -201,6 +203,18 @@ export default function NovoServicoModal({ open, onClose }: NovoServicoModalProp
                   {form.professionals.length} selecionado{form.professionals.length !== 1 ? 's' : ''}
                 </p>
               )}
+            </div>
+
+            {/* Fotos */}
+            <div className="border-t border-[#F1F5F9] pt-5">
+              <PhotoUpload
+                photos={form.photos}
+                onChange={(photos) => setForm((f) => ({ ...f, photos }))}
+                maxPhotos={6}
+                maxSizeMB={5}
+                label="Fotos do Serviço (opcional)"
+                sublabel="Mostre como ficam os resultados deste serviço"
+              />
             </div>
           </form>
         </div>

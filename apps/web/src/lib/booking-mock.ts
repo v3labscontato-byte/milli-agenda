@@ -7,7 +7,7 @@ export type AffiliateStatus  = 'completed' | 'pending'
 export type PontosType       = 'earned' | 'redeemed'
 
 export interface BookingService {
-  id: string; name: string; emoji: string; category: string; durationMins: number; price: number
+  id: string; name: string; emoji: string; category: string; durationMins: number; price: number; photos?: string[]
 }
 export interface BookingProfessional {
   id: string; name: string; initials: string; avatarBg: string
@@ -120,13 +120,18 @@ export const CLIENT = {
 
 export const SERVICES: BookingService[] = [
   { id: 'svc-1', name: 'Corte Masculino',       emoji: '✂️',  category: 'CABELO',   durationMins: 30,  price: 45  },
-  { id: 'svc-2', name: 'Corte Feminino',         emoji: '💇',  category: 'CABELO',   durationMins: 60,  price: 65  },
-  { id: 'svc-3', name: 'Coloração Completa',     emoji: '🎨',  category: 'CABELO',   durationMins: 120, price: 180 },
+  { id: 'svc-2', name: 'Corte Feminino',         emoji: '💇',  category: 'CABELO',   durationMins: 60,  price: 65,
+    photos: ['https://picsum.photos/seed/cortefem1/400/400', 'https://picsum.photos/seed/cortefem2/400/400', 'https://picsum.photos/seed/cortefem3/400/400'] },
+  { id: 'svc-3', name: 'Coloração Completa',     emoji: '🎨',  category: 'CABELO',   durationMins: 120, price: 180,
+    photos: ['https://picsum.photos/seed/coloracao1/400/400', 'https://picsum.photos/seed/coloracao2/400/400', 'https://picsum.photos/seed/coloracao3/400/400'] },
   { id: 'svc-4', name: 'Escova',                emoji: '💨',  category: 'CABELO',   durationMins: 45,  price: 80  },
-  { id: 'svc-5', name: 'Hidratação Capilar',    emoji: '💧',  category: 'CABELO',   durationMins: 60,  price: 100 },
-  { id: 'svc-6', name: 'Manicure',              emoji: '💅',  category: 'UNHAS',    durationMins: 45,  price: 40  },
+  { id: 'svc-5', name: 'Hidratação Capilar',    emoji: '💧',  category: 'CABELO',   durationMins: 60,  price: 100,
+    photos: ['https://picsum.photos/seed/hidrat1/400/400', 'https://picsum.photos/seed/hidrat2/400/400'] },
+  { id: 'svc-6', name: 'Manicure',              emoji: '💅',  category: 'UNHAS',    durationMins: 45,  price: 40,
+    photos: ['https://picsum.photos/seed/manicure1/400/400', 'https://picsum.photos/seed/manicure2/400/400'] },
   { id: 'svc-7', name: 'Pedicure',              emoji: '🦶',  category: 'UNHAS',    durationMins: 45,  price: 40  },
-  { id: 'svc-8', name: 'Design de Sobrancelha', emoji: '✨',  category: 'ESTÉTICA', durationMins: 30,  price: 35  },
+  { id: 'svc-8', name: 'Design de Sobrancelha', emoji: '✨',  category: 'ESTÉTICA', durationMins: 30,  price: 35,
+    photos: ['https://picsum.photos/seed/sobrancelha1/400/400', 'https://picsum.photos/seed/sobrancelha2/400/400'] },
 ]
 export const POPULAR_SERVICES = [SERVICES[0], SERVICES[5], SERVICES[2]]
 

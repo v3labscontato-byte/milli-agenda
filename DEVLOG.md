@@ -321,3 +321,8 @@ _Nenhuma no momento._
 - Agent 1 (INFRA): Template Engine + seed de nichos
 - Agent 2 (PROFISSIONAIS): CRUD de Tipos de Profissionais
 - Agent 3 (SERVICOS): CRUD de Categorias de Servicos
+
+### [2026-06-25] AGENT_SERVICOS — CRUD Categorias de Servicos
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/api/src/modules/servicos/{controller,service}.ts, apps/web/src/components/configuracoes/{section-categorias-servicos.tsx,settings-nav.tsx}, apps/web/src/app/(dashboard)/configuracoes/page.tsx
+**O que foi feito:** Backend: 4 endpoints CRUD para categorias (GET, POST, PATCH, DELETE). Frontend: Componente section-categorias-servicos com color picker (8 cores), mock data, e API integration. Aba 'Categorias Serv.' em configuracoes.

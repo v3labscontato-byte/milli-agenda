@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -20,28 +20,20 @@ export default function LoginPage() {
   const { login } = useAuth()
   const router    = useRouter()
 
-  const [slug,     setSlug]     = useState('')
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPwd,  setShowPwd]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [apiError, setApiError] = useState('')
-  const [errors,   setErrors]   = useState({ slug: '', email: '', password: '' })
-
-  // Pre-fill slug from last session
-  useEffect(() => {
-    const stored = localStorage.getItem('tenantSlug')
-    if (stored) setSlug(stored)
-  }, [])
+  const [errors,   setErrors]   = useState({ email: '', password: '' })
 
   function validate() {
-    const e = { slug: '', email: '', password: '' }
-    if (!slug.trim())      e.slug     = 'Informe o slug do salão'
+    const e = { email: '', password: '' }
     if (!email.trim())     e.email    = 'Informe o e-mail'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'E-mail inválido'
     if (!password.trim())  e.password = 'Informe a senha'
     setErrors(e)
-    return !e.slug && !e.email && !e.password
+    return !e.email && !e.password
   }
 
   async function handleLogin() {
@@ -49,7 +41,7 @@ export default function LoginPage() {
     if (!validate()) return
     setLoading(true)
     try {
-      await login(email, password, slug.trim())
+      await login(email, password)
       router.push('/dashboard')
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -75,27 +67,6 @@ export default function LoginPage() {
 
           {/* Fields */}
           <div className="space-y-5">
-
-            {/* Slug */}
-            <div className="space-y-1.5">
-              <label htmlFor="l-slug" className="block text-[13px] font-medium text-[#475569]">
-                Slug do salão
-              </label>
-              <input
-                id="l-slug"
-                type="text"
-                placeholder="bella-vista"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))
-                  if (errors.slug) setErrors((p) => ({ ...p, slug: '' }))
-                }}
-                disabled={loading}
-                autoComplete="organization"
-                className={`${INPUT_BASE} ${errors.slug ? INPUT_ERR : INPUT_OK}`}
-              />
-              {errors.slug && <p className="text-[12px] text-[#DC2626]">{errors.slug}</p>}
-            </div>
 
             {/* Email */}
             <div className="space-y-1.5">

@@ -27,7 +27,7 @@ export interface RegisterPayload {
 }
 
 export const authApi = {
-  login: (data: { email: string; password: string; tenantSlug: string }) =>
+  login: (data: { email: string; password: string }) =>
     api.post<LoginResponse>('/api/v1/auth/login', data),
 
   register: (data: RegisterPayload) =>

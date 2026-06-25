@@ -25,22 +25,12 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string, slug?: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
   logout: () => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
-
-function getTenantSlug(): string {
-  // Prefer slug stored after last login/register
-  const stored = localStorage.getItem('tenantSlug')
-  if (stored) return stored
-  // Use subdomain only on the real product domain
-  const hostname = window.location.hostname
-  if (hostname.endsWith('.milliagenda.com.br')) return hostname.split('.')[0]
-  return process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'bella-vista'
-}
 
 function setCookie(name: string, value: string) {
   document.cookie = `${name}=${value}; path=/; SameSite=Lax`
@@ -76,9 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  async function login(email: string, password: string, slug?: string) {
-    const tenantSlug = slug || getTenantSlug()
-    const res = await authApi.login({ email, password, tenantSlug })
+  async function login(email: string, password: string) {
+    const res = await authApi.login({ email, password })
     storeAuth(res)
   }
 

@@ -67,17 +67,16 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     try {
-      const tenant = await this.db.tenant.findUnique({ where: { slug: dto.tenantSlug } })
-      if (!tenant || !tenant.active) throw new UnauthorizedException('Invalid credentials')
-
       const user = await this.db.user.findFirst({
-        where: { email: dto.email, tenantId: tenant.id, active: true },
+        where: { email: dto.email, active: true },
+        include: { tenant: true },
       })
-      if (!user) throw new UnauthorizedException('Invalid credentials')
+      if (!user || !user.tenant?.active) throw new UnauthorizedException('Invalid credentials')
 
       const valid = await bcrypt.compare(dto.password, user.passwordHash)
       if (!valid) throw new UnauthorizedException('Invalid credentials')
 
+      const { tenant } = user
       const tokens = this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
       return { ...tokens, user: toPublicUser(user), tenant: toPublicTenant(tenant) }
     } catch (err) {

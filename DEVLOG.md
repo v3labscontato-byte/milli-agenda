@@ -409,10 +409,9 @@ _Nenhuma no momento._
 
 ---
 
-### [2026-06-25] ORCHESTRATOR — Hotfix agenda dia
-**Status:** 🔄 Em andamento
-**Bugs:**
-- Agenda vista dia: carrega mas não mostra agendamentos
+### [2026-06-25] ORCHESTRATOR — Hotfix .bg + agenda dia
+**Status:** ✅ Concluído
+**Commits:** 99c6406 (profissionais .bg), f8fc4f9 (agenda dia)
 
 ### [2026-06-25] AGENT_AGENDA — Fix vista dia mostra agendamentos
 **Status:** ✅ Concluído

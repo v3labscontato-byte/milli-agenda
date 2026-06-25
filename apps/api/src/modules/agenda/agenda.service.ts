@@ -45,18 +45,47 @@ export class AgendaService {
   }
 
   async create(tenantId: string, dto: CreateAppointmentDto) {
-    const endAt = new Date(dto.startAt)
-    endAt.setMinutes(endAt.getMinutes() + dto.durationMin)
+    // Resolver startAt
+    let startAtIso: string
+    if (dto.startAt) {
+      startAtIso = dto.startAt
+    } else if (dto.date && dto.startTime) {
+      startAtIso = `${dto.date}T${dto.startTime}:00`
+    } else {
+      throw new BadRequestException('Informe startAt ou date+startTime')
+    }
+    const startAt = new Date(startAtIso)
+    const duration = dto.durationMin ?? 60
+    const endAt = new Date(startAt.getTime() + duration * 60_000)
+
+    // Resolver clientId (existente ou find-or-create por nome/telefone)
+    let clientId = dto.clientId
+    if (!clientId) {
+      if (!dto.clientName) throw new BadRequestException('Informe clientId ou clientName')
+      const existing = dto.clientPhone
+        ? await this.db.client.findFirst({ where: { tenantId, phone: dto.clientPhone } })
+        : await this.db.client.findFirst({ where: { tenantId, name: dto.clientName } })
+      if (existing) {
+        clientId = existing.id
+      } else {
+        const created = await this.db.client.create({
+          data: { tenantId, name: dto.clientName, phone: dto.clientPhone ?? null },
+        })
+        clientId = created.id
+      }
+    }
+
     return this.db.appointment.create({
       data: {
         tenantId,
-        clientId: dto.clientId,
+        clientId,
         professionalId: dto.professionalId,
         serviceId: dto.serviceId,
-        startAt: new Date(dto.startAt),
+        startAt,
         endAt,
         notes: dto.notes,
       },
+      include: { client: true, professional: true, service: true },
     })
   }
 

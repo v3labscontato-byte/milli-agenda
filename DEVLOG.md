@@ -401,3 +401,14 @@ _Nenhuma no momento._
 **Bugs:**
 - Profissionais: Cannot read .bg de undefined (specialty null do banco)
 - Agenda vista dia: carrega mas não mostra agendamentos
+
+### [2026-06-25] AGENT_AGENDA — Fix vista dia mostra agendamentos
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/web/src/hooks/use-agenda.ts
+**O que foi feito:** API retorna agendamentos com `startAt`/`endAt` (ISO DateTime), mas frontend esperava `date` (YYYY-MM-DD) + `startTime`/`endTime` (HH:MM). Adicionada função `transformApiResponse()` no hook para mapear campos da API para o tipo `CalendarAppointment`. Agora vista dia filtra corretamente e exibe agendamentos.
+**Detalhes técnicos:** 
+  - API: Appointment model tem `startAt: DateTime`, `endAt: DateTime`
+  - Frontend: CalendarAppointment interface precisa `date: string`, `startTime: string`, `endTime: string`
+  - Solução: Transform no hook durante load da API real, mantendo mock data funcionando
+  - npx tsc --noEmit: ✅ Passou (0 erros)
+**Próximo:** Testar vista dia com dados da API em produção

@@ -7,7 +7,7 @@ COPY apps/api/package*.json ./apps/api/
 COPY packages/database/package*.json ./packages/database/
 COPY packages/shared-types/package*.json ./packages/shared-types/
 COPY packages/business-rules/package*.json ./packages/business-rules/
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules

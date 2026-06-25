@@ -272,3 +272,8 @@ _Nenhuma no momento._
 **Status:** Concluido
 **O que foi feito:** Mocks removidos no modulo financeiro (atras de FEATURES.realRelatorios). Conectado a /reports/commissions, /reports/cashflow, /reports/overdue. KPIs calculados em tempo real via /reports/kpis. Filtros de periodo (Hoje/Semana/Mes/Ultimos 30/Custom) disparam refetch de comissoes e fluxo de caixa. 4 estados (loading/empty/error/data) em comissoes, fluxo, inadimplencia e KPIs.
 **Backlog registrado:** Metas -> tabela Goal (/reports/goals), Despesas -> tabela Expense (/reports/expenses)
+
+### [2026-06-25] CLAUDE 2 (agent-dashboard) - Dashboard: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Removidos mocks do dashboard. Os 4 graficos (bookings/services/weekly/volume) foram conectados a API real (/reports/appointments, /reports/professionals, /reports/revenue, /reports/cashflow) via novos hooks em use-relatorios.ts (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). 4 estados (loading/empty/error/success) implementados em todos. Tenant novo ve zeros e graficos vazios. Hotfix aplicado apos colisao de merge nos arquivos compartilhados use-relatorios.ts/relatorios.ts. tsc --noEmit limpo.
+

@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react'
 import { Search, Plus, X, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  MOCK_PROFISSIONAIS,
   kpiStats,
   formatBRL,
   type Profissional,
   type ProfissionalRole,
   type ProfissionalStatus,
 } from '@/lib/profissionais-mock'
+import { useProfissionais } from '@/hooks/use-profissionais'
 import ProfissionalList from '@/components/profissionais/profissional-list'
 import ProfissionalModal from '@/components/profissionais/profissional-modal'
 import NovoProfissionalModal from '@/components/profissionais/novo-profissional-modal'
@@ -74,7 +74,7 @@ export default function ProfissionaisPage() {
   const [selected, setSelected]       = useState<Profissional | null>(null)
   const [novoOpen, setNovoOpen]       = useState(false)
 
-  const profissionais = MOCK_PROFISSIONAIS
+  const { data: profissionais, loading, error } = useProfissionais()
   const stats = useMemo(() => kpiStats(profissionais), [profissionais])
 
   const filtered = useMemo(() => {
@@ -92,6 +92,25 @@ export default function ProfissionaisPage() {
   }, [profissionais, search, roleFilter, statusFilter])
 
   const isFiltered = search.trim().length > 0 || roleFilter !== null || statusFilter !== null
+
+  if (loading) return (
+    <div className="flex h-full flex-col animate-pulse">
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
+        </div>
+      </div>
+      <div className="flex-1 space-y-3 p-6">
+        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[#F1F5F9]" />)}
+      </div>
+    </div>
+  )
+
+  if (error) return (
+    <div className="flex h-full items-center justify-center">
+      <p className="text-[14px] text-[#DC2626]">{error}</p>
+    </div>
+  )
 
   return (
     <div className="flex h-full flex-col">

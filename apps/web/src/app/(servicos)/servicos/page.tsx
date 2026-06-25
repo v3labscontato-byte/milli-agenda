@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react'
 import { Search, Plus, X, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  MOCK_SERVICOS,
   kpiStats,
   formatBRL,
   type Servico,
   type ServicoCategory,
   type ServicoStatus,
 } from '@/lib/servicos-mock'
+import { useServicos } from '@/hooks/use-servicos'
 import ServicoList from '@/components/servicos/servico-list'
 import ServicoModal from '@/components/servicos/servico-modal'
 import NovoServicoModal from '@/components/servicos/novo-servico-modal'
@@ -66,7 +66,7 @@ export default function ServicosPage() {
   const [selected, setSelected]         = useState<Servico | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
-  const servicos = MOCK_SERVICOS
+  const { data: servicos, loading, error } = useServicos()
   const stats = useMemo(() => kpiStats(servicos), [servicos])
 
   const filtered = useMemo(() => {
@@ -90,6 +90,25 @@ export default function ServicosPage() {
     setCategoryFilter(null)
     setStatusFilter(null)
   }
+
+  if (loading) return (
+    <div className="flex h-full flex-col animate-pulse">
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
+        </div>
+      </div>
+      <div className="flex-1 space-y-3 p-6">
+        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[#F1F5F9]" />)}
+      </div>
+    </div>
+  )
+
+  if (error) return (
+    <div className="flex h-full items-center justify-center">
+      <p className="text-[14px] text-[#DC2626]">{error}</p>
+    </div>
+  )
 
   return (
     <div className="flex h-full flex-col">

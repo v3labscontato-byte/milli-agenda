@@ -1,18 +1,24 @@
-import { mockKpis } from '@/lib/mock-data'
+'use client'
 import KpiStrip from '@/components/kpi-strip'
 import BookingsChart from '@/components/charts/bookings-chart'
 import WeeklyChart from '@/components/charts/weekly-chart'
 import ServicesChart from '@/components/charts/services-chart'
 import VolumeChart from '@/components/charts/volume-chart'
-
-export const metadata = { title: 'Dashboard' }
+import { useRelatorios } from '@/hooks/use-relatorios'
 
 export default function DashboardPage() {
+  const { data: kpis, loading } = useRelatorios()
+
   return (
     <div className="space-y-8 pb-10">
 
       {/* ① KPI Strip */}
-      <KpiStrip kpis={mockKpis} />
+      {loading
+        ? <div className="grid animate-pulse grid-cols-2 gap-4 lg:grid-cols-4">
+            {[0,1,2,3].map((i) => <div key={i} className="h-24 rounded-xl bg-[#F1F5F9]" />)}
+          </div>
+        : <KpiStrip kpis={kpis} />
+      }
 
       {/* ② Analytics 2×2 */}
       <section aria-labelledby="analytics-heading">

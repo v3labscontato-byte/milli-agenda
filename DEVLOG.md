@@ -356,3 +356,11 @@ _Nenhuma no momento._
 - /onboarding page.tsx -- 5 etapas: Revisão, Segmento, Serviços, Horários, Concluído
 - Login verifica onboarding antes de redirecionar
 - Middleware corrigido -- sem loop /login → /login
+
+### [2026-06-25] ORCHESTRATOR -- Edicao inline + Fase 3 Smart Forms
+**Status:** Em andamento
+**Agentes:**
+- Agent 1 (SERVICOS/haiku): Edicao inline duracao/preco + coluna Detalhes
+- Agent 2 (SMART-SERVICO/sonnet): Smart Form novo servico 4 steps
+- Agent 3 (SMART-PROFISSIONAL/sonnet): Smart Form novo profissional 4 steps
+- Agent 4 (SMART-CONFIGURACOES/sonnet): Smart Forms categoria + meta + salao

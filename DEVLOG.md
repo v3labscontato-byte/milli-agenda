@@ -262,3 +262,8 @@ _Nenhuma no momento._
 ### [2026-06-25] CLAUDE 2 (agent-configuracoes) - Configuracoes: API real, dados reais
 **Status:** Concluido
 **O que foi feito:** Criados use-configuracoes.ts e lib/api/configuracoes.ts (GET/PATCH /api/v1/settings). section-meu-salao usa dados reais do tenant (name, email, phone, document, logoUrl) com loading/error/saving states. section-plano mostra plano real (STARTER/PROFESSIONAL/ENTERPRISE/TRIAL) e dias restantes de trial. section-api e section-lgpd sem dados fake (Empty States + TODO). Flag realConfiguracoes em features.ts. tsc --noEmit limpo.
+
+### [2026-06-25] CLAUDE 2 (agent-profissionais) - Profissionais: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Mocks removidos do fluxo de dados (hook usa API real via FEATURES.realProfissionais). use-profissionais expoe create/update/remove (soft delete via status inactive) e refetch. Modal de Novo Profissional faz POST real com loading/erro e refetch da lista. Empty State com icone UserCheck e CTA Novo Profissional. KPIs calculados inline com useMemo a partir dos dados reais. tsc limpo nos arquivos de profissionais.
+

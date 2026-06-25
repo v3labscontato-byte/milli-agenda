@@ -56,7 +56,7 @@ export default function SectionFidelidade() {
         </SectionCard>
 
         <SectionCard title="Acúmulo de Pontos">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-1.5">
               <FieldLabel htmlFor="fid-ppr">Pontos por R$1 gasto</FieldLabel>
               <input
@@ -67,7 +67,6 @@ export default function SectionFidelidade() {
                 value={cfg.pointsPerReal}
                 onChange={(e) => set('pointsPerReal', Number(e.target.value))}
                 disabled={!cfg.active}
-                aria-label="Pontos por real gasto"
                 className={cn(NUM, !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
               />
               <p className="text-[11px] text-[#94A3B8]">Padrão: 1 ponto</p>
@@ -90,7 +89,6 @@ export default function SectionFidelidade() {
                   value={cfg.pointValueBRL}
                   onChange={(e) => set('pointValueBRL', Number(e.target.value))}
                   disabled={!cfg.active}
-                  aria-label="Valor do ponto em reais"
                   className={cn(NUM, 'pl-9', !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
                 />
               </div>
@@ -107,7 +105,6 @@ export default function SectionFidelidade() {
                 value={cfg.pointsPerReview}
                 onChange={(e) => set('pointsPerReview', Number(e.target.value))}
                 disabled={!cfg.active}
-                aria-label="Pontos por avaliação deixada"
                 className={cn(NUM, !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
               />
               <p className="text-[11px] text-[#94A3B8]">Padrão: 50 pontos</p>

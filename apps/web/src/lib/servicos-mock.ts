@@ -18,6 +18,7 @@ export interface Servico {
   price: number             // R$
   status: ServicoStatus
   professionals: string[]   // nomes
+  photos: string[]
   bookingsThisMonth: number
   bookingsTotal: number
   revenueThisMonth: number
@@ -59,6 +60,11 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Corte e finalização para cabelos femininos de qualquer comprimento e tipo.',
     duration: 60, price: 65, status: 'active',
     professionals: ['Lena Santos', 'Carlos Mendes'],
+    photos: [
+      'https://picsum.photos/seed/cortefem1/400/400',
+      'https://picsum.photos/seed/cortefem2/400/400',
+      'https://picsum.photos/seed/cortefem3/400/400',
+    ],
     bookingsThisMonth: 44, bookingsTotal: 820, revenueThisMonth: 2860, revenueTotal: 53300,
     monthlyData: [
       { month: 'Jan', bookings: 38, revenue: 2470 },
@@ -74,6 +80,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Corte masculino moderno com acabamento à navalha.',
     duration: 30, price: 45, status: 'active',
     professionals: ['João Ferreira', 'Carlos Mendes'],
+    photos: [],
     bookingsThisMonth: 38, bookingsTotal: 610, revenueThisMonth: 1710, revenueTotal: 27450,
     monthlyData: [
       { month: 'Jan', bookings: 32, revenue: 1440 },
@@ -89,6 +96,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Escova modeladora com secagem profissional e finalização com produtos premium.',
     duration: 45, price: 55, status: 'active',
     professionals: ['Lena Santos', 'Carlos Mendes'],
+    photos: [],
     bookingsThisMonth: 28, bookingsTotal: 510, revenueThisMonth: 1540, revenueTotal: 28050,
     monthlyData: [
       { month: 'Jan', bookings: 24, revenue: 1320 },
@@ -104,6 +112,10 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Alisamento progressivo com fórmula livre de formol. Durabilidade de até 4 meses.',
     duration: 180, price: 220, status: 'active',
     professionals: ['Lena Santos', 'Carlos Mendes'],
+    photos: [
+      'https://picsum.photos/seed/progressiva1/400/400',
+      'https://picsum.photos/seed/progressiva2/400/400',
+    ],
     bookingsThisMonth: 12, bookingsTotal: 195, revenueThisMonth: 2640, revenueTotal: 42900,
     monthlyData: [
       { month: 'Jan', bookings: 10, revenue: 2200 },
@@ -119,6 +131,11 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Coloração total dos fios com tintas profissionais, cobrindo raiz até pontas.',
     duration: 120, price: 180, status: 'active',
     professionals: ['Lisa Kim', 'Bruno Alves'],
+    photos: [
+      'https://picsum.photos/seed/coloracao1/400/400',
+      'https://picsum.photos/seed/coloracao2/400/400',
+      'https://picsum.photos/seed/coloracao3/400/400',
+    ],
     bookingsThisMonth: 18, bookingsTotal: 280, revenueThisMonth: 3240, revenueTotal: 50400,
     monthlyData: [
       { month: 'Jan', bookings: 15, revenue: 2700 },
@@ -134,6 +151,11 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Técnica de iluminação manual para efeito natural e degradê. Mechas tradicionais ou balayage.',
     duration: 150, price: 280, status: 'active',
     professionals: ['Lisa Kim'],
+    photos: [
+      'https://picsum.photos/seed/balayage1/400/400',
+      'https://picsum.photos/seed/balayage2/400/400',
+      'https://picsum.photos/seed/balayage3/400/400',
+    ],
     bookingsThisMonth: 14, bookingsTotal: 198, revenueThisMonth: 3920, revenueTotal: 55440,
     monthlyData: [
       { month: 'Jan', bookings: 12, revenue: 3360 },
@@ -149,6 +171,10 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Tratamento intensivo com máscara de hidratação profissional e selagem dos fios.',
     duration: 60, price: 90, status: 'active',
     professionals: ['Lena Santos', 'Lisa Kim', 'Carlos Mendes'],
+    photos: [
+      'https://picsum.photos/seed/hidrat1/400/400',
+      'https://picsum.photos/seed/hidrat2/400/400',
+    ],
     bookingsThisMonth: 22, bookingsTotal: 380, revenueThisMonth: 1980, revenueTotal: 34200,
     monthlyData: [
       { month: 'Jan', bookings: 18, revenue: 1620 },
@@ -164,6 +190,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Aparar e modelar a barba com tesoura e navalha, com finalização com produtos específicos.',
     duration: 30, price: 35, status: 'active',
     professionals: ['João Ferreira'],
+    photos: [],
     bookingsThisMonth: 32, bookingsTotal: 520, revenueThisMonth: 1120, revenueTotal: 18200,
     monthlyData: [
       { month: 'Jan', bookings: 28, revenue: 980 },
@@ -179,6 +206,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Combo completo: corte masculino e modelagem da barba com navalha.',
     duration: 60, price: 65, status: 'active',
     professionals: ['João Ferreira'],
+    photos: [],
     bookingsThisMonth: 20, bookingsTotal: 310, revenueThisMonth: 1300, revenueTotal: 20150,
     monthlyData: [
       { month: 'Jan', bookings: 17, revenue: 1105 },
@@ -194,6 +222,10 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Cuidado completo das unhas das mãos com lixamento, cutícula e esmaltação.',
     duration: 45, price: 40, status: 'active',
     professionals: ['Ana Costa'],
+    photos: [
+      'https://picsum.photos/seed/manicure1/400/400',
+      'https://picsum.photos/seed/manicure2/400/400',
+    ],
     bookingsThisMonth: 48, bookingsTotal: 740, revenueThisMonth: 1920, revenueTotal: 29600,
     monthlyData: [
       { month: 'Jan', bookings: 40, revenue: 1600 },
@@ -209,6 +241,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Tratamento completo para os pés, incluindo calosidade, cutícula e esmaltação.',
     duration: 45, price: 45, status: 'active',
     professionals: ['Ana Costa'],
+    photos: [],
     bookingsThisMonth: 30, bookingsTotal: 490, revenueThisMonth: 1350, revenueTotal: 22050,
     monthlyData: [
       { month: 'Jan', bookings: 26, revenue: 1170 },
@@ -224,6 +257,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Aplicação de esmalte em gel com durabilidade de até 3 semanas.',
     duration: 60, price: 25, status: 'active',
     professionals: ['Ana Costa', 'Mariana Ribeiro'],
+    photos: [],
     bookingsThisMonth: 35, bookingsTotal: 480, revenueThisMonth: 875, revenueTotal: 12000,
     monthlyData: [
       { month: 'Jan', bookings: 30, revenue: 750 },
@@ -239,6 +273,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Limpeza facial profunda com extração de cravos e hidratação intensiva.',
     duration: 60, price: 120, status: 'active',
     professionals: ['Rafaela Oliveira'],
+    photos: [],
     bookingsThisMonth: 8, bookingsTotal: 195, revenueThisMonth: 960, revenueTotal: 23400,
     monthlyData: [
       { month: 'Jan', bookings: 22, revenue: 2640 },
@@ -254,6 +289,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Modelagem e design personalizado de sobrancelha com pinça e linha.',
     duration: 30, price: 30, status: 'active',
     professionals: ['Rafaela Oliveira'],
+    photos: [],
     bookingsThisMonth: 10, bookingsTotal: 280, revenueThisMonth: 300, revenueTotal: 8400,
     monthlyData: [
       { month: 'Jan', bookings: 28, revenue: 840 },
@@ -269,6 +305,7 @@ export const MOCK_SERVICOS: Servico[] = [
     description: 'Alongamento de cílios com fios de seda, volume natural ou dramático.',
     duration: 120, price: 200, status: 'inactive',
     professionals: ['Rafaela Oliveira'],
+    photos: [],
     bookingsThisMonth: 0, bookingsTotal: 82, revenueThisMonth: 0, revenueTotal: 16400,
     monthlyData: [
       { month: 'Jan', bookings: 16, revenue: 3200 },

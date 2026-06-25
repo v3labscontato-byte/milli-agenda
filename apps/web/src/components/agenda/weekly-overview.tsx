@@ -156,7 +156,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
       : CALENDAR_PROFESSIONALS.filter((p) => selectedProfs.has(p.id))
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex flex-col">
       {/* ── Filter pills ── */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] bg-white px-6 py-3">
         <button
@@ -209,7 +209,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
       </div>
 
       {/* ── Grid ── */}
-      <div className="flex-1 overflow-auto">
+      <div className="overflow-x-auto">
         <table
           className="border-separate border-spacing-0"
           style={{ minWidth: '900px', width: '100%' }}

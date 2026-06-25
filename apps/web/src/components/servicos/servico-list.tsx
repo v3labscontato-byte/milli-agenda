@@ -117,9 +117,29 @@ function ServicoList({ servicos, isFiltered = false, onView }: Props) {
 
               {/* Serviço + categoria */}
               <td className="px-4 py-3">
-                <p className="font-medium text-[#0F172A]">{s.name}</p>
-                <div className="mt-1">
-                  <CategoryBadge category={s.category} />
+                <div className="flex items-center gap-3">
+                  {s.photos.length > 0 ? (
+                    <div className="relative shrink-0" title={`${s.photos.length} foto${s.photos.length !== 1 ? 's' : ''}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={s.photos[0]}
+                        alt=""
+                        aria-hidden="true"
+                        className="h-10 w-10 rounded-lg object-cover"
+                      />
+                      <span className="absolute -bottom-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2563EB] px-1 text-[9px] font-bold text-white">
+                        {s.photos.length}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-10 w-10 shrink-0 rounded-lg border border-dashed border-[#E2E8F0]" aria-hidden="true" />
+                  )}
+                  <div>
+                    <p className="font-medium text-[#0F172A]">{s.name}</p>
+                    <div className="mt-1">
+                      <CategoryBadge category={s.category} />
+                    </div>
+                  </div>
                 </div>
               </td>
 

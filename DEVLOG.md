@@ -343,3 +343,16 @@ _Nenhuma no momento._
 **Agentes:**
 - Agent 1 (AUTH/Sonnet): Backend onboarding endpoints
 - Agent 2 (FRONTEND/Sonnet): Wizard visual 5 steps
+
+### [2026-06-25] ORCHESTRATOR -- Fase 2: Wizard de Onboarding CONCLUÍDA
+**Status:** Completo ✓
+**Commits:**
+- feat(auth): onboarding status, complete e select-nicho endpoints (cea0347)
+- feat(onboarding): wizard 5-step pos-login, middleware e auth API (b354e84)
+- fix(middleware): corrigir redirect infinito em /login sem token (9d47190)
+**Entregues:**
+- GET /auth/onboarding, POST /auth/onboarding/complete, POST /auth/onboarding/nicho
+- importTemplate retorna { categoriesCreated, servicesCreated, rolesCreated, nichoSlug }
+- /onboarding page.tsx -- 5 etapas: Revisão, Segmento, Serviços, Horários, Concluído
+- Login verifica onboarding antes de redirecionar
+- Middleware corrigido -- sem loop /login → /login

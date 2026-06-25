@@ -258,3 +258,7 @@ _Nenhuma no momento._
 ### [2026-06-25] CLAUDE 2 (agent-servicos) — Servicos: API real, Empty States
 **Status:** Concluido
 **O que foi feito:** Mocks removidos do hook e do modal de criacao. use-servicos mapeia a Service do backend (durationMin/price/active) para o tipo Servico do frontend e expoe create/update/remove com refetch. Modal de Novo Servico faz POST real com estados de loading/erro. Empty State com botao na pagina. tsc sem erros nos arquivos de servicos.
+
+### [2026-06-25] CLAUDE 2 (agent-configuracoes) - Configuracoes: API real, dados reais
+**Status:** Concluido
+**O que foi feito:** Criados use-configuracoes.ts e lib/api/configuracoes.ts (GET/PATCH /api/v1/settings). section-meu-salao usa dados reais do tenant (name, email, phone, document, logoUrl) com loading/error/saving states. section-plano mostra plano real (STARTER/PROFESSIONAL/ENTERPRISE/TRIAL) e dias restantes de trial. section-api e section-lgpd sem dados fake (Empty States + TODO). Flag realConfiguracoes em features.ts. tsc --noEmit limpo.

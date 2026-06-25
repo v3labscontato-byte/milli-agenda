@@ -61,7 +61,7 @@
 
 | Endpoint | Método | Descrição |
 |---|---|---|
-| /auth/login | POST | Login com email + senha + tenantSlug |
+| /auth/login | POST | Login com email + senha (sem tenantSlug — detectado automaticamente) |
 | /auth/register | POST | Cadastro novo salão |
 | /auth/refresh | POST | Refresh token |
 | /appointments | GET/POST/PATCH/DELETE | Agendamentos |
@@ -70,7 +70,7 @@
 | /services | GET/POST/PATCH/DELETE | Serviços |
 | /commands | GET/POST/PATCH/DELETE | Comandas |
 | /payments | GET/POST/PATCH | Pagamentos |
-| /reports/kpis | GET | KPIs do dashboard |
+| /reports/kpis | GET | KPIs do dashboard (retorna objeto flat, não array) |
 | /reports/revenue | GET | Receita |
 
 **Formato de resposta padrão do backend:**
@@ -78,6 +78,12 @@
 { "success": true, "data": [...] }
 ```
 **O client.ts já faz unwrap automático — hooks recebem o array diretamente.**
+
+**ATENÇÃO:** `/reports/kpis` retorna um objeto flat, não array:
+```json
+{ "totalAppointments": 0, "completedAppointments": 0, "todayRevenue": 0, "occupancyRate": 0, "totalClients": 0 }
+```
+O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
@@ -132,20 +138,25 @@
 
 ---
 
+### [2026-06-25] CLAUDE 2 — Corrigir tela branca após login
+**Status:** ✅ Concluído  
+**O que foi feito:** Dashboard crashava com `t.map is not a function` porque `/reports/kpis` retorna objeto (não array). Adicionada `toKpiArray()` em `use-relatorios.ts` para transformar o objeto em `KpiData[]`. Testado em produção — todas as 8 telas passam sem erro  
+**Arquivos alterados:** apps/web/src/hooks/use-relatorios.ts  
+**Telas testadas:** Dashboard ✅ Agenda ✅ Clientes ✅ Profissionais ✅ Serviços ✅ Comandas ✅ Financeiro ✅ Configurações ✅  
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
-### [2026-06-25] CLAUDE 2 — Tela branca após login
-**Status:** 🔄 Em andamento  
-**Problema:** Páginas carregam mas mostram tela branca. Claude 2 identificou o problema  
-**Próximo passo:** Claude 2 aplicar correção identificada e registrar aqui  
+_Nenhuma no momento._
 
 ---
 
 ## 🚨 PROBLEMAS CONHECIDOS
 
-1. **Tela branca nas páginas** — Claude 2 investigando (2026-06-25)
-2. **Página login ainda mostra campo slug** visualmente apesar do código estar correto — pode ser cache do browser
-3. **Formato de resposta do backend** pode variar entre endpoints — sempre verificar com `console.log(res)` antes de tipar
+1. **Topbar mostra "Agenda" em vez do título correto na página Configurações** — bug cosmético, baixa prioridade
+2. **Formato de resposta do backend pode variar** — sempre verificar com `console.log(res)` antes de tipar (ex: /reports/kpis retorna objeto, outros retornam array)
+3. **Financeiro e Configurações** ainda usam mock data — não há endpoints reais para essas seções ainda
 
 ---
 

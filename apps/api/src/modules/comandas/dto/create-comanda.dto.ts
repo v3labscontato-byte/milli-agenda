@@ -1,8 +1,13 @@
 import { IsString, IsOptional } from 'class-validator'
 
 export class CreateComandaDto {
+  @IsOptional()
   @IsString()
-  clientId: string
+  clientId?: string
+
+  @IsOptional()
+  @IsString()
+  appointmentId?: string
 
   @IsOptional()
   @IsString()

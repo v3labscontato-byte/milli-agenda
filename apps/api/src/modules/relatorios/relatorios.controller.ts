@@ -66,9 +66,21 @@ export class RelatoriosController {
   @Post('goals')
   createGoal(
     @TenantFromJwt() tenantId: string,
-    @Body() dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string },
+    @Body() dto: {
+      tipo?: string; type?: string
+      periodo?: string; period?: string
+      valor?: number; value?: number
+      dataInicio?: string; startDate?: string
+      dataFim?: string; endDate?: string
+    },
   ) {
-    return this.relatoriosService.createGoal(tenantId, dto)
+    return this.relatoriosService.createGoal(tenantId, {
+      tipo: dto.tipo ?? dto.type ?? '',
+      periodo: dto.periodo ?? dto.period ?? '',
+      valor: dto.valor ?? dto.value ?? 0,
+      dataInicio: dto.dataInicio ?? dto.startDate ?? '',
+      dataFim: dto.dataFim ?? dto.endDate ?? '',
+    })
   }
 
   @Get('goals')

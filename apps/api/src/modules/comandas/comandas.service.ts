@@ -32,9 +32,16 @@ export class ComandasService {
     return cmd
   }
 
-  open(tenantId: string, dto: CreateComandaDto) {
+  async open(tenantId: string, dto: CreateComandaDto) {
+    let clientId = dto.clientId
+    if (!clientId) {
+      if (!dto.appointmentId) throw new BadRequestException('Informe clientId ou appointmentId')
+      const appt = await this.db.appointment.findFirst({ where: { id: dto.appointmentId, tenantId } })
+      if (!appt) throw new NotFoundException('Appointment not found')
+      clientId = appt.clientId
+    }
     return this.db.command.create({
-      data: { tenantId, clientId: dto.clientId, notes: dto.notes },
+      data: { tenantId, clientId, notes: dto.notes },
     })
   }
 

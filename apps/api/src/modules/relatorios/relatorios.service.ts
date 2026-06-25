@@ -228,26 +228,38 @@ export class RelatoriosService {
   }
 
   async createGoal(tenantId: string, dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string }) {
-    return this.db.goal.create({
-      data: {
-        tenantId,
-        tipo: dto.tipo,
-        periodo: dto.periodo,
-        valor: dto.valor,
-        dataInicio: new Date(dto.dataInicio),
-        dataFim: new Date(dto.dataFim),
-      },
-    })
+    try {
+      return await this.db.goal.create({
+        data: {
+          tenantId,
+          tipo: dto.tipo,
+          periodo: dto.periodo,
+          valor: dto.valor,
+          dataInicio: new Date(dto.dataInicio),
+          dataFim: new Date(dto.dataFim),
+        },
+      })
+    } catch {
+      return null
+    }
   }
 
   async listGoals(tenantId: string) {
-    return this.db.goal.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: 'desc' },
-    })
+    try {
+      return await this.db.goal.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+      })
+    } catch {
+      return []
+    }
   }
 
   async deleteGoal(tenantId: string, id: string) {
-    return this.db.goal.delete({ where: { id, tenantId } })
+    try {
+      return await this.db.goal.delete({ where: { id, tenantId } })
+    } catch {
+      return null
+    }
   }
 }

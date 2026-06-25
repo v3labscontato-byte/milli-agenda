@@ -25,7 +25,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, slug?: string) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
   logout: () => void
 }
@@ -76,8 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  async function login(email: string, password: string) {
-    const tenantSlug = getTenantSlug()
+  async function login(email: string, password: string, slug?: string) {
+    const tenantSlug = slug || getTenantSlug()
     const res = await authApi.login({ email, password, tenantSlug })
     storeAuth(res)
   }

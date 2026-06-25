@@ -41,9 +41,9 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
     list.sort((a, b) => {
       let diff = 0
       if (sortKey === 'name')                  diff = a.name.localeCompare(b.name, 'pt-BR')
-      if (sortKey === 'appointmentsThisMonth') diff = a.appointmentsThisMonth - b.appointmentsThisMonth
-      if (sortKey === 'revenueThisMonth')      diff = a.revenueThisMonth - b.revenueThisMonth
-      if (sortKey === 'rating')                diff = a.rating - b.rating
+      if (sortKey === 'appointmentsThisMonth') diff = Number(a.appointmentsThisMonth ?? 0) - Number(b.appointmentsThisMonth ?? 0)
+      if (sortKey === 'revenueThisMonth')      diff = Number(a.revenueThisMonth ?? 0) - Number(b.revenueThisMonth ?? 0)
+      if (sortKey === 'rating')                diff = Number(a.rating ?? 0) - Number(b.rating ?? 0)
       return sortDir === 'asc' ? diff : -diff
     })
     return list

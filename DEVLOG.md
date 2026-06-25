@@ -429,3 +429,16 @@ _Nenhuma no momento._
 **Bugs:**
 - Profissionais: R$ NaN no Faturamento/Mês
 - Agenda: vista dia não mostra agendamentos (transform anterior não funcionou)
+
+### [2026-06-25] AGENT_PROFISSIONAIS — Fix NaN nos KPIs
+**Status:** ✅ Concluído
+**Fix:** Number() + fallback 0 em todos os cálculos de KPI (revenueThisMonth, rating, ratingCount, commissionPct)
+**Arquivos alterados:** 
+- apps/web/src/app/(profissionais)/profissionais/page.tsx (lines 83-85 em stats reducer)
+- apps/web/src/components/profissionais/profissional-list.tsx (lines 44-46 em sort)
+- apps/web/src/lib/profissionais-mock.ts (lines 88-103 em kpiStats())
+**O que foi feito:**
+- Identificado root cause: revenueThisMonth/rating/ratingCount podem vir da API como strings ou undefined
+- Adicionado Number(x ?? 0) em todas as operações aritméticas (reduce, sort, divisão)
+- Garantido fallback 0 para campos null/undefined
+- Testado: npx tsc --noEmit passa com 0 erros ✅

@@ -89,9 +89,9 @@ export function kpiStats(profs: Profissional[]) {
   const todayDay = new Date().getDay()
   const ativos = profs.filter((p) => p.status === 'active')
   const ativosHoje = ativos.filter((p) => p.workDays.includes(todayDay))
-  const faturamento = profs.reduce((s, p) => s + p.revenueThisMonth, 0)
-  const totalRating = profs.reduce((s, p) => s + p.rating * p.ratingCount, 0)
-  const totalRatingCount = profs.reduce((s, p) => s + p.ratingCount, 0)
+  const faturamento = profs.reduce((s, p) => s + Number(p.revenueThisMonth ?? 0), 0)
+  const totalRating = profs.reduce((s, p) => s + Number(p.rating ?? 0) * Number(p.ratingCount ?? 0), 0)
+  const totalRatingCount = profs.reduce((s, p) => s + Number(p.ratingCount ?? 0), 0)
   return {
     total: profs.length,
     ativosHoje: ativosHoje.length,

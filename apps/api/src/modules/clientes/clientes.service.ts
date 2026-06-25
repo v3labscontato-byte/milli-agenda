@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
 import { DatabaseService } from '../../infra/database/database.service'
 import { CreateClienteDto } from './dto/create-cliente.dto'
 
@@ -40,6 +40,8 @@ export class ClientesService {
 
   async remove(tenantId: string, id: string) {
     await this.findOne(tenantId, id)
+    const linked = await this.db.appointment.count({ where: { tenantId, clientId: id } })
+    if (linked > 0) throw new ConflictException('Cliente possui agendamentos vinculados e não pode ser excluído')
     return this.db.client.delete({ where: { id } })
   }
 }

@@ -54,6 +54,40 @@ const ROLE_STYLES: Record<ProfissionalRole, { bg: string; text: string }> = {
   Esteticista:    { bg: '#F0FDF4', text: '#166534' },
 }
 
+// ─── Specialty badge ──────────────────────────────────────────────────────────
+
+const SPECIALTY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  '':                      { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  default:                 { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  'Corte Feminino':        { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Escova Progressiva':    { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
+  'Hidratação':            { bg: '#DBEAFE', text: '#075985', border: '#BAE6FD' },
+  'Corte Masculino':       { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' },
+  'Barba':                 { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  'Navalhado':             { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  'Coloração':             { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
+  'Mechas':                { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Balayage':              { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' },
+  'Ombré':                 { bg: '#F0FDF4', text: '#166534', border: '#BBDF21' },
+  'Manicure':              { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Pedicure':              { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Esmaltação em Gel':     { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Limpeza de Pele':       { bg: '#F0FDF4', text: '#166534', border: '#BBDF21' },
+  'Design de Sobrancelha': { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' },
+  'Extensão de Cílios':    { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Coloração Masculina':   { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
+  'Mechas Masculinas':     { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
+  'Pigmentação':           { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
+  'Nail Art':              { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Encapsulamento':        { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+  'Alongamento em Gel':    { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
+}
+
+function getSpecialtyColors(specialty: string | null | undefined) {
+  const key = specialty?.trim() || ''
+  return SPECIALTY_COLORS[key] ?? SPECIALTY_COLORS.default
+}
+
 export function RoleBadge({ role }: { role: ProfissionalRole }) {
   const s = ROLE_STYLES[role]
   return (
@@ -62,6 +96,18 @@ export function RoleBadge({ role }: { role: ProfissionalRole }) {
       style={{ backgroundColor: s.bg, color: s.text }}
     >
       {role}
+    </span>
+  )
+}
+
+export function SpecialtyBadge({ specialty }: { specialty: string | null | undefined }) {
+  const s = getSpecialtyColors(specialty)
+  return (
+    <span
+      className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"
+      style={{ backgroundColor: s.bg, color: s.text, borderColor: s.border }}
+    >
+      {specialty || 'Sem especialidade'}
     </span>
   )
 }

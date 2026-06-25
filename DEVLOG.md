@@ -396,10 +396,22 @@ _Nenhuma no momento._
 - rating.toFixed() em undefined crashando profissional-modal
 - metas-section bloqueada por FEATURES.realRelatorios guard
 
-### [2026-06-25] ORCHESTRATOR — Hotfix .bg + agenda dia
+### [2026-06-25] AGENT_PROFISSIONAIS — Fix .bg specialty null
+**Status:** ✅ Concluído
+**Fix:** fallback para specialty null + chave default no mapa de cores
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-card.tsx
+**O que foi feito:** 
+- Adicionado mapa `SPECIALTY_COLORS` com chave '' (vazia) e 'default' para fallback
+- Criada função `getSpecialtyColors()` que retorna colors com segurança (nunca undefined)
+- Exportado novo componente `SpecialtyBadge` para exibir especialidades com cores
+- Garantido que specialty null/undefined nunca causa "Cannot read .bg de undefined"
+**tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-25] ORCHESTRATOR — Hotfix agenda dia
 **Status:** 🔄 Em andamento
 **Bugs:**
-- Profissionais: Cannot read .bg de undefined (specialty null do banco)
 - Agenda vista dia: carrega mas não mostra agendamentos
 
 ### [2026-06-25] AGENT_AGENDA — Fix vista dia mostra agendamentos

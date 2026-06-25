@@ -15,17 +15,12 @@ export function middleware(request: NextRequest) {
 
   if (isPublicPage) return NextResponse.next()
 
-  if (!token && (isAuthPage || isOnboardingPage)) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
   if (!token) {
+    if (isAuthPage) return NextResponse.next()
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  if (isAuthPage) return NextResponse.redirect(new URL('/dashboard', request.url))
 
   return NextResponse.next()
 }

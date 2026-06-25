@@ -364,3 +364,20 @@ _Nenhuma no momento._
 - Agent 2 (SMART-SERVICO/sonnet): Smart Form novo servico 4 steps
 - Agent 3 (SMART-PROFISSIONAL/sonnet): Smart Form novo profissional 4 steps
 - Agent 4 (SMART-CONFIGURACOES/sonnet): Smart Forms categoria + meta + salao
+
+### [2026-06-25] ORCHESTRATOR -- Edicao inline + Fase 3 Smart Forms CONCLUIDOS
+**Status:** Completo
+**Commits:**
+- feat(servicos): edicao inline duracao/preco + coluna Detalhes visivel (0f4fd4e)
+- feat(smart-form): wizard 4 steps para novo servico (cb10f68)
+- feat(smart-form): wizard 4 steps para novo profissional (99b21a1)
+- feat(smart-form): categoria (2 steps) + meta (2 steps) + salao (3 steps) (9bd0869)
+**Entregues:**
+- Edicao inline clicavel Duracao e Preco na tabela de servicos
+- Coluna DETALHES sempre visivel (Eye icon)
+- SmartFormServico: 4 steps (Basico, Valores, Profissionais, Visibilidade)
+- SmartFormProfissional: 4 steps (Dados, Cargo/Escala, Servicos, Comissao)
+- SmartFormCategoria: 2 steps (Nome/Cor, Confirmar) -- integrado em section-categorias
+- SmartFormMeta: 2 steps (Tipo/Periodo, Valor) -- localStorage por ora
+- SmartFormSalao: 3 steps (Identidade, Contato/Endereco, Revisar) -- com ViaCEP
+**Proximo:** Fase 4 -- Conteudo do Site (promocoes, pacotes, avaliacoes)

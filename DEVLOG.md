@@ -230,3 +230,27 @@ _Nenhuma no momento._
 - [ ] Claude 1: Upload S3 + WhatsApp notifications
 - [ ] Claude 2: Onboarding wizard completo
 - [ ] Beta com primeiros clientes
+
+### [2026-06-25] CLAUDE 2 (agent-auth) � Auth: forgot-password, reset-password, forca senha
+**Status:** Concluido
+**Arquivos alterados:** forgot-password/page.tsx, reset-password/page.tsx, login/page.tsx, cadastro/page.tsx, middleware.ts, lib/api/auth.ts, lib/password-strength.ts
+**O que foi feito:** Paginas de recuperacao e redefinicao de senha com indicador de forca. Rotas publicas no middleware. forgotPassword e resetPassword em auth.ts. Plano pre-selecionado via ?plan= no cadastro.
+
+
+---
+
+### [2026-06-25] CLAUDE 2 (agent-agenda) — Agenda: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Pagina da agenda passa date+professionalId para useAgenda() (filtros disparam re-fetch via API na visao dia; visao semana busca o periodo completo). 4 estados implementados: loading (skeleton), erro, vazio e sucesso em visao dia ("Nenhum agendamento para hoje"), visao semana ("Nenhum agendamento nesta semana.") e tabela ("Nenhum atendimento encontrado para o periodo."). Fluxo + Novo Agendamento agora usa o NovoAgendamentoModal real (useServicos/useProfissionais + agendaApi.create com clientName, serviceId, professionalId, date, startTime, durationMin, notes), com erro de submit visivel e re-fetch da agenda apos criar. agenda.ts: query string ignora params undefined/vazios.
+**Arquivos alterados:** apps/web/src/app/(dashboard)/agenda/page.tsx, components/agenda-table.tsx, components/agenda/novo-agendamento-modal.tsx, hooks/use-agenda.ts, lib/api/agenda.ts
+**tsc --noEmit:** 0 erros nos arquivos da agenda (erro pre-existente em use-relatorios.ts fora do escopo)
+
+### [2026-06-25] CLAUDE 2 (agent-comandas) — Comandas: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Mocks removidos. Empty States implementados. Fluxo completo: abrir -> adicionar item -> fechar -> pagamento. Hook useComandas agora expoe refetch; page wired para POST /commands e POST /payments com recarga apos cada acao.
+
+
+### [2026-06-25] CLAUDE 2 (agent-clientes) — Clientes: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Mocks removidos. Empty State implementado. CRUD validado com tratamento de 409 para clientes com agendamentos.
+

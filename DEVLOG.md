@@ -423,3 +423,9 @@ _Nenhuma no momento._
   - Solução: Transform no hook durante load da API real, mantendo mock data funcionando
   - npx tsc --noEmit: ✅ Passou (0 erros)
 **Próximo:** Testar vista dia com dados da API em produção
+
+### [2026-06-25] ORCHESTRATOR — Fix NaN profissionais + agenda vista dia
+**Status:** 🔄 Em andamento
+**Bugs:**
+- Profissionais: R$ NaN no Faturamento/Mês
+- Agenda: vista dia não mostra agendamentos (transform anterior não funcionou)

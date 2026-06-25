@@ -146,6 +146,14 @@ O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
+### [2026-06-25] CLAUDE 1 — Smoke test + fix reports endpoints
+**Status:** ✅ Concluído  
+**O que foi feito:** Smoke test de todos os 9 GET endpoints. 6/9 passaram de imediato. 3 falhavam com 500 (`/reports/revenue`, `/reports/appointments`, `/reports/professionals`) porque `from`/`to` eram obrigatórios mas não eram validados — `new Date(undefined)` gerava `Invalid Date` no Prisma. Corrigido adicionando `defaultRange()` no service (default: início do mês corrente → agora) e marcando params como opcionais no controller.  
+**Arquivos alterados:** `apps/api/src/modules/relatorios/relatorios.service.ts`, `apps/api/src/modules/relatorios/relatorios.controller.ts`  
+**Resultado final:** 9/9 endpoints GET funcionando em produção ✅
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
 _Nenhuma no momento._

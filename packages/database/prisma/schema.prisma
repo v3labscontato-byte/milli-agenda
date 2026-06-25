@@ -106,10 +106,11 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  professional    Professional?
-  roleAssignments UserRoleAssignment[]
-  auditLogs       AuditLog[]
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professional         Professional?
+  roleAssignments      UserRoleAssignment[]
+  auditLogs            AuditLog[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -389,4 +390,18 @@ model AuditLog {
   @@index([tenantId, createdAt])
   @@index([resource, resourceId])
   @@map("audit_logs")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }

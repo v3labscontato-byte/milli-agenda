@@ -1,10 +1,13 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common'
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { DatabaseService } from '../../infra/database/database.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto, PlanOption } from './dto/register.dto'
+import { ForgotPasswordDto } from './dto/forgot-password.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 import { PlanSlug, UserRole } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
+import * as crypto from 'crypto'
 
 const PLAN_MAP: Record<PlanOption, PlanSlug> = {
   [PlanOption.STARTER]:    PlanSlug.STARTER,
@@ -95,6 +98,36 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token')
     }
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const tenant = await this.db.tenant.findUnique({ where: { slug: dto.tenantSlug } })
+    const user = tenant
+      ? await this.db.user.findFirst({ where: { email: dto.email, tenantId: tenant.id, active: true } })
+      : null
+
+    if (user) {
+      const token = crypto.randomUUID()
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
+      await this.db.passwordResetToken.create({ data: { token, userId: user.id, expiresAt } })
+      const link = `${process.env.FRONTEND_URL ?? 'https://milli-agenda-production.up.railway.app'}/reset-password?token=${token}`
+      this.logger.log(`[RESET PASSWORD] ${dto.email} → ${link}`)
+    }
+
+    return { message: 'Se este e-mail estiver cadastrado, você receberá um link em breve.' }
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const record = await this.db.passwordResetToken.findUnique({ where: { token: dto.token } })
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw new BadRequestException('Token inválido ou expirado')
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12)
+    await this.db.user.update({ where: { id: record.userId }, data: { passwordHash } })
+    await this.db.passwordResetToken.update({ where: { id: record.id }, data: { usedAt: new Date() } })
+
+    return { message: 'Senha redefinida com sucesso.' }
   }
 
   logout() { return { message: 'Logged out successfully' } }

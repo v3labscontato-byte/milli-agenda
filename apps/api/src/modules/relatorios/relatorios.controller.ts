@@ -39,4 +39,27 @@ export class RelatoriosController {
   ) {
     return this.relatoriosService.professionals(tenantId, from, to)
   }
+
+  @Get('commissions')
+  commissions(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.relatoriosService.commissions(tenantId, from, to)
+  }
+
+  @Get('cashflow')
+  cashflow(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.relatoriosService.cashflow(tenantId, from, to)
+  }
+
+  @Get('overdue')
+  overdue(@TenantFromJwt() tenantId: string) {
+    return this.relatoriosService.overdue(tenantId)
+  }
 }

@@ -455,3 +455,8 @@ _Nenhuma no momento._
 - Adicionado Number(x ?? 0) em todas as operações aritméticas (reduce, sort, divisão)
 - Garantido fallback 0 para campos null/undefined
 - Testado: npx tsc --noEmit passa com 0 erros ✅
+
+### [2026-06-25] ORCHESTRATOR — Reestruturação .agents/ contexto isolado
+**Status:** 🔄 Em andamento
+**Objetivo:** Cada agente terá seu próprio contexto de módulo isolado.
+Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).

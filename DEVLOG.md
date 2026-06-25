@@ -461,10 +461,8 @@ _Nenhuma no momento._
 **Commits:** 4e02820
 
 ### [2026-06-25] ORCHESTRATOR — Fix agenda completo
-**Status:** 🔄 Em andamento
-**Bugs:**
-- Modal novo agendamento: "Nenhum profissional cadastrado" (bug prefixo API)
-- Vista dia: em branco sem timeline de horários
+**Status:** ✅ Concluído
+**Commit:** 945e903
 
 ### [2026-06-25] AGENT_INFRA — Reestruturação .agents/ concluída
 **Status:** Concluído

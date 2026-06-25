@@ -1,9 +1,8 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 
 import { DatabaseModule } from './infra/database/database.module'
-import { CacheModule } from './infra/cache/cache.module'
 
 import { AuthModule } from './modules/auth/auth.module'
 import { AgendaModule } from './modules/agenda/agenda.module'
@@ -16,13 +15,11 @@ import { RelatoriosModule } from './modules/relatorios/relatorios.module'
 
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
-import { TenantMiddleware } from './common/middleware/tenant.middleware'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
+    ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
-    CacheModule,
     AuthModule,
     AgendaModule,
     ClientesModule,
@@ -37,8 +34,4 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware'
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes('*')
-  }
-}
+export class AppModule {}

@@ -12,30 +12,21 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const tenant = await this.db.tenant.findUnique({
-      where: { slug: dto.slug },
-    })
+    const tenant = await this.db.tenant.findUnique({ where: { slug: dto.slug } })
     if (!tenant || !tenant.active) throw new UnauthorizedException('Invalid credentials')
-
     const user = await this.db.user.findFirst({
       where: { email: dto.email, tenantId: tenant.id, active: true },
     })
     if (!user) throw new UnauthorizedException('Invalid credentials')
-
     const valid = await bcrypt.compare(dto.password, user.passwordHash)
     if (!valid) throw new UnauthorizedException('Invalid credentials')
-
     return this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
   }
 
   async refresh(token: string) {
     try {
       const payload = this.jwt.verify<{
-        sub: string
-        tenantId: string
-        tenantSlug: string
-        email: string
-        role: string
+        sub: string; tenantId: string; tenantSlug: string; email: string; role: string
       }>(token)
       return this.issueTokens(payload.sub, payload.tenantId, payload.tenantSlug, payload.email, payload.role)
     } catch {
@@ -43,9 +34,7 @@ export class AuthService {
     }
   }
 
-  logout() {
-    return { message: 'Logged out successfully' }
-  }
+  logout() { return { message: 'Logged out successfully' } }
 
   private issueTokens(sub: string, tenantId: string, tenantSlug: string, email: string, role: string) {
     const payload = { sub, tenantId, tenantSlug, email, role }

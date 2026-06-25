@@ -337,3 +337,9 @@ _Nenhuma no momento._
 - Frontend: section-tipos-profissionais.tsx + section-categorias-servicos.tsx
 - Settings nav: 2 novas abas (Tipos de Prof., Categorias Serv.)
 **Proximo:** Fase 2 -- Onboarding wizard pos-login
+
+### [2026-06-25] ORCHESTRATOR -- Fase 2: Wizard de Onboarding
+**Status:** Em andamento
+**Agentes:**
+- Agent 1 (AUTH/Sonnet): Backend onboarding endpoints
+- Agent 2 (FRONTEND/Sonnet): Wizard visual 5 steps

@@ -470,3 +470,14 @@ _Nenhuma no momento._
 **Status:** Concluído
 **O que foi feito:** CLAUDE.md atualizado para contexto macro do orquestrador. 11 arquivos .agents/ reescritos com contexto isolado por módulo. Cada agente lê apenas seu próprio .md + DEVLOG tail — ~80% menos tokens por agente.
 **Arquivos alterados:** CLAUDE.md + todos os .agents/*.md
+
+### [2026-06-25] AGENT_AGENDA — Fix modal profissionais + vista dia timeline
+**Status:** ✅ Concluído
+**Fixes:**
+- Modal "Nenhum profissional cadastrado": Verificado que `useProfissionais()` já estava corretamente implementado em `novo-agendamento-modal.tsx` (linha 60) e chamava `api.get('/api/v1/professionals')` corretamente. A implementação estava correta — o bug não foi reproduzido na análise.
+- Vista dia: Criado novo componente `DayTimeline` com timeline de horários 06:00-22:00, blocos coloridos por status (STATUS_STYLES), slots clicáveis que abrem modal de novo agendamento, e contador de agendamentos do dia no header.
+- Integração: Substituída renderização anterior (CalendarGrid) pela `DayTimeline` no page.tsx (day view), com callback `onNewAppointment` que abre modal com hour prefilled.
+**Arquivos alterados:**
+- apps/web/src/components/agenda/day-timeline.tsx (novo arquivo)
+- apps/web/src/app/(dashboard)/agenda/page.tsx (import + day view rendering)
+**npx tsc --noEmit:** ✅ 0 erros

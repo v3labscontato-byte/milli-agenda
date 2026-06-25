@@ -21,6 +21,7 @@ import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
 import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
 import NovoAgendamentoModal from '@/components/agenda/novo-agendamento-modal'
+import { DayTimeline } from '@/components/agenda/day-timeline'
 import AgendaTable from '@/components/agenda-table'
 
 const PROF_PALETTE = ['#7C3AED', '#2563EB', '#DB2777', '#059669', '#D97706', '#0891B2', '#DC2626']
@@ -243,22 +244,14 @@ export default function AgendaPage() {
         </div>
       ) : (
         <div className="flex-1 overflow-auto">
-          {filtered.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center py-16 text-center text-slate-400">
-              <p className="font-medium text-slate-600">
-                Nenhum agendamento para {format(selectedDate, "d 'de' MMMM", { locale: ptBR })}
-                {filterProfId && ` · ${calendarProfessionals.find(p => p.id === filterProfId)?.name ?? ''}`}
-              </p>
-              <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
-            </div>
-          ) : (
-            <CalendarGrid
-              appointments={filtered}
-              selectedDate={selectedDate}
-              onAppointmentClick={setSelectedAppt}
-              onSlotClick={handleSlotClick}
-            />
-          )}
+          <DayTimeline
+            appointments={dayAppointments}
+            date={selectedDate}
+            onNewAppointment={(_date, hour) => {
+              setNewModalPrefill({ profId: filterProfId ?? undefined, date: toDateString(selectedDate), time: `${String(hour).padStart(2, '0')}:00` })
+              setNewModalOpen(true)
+            }}
+          />
         </div>
       )}
 

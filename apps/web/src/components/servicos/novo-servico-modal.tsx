@@ -4,14 +4,10 @@ import { useEffect, useState } from 'react'
 import { X, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ServicoCategory, ServicoStatus } from '@/lib/servicos-mock'
+import type { ServicoInput } from '@/hooks/use-servicos'
 import PhotoUpload from '@/components/shared/photo-upload'
-import { MOCK_SERVICOS } from '@/lib/servicos-mock'
 
 const CATEGORIES: ServicoCategory[] = ['Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha']
-
-const ALL_PROFESSIONALS = Array.from(
-  new Set(MOCK_SERVICOS.flatMap((s) => s.professionals))
-).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 
 const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
@@ -25,25 +21,27 @@ interface FormState {
   duration: string
   price: string
   description: string
-  professionals: string[]
   status: ServicoStatus
   photos: string[]
 }
 
 const EMPTY: FormState = {
   nome: '', category: '', duration: '60', price: '', description: '',
-  professionals: [], status: 'active', photos: [],
+  status: 'active', photos: [],
 }
 
 interface NovoServicoModalProps {
   open: boolean
   onClose: () => void
+  onCreate: (input: ServicoInput) => Promise<void>
 }
 
-export default function NovoServicoModal({ open, onClose }: NovoServicoModalProps) {
+export default function NovoServicoModal({ open, onClose, onCreate }: NovoServicoModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => { if (open) setForm(EMPTY) }, [open])
+  useEffect(() => { if (open) { setForm(EMPTY); setSaving(false); setSubmitError(null) } }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -59,19 +57,24 @@ export default function NovoServicoModal({ open, onClose }: NovoServicoModalProp
       setForm((f) => ({ ...f, [key]: e.target.value }))
   }
 
-  function toggleProfissional(name: string) {
-    setForm((f) => ({
-      ...f,
-      professionals: f.professionals.includes(name)
-        ? f.professionals.filter((p) => p !== name)
-        : [...f.professionals, name],
-    }))
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    console.log('novo serviço', form)
-    onClose()
+    if (saving) return
+    setSaving(true)
+    setSubmitError(null)
+    try {
+      await onCreate({
+        name: form.nome.trim(),
+        description: form.description.trim() || undefined,
+        durationMin: Number(form.duration),
+        price: Number(form.price),
+        active: form.status === 'active',
+      })
+      onClose()
+    } catch {
+      setSubmitError('Erro ao cadastrar serviço. Tente novamente.')
+      setSaving(false)
+    }
   }
 
   return (
@@ -173,38 +176,6 @@ export default function NovoServicoModal({ open, onClose }: NovoServicoModalProp
               />
             </div>
 
-            {/* Profissionais */}
-            <div className="space-y-2">
-              <p className={LABEL}>Profissionais habilitados</p>
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Selecionar profissionais">
-                {ALL_PROFESSIONALS.map((name) => {
-                  const active = form.professionals.includes(name)
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => toggleProfissional(name)}
-                      aria-pressed={active}
-                      className={cn(
-                        'rounded-full border px-2.5 py-1 text-[12px] font-medium transition-colors',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                        active
-                          ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                          : 'border-[#E2E8F0] text-[#475569] hover:border-[#CBD5E1] hover:text-[#0F172A]',
-                      )}
-                    >
-                      {name}
-                    </button>
-                  )
-                })}
-              </div>
-              {form.professionals.length > 0 && (
-                <p className="text-[11px] text-[#94A3B8]">
-                  {form.professionals.length} selecionado{form.professionals.length !== 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-
             {/* Fotos */}
             <div className="border-t border-[#F1F5F9] pt-5">
               <PhotoUpload
@@ -220,22 +191,29 @@ export default function NovoServicoModal({ open, onClose }: NovoServicoModalProp
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[#F1F5F9] px-5 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            form="novo-serv-form"
-            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
-          >
-            <Scissors size={13} aria-hidden="true" />
-            Cadastrar
-          </button>
+        <div className="flex shrink-0 flex-col gap-2 border-t border-[#F1F5F9] px-5 py-4">
+          {submitError && (
+            <p className="text-[12px] text-[#DC2626]" role="alert">{submitError}</p>
+          )}
+          <div className="flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="novo-serv-form"
+              disabled={saving}
+              className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-50"
+            >
+              <Scissors size={13} aria-hidden="true" />
+              {saving ? 'Cadastrando…' : 'Cadastrar'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

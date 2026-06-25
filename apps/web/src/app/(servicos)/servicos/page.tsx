@@ -65,7 +65,7 @@ export default function ServicosPage() {
   const [selected, setSelected]         = useState<Servico | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
-  const { data: servicos, loading, error } = useServicos()
+  const { data: servicos, loading, error, create } = useServicos()
   const stats = useMemo(() => {
     const ativos = servicos.filter((s) => s.status === 'active')
     const precos = ativos.map((s) => s.price)
@@ -280,8 +280,16 @@ export default function ServicosPage() {
             </div>
             <div className="text-center">
               <p className="text-[14px] font-medium text-[#475569]">Nenhum serviço cadastrado</p>
-              <p className="mt-1 text-[12px] text-[#94A3B8]">Clique em "Novo Serviço" para começar.</p>
+              <p className="mt-1 text-[12px] text-[#94A3B8]">Cadastre seu primeiro serviço para começar.</p>
             </div>
+            <button
+              type="button"
+              onClick={() => setNovoOpen(true)}
+              className="mt-1 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
+            >
+              <Plus size={14} aria-hidden="true" />
+              Novo Serviço
+            </button>
           </div>
         ) : (
           <ServicoList
@@ -300,6 +308,7 @@ export default function ServicosPage() {
       <NovoServicoModal
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
+        onCreate={create}
       />
     </div>
   )

@@ -295,3 +295,9 @@ _Nenhuma no momento._
 **Sonnet:** Auth, Financeiro, Infra, Booking (tarefas complexas)
 **Haiku:** Dashboard, Agenda, Clientes, Profissionais, ServiÃ§os, Comandas, ConfiguraÃ§Ãµes
 **Economia estimada:** ~70% reduÃ§Ã£o no custo de tokens por rodada
+
+### [2026-06-25] fix-configuracoes — Correção mocks remanescentes
+**Status:** ? Concluído
+**O que foi feito:** WhatsApp/email/PIX fictícios removidos. Plano real do banco. Trial calculado de trialEndsAt.
+**Backlog:** Integração WhatsApp Business real, SMTP real, Billing/subscription real
+

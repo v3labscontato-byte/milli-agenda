@@ -187,6 +187,14 @@ O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
+### [2026-06-25] ORCHESTRATOR — Criar estrutura de agentes
+**Status:** ✅ Concluído  
+**O que foi feito:** Criada pasta .agents/ com 10 arquivos de agentes especializados. Cada agente tem: identidade, escopo de arquivos, endpoints, regras de negócio e backlog.  
+**Como usar:** `cat .agents/AGENT_<MODULO>.md` → colar no Claude Code como primeiro prompt  
+**Arquivos criados:** `.agents/ORCHESTRATOR.md` + `AGENT_FINANCEIRO`, `AGENT_BOOKING`, `AGENT_CONFIGURACOES`, `AGENT_AGENDA`, `AGENT_CLIENTES`, `AGENT_PROFISSIONAIS`, `AGENT_SERVICOS`, `AGENT_COMANDAS`, `AGENT_INFRA`
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
 _Nenhuma no momento._

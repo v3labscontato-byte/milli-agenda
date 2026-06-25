@@ -154,6 +154,27 @@ O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
+### [2026-06-25] CLAUDE 1 — Smoke test POST/PATCH/DELETE endpoints
+**Status:** ✅ Concluído  
+**Endpoints testados:**
+- POST /clients ✅ 201
+- POST /professionals ✅ 201
+- POST /services ✅ 201
+- POST /appointments ✅ 201 — campo correto é `durationMin` (não `endAt`)
+- PATCH /appointments/:id ✅ 200
+- PATCH /appointments/:id/status ✅ 200 (SCHEDULED→CONFIRMED)
+- POST /commands ✅ 201
+- POST /commands/:id/items ✅ 201
+- POST /commands/:id/close ✅ 200
+- POST /payments ✅ 201
+- DELETE /professionals/:id ✅ 200 (soft delete — active: false)
+- DELETE /services/:id ✅ 200 (soft delete — active: false)
+- DELETE /clients/:id ⚠️ Corrigido: retornava 500 por FK constraint. Agora retorna 409 com mensagem clara quando cliente tem agendamentos  
+**Arquivos alterados:** `apps/api/src/modules/clientes/clientes.service.ts`  
+**Observação:** `POST /appointments` requer `durationMin` (int, mínimo 5) — não `endAt`. O `endAt` é calculado pelo service.
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
 _Nenhuma no momento._

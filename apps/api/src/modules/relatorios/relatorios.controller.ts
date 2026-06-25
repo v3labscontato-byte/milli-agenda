@@ -16,8 +16,8 @@ export class RelatoriosController {
   @Get('revenue')
   revenue(
     @TenantFromJwt() tenantId: string,
-    @Query('from') from: string,
-    @Query('to') to: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     return this.relatoriosService.receita(tenantId, from, to)
   }
@@ -25,8 +25,8 @@ export class RelatoriosController {
   @Get('appointments')
   appointments(
     @TenantFromJwt() tenantId: string,
-    @Query('from') from: string,
-    @Query('to') to: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     return this.relatoriosService.ocupacao(tenantId, from, to)
   }
@@ -34,8 +34,8 @@ export class RelatoriosController {
   @Get('professionals')
   professionals(
     @TenantFromJwt() tenantId: string,
-    @Query('from') from: string,
-    @Query('to') to: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
     return this.relatoriosService.professionals(tenantId, from, to)
   }

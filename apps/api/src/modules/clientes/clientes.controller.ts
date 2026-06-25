@@ -5,7 +5,7 @@ import { ClientesService } from './clientes.service'
 import { CreateClienteDto } from './dto/create-cliente.dto'
 
 @UseGuards(JwtAuthGuard)
-@Controller('clientes')
+@Controller('clients')
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}
 

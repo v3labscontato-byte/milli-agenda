@@ -4,19 +4,30 @@ import { assertTransition } from '@milli/business-rules'
 import { AppointmentStatus } from '@milli/shared-types'
 import { CreateAppointmentDto } from './dto/create-appointment.dto'
 
+type Filters = {
+  from?: string
+  to?: string
+  professionalId?: string
+  status?: string
+}
+
 @Injectable()
 export class AgendaService {
   constructor(private readonly db: DatabaseService) {}
 
-  findAll(tenantId: string, filters: { date?: string; professionalId?: string }) {
+  findAll(tenantId: string, filters: Filters) {
     const where: Record<string, unknown> = { tenantId }
-    if (filters.date) {
-      const d = new Date(filters.date)
-      const next = new Date(d)
-      next.setDate(next.getDate() + 1)
-      where.startAt = { gte: d, lt: next }
+
+    if (filters.from || filters.to) {
+      where.startAt = {
+        ...(filters.from ? { gte: new Date(filters.from) } : {}),
+        ...(filters.to   ? { lte: new Date(filters.to)   } : {}),
+      }
     }
+
     if (filters.professionalId) where.professionalId = filters.professionalId
+    if (filters.status)         where.status         = filters.status
+
     return this.db.appointment.findMany({
       where,
       include: { client: true, professional: true, service: true },
@@ -47,6 +58,22 @@ export class AgendaService {
         notes: dto.notes,
       },
     })
+  }
+
+  async update(tenantId: string, id: string, dto: Partial<CreateAppointmentDto>) {
+    await this.findOne(tenantId, id)
+    const data: Record<string, unknown> = {}
+    if (dto.clientId)       data.clientId = dto.clientId
+    if (dto.professionalId) data.professionalId = dto.professionalId
+    if (dto.serviceId)      data.serviceId = dto.serviceId
+    if (dto.notes !== undefined) data.notes = dto.notes
+    if (dto.startAt) {
+      data.startAt = new Date(dto.startAt)
+      const endAt = new Date(dto.startAt)
+      endAt.setMinutes(endAt.getMinutes() + (dto.durationMin ?? 60))
+      data.endAt = endAt
+    }
+    return this.db.appointment.update({ where: { id }, data })
   }
 
   async transition(tenantId: string, id: string, toStatus: AppointmentStatus) {

@@ -8,6 +8,16 @@ import { CreatePagamentoDto } from './dto/create-pagamento.dto'
 export class PagamentosService {
   constructor(private readonly db: DatabaseService) {}
 
+  findAll(tenantId: string, commandId?: string) {
+    return this.db.payment.findMany({
+      where: {
+        tenantId,
+        ...(commandId ? { commandId } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
   async receive(tenantId: string, dto: CreatePagamentoDto) {
     const command = await this.db.command.findFirst({
       where: { id: dto.commandId, tenantId },

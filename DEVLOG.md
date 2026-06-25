@@ -481,9 +481,9 @@ _Nenhuma no momento._
 **npx tsc --noEmit:** âœ… 0 erros
 
 ## [2026-06-25] fix(agenda): usar startAt da API para filtrar agendamentos na timeline
-- **Bug**: vista dia não exibia agendamentos — 	o = date convertia para meia-noite UTC, excluindo todos os agendamentos do dia
-- **Fix**: genda.ts L21 — estParams.to passou a ser \\T23:59:59\` para cobrir o dia inteiro
-- **Contexto**: backend usa lte: new Date(filters.to) — data sem hora vira 00:00:00Z, qualquer agendamento em horário comercial tem startAt > 00:00Z e não passava no filtro
+- **Bug**: vista dia nï¿½o exibia agendamentos ï¿½ 	o = date convertia para meia-noite UTC, excluindo todos os agendamentos do dia
+- **Fix**: genda.ts L21 ï¿½ estParams.to passou a ser \\T23:59:59\` para cobrir o dia inteiro
+- **Contexto**: backend usa lte: new Date(filters.to) ï¿½ data sem hora vira 00:00:00Z, qualquer agendamento em horï¿½rio comercial tem startAt > 00:00Z e nï¿½o passava no filtro
 - **tsc**: 0 erros
 - **Arquivo modificado**: apps/web/src/lib/api/agenda.ts
 
@@ -496,3 +496,15 @@ _Nenhuma no momento._
 - Agenda: weekly-overview sem cards coloridos por status nos slots com agendamentos
 - Agenda: day-timeline sem botoes de acao (Fechar Comanda, Reagendar, Cancelar)
 - Comandas: sem appointmentId no backend/frontend, fluxo agenda->comanda nao existe
+
+### [2026-06-25] AGENT_PROFISSIONAIS â€” Fix workDays/specialties undefined + .includes safe
+**Status:** âœ… ConcluÃ­do
+**Fix:** 
+- `mapApiProfissional()` em `use-profissionais.ts`: Adicionado fallback para `workDays: []` e `specialties: []` quando API nao retorna ou quando API retorna `specialty` string singular
+- `profissionais/page.tsx`: Adicionado optional chaining em 3 lugares:
+  - Stats: `(p.workDays ?? []).includes(todayDay)`
+  - Filter: `(p.name ?? '').toLowerCase().includes(q)`, `(p.role ?? '').toLowerCase().includes(q)`, `(p.specialties ?? []).some(...)`
+**Arquivos alterados:**
+- apps/web/src/hooks/use-profissionais.ts (mapApiProfissional)
+- apps/web/src/app/(profissionais)/profissionais/page.tsx (stats + filter)
+**npx tsc --noEmit:** âœ… 0 erros

@@ -79,7 +79,7 @@ export default function ProfissionaisPage() {
   const stats = useMemo(() => {
     const todayDay = new Date().getDay()
     const ativos = profissionais.filter((p) => p.status === 'active')
-    const ativosHoje = ativos.filter((p) => p.workDays.includes(todayDay))
+    const ativosHoje = ativos.filter((p) => (p.workDays ?? []).includes(todayDay))
     const faturamento = profissionais.reduce((s, p) => s + Number(p.revenueThisMonth ?? 0), 0)
     const totalRating = profissionais.reduce((s, p) => s + Number(p.rating ?? 0) * Number(p.ratingCount ?? 0), 0)
     const totalRatingCount = profissionais.reduce((s, p) => s + Number(p.ratingCount ?? 0), 0)
@@ -98,9 +98,9 @@ export default function ProfissionaisPage() {
       if (statusFilter !== null && p.status !== statusFilter) return false
       if (!q) return true
       return (
-        p.name.toLowerCase().includes(q) ||
-        p.role.toLowerCase().includes(q) ||
-        p.specialties.some((s) => s.toLowerCase().includes(q))
+        (p.name ?? '').toLowerCase().includes(q) ||
+        (p.role ?? '').toLowerCase().includes(q) ||
+        (p.specialties ?? []).some((s) => s.toLowerCase().includes(q))
       )
     })
   }, [profissionais, search, roleFilter, statusFilter])

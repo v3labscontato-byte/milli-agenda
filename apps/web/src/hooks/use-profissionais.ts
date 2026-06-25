@@ -14,6 +14,12 @@ function mapApiProfissional(raw: ApiProfissional): Profissional {
     commissionPct: Number(raw.commissionPct ?? 0) as unknown as Profissional['commissionPct'],
     rating: Number(raw.rating ?? 0),
     ratingCount: Number(raw.ratingCount ?? 0),
+    workDays: Array.isArray(raw.workDays) ? (raw.workDays as number[]) : [],
+    specialties: Array.isArray(raw.specialties)
+      ? (raw.specialties as string[])
+      : raw.specialty
+        ? [raw.specialty as string]
+        : [],
   }
 }
 

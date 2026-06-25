@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, ExternalLink, ChevronUp, ChevronDown, Tag, Package, Scissors, Star, Banknote } from 'lucide-react'
+import { Copy, Check, ExternalLink, ChevronUp, ChevronDown, Tag, Package, Scissors, Star, Banknote, Palette } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type BookingSiteConfig } from '@/lib/configuracoes-mock'
 import { CAROUSEL_CONFIG, type CarouselSlideConfig } from '@/lib/carousel-config'
 import type { TenantSettings } from '@/hooks/use-configuracoes'
 import { Toggle, TextInput, SectionCard, SaveButton, useSaveState } from './_primitives'
+import SmartFormAppCliente from '@/components/shared/smart-form-app-cliente'
 
 // ── Carousel config helpers ───────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export default function SectionSiteBooking({ settings }: SectionSiteBookingProps
     [...CAROUSEL_CONFIG].sort((a, b) => a.order - b.order),
   )
   const [carouselSaveState, triggerCarouselSave] = useSaveState()
+  const [appClienteOpen, setAppClienteOpen] = useState(false)
 
   function set<K extends keyof BookingSiteConfig>(field: K, value: BookingSiteConfig[K]) {
     setCfg((prev) => ({ ...prev, [field]: value }))
@@ -232,9 +234,19 @@ export default function SectionSiteBooking({ settings }: SectionSiteBookingProps
 
         {/* Carrossel do App */}
         <SectionCard title="Carrossel do App Cliente">
-          <p className="mb-4 text-[12px] text-[#64748B]">
-            Configure quais seções aparecem no carrossel e em qual ordem.
-          </p>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[12px] text-[#64748B]">
+              Configure quais seções aparecem no carrossel e em qual ordem.
+            </p>
+            <button
+              type="button"
+              onClick={() => setAppClienteOpen(true)}
+              className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:border-[#CBD5E1] hover:text-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            >
+              <Palette size={13} aria-hidden="true" />
+              Personalizar App
+            </button>
+          </div>
           <ul className="space-y-2" aria-label="Slides do carrossel">
             {sortedSlides.map((slide, idx) => {
               const SlideIcon = SLIDE_ICONS[slide.type]
@@ -308,6 +320,11 @@ export default function SectionSiteBooking({ settings }: SectionSiteBookingProps
           <SaveButton state={saveState} onClick={triggerSave} label="Salvar configurações" />
         </div>
       </div>
+      <SmartFormAppCliente
+        open={appClienteOpen}
+        onClose={() => setAppClienteOpen(false)}
+        initialSlug={cfg.slug}
+      />
     </div>
   )
 }

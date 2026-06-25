@@ -284,3 +284,8 @@ _Nenhuma no momento._
 **O que foi feito:** 4 charts reescritos com hooks reais (useBookingsByStatus, useProfessionalsReport, useRevenueReport, useCashflowReport). Empty/Loading/Error states em todos. Hotfix aplicado após colisão de merge com agent-financeiro nos arquivos compartilhados.
 **Lição:** use-relatorios.ts e relatorios.ts são arquivos compartilhados — edições paralelas causam colisão. Serializar na próxima rodada.
 
+
+### [2026-06-25] ORCHESTRATOR — Correção pós-epics + ajuste de modelos
+**Status:** ?? Em andamento
+**Tarefas:** mocks financeiro, mocks configurações, modelo por agente
+

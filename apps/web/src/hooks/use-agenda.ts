@@ -4,7 +4,7 @@ import { FEATURES } from '@/lib/features'
 import { agendaApi } from '@/lib/api/agenda'
 import { MOCK_CALENDAR_APPOINTMENTS, type CalendarAppointment } from '@/lib/calendar-utils'
 
-export function useAgenda(params?: { date?: string; professionalId?: string }) {
+export function useAgenda(params?: { date?: string; professionalId?: string; _key?: number }) {
   const [data, setData]       = useState<CalendarAppointment[]>(() => FEATURES.realAgenda ? [] : MOCK_CALENDAR_APPOINTMENTS)
   const [loading, setLoading] = useState(FEATURES.realAgenda)
   const [error, setError]     = useState<string | null>(null)
@@ -14,7 +14,7 @@ export function useAgenda(params?: { date?: string; professionalId?: string }) {
     let cancelled = false
     setLoading(true)
     setError(null)
-    agendaApi.list(params)
+    agendaApi.list({ date: params?.date, professionalId: params?.professionalId })
       .then((res: unknown) => {
         if (!cancelled) setData((res as CalendarAppointment[]) ?? [])
       })
@@ -25,7 +25,7 @@ export function useAgenda(params?: { date?: string; professionalId?: string }) {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [params?.date, params?.professionalId])
+  }, [params?.date, params?.professionalId, params?._key])
 
   return { data, loading, error }
 }

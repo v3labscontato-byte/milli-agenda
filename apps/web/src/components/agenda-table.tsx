@@ -349,10 +349,10 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                   <tr>
                     <td colSpan={8} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
-                        Nenhum agendamento para este filtro
+                        Nenhum atendimento encontrado para o período.
                       </p>
                       <p className="mt-0.5 text-[12px] text-[#475569]">
-                        Tente selecionar outro profissional
+                        Tente selecionar outro profissional.
                       </p>
                     </td>
                   </tr>

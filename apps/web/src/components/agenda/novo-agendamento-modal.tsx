@@ -23,19 +23,38 @@ interface FormState {
   notes: string
 }
 
-function emptyForm(defaultDate: string): FormState {
-  return { clientName: '', clientPhone: '', serviceId: '', professionalId: '', date: defaultDate, time: '09:00', notes: '' }
+function emptyForm(defaultDate: string, initialTime?: string, initialProfessionalId?: string): FormState {
+  return {
+    clientName: '',
+    clientPhone: '',
+    serviceId: '',
+    professionalId: initialProfessionalId ?? '',
+    date: defaultDate,
+    time: initialTime ?? '09:00',
+    notes: '',
+  }
 }
 
 interface NovoAgendamentoModalProps {
   open: boolean
   defaultDate: string
   onClose: () => void
+  onCreated?: () => void
+  initialProfessionalId?: string
+  initialTime?: string
 }
 
-export default function NovoAgendamentoModal({ open, defaultDate, onClose }: NovoAgendamentoModalProps) {
-  const [form, setForm] = useState<FormState>(() => emptyForm(defaultDate))
+export default function NovoAgendamentoModal({
+  open,
+  defaultDate,
+  onClose,
+  onCreated,
+  initialProfessionalId,
+  initialTime,
+}: NovoAgendamentoModalProps) {
+  const [form, setForm] = useState<FormState>(() => emptyForm(defaultDate, initialTime, initialProfessionalId))
   const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const { data: servicos } = useServicos()
   const { data: profissionais } = useProfissionais()
@@ -50,7 +69,12 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
 
   const selectedService = activeServices.find((s) => s.id === form.serviceId)
 
-  useEffect(() => { if (open) setForm(emptyForm(defaultDate)) }, [open, defaultDate])
+  useEffect(() => {
+    if (open) {
+      setForm(emptyForm(defaultDate, initialTime, initialProfessionalId))
+      setSubmitError(null)
+    }
+  }, [open, defaultDate, initialTime, initialProfessionalId])
 
   useEffect(() => {
     if (!open) return
@@ -69,6 +93,7 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
+    setSubmitError(null)
     try {
       await agendaApi.create({
         clientName: form.clientName,
@@ -77,14 +102,16 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
         professionalId: form.professionalId,
         date: form.date,
         startTime: form.time,
+        durationMin: selectedService?.duration,
         notes: form.notes || undefined,
       })
+      onCreated?.()
+      onClose()
     } catch {
-      // Non-blocking: local calendar may not yet refresh; backend may have stricter validation
+      setSubmitError('Não foi possível criar o agendamento. Tente novamente.')
     } finally {
       setSaving(false)
     }
-    onClose()
   }
 
   return (
@@ -216,6 +243,12 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
             </div>
           </form>
         </div>
+
+        {submitError && (
+          <div className="shrink-0 border-t border-[#FEE2E2] bg-[#FEF2F2] px-5 py-2.5">
+            <p className="text-[12px] text-[#DC2626]">{submitError}</p>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[#F1F5F9] px-5 py-4">

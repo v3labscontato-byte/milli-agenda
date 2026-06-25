@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { startOfWeek } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
@@ -8,6 +8,7 @@ import {
   getAppointmentsForDate,
   nextDay,
   prevDay,
+  toDateString,
   type CalendarAppointment,
 } from '@/lib/calendar-utils'
 import { useAgenda } from '@/hooks/use-agenda'
@@ -17,6 +18,7 @@ import CalendarGrid from '@/components/agenda/calendar-grid'
 import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
 import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
+import NovoAgendamentoModal from '@/components/agenda/novo-agendamento-modal'
 import AgendaTable from '@/components/agenda-table'
 
 function toAppointment(ca: CalendarAppointment): Appointment {
@@ -54,7 +56,10 @@ export default function AgendaPage() {
   const [selectedAppt, setSelectedAppt]   = useState<CalendarAppointment | null>(null)
   const [newModalOpen, setNewModalOpen]   = useState(false)
   const [newModalPrefill, setNewModalPrefill] = useState<NewModalPrefill>({})
+  const [rescheduleOpen, setRescheduleOpen]   = useState(false)
+  const [reschedulePrefill, setReschedulePrefill] = useState<NewModalPrefill>({})
   const [searchQuery, setSearchQuery]     = useState('')
+  const [refetchKey, setRefetchKey]       = useState(0)
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
   const goToPrev  = useCallback(() => setSelectedDate((d) => prevDay(d)), [])
@@ -71,6 +76,8 @@ export default function AgendaPage() {
     setNewModalPrefill({})
   }, [])
 
+  const handleCreated = useCallback(() => setRefetchKey((k) => k + 1), [])
+
   const handleDaySelect = useCallback((professionalId: string, date: Date) => {
     setSelectedDate(date)
     setFilterProfId(professionalId)
@@ -84,18 +91,34 @@ export default function AgendaPage() {
 
   const handleReschedule = useCallback((appt: CalendarAppointment) => {
     setSelectedAppt(null)
-    setNewModalPrefill({
-      profId:      appt.professionalId,
-      date:        appt.date,
-      time:        appt.startTime,
-      service:     appt.service,
-      client:      appt.client,
+    setReschedulePrefill({
+      profId:       appt.professionalId,
+      date:         appt.date,
+      time:         appt.startTime,
+      service:      appt.service,
+      client:       appt.client,
       isReschedule: true,
     })
-    setNewModalOpen(true)
+    setRescheduleOpen(true)
   }, [])
 
-  const { data: allAppointments, loading, error } = useAgenda()
+  const closeReschedule = useCallback(() => {
+    setRescheduleOpen(false)
+    setReschedulePrefill({})
+  }, [])
+
+  // Day view scopes the fetch to the selected date; week view fetches the broader
+  // set so the "Atendimentos da Semana" table has the full week available.
+  const agendaParams = useMemo(
+    () => ({
+      date: view === 'day' ? toDateString(selectedDate) : undefined,
+      professionalId: view === 'day' ? (filterProfId ?? undefined) : undefined,
+      _key: refetchKey,
+    }),
+    [view, selectedDate, filterProfId, refetchKey],
+  )
+
+  const { data: allAppointments, loading, error } = useAgenda(agendaParams)
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
@@ -189,17 +212,31 @@ export default function AgendaPage() {
             <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">
               Atendimentos da Semana
             </h2>
-            <AgendaTable appointments={allAppointments.map(toAppointment)} />
+            {allAppointments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
+                <p className="font-medium text-slate-600">Nenhum agendamento nesta semana.</p>
+                <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
+              </div>
+            ) : (
+              <AgendaTable appointments={allAppointments.map(toAppointment)} />
+            )}
           </div>
         </div>
       ) : (
         <div className="flex-1 overflow-auto">
-          <CalendarGrid
-            appointments={filtered}
-            selectedDate={selectedDate}
-            onAppointmentClick={setSelectedAppt}
-            onSlotClick={handleSlotClick}
-          />
+          {filtered.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center py-16 text-center text-slate-400">
+              <p className="font-medium text-slate-600">Nenhum agendamento para hoje</p>
+              <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
+            </div>
+          ) : (
+            <CalendarGrid
+              appointments={filtered}
+              selectedDate={selectedDate}
+              onAppointmentClick={setSelectedAppt}
+              onSlotClick={handleSlotClick}
+            />
+          )}
         </div>
       )}
 
@@ -209,15 +246,26 @@ export default function AgendaPage() {
         onReschedule={handleReschedule}
       />
 
-      <NewAppointmentModal
+      {/* New appointment — real API (services/professionals from hooks, agendaApi.create) */}
+      <NovoAgendamentoModal
         open={newModalOpen}
-        onClose={closeNew}
+        defaultDate={newModalPrefill.date ?? toDateString(selectedDate)}
         initialProfessionalId={newModalPrefill.profId}
-        initialDate={newModalPrefill.date}
         initialTime={newModalPrefill.time}
-        initialService={newModalPrefill.service}
-        isReschedule={newModalPrefill.isReschedule}
-        rescheduleClientName={newModalPrefill.client}
+        onClose={closeNew}
+        onCreated={handleCreated}
+      />
+
+      {/* Reschedule flow keeps the lightweight modal */}
+      <NewAppointmentModal
+        open={rescheduleOpen}
+        onClose={closeReschedule}
+        initialProfessionalId={reschedulePrefill.profId}
+        initialDate={reschedulePrefill.date}
+        initialTime={reschedulePrefill.time}
+        initialService={reschedulePrefill.service}
+        isReschedule={reschedulePrefill.isReschedule}
+        rescheduleClientName={reschedulePrefill.client}
       />
     </div>
   )

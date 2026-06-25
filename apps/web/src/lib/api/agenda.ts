@@ -10,8 +10,16 @@ export interface AppointmentParams {
 
 export const agendaApi = {
   list: (params?: AppointmentParams) => {
-    const qs = new URLSearchParams(params as Record<string, string>)
-    return api.get(`/api/v1/appointments?${qs}`)
+    const qs = new URLSearchParams()
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null && value !== '') {
+          qs.set(key, String(value))
+        }
+      }
+    }
+    const query = qs.toString()
+    return api.get(`/api/v1/appointments${query ? `?${query}` : ''}`)
   },
 
   get: (id: string) =>

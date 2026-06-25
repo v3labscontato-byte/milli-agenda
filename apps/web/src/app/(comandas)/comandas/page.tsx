@@ -8,10 +8,13 @@ import {
 } from '@/lib/comanda-mock'
 import { useComandas } from '@/hooks/use-comandas'
 import { comandasApi } from '@/lib/api/comandas'
+import { pagamentosApi } from '@/lib/api/pagamentos'
+import { FEATURES } from '@/lib/features'
 import ComandaKpiStrip from '@/components/comandas/comanda-kpi-strip'
 import ComandaTable from '@/components/comandas/comanda-table'
 import NovaComandaModal, { type NovaComandaData } from '@/components/comandas/nova-comanda-modal'
-import PaymentModal from '@/components/shared/payment-modal'
+import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
+import { ReceiptText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -33,18 +36,17 @@ const FILTER_PILLS: { label: string; value: ComandasFilter }[] = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComandasPage() {
-  const { data: initialComandas, loading, error } = useComandas()
+  const { data: initialComandas, loading, error, refetch } = useComandas()
   const [comandas, setComandas]         = useState<Comanda[]>(initialComandas)
   const [statusFilter, setStatusFilter] = useState<ComandasFilter>('ALL')
   const [searchQuery, setSearchQuery]   = useState('')
   const [openId, setOpenId]             = useState<string | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
+  // In real-API mode the hook is the source of truth — mirror it (incl. after refetch).
   useEffect(() => {
-    if (!loading && initialComandas.length > 0 && comandas.length === 0) {
-      setComandas(initialComandas)
-    }
-  }, [loading, initialComandas])
+    if (FEATURES.realComandas) setComandas(initialComandas)
+  }, [initialComandas])
 
   const openComanda = useMemo(
     () => comandas.find((c) => c.id === openId) ?? null,
@@ -82,6 +84,22 @@ export default function ComandasPage() {
   }, [])
 
   const handleCreate = useCallback((data: NovaComandaData) => {
+    setStatusFilter('ALL')
+
+    if (FEATURES.realComandas) {
+      comandasApi.create({
+        clientName:     data.clientName,
+        clientPhone:    data.clientPhone || undefined,
+        serviceId:      data.serviceId,
+        professionalId: data.professionalId,
+        startTime:      data.startTime || '09:00',
+      })
+        .then(() => refetch())
+        .catch(() => { /* error surfaced on next load */ })
+      return
+    }
+
+    // Mock mode: optimistic local insert
     const id = `c-${Date.now()}`
     const endMins = (() => {
       const [h, m] = (data.startTime || '09:00').split(':').map(Number)
@@ -107,19 +125,30 @@ export default function ComandasPage() {
       }
       return [comanda, ...prev]
     })
-    setStatusFilter('ALL')
+  }, [refetch])
 
-    // Fire-and-forget: persist to backend (optimistic UI already updated above)
-    comandasApi.create({
-      clientName:     data.clientName,
-      clientPhone:    data.clientPhone || undefined,
-      serviceId:      data.serviceId,
-      professionalId: data.professionalId,
-      startTime:      data.startTime || '09:00',
-    }).catch(() => {
-      // Silently fail — local state already reflects the new comanda
-    })
-  }, [])
+  const handlePaymentConfirm = useCallback((result: PaymentResult) => {
+    const target = comandas.find((c) => c.id === openId)
+    setOpenId(null)
+
+    if (FEATURES.realComandas && target) {
+      const method = result.methods[0]?.method ?? 'pix'
+      pagamentosApi.create({
+        commandId: target.id,
+        amount:    result.total,
+        method:    method.toUpperCase(),
+        status:    'PAID',
+      })
+        .then(() => comandasApi.close(target.id, {}).catch(() => {}))
+        .then(() => refetch())
+        .catch(() => { /* error surfaced on next load */ })
+      return
+    }
+
+    setComandas((prev) =>
+      prev.map((c) => (c.id === target?.id ? { ...c, status: 'PAID' } : c)),
+    )
+  }, [comandas, openId, refetch])
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
@@ -187,9 +216,24 @@ export default function ComandasPage() {
         </div>
       </div>
 
-      {/* ── Full-width table ── */}
+      {/* ── Full-width table / empty state ── */}
       <div className="min-h-0 flex-1 overflow-auto bg-white">
-        <ComandaTable comandas={filtered} onOpen={setOpenId} />
+        {comandas.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <ReceiptText className="mb-4 h-12 w-12 text-slate-300" aria-hidden="true" />
+            <h3 className="font-medium text-slate-700">Nenhuma comanda aberta</h3>
+            <p className="mt-1 text-sm text-slate-400">Abra uma nova comanda para começar.</p>
+            <button
+              type="button"
+              onClick={() => setNovoOpen(true)}
+              className="mt-4 rounded-lg bg-[#2563EB] px-4 py-2 text-sm text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            >
+              + Nova Comanda
+            </button>
+          </div>
+        ) : (
+          <ComandaTable comandas={filtered} onOpen={setOpenId} />
+        )}
       </div>
 
       {/* ── Nova Comanda modal ── */}
@@ -214,12 +258,7 @@ export default function ComandasPage() {
           deposit={openComanda.deposit}
           initialDiscount={openComanda.discount}
           onClose={() => setOpenId(null)}
-          onConfirm={() => {
-            setComandas((prev) =>
-              prev.map((c) => (c.id === openId ? { ...c, status: 'PAID' } : c)),
-            )
-            setOpenId(null)
-          }}
+          onConfirm={handlePaymentConfirm}
         />
       )}
     </div>

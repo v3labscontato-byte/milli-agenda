@@ -4,6 +4,8 @@ import { memo, useState } from 'react'
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { COMISSAO_HISTORICO, type Comissao } from '@/lib/financeiro-mock'
+import { FEATURES } from '@/lib/features'
+import type { CommissionRow } from '@/hooks/use-relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
@@ -55,12 +57,51 @@ const MONTH_PILLS = [
   { key:'mai-26', label:'Mai/26' }, { key:'jun-26', label:'Jun/26' },
 ]
 
-function ComissoesTable() {
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '—'
+}
+
+const AVATAR_COLORS = ['#7C3AED', '#2563EB', '#DB2777', '#16A34A', '#D97706', '#0891B2']
+
+function toComissao(row: CommissionRow, i: number): Comissao {
+  return {
+    id: row.professionalId || `c-${i}`,
+    profissionalName: row.name,
+    initials: initialsOf(row.name),
+    avatarBg: AVATAR_COLORS[i % AVATAR_COLORS.length],
+    atendimentos: row.atendimentos,
+    receita: row.receita,
+    pctComissao: row.pctComissao,
+    comissaoValue: row.comissaoValue,
+    tipoPagamento: 'mensal',
+    diaPagamento: 5,
+    periodoRef: row.periodoRef,
+    diasAtraso: 0,
+    status: row.status,
+  }
+}
+
+interface ComissoesTableProps {
+  realData?: CommissionRow[]
+  loading?: boolean
+  error?: string | null
+}
+
+function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
   const [selectedMes, setSelectedMes] = useState('jun-26')
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [localData, setLocalData] = useState<Record<string, Comissao[]>>(COMISSAO_HISTORICO)
 
-  const comissoes = localData[selectedMes] ?? []
+  const real = FEATURES.realRelatorios
+
+  if (real && error) {
+    return <div className="text-sm text-red-500 p-4">Erro ao carregar. Tente novamente.</div>
+  }
+
+  const comissoes = real
+    ? (realData ?? []).map(toComissao)
+    : (localData[selectedMes] ?? [])
 
   function handleMarkPaid(id: string) {
     setLocalData((prev) => ({
@@ -78,21 +119,23 @@ function ComissoesTable() {
 
   return (
     <div className="space-y-4">
-      {/* Month filter pills */}
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar mês de referência">
-        {MONTH_PILLS.map(({ key, label }) => (
-          <button key={key} type="button" onClick={() => { setSelectedMes(key); setConfirmId(null) }} aria-pressed={selectedMes === key}
-            className={cn('rounded-full border px-3 py-1 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-              selectedMes === key ? 'border-[#2563EB] bg-[#2563EB] text-white' : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]')}>
-            {label}{key === 'jun-26' ? ' ●' : ''}
-          </button>
-        ))}
-      </div>
+      {/* Month filter pills (mock mode only; real mode uses the page period filter) */}
+      {!real && (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar mês de referência">
+          {MONTH_PILLS.map(({ key, label }) => (
+            <button key={key} type="button" onClick={() => { setSelectedMes(key); setConfirmId(null) }} aria-pressed={selectedMes === key}
+              className={cn('rounded-full border px-3 py-1 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                selectedMes === key ? 'border-[#2563EB] bg-[#2563EB] text-white' : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]')}>
+              {label}{key === 'jun-26' ? ' ●' : ''}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
           <div>
-            <h3 className="text-[14px] font-semibold text-[#0F172A]">Comissões — {MONTH_PILLS.find((m) => m.key === selectedMes)?.label}</h3>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">{real ? 'Comissões' : `Comissões — ${MONTH_PILLS.find((m) => m.key === selectedMes)?.label}`}</h3>
             <p className="mt-0.5 text-[12px] text-[#475569]">{comissoes.length} profissionais</p>
           </div>
           <div className="flex gap-4">
@@ -107,8 +150,10 @@ function ComissoesTable() {
           </div>
         </div>
 
-        {comissoes.length === 0 ? (
-          <p className="py-12 text-center text-[13px] text-[#94A3B8]">Nenhuma comissão registrada para este mês.</p>
+        {real && loading ? (
+          <p className="py-12 text-center text-[13px] text-[#94A3B8]">Carregando…</p>
+        ) : comissoes.length === 0 ? (
+          <p className="py-12 text-center text-[13px] text-[#94A3B8]">{real ? 'Nenhuma comissão no período selecionado.' : 'Nenhuma comissão registrada para este mês.'}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px]" aria-label="Tabela de comissões">
@@ -144,7 +189,7 @@ function ComissoesTable() {
                     <td className="px-4 py-3.5"><StatusBadge c={c} /></td>
                     <td className="px-4 py-3.5 font-tabular text-[12px] text-[#475569]">{c.paidAt ?? '—'}</td>
                     <td className="px-4 py-3.5">
-                      {c.status === 'PENDING' && (
+                      {!real && c.status === 'PENDING' && (
                         confirmId === c.id ? (
                           <div className="flex items-center gap-2">
                             <button type="button" onClick={() => { handleMarkPaid(c.id); setConfirmId(null) }}

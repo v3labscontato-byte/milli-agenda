@@ -267,3 +267,8 @@ _Nenhuma no momento._
 **Status:** Concluido
 **O que foi feito:** Mocks removidos do fluxo de dados (hook usa API real via FEATURES.realProfissionais). use-profissionais expoe create/update/remove (soft delete via status inactive) e refetch. Modal de Novo Profissional faz POST real com loading/erro e refetch da lista. Empty State com icone UserCheck e CTA Novo Profissional. KPIs calculados inline com useMemo a partir dos dados reais. tsc limpo nos arquivos de profissionais.
 
+
+### [2026-06-25] CLAUDE 2 (agent-financeiro) — Financeiro: API real, novos endpoints
+**Status:** Concluido
+**O que foi feito:** Mocks removidos no modulo financeiro (atras de FEATURES.realRelatorios). Conectado a /reports/commissions, /reports/cashflow, /reports/overdue. KPIs calculados em tempo real via /reports/kpis. Filtros de periodo (Hoje/Semana/Mes/Ultimos 30/Custom) disparam refetch de comissoes e fluxo de caixa. 4 estados (loading/empty/error/data) em comissoes, fluxo, inadimplencia e KPIs.
+**Backlog registrado:** Metas -> tabela Goal (/reports/goals), Despesas -> tabela Expense (/reports/expenses)

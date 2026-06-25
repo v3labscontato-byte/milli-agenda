@@ -4,6 +4,8 @@ import { memo, useEffect, useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import { cn } from '@/lib/utils'
 import { MOCK_FLUXO_HISTORICO, MOCK_LANCAMENTOS_HISTORICO } from '@/lib/financeiro-historico'
+import { FEATURES } from '@/lib/features'
+import type { CashflowResponse } from '@/hooks/use-relatorios'
 import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 function fmtBRL(n: number) {
@@ -40,14 +42,28 @@ function Skeleton() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function FluxoCaixa() {
+interface FluxoCaixaProps {
+  realData?: CashflowResponse | null
+  loading?: boolean
+  error?: string | null
+}
+
+function FluxoCaixa({ realData, loading, error }: FluxoCaixaProps) {
+  const real = FEATURES.realRelatorios
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const [mounted, setMounted] = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
+
+  const apiEntries = useMemo(() => realData?.entries ?? [], [realData])
+
   const entries = MOCK_FLUXO_HISTORICO[selectedMonth] ?? []
   const lancamentos = MOCK_LANCAMENTOS_HISTORICO[selectedMonth] ?? []
-  const totalEntradas = useMemo(() => lancamentos.filter((l) => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0), [lancamentos])
-  const totalSaidas   = useMemo(() => lancamentos.filter((l) => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0),   [lancamentos])
+
+  const mockTotalEntradas = useMemo(() => lancamentos.filter((l) => l.tipo === 'entrada').reduce((s, l) => s + l.valor, 0), [lancamentos])
+  const mockTotalSaidas   = useMemo(() => lancamentos.filter((l) => l.tipo === 'saida').reduce((s, l) => s + l.valor, 0),   [lancamentos])
+
+  const totalEntradas = real ? apiEntries.reduce((s, e) => s + e.entradas, 0) : mockTotalEntradas
+  const totalSaidas   = real ? apiEntries.reduce((s, e) => s + e.saidas, 0)   : mockTotalSaidas
   const saldoFinal    = totalEntradas - totalSaidas
 
   useEffect(() => {
@@ -59,13 +75,19 @@ function FluxoCaixa() {
     return () => mq.removeEventListener('change', h)
   }, [])
 
-  const chartData = useMemo(() => entries.map((e) => ({
-    dateLabel: e.dateLabel, saldoAcum: e.saldoAcum,
-  })), [entries])
+  // Area chart: cumulative saldo over the period
+  const chartData = useMemo(() => {
+    if (real) {
+      let acc = 0
+      return apiEntries.map((e) => { acc += e.saldo; return { dateLabel: e.dateLabel, saldoAcum: acc } })
+    }
+    return entries.map((e) => ({ dateLabel: e.dateLabel, saldoAcum: e.saldoAcum }))
+  }, [real, apiEntries, entries])
 
-  const tickFormatter = (_: string, idx: number) => (idx % 4 === 0 ? entries[idx]?.dateLabel ?? '' : '')
+  const tickFormatter = (_: string, idx: number) =>
+    (idx % 4 === 0 ? (real ? apiEntries[idx]?.dateLabel : entries[idx]?.dateLabel) ?? '' : '')
 
-  // Compute running saldo from oldest to newest
+  // Detailed table: per-transaction lançamentos (mock only) with running saldo
   const withSaldo = useMemo(() => {
     const sorted = [...lancamentos].sort((a, b) => {
       const [da, ma] = a.date.split('/').map(Number)
@@ -82,11 +104,30 @@ function FluxoCaixa() {
 
   const displayLancamentos = useMemo(() => [...withSaldo].reverse(), [withSaldo])
 
+  // Real mode: daily entries table (newest first) with cumulative saldo
+  const displayDaily = useMemo(() => {
+    let acc = 0
+    return apiEntries.map((e) => { acc += e.saldo; return { ...e, saldoAcum: acc } }).reverse()
+  }, [apiEntries])
+
+  if (real && error) {
+    return <div className="text-sm text-red-500 p-4">Erro ao carregar. Tente novamente.</div>
+  }
+
+  if (real && loading) return <Skeleton />
   if (!mounted) return <Skeleton />
+
+  if (real && apiEntries.length === 0) {
+    return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
+        <p className="text-[13px] text-[#64748B]">Sem movimentações no período selecionado.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
+      {!real && <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />}
       {/* KPI cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -131,50 +172,78 @@ function FluxoCaixa() {
         </div>
       </div>
 
-      {/* Detailed lançamentos table */}
+      {/* Movimentações table */}
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="border-b border-[#E2E8F0] px-5 py-4">
-          <h3 className="text-[14px] font-semibold text-[#0F172A]">Lançamentos</h3>
-          <p className="mt-0.5 text-[12px] text-[#475569]">{lancamentos.length} movimentações no mês</p>
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">{real ? 'Movimentações diárias' : 'Lançamentos'}</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">
+            {real ? `${apiEntries.length} dias no período` : `${lancamentos.length} movimentações no mês`}
+          </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px]" aria-label="Lançamentos de caixa">
-            <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                {['Data','Tipo','Categoria','Descrição','Entrada','Saída','Saldo'].map((h) => (
-                  <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
-                    ['Entrada','Saída','Saldo'].includes(h) ? 'text-right' : 'text-left')}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {displayLancamentos.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-[#94A3B8]">Nenhum lançamento.</td></tr>
-              ) : displayLancamentos.map((l, i) => (
-                <tr key={l.id} className={cn('transition-colors hover:bg-[#F8FAFC]', i < displayLancamentos.length - 1 && 'border-b border-[#F1F5F9]')}>
-                  <td className="px-4 py-2.5 font-tabular text-[12px] text-[#475569]">{l.date}</td>
-                  <td className="px-4 py-2.5">
-                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-                      l.tipo === 'entrada' ? 'bg-[#F0FDF4] text-[#16A34A]' : 'bg-[#FEF2F2] text-[#DC2626]')}>
-                      {l.tipo === 'entrada' ? 'Entrada' : 'Saída'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2.5 text-[12px] text-[#475569]">{l.categoria}</td>
-                  <td className="px-4 py-2.5 text-[13px] text-[#0F172A]">{l.descricao}</td>
-                  <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#16A34A]">
-                    {l.tipo === 'entrada' ? fmtBRL(l.valor) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#DC2626]">
-                    {l.tipo === 'saida' ? fmtBRL(l.valor) : '—'}
-                  </td>
-                  <td className={cn('px-4 py-2.5 text-right font-tabular text-[12px] font-semibold',
-                    l.saldo >= 0 ? 'text-[#0F172A]' : 'text-[#DC2626]')}>
-                    {fmtBRL(l.saldo)}
-                  </td>
+          {real ? (
+            <table className="w-full min-w-[560px]" aria-label="Movimentações diárias">
+              <thead>
+                <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                  {['Data','Entradas','Saídas','Saldo do dia','Saldo acum.'].map((h) => (
+                    <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
+                      h === 'Data' ? 'text-left' : 'text-right')}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {displayDaily.length === 0 ? (
+                  <tr><td colSpan={5} className="py-12 text-center text-[13px] text-[#94A3B8]">Sem movimentações no período selecionado.</td></tr>
+                ) : displayDaily.map((e, i) => (
+                  <tr key={e.date} className={cn('transition-colors hover:bg-[#F8FAFC]', i < displayDaily.length - 1 && 'border-b border-[#F1F5F9]')}>
+                    <td className="px-4 py-2.5 font-tabular text-[12px] text-[#475569]">{e.dateLabel}</td>
+                    <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#16A34A]">{e.entradas > 0 ? fmtBRL(e.entradas) : '—'}</td>
+                    <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#DC2626]">{e.saidas > 0 ? fmtBRL(e.saidas) : '—'}</td>
+                    <td className={cn('px-4 py-2.5 text-right font-tabular text-[12px] font-medium', e.saldo >= 0 ? 'text-[#0F172A]' : 'text-[#DC2626]')}>{fmtBRL(e.saldo)}</td>
+                    <td className={cn('px-4 py-2.5 text-right font-tabular text-[12px] font-semibold', e.saldoAcum >= 0 ? 'text-[#0F172A]' : 'text-[#DC2626]')}>{fmtBRL(e.saldoAcum)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full min-w-[640px]" aria-label="Lançamentos de caixa">
+              <thead>
+                <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                  {['Data','Tipo','Categoria','Descrição','Entrada','Saída','Saldo'].map((h) => (
+                    <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
+                      ['Entrada','Saída','Saldo'].includes(h) ? 'text-right' : 'text-left')}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {displayLancamentos.length === 0 ? (
+                  <tr><td colSpan={7} className="py-12 text-center text-[13px] text-[#94A3B8]">Nenhum lançamento.</td></tr>
+                ) : displayLancamentos.map((l, i) => (
+                  <tr key={l.id} className={cn('transition-colors hover:bg-[#F8FAFC]', i < displayLancamentos.length - 1 && 'border-b border-[#F1F5F9]')}>
+                    <td className="px-4 py-2.5 font-tabular text-[12px] text-[#475569]">{l.date}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                        l.tipo === 'entrada' ? 'bg-[#F0FDF4] text-[#16A34A]' : 'bg-[#FEF2F2] text-[#DC2626]')}>
+                        {l.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-[12px] text-[#475569]">{l.categoria}</td>
+                    <td className="px-4 py-2.5 text-[13px] text-[#0F172A]">{l.descricao}</td>
+                    <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#16A34A]">
+                      {l.tipo === 'entrada' ? fmtBRL(l.valor) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#DC2626]">
+                      {l.tipo === 'saida' ? fmtBRL(l.valor) : '—'}
+                    </td>
+                    <td className={cn('px-4 py-2.5 text-right font-tabular text-[12px] font-semibold',
+                      l.saldo >= 0 ? 'text-[#0F172A]' : 'text-[#DC2626]')}>
+                      {fmtBRL(l.saldo)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

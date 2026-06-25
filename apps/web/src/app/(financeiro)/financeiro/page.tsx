@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import {
   RECEITA_SEMANAL,
   METODO_DISTRIBUICAO,
   FATURAMENTO_MENSAL,
   FINANCEIRO_KPIS,
+  type FinanceiroKpis,
   type PeriodFilter,
 } from '@/lib/financeiro-mock'
 import { MOCK_INADIMPLENCIA_HISTORICO } from '@/lib/financeiro-historico'
+import { FEATURES } from '@/lib/features'
+import { useRelatorios, periodToRange, type Period } from '@/hooks/use-relatorios'
 import MonthFilter, { CURRENT_MONTH } from '@/components/financeiro/month-filter'
 import FinanceiroKpiStrip from '@/components/financeiro/financeiro-kpi-strip'
 import ReceitaChart from '@/components/financeiro/receita-chart'
@@ -106,17 +109,42 @@ function PeriodBar({ active, customFrom, customTo, onChange, onCustomFrom, onCus
 
 // ─── Inadimplência section ────────────────────────────────────────────────────
 
+interface InadItem { id: string; dateLabel: string; clientName: string; service: string; value: number; daysOverdue: number }
+
 function InadimplenciaSection() {
+  const { overdue, overdueLoading, overdueError, fetchOverdue } = useRelatorios()
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
-  const items = MOCK_INADIMPLENCIA_HISTORICO[selectedMonth] ?? []
+
+  useEffect(() => {
+    if (FEATURES.realRelatorios) fetchOverdue()
+  }, [fetchOverdue])
+
+  const items: InadItem[] = FEATURES.realRelatorios
+    ? overdue.map((o) => ({
+        id: o.id,
+        dateLabel: o.date ? o.date.slice(8, 10) + '/' + o.date.slice(5, 7) : '—',
+        clientName: o.clientName,
+        service: o.service,
+        value: o.value,
+        daysOverdue: o.daysOverdue,
+      }))
+    : (MOCK_INADIMPLENCIA_HISTORICO[selectedMonth] ?? [])
   const total = items.reduce((s, i) => s + i.value, 0)
+
+  if (FEATURES.realRelatorios && overdueError) {
+    return <div className="text-sm text-red-500 p-4">Erro ao carregar. Tente novamente.</div>
+  }
 
   return (
     <div className="space-y-4">
-      <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />
-      {items.length === 0 ? (
+      {!FEATURES.realRelatorios && <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />}
+      {FEATURES.realRelatorios && overdueLoading ? (
         <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
-          <p className="text-[13px] text-[#64748B]">Nenhuma inadimplência registrada neste mês.</p>
+          <p className="text-[13px] text-[#64748B]">Carregando…</p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
+          <p className="text-[13px] text-[#64748B]">Nenhum pagamento pendente.</p>
         </div>
       ) : (
         <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
@@ -168,11 +196,53 @@ function InadimplenciaSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const PERIOD_MAP: Record<PeriodFilter, Period> = {
+  today:  'hoje',
+  week:   'semana',
+  month:  'mes',
+  last30: 'ultimos30',
+  custom: 'custom',
+}
+
+function buildRealKpis(raw: ReturnType<typeof useRelatorios>['kpis']): FinanceiroKpis {
+  // Map documented API fields onto the FinanceiroKpis shape used by the strip.
+  // Fields the API does not provide (trend strings, metas) fall back to mock —
+  // see backlog TODOs in use-relatorios.ts for /reports/goals.
+  const k = raw ?? {}
+  return {
+    ...FINANCEIRO_KPIS,
+    receitaBruta:    k.receitaBruta ?? 0,
+    despesas:        k.despesas ?? 0,
+    lucroLiquido:    k.lucro ?? 0,
+    margem:          k.margem ?? 0,
+    ticketMedio:     k.ticketMedio ?? 0,
+    aReceber:        k.aReceber ?? 0,
+    receitaHoje:     k.todayRevenue ?? 0,
+    receitaMes:      k.receitaBruta ?? 0,
+  }
+}
+
 export default function FinanceiroPage() {
+  const rel = useRelatorios()
   const [period, setPeriod]         = useState<PeriodFilter>('month')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
   const [activeTab, setActiveTab]   = useState<TabId>('procedimentos')
+
+  const range = useMemo(
+    () => periodToRange(PERIOD_MAP[period], customFrom, customTo),
+    [period, customFrom, customTo],
+  )
+
+  const { fetchCommissions, fetchCashflow } = rel
+  useEffect(() => {
+    if (!FEATURES.realRelatorios) return
+    if (period === 'custom' && (!customFrom || !customTo)) return
+    fetchCommissions(range.from, range.to)
+    fetchCashflow(range.from, range.to)
+  }, [fetchCommissions, fetchCashflow, range.from, range.to, period, customFrom, customTo])
+
+  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis) : FINANCEIRO_KPIS
 
   return (
     <div className="space-y-6 px-6 pb-10 pt-5">
@@ -188,7 +258,11 @@ export default function FinanceiroPage() {
       />
 
       {/* ── KPI strip ── */}
-      <FinanceiroKpiStrip kpis={FINANCEIRO_KPIS} />
+      {FEATURES.realRelatorios && rel.kpisError ? (
+        <div className="text-sm text-red-500 p-4">Erro ao carregar. Tente novamente.</div>
+      ) : (
+        <FinanceiroKpiStrip kpis={kpis} />
+      )}
 
       {/* ── Charts ── */}
       <ReceitaChart
@@ -236,13 +310,17 @@ export default function FinanceiroPage() {
             {activeTab === 'recebimentos' && <PagamentosTable />}
           </div>
           <div role="tabpanel" id="panel-comissoes" aria-labelledby="tab-comissoes" hidden={activeTab !== 'comissoes'}>
-            {activeTab === 'comissoes' && <ComissoesTable />}
+            {activeTab === 'comissoes' && (
+              <ComissoesTable realData={rel.commissions} loading={rel.commissionsLoading} error={rel.commissionsError} />
+            )}
           </div>
           <div role="tabpanel" id="panel-inadimplencia" aria-labelledby="tab-inadimplencia" hidden={activeTab !== 'inadimplencia'}>
             {activeTab === 'inadimplencia' && <InadimplenciaSection />}
           </div>
           <div role="tabpanel" id="panel-fluxo" aria-labelledby="tab-fluxo" hidden={activeTab !== 'fluxo'}>
-            {activeTab === 'fluxo' && <FluxoCaixa />}
+            {activeTab === 'fluxo' && (
+              <FluxoCaixa realData={rel.cashflow} loading={rel.cashflowLoading} error={rel.cashflowError} />
+            )}
           </div>
           <div role="tabpanel" id="panel-metas" aria-labelledby="tab-metas" hidden={activeTab !== 'metas'}>
             {activeTab === 'metas' && <MetasSection />}

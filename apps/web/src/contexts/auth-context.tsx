@@ -33,8 +33,12 @@ interface AuthContextValue extends AuthState {
 export const AuthContext = createContext<AuthContextValue | null>(null)
 
 function getTenantSlug(): string {
-  const parts = window.location.hostname.split('.')
-  if (parts.length >= 3) return parts[0]
+  // Prefer slug stored after last login/register
+  const stored = localStorage.getItem('tenantSlug')
+  if (stored) return stored
+  // Use subdomain only on the real product domain
+  const hostname = window.location.hostname
+  if (hostname.endsWith('.milliagenda.com.br')) return hostname.split('.')[0]
   return process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'bella-vista'
 }
 
@@ -95,7 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function logout() {
+    const slug = localStorage.getItem('tenantSlug')
     localStorage.clear()
+    // Preserve slug so the next login on the same device works without re-entering it
+    if (slug) localStorage.setItem('tenantSlug', slug)
     clearCookie('accessToken')
     api.setToken('')
     setState({ user: null, tenant: null, isLoading: false, isAuthenticated: false })

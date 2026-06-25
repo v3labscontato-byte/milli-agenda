@@ -17,6 +17,12 @@ class ApiClient {
     this.token = token || null
   }
 
+  private getToken(): string | null {
+    if (this.token) return this.token
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('accessToken')
+  }
+
   private getTenantSlug(): string | null {
     if (typeof window === 'undefined') return null
     return localStorage.getItem('tenantSlug')
@@ -28,8 +34,9 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     }
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`
+    const token = this.getToken()
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     const tenantSlug = this.getTenantSlug()
@@ -41,6 +48,18 @@ class ApiClient {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
+
+      // Auto-logout when a stored token is rejected — do not trigger on login failures
+      if (res.status === 401 && typeof window !== 'undefined' && localStorage.getItem('accessToken')) {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user')
+        localStorage.removeItem('tenant')
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        window.location.href = '/login'
+        return undefined as unknown as T
+      }
+
       throw new ApiError(res.status, body.message || 'Erro desconhecido')
     }
 

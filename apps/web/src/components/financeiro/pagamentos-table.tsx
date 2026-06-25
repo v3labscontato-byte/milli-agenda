@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { txDateLabel, type Transaction, type TransactionStatus } from '@/lib/financeiro-mock'
 import { MOCK_TRANSACTIONS_HISTORICO } from '@/lib/financeiro-historico'
 import MonthFilter, { CURRENT_MONTH } from './month-filter'
+import { FEATURES } from '@/lib/features'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,6 +97,13 @@ function EmptyState() {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function PagamentosTable() {
+  // TODO: conectar endpoint /payments com paginação quando disponível
+  if (FEATURES.realRelatorios) return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
+      <p className="text-[13px] font-medium text-[#475569]">Histórico de Pagamentos em breve</p>
+      <p className="mt-1 text-[12px]">As transações aparecerão aqui assim que o módulo for ativado.</p>
+    </div>
+  )
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const transactions = MOCK_TRANSACTIONS_HISTORICO[selectedMonth] ?? []
   const [sortKey, setSortKey] = useState<SortKey>('date')

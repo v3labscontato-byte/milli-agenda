@@ -5,6 +5,7 @@ import { Plus, X, BookOpen, CheckCircle2, Clock, AlertCircle, Trash2 } from 'luc
 import { cn } from '@/lib/utils'
 import { MOCK_PLANO_CONTAS, type PlanoConta } from '@/lib/financeiro-mock'
 import MonthFilter, { CURRENT_MONTH } from './month-filter'
+import { FEATURES } from '@/lib/features'
 
 const CATEGORIAS_FIXAS     = ['Moradia','Utilidades','Comunicação','Proteção','Tecnologia','Administrativo']
 const CATEGORIAS_VARIAVEIS = ['Pessoal','Insumos','Vendas','Operacional','Fiscal','Geral']
@@ -170,6 +171,13 @@ function NovaContaModal({ open, onClose, onSave }: { open:boolean; onClose:()=>v
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function PlanoContas() {
+  // TODO: conectar endpoint /settings/chart-of-accounts quando disponível
+  if (FEATURES.realRelatorios) return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
+      <p className="text-[13px] font-medium text-[#475569]">Plano de Contas em breve</p>
+      <p className="mt-1 text-[12px]">Configure suas categorias de receita e despesa aqui.</p>
+    </div>
+  )
   const [contas, setContas] = useState<PlanoConta[]>(MOCK_PLANO_CONTAS)
   const [modalOpen, setModalOpen] = useState(false)
   const [filtro, setFiltro] = useState<'all'|'fixa'|'variavel'>('all')

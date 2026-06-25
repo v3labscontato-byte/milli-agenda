@@ -7,6 +7,7 @@ import {
   MOCK_PROCEDIMENTOS, MOCK_PROF_RANKING, MOCK_PRODUTOS,
   type ProcedimentoRanking, type ProfissionalRanking, type ProdutoRanking,
 } from '@/lib/financeiro-mock'
+import { FEATURES } from '@/lib/features'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -179,6 +180,13 @@ function ProdutosPanel({ data, reduced }: { data: ProdutoRanking[]; reduced: boo
 // ─── Section ──────────────────────────────────────────────────────────────────
 
 export default function ProcedimentosSection() {
+  // TODO: conectar /reports/professionals + /reports/revenue por serviço quando disponível
+  if (FEATURES.realRelatorios) return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
+      <p className="text-[13px] font-medium text-[#475569]">Ranking de Procedimentos em breve</p>
+      <p className="mt-1 text-[12px]">Os dados de procedimentos e produtos serão exibidos aqui.</p>
+    </div>
+  )
   const [mesSel, setMesSel] = useState('jun-26')
   const [reduced, setReduced] = useState(false)
 

@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { MOCK_DESPESAS_CATEGORIA, MOCK_DESPESAS_MENSAL } from '@/lib/financeiro-mock'
+import { FEATURES } from '@/lib/features'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -35,6 +36,13 @@ function LineTooltip({ active, payload, label }: LineTooltipProps) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DespesasSection() {
+  // TODO: conectar endpoint /reports/expenses (tabela Expense no banco) quando disponível
+  if (FEATURES.realRelatorios) return (
+    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
+      <p className="text-[13px] font-medium text-[#475569]">Módulo de Despesas em breve</p>
+      <p className="mt-1 text-[12px]">As despesas serão registradas aqui quando o módulo for ativado.</p>
+    </div>
+  )
   const [mounted, setMounted]           = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
 

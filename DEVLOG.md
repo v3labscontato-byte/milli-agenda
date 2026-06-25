@@ -306,3 +306,11 @@ _Nenhuma no momento._
 **Status:** ? Concluído
 **O que foi feito:** Todos os valores hardcoded removidos do caminho real-API. buildRealKpis não espalha mais FINANCEIRO_KPIS (metas/trends zerados). ReceitaChart conectado a cashflow.entries no modo real, com empty/loading/error states; donut de método mostra 'Sem pagamentos no período' (API não fornece método). Zeros reais para tenant sem dados.
 
+
+### [2026-06-25] ORCHESTRATOR — Correção pós-epics + modelos concluídos
+**Status:** ? Concluído
+**Financeiro:** Guard FEATURES.realRelatorios em 5 seções sem backend (despesas, procedimentos, metas, plano de contas, pagamentos histórico). Em produção mostram Empty State. Em dev mostram mocks. tsc limpo ?
+**Configurações:** WhatsApp/email/PIX fictícios removidos. Plano real do banco. Trial calculado de trialEndsAt ?
+**Modelos:** Sonnet para Auth/Financeiro/Infra/Booking, Haiku para os demais. ~70% economia estimada ?
+**Pendente:** NEXT_PUBLIC_USE_REAL_API=true deve estar setado no Railway frontend para ativar os guards em produção
+

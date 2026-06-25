@@ -13,6 +13,7 @@ import { useServicos } from '@/hooks/use-servicos'
 import ServicoList from '@/components/servicos/servico-list'
 import ServicoModal from '@/components/servicos/servico-modal'
 import NovoServicoModal from '@/components/servicos/novo-servico-modal'
+import SmartFormServico from '@/components/shared/smart-form-servico'
 
 // ─── KPI card ─────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ export default function ServicosPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(null)
   const [selected, setSelected]         = useState<Servico | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
+  const [smartOpen, setSmartOpen]       = useState(false)
 
   const { data: servicos, loading, error, create, update } = useServicos()
   const stats = useMemo(() => {
@@ -131,7 +133,7 @@ export default function ServicosPage() {
           </p>
           <button
             type="button"
-            onClick={() => setNovoOpen(true)}
+            onClick={() => setSmartOpen(true)}
             aria-label="Novo serviço"
             className={cn(
               'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
@@ -284,7 +286,7 @@ export default function ServicosPage() {
             </div>
             <button
               type="button"
-              onClick={() => setNovoOpen(true)}
+              onClick={() => setSmartOpen(true)}
               className="mt-1 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
             >
               <Plus size={14} aria-hidden="true" />
@@ -310,6 +312,11 @@ export default function ServicosPage() {
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
         onCreate={create}
+      />
+      <SmartFormServico
+        open={smartOpen}
+        onClose={() => setSmartOpen(false)}
+        onCreated={create}
       />
     </div>
   )

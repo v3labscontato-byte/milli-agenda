@@ -175,6 +175,18 @@ O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
+### [2026-06-25] CLAUDE 2 — Modais e KPIs conectados à API real
+**Status:** ✅ Concluído  
+**O que foi feito:**
+- P1: `novo-agendamento-modal.tsx` — removidos `MOCK_AGENDAMENTOS` e `MOCK_SERVICOS`; dropdowns agora usam `useServicos()` e `useProfissionais()` com IDs reais; submit chama `agendaApi.create()` com `serviceId`, `professionalId`, `date`, `startTime`
+- P2: `nova-comanda-modal.tsx` — removido `MOCK_SERVICOS` e lista hardcoded de profissionais; dropdowns usam hooks reais; `NovaComandaData` agora inclui `serviceId` e `professionalId`
+- P2b: `comandas/page.tsx` — `handleCreate` agora chama `comandasApi.create()` (fire-and-forget, UI otimista já garante exibição imediata)
+- P3: KPI cards de `clientes`, `profissionais` e `servicos` — removido import de `kpiStats` dos arquivos mock; cálculo inline em `useMemo` diretamente sobre o array real da API
+**Arquivos alterados:** `novo-agendamento-modal.tsx`, `nova-comanda-modal.tsx`, `comandas/page.tsx`, `clientes/page.tsx`, `profissionais/page.tsx`, `servicos/page.tsx`  
+**tsc --noEmit:** 0 erros ✅
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
 _Nenhuma no momento._

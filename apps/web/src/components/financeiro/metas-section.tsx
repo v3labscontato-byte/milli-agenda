@@ -9,7 +9,6 @@ import { Plus, X, Pencil, Trash2, Target, TrendingUp, CheckCircle2, AlertCircle 
 import { cn } from '@/lib/utils'
 import { MOCK_METAS_HISTORICO, type MetaHistorico } from '@/lib/financeiro-historico'
 import MonthFilter, { CURRENT_MONTH, MONTHS } from './month-filter'
-import { FEATURES } from '@/lib/features'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -147,13 +146,6 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
 // ─── Section ─────────────────────────────────────────────────────────────────
 
 export default function MetasSection() {
-  // TODO: conectar endpoint /reports/goals (tabela Goal no banco) quando disponível
-  if (FEATURES.realRelatorios) return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
-      <p className="text-[13px] font-medium text-[#475569]">Metas Financeiras em breve</p>
-      <p className="mt-1 text-[12px]">Defina e acompanhe suas metas de faturamento aqui.</p>
-    </div>
-  )
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const [mounted, setMounted] = useState(false)
   const [metas, setMetas]     = useState<MetaHistorico[]>(MOCK_METAS_HISTORICO)

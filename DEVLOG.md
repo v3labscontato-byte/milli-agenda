@@ -254,3 +254,7 @@ _Nenhuma no momento._
 **Status:** Concluido
 **O que foi feito:** Mocks removidos. Empty State implementado. CRUD validado com tratamento de 409 para clientes com agendamentos.
 
+
+### [2026-06-25] CLAUDE 2 (agent-servicos) — Servicos: API real, Empty States
+**Status:** Concluido
+**O que foi feito:** Mocks removidos do hook e do modal de criacao. use-servicos mapeia a Service do backend (durationMin/price/active) para o tipo Servico do frontend e expoe create/update/remove com refetch. Modal de Novo Servico faz POST real com estados de loading/erro. Empty State com botao na pagina. tsc sem erros nos arquivos de servicos.

@@ -5,7 +5,7 @@ import { ProfissionaisService } from './profissionais.service'
 import { CreateProfissionalDto } from './dto/create-profissional.dto'
 
 @UseGuards(JwtAuthGuard)
-@Controller('profissionais')
+@Controller('professionals')
 export class ProfissionaisController {
   constructor(private readonly profissionaisService: ProfissionaisService) {}
 

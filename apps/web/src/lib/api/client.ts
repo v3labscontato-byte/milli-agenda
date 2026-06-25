@@ -44,7 +44,9 @@ class ApiClient {
       throw new ApiError(res.status, body.message || 'Erro desconhecido')
     }
 
-    return res.json() as Promise<T>
+    const json = await res.json()
+    // Unwrap { success: true, data: T } envelope from TransformInterceptor
+    return (json && typeof json.success === 'boolean' ? json.data : json) as T
   }
 
   get<T>(path: string) {

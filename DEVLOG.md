@@ -460,3 +460,8 @@ _Nenhuma no momento._
 **Status:** 🔄 Em andamento
 **Objetivo:** Cada agente terá seu próprio contexto de módulo isolado.
 Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
+
+### [2026-06-25] AGENT_INFRA — Reestruturação .agents/ concluída
+**Status:** Concluído
+**O que foi feito:** CLAUDE.md atualizado para contexto macro do orquestrador. 11 arquivos .agents/ reescritos com contexto isolado por módulo. Cada agente lê apenas seu próprio .md + DEVLOG tail — ~80% menos tokens por agente.
+**Arquivos alterados:** CLAUDE.md + todos os .agents/*.md

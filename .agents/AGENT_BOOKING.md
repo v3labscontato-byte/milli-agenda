@@ -1,56 +1,57 @@
-# AGENTE BOOKING — Milli Agenda
+# AGENT_BOOKING — Milli Agenda
 
 ## IDENTIDADE
-Você é o Agente responsável pelo App Cliente (/booking) completo.
-Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
+Agente especializado no App de Booking (cliente final) do Milli Agenda.
+Modelo recomendado: claude-sonnet-4-6
 
-## MODELO
-claude-sonnet-4-6
-> Motivo: fluxo público complexo, disponibilidade, slots
+## PRIMEIRA AÇÃO OBRIGATÓRIA
+cat DEVLOG.md | tail -100
 
-## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
-cat DEVLOG.md
-# Leia TODO o conteúdo. Registre sua tarefa como EM ANDAMENTO antes de começar.
+## MEU ESCOPO — Arquivos que posso editar
+### Frontend
+- apps/web/src/app/(booking)/ (todos)
+- apps/web/src/components/booking/ (todos)
 
-## ESCOPO DE ARQUIVOS
-Backend:
-- apps/api/src/modules/agenda/ (appointments públicos)
-- apps/api/src/modules/servicos/ (serviços públicos)
-- apps/api/src/modules/profissionais/ (profissionais públicos)
+## ENDPOINTS DO MEU MÓDULO (quando implementados)
+- GET /api/v1/public/salon/:slug → info pública do salão
+- GET /api/v1/public/services → serviços disponíveis
+- GET /api/v1/public/professionals → profissionais disponíveis
+- POST /api/v1/public/appointments → criar agendamento como cliente
+- POST /api/v1/auth/client/login → auth de cliente (a implementar)
 
-Frontend:
-- apps/web/src/app/(booking)/**
-- apps/web/src/components/booking/**
-- apps/web/src/lib/booking-mock.ts
-- apps/web/src/lib/api/booking.ts (criar se não existir)
+## ESTADO ATUAL DO MÓDULO
+⚠️ 100% mock — sem API real ainda
+- /booking → home com SALON mock
+- /booking/agendar → wizard 4 steps (service, professional, datetime, confirm)
+- /booking/meus-agendamentos → lista mock
+- /booking/perfil → perfil mock
+- /booking/pacotes → pacotes mock
+- /booking/afiliados → afiliados mock
+- /booking/notificacoes → notificações mock
+- /booking/login → login de cliente (mock)
+- bottom-nav.tsx → nav mobile persistente
 
-## ENDPOINTS SOB RESPONSABILIDADE
-| Endpoint | Status |
-|----------|--------|
-| GET /services (público) | ✅ Existe |
-| GET /professionals (público) | ✅ Existe |
-| POST /appointments (público) | ✅ Existe |
-| GET /appointments/available-slots | 🔨 Criar |
-| POST /auth/booking-login | 🔨 Criar |
-| GET /clients/me | 🔨 Criar |
+## PADRÕES DO MÓDULO
+- Mobile-first: max-w-md centrado
+- pb-[72px] para espaço do BottomNav
+- Sem Sidebar global (layout próprio)
+- BottomNav: Home, Agendar, Agenda, Perfil
 
-## REGRAS DE NEGÓCIO
-- App cliente é público — não requer login admin
-- Agendamento requer: serviceId, professionalId, date, startTime
-- Slots disponíveis: horário comercial 08:00-20:00, intervalos de 30min
-- Cancelamento: permitido até 24h antes (política configurável)
-- Fidelidade: Bronze → Silver → Gold → Diamond
-- Afiliados: 5% configurável, apenas após appointment COMPLETED
+## BACKLOG DO MÓDULO (Fase 4)
+- [ ] Auth real de cliente (JWT separado ou magic link)
+- [ ] Agendamento real via API pública
+- [ ] Pagamento PIX integrado
+- [ ] Push notifications
+- [ ] Programa de fidelidade real
+- [ ] Afiliados real
 
-## BACKLOG
-- [ ] Login do cliente (auth separado do admin)
-- [ ] Notificações push reais
-- [ ] Cupons e promoções
-- [ ] Pacotes de serviços
+## REGRAS INVIOLÁVEIS
+1. NUNCA editar dashboard, configurações ou outros módulos
+2. SEMPRE npx tsc --noEmit → 0 erros
+3. SEMPRE >> DEVLOG.md
+4. SEMPRE git push origin main
 
-## PASSO FINAL — OBRIGATÓRIO
-Após qualquer tarefa:
-1. npx tsc --noEmit → deve ser 0 erros
-2. Testar endpoints com curl
-3. Atualizar DEVLOG.md com resultado
-4. git add . && git commit -m "feat(booking): descrição" && git push origin main
+## PASSO FINAL OBRIGATÓRIO
+npx tsc --noEmit → 0 erros
+git add apps/web/src/app/(booking)/ apps/web/src/components/booking/ DEVLOG.md
+git commit -m "tipo(booking): desc" && git push origin main

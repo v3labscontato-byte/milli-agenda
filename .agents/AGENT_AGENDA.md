@@ -1,55 +1,60 @@
-# AGENTE AGENDA — Milli Agenda
+# AGENT_AGENDA — Milli Agenda
 
 ## IDENTIDADE
-Você é o Agente responsável pelo módulo Agenda completo.
-Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
+Agente especializado na Agenda do Milli Agenda.
+Modelo recomendado: claude-haiku-4-5-20251001
 
-## MODELO
-claude-haiku-4-5-20251001
-> Motivo: validação, Empty States, sem lógica nova
+## PRIMEIRA AÇÃO OBRIGATÓRIA
+cat DEVLOG.md | tail -100
 
-## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
-cat DEVLOG.md
-# Leia TODO o conteúdo. Registre sua tarefa como EM ANDAMENTO antes de começar.
-
-## ESCOPO DE ARQUIVOS
-Backend:
-- apps/api/src/modules/agenda/**
-
-Frontend:
+## MEU ESCOPO — Arquivos que posso editar
+### Frontend
 - apps/web/src/app/(dashboard)/agenda/page.tsx
-- apps/web/src/components/agenda/**
+- apps/web/src/components/agenda/ (todos)
 - apps/web/src/hooks/use-agenda.ts
 - apps/web/src/lib/api/agenda.ts
-- apps/web/src/lib/agenda-mock.ts
+- apps/web/src/lib/calendar-utils.ts
 
-## ENDPOINTS SOB RESPONSABILIDADE
-| Endpoint | Status |
-|----------|--------|
-| GET /appointments | ✅ Existe |
-| GET /appointments/:id | ✅ Existe |
-| POST /appointments | ✅ Existe |
-| PATCH /appointments/:id | ✅ Existe |
-| PATCH /appointments/:id/status | ✅ Existe |
-| DELETE /appointments/:id | ✅ Existe |
-| GET /professionals/:id/disponibilidade | ✅ Existe |
+### Backend
+- apps/api/src/modules/agenda/ (se existir)
 
-## REGRAS DE NEGÓCIO
-- Status: SCHEDULED → CONFIRMED → IN_PROGRESS → COMPLETED / CANCELLED
-- POST /appointments usa durationMin (int, mínimo 5), NÃO endAt
-- endAt é calculado pelo service: startAt + durationMin
-- Visão semana: domingo a sábado
-- Visão dia: horário comercial 08:00-20:00
-- Filtro por profissional disponível
+## ENDPOINTS DO MEU MÓDULO
+- GET /api/v1/appointments?from=YYYY-MM-DD&to=YYYY-MM-DD → array
+- GET /api/v1/appointments?professionalId=xxx&from=&to= → filtrado
+- POST /api/v1/appointments → { clientId, professionalId, serviceId, startAt, durationMin, notes }
+- PATCH /api/v1/appointments/:id → atualizar
+- PATCH /api/v1/appointments/:id/status → { status: 'CONFIRMED'|'CANCELLED'|... }
+- DELETE /api/v1/appointments/:id
 
-## BACKLOG
-- [ ] WebSocket para agenda em tempo real
-- [ ] Slots disponíveis por profissional
-- [ ] Reagendamento com validação de conflito
+## ESTADO ATUAL DO MÓDULO
+✅ Vista semana com weekly-overview
+✅ Filtro por profissional (nome correto no pill, não ID)
+✅ Dias passados em cinza (isPast logic)
+✅ Empty state com data formatada em pt-BR
+✅ transformApiResponse(): startAt/endAt (ISO) → date (YYYY-MM-DD) + startTime/endTime (HH:MM)
+✅ agenda.ts: date param → from/to (mesmo dia) para compatibilidade com backend
 
-## PASSO FINAL — OBRIGATÓRIO
-Após qualquer tarefa:
-1. npx tsc --noEmit → deve ser 0 erros
-2. Testar endpoints com curl
-3. Atualizar DEVLOG.md com resultado
-4. git add . && git commit -m "feat(agenda): descrição" && git push origin main
+## BUGS CONHECIDOS / PENDÊNCIAS
+- Vista dia: ainda pode não exibir agendamentos dependendo do retorno da API
+
+## PADRÕES CRÍTICOS DO MÓDULO
+- API retorna startAt/endAt como ISO DateTime, NÃO tem campo 'date'
+- transformApiResponse() em use-agenda.ts converte para CalendarAppointment
+- Para buscar por dia: from=YYYY-MM-DD&to=YYYY-MM-DD (mesmo valor para ambos)
+- CalendarAppointment.date = YYYY-MM-DD string
+- Decimais sempre Number(valor ?? 0)
+
+## BACKLOG DO MÓDULO
+- [ ] Vista mês
+- [ ] WebSocket para atualização em tempo real
+- [ ] Arrastar e soltar para remarcar
+
+## REGRAS INVIOLÁVEIS
+1. NUNCA editar schema.prisma ou arquivos de outros módulos
+2. SEMPRE npx tsc --noEmit → 0 erros
+3. SEMPRE >> DEVLOG.md após concluir
+4. SEMPRE git push origin main
+
+## PASSO FINAL OBRIGATÓRIO
+npx tsc --noEmit → 0 erros
+git add [arquivos] DEVLOG.md && git commit -m "tipo(agenda): desc" && git push origin main

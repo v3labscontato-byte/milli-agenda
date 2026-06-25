@@ -1,55 +1,60 @@
-# AGENTE CONFIGURAÇÕES — Milli Agenda
+# AGENT_CONFIGURACOES — Milli Agenda
 
 ## IDENTIDADE
-Você é o Agente responsável pelo módulo Configurações completo.
-Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
+Agente especializado em Configurações do Milli Agenda.
+Modelo recomendado: claude-haiku-4-5-20251001
 
-## MODELO
-claude-haiku-4-5-20251001
-> Motivo: conectar API existente, remover mocks
+## PRIMEIRA AÇÃO OBRIGATÓRIA
+cat DEVLOG.md | tail -100
 
-## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
-cat DEVLOG.md
-# Leia TODO o conteúdo. Registre sua tarefa como EM ANDAMENTO antes de começar.
-
-## ESCOPO DE ARQUIVOS
-Backend:
-- apps/api/src/modules/ (criar módulo settings)
-
-Frontend:
+## MEU ESCOPO — Arquivos que posso editar
+### Frontend
 - apps/web/src/app/(dashboard)/configuracoes/page.tsx
-- apps/web/src/components/configuracoes/**
-- apps/web/src/lib/configuracoes-mock.ts
-- apps/web/src/lib/api/configuracoes.ts (criar)
+- apps/web/src/components/configuracoes/ (todos)
+- apps/web/src/components/shared/smart-form-salao.tsx
+- apps/web/src/components/shared/smart-form-app-cliente.tsx
+- apps/web/src/hooks/use-configuracoes.ts
+- apps/web/src/lib/api/configuracoes.ts
 
-## ENDPOINTS SOB RESPONSABILIDADE
-| Endpoint | Status |
-|----------|--------|
-| GET /settings | 🔨 Criar |
-| PATCH /settings | 🔨 Criar |
-| GET /settings/hours | 🔨 Criar |
-| PATCH /settings/hours | 🔨 Criar |
-| GET /settings/loyalty | 🔨 Criar |
-| PATCH /settings/loyalty | 🔨 Criar |
-| GET /settings/affiliates | 🔨 Criar |
-| PATCH /settings/affiliates | 🔨 Criar |
+### Backend
+- apps/api/src/modules/settings/ (se existir)
 
-## REGRAS DE NEGÓCIO
-- Configurações são por tenant (multi-tenant)
-- Horários de funcionamento: seg-dom, abertura/fechamento por dia
-- Fidelidade: Bronze/Silver/Gold/Diamond com pontos configuráveis
-- Afiliados: % de comissão configurável (padrão 5%)
-- Notificações: WhatsApp/email toggle por evento
-- LGPD: consentimento e política de privacidade
+## ENDPOINTS DO MEU MÓDULO
+- GET /api/v1/settings → dados do tenant (name, email, phone, logoUrl, plan, trialEndsAt)
+- PATCH /api/v1/settings → atualizar dados do tenant
+- GET /api/v1/professionals/roles → roles (aba Tipos de Prof.)
+- POST/PATCH/DELETE /api/v1/professionals/roles/:id
+- GET /api/v1/services/categories → categorias (aba Categorias Serv.)
+- POST/PATCH/DELETE /api/v1/services/categories/:id
 
-## BACKLOG
-- [ ] Upload de logo do salão (precisa S3)
-- [ ] Tema de cores por salão
-- [ ] Domínio customizado
+## ESTADO ATUAL DO MÓDULO
+✅ 10 abas de configuração
+✅ Aba Meu Salão: dados reais do tenant com loading/error/saving
+✅ Aba Plano: plano real (FREE/STARTER/PROFESSIONAL/ENTERPRISE) + trial countdown
+✅ Aba Tipos de Profissionais: CRUD completo com /professionals/roles
+✅ Aba Categorias de Serviços: CRUD completo com /services/categories + color picker
+✅ Smart Form Salão 3 steps com ViaCEP
+✅ Smart Form App Cliente 4 steps (Aparência, Carrossel, Políticas, URL)
 
-## PASSO FINAL — OBRIGATÓRIO
-Após qualquer tarefa:
-1. npx tsc --noEmit → deve ser 0 erros
-2. Testar endpoints com curl
-3. Atualizar DEVLOG.md com resultado
-4. git add . && git commit -m "feat(configuracoes): descrição" && git push origin main
+## PADRÕES DO MÓDULO
+- Primitivos em _primitives.tsx: Toggle, SaveButton, FieldLabel, TextInput, SelectInput, SectionCard
+- useSaveState(): idle → saving → saved → idle (800ms)
+- SectionCard: p-6, rounded-lg border border-[#E2E8F0]
+- Abas: Meu Salão, Horários, Notificações, Pagamentos, Site Booking, Plano, API & Integ., LGPD, Tipos de Prof., Categorias Serv.
+
+## BACKLOG DO MÓDULO
+- [ ] Horários de funcionamento (CRUD Schedule)
+- [ ] WhatsApp Business real (API Meta)
+- [ ] SMTP real (SendGrid/Resend)
+- [ ] Billing/subscription real
+- [ ] Upload logo do salão (S3/R2)
+
+## REGRAS INVIOLÁVEIS
+1. NUNCA editar schema.prisma ou arquivos de outros módulos
+2. SEMPRE npx tsc --noEmit → 0 erros
+3. SEMPRE >> DEVLOG.md
+4. SEMPRE git push origin main
+
+## PASSO FINAL OBRIGATÓRIO
+npx tsc --noEmit → 0 erros
+git add [arquivos] DEVLOG.md && git commit -m "tipo(configuracoes): desc" && git push origin main

@@ -1,46 +1,52 @@
-# AGENTE CLIENTES — Milli Agenda
+# AGENT_CLIENTES — Milli Agenda
 
 ## IDENTIDADE
-Você é o Agente responsável pelo módulo Clientes completo.
-Cuide de front + back + regras de negócio. Não edite arquivos fora do seu escopo.
+Agente especializado em Clientes do Milli Agenda.
+Modelo recomendado: claude-haiku-4-5-20251001
 
-## MODELO
-claude-haiku-4-5-20251001
-> Motivo: CRUD simples, Empty States
+## PRIMEIRA AÇÃO OBRIGATÓRIA
+cat DEVLOG.md | tail -100
 
-## PASSO 0 — OBRIGATÓRIO ANTES DE QUALQUER AÇÃO
-cat DEVLOG.md
-
-## ESCOPO DE ARQUIVOS
-Backend:
-- apps/api/src/modules/clientes/**
-
-Frontend:
+## MEU ESCOPO — Arquivos que posso editar
+### Frontend
 - apps/web/src/app/(clientes)/clientes/page.tsx
-- apps/web/src/components/clientes/**
+- apps/web/src/components/clientes/ (todos)
 - apps/web/src/hooks/use-clientes.ts
 - apps/web/src/lib/api/clientes.ts
-- apps/web/src/lib/clientes-mock.ts
 
-## ENDPOINTS SOB RESPONSABILIDADE
-| Endpoint | Status |
-|----------|--------|
-| GET /clients | ✅ Existe |
-| GET /clients/:id | ✅ Existe |
-| GET /clients/:id/historico | ✅ Existe |
-| POST /clients | ✅ Existe |
-| PATCH /clients/:id | ✅ Existe |
-| DELETE /clients/:id | ✅ 409 se tem agendamentos |
+### Backend
+- apps/api/src/modules/clientes/ (todos)
 
-## REGRAS DE NEGÓCIO
-- Tags: VIP, Novo, Inativo (calculadas automaticamente)
-- VIP: totalSpent > R$ 1.000
-- Novo: clienteSince < 30 dias
-- Inativo: último agendamento > 60 dias
-- DELETE bloqueado se cliente tem agendamentos vinculados (retorna 409)
+## ENDPOINTS DO MEU MÓDULO
+- GET /api/v1/clients → array de clientes
+- POST /api/v1/clients → { name, email?, phone?, birthDate?, notes? }
+- PATCH /api/v1/clients/:id
+- DELETE /api/v1/clients/:id → 409 se tiver agendamentos (não pode excluir)
 
-## PASSO FINAL — OBRIGATÓRIO
-1. npx tsc --noEmit → 0 erros
-2. Testar com curl
-3. Atualizar DEVLOG.md
-4. git add . && git commit && git push origin main
+## ESTADO ATUAL DO MÓDULO
+✅ Lista com busca e filtros
+✅ Modal perfil com histórico de agendamentos
+✅ Tags VIP/Novo/Inativo calculadas inline
+✅ KPIs calculados via useMemo (sem mock)
+✅ Empty state com CTA Novo Cliente
+✅ DELETE retorna 409 com mensagem clara quando cliente tem agendamentos
+
+## BACKLOG DO MÓDULO
+- [ ] Importação CSV de clientes
+- [ ] Exportação de lista
+- [ ] Histórico de pagamentos por cliente
+
+## PADRÕES DO MÓDULO
+- Tags: VIP = totalVisitas >= 10, Novo = createdAt < 30 dias, Inativo = sem visita há 60+ dias
+- DELETE com FK: backend retorna 409, frontend exibe toast de erro
+- phone único por tenant (constraint no banco)
+
+## REGRAS INVIOLÁVEIS
+1. NUNCA editar fora do escopo
+2. SEMPRE npx tsc --noEmit → 0 erros
+3. SEMPRE >> DEVLOG.md
+4. SEMPRE git push origin main
+
+## PASSO FINAL OBRIGATÓRIO
+npx tsc --noEmit → 0 erros
+git add [arquivos] DEVLOG.md && git commit -m "tipo(clientes): desc" && git push origin main

@@ -11,47 +11,75 @@ Monorepo Turborepo com Next.js 14 (frontend) + NestJS (backend).
 3. SEMPRE rodar npx tsc --noEmit antes de commitar
 4. SEMPRE fazer push para main (único ambiente = produção)
 5. NUNCA editar arquivos fora do escopo do agente ativo
+6. NUNCA adicionar Co-Authored-By em commits
 
-## ESTRUTURA DE SUBAGENTES
-Este projeto usa subagentes especializados por módulo.
-Cada subagente tem escopo fechado e não interfere nos outros.
+## PRODUTO
+SaaS multi-tenant de gestão de salões de beleza.
+Stack: Next.js 14 + NestJS 10 + Fastify + Prisma + PostgreSQL + Railway
 
-### Como spawnar subagentes em paralelo:
-Quando receber múltiplas tarefas de módulos diferentes,
-use a ferramenta Task para executá-las em paralelo:
-
-Task 1: cat .agents/AGENT_FINANCEIRO.md → executar tarefa financeiro
-Task 2: cat .agents/AGENT_AGENDA.md → executar tarefa agenda
-Task 3: cat .agents/AGENT_CLIENTES.md → executar tarefa clientes
-
-Cada Task é independente e não conflita com as outras
-pois cada agente tem escopo de arquivos exclusivo.
-
-## SUBAGENTES DISPONÍVEIS
-| Agente | Arquivo | Escopo Principal |
-|--------|---------|-----------------|
-| Auth | .agents/AGENT_AUTH.md | apps/api/src/modules/auth, apps/web/src/app/login |
-| Financeiro | .agents/AGENT_FINANCEIRO.md | apps/web/src/components/financeiro, /reports |
-| Booking | .agents/AGENT_BOOKING.md | apps/web/src/app/(booking) |
-| Configurações | .agents/AGENT_CONFIGURACOES.md | apps/web/src/components/configuracoes |
-| Agenda | .agents/AGENT_AGENDA.md | apps/web/src/components/agenda |
-| Clientes | .agents/AGENT_CLIENTES.md | apps/web/src/components/clientes |
-| Profissionais | .agents/AGENT_PROFISSIONAIS.md | apps/web/src/components/profissionais |
-| Serviços | .agents/AGENT_SERVICOS.md | apps/web/src/components/servicos |
-| Comandas | .agents/AGENT_COMANDAS.md | apps/web/src/components/comandas |
-| Dashboard | .agents/AGENT_DASHBOARD.md | apps/web/src/app/dashboard |
-| Infra | .agents/AGENT_INFRA.md | apps/api/nixpacks.toml, railway.toml |
-
-## ARQUIVOS COMPARTILHADOS — NUNCA EDITAR EM PARALELO
-- package.json (raiz)
-- package-lock.json (raiz)
-- turbo.json
-- DEVLOG.md (usar append >> nunca sobrescrever)
-- packages/database/prisma/schema.prisma
-
-## URLS DE PRODUÇÃO
+## URLs DE PRODUÇÃO
 - Frontend: https://milli-agenda-production.up.railway.app
 - Backend: https://victorious-sparkle-production-adbc.up.railway.app
+- API Base: /api/v1
+
+## REPOSITÓRIO
+- GitHub: v3labscontato-byte/milli-agenda
+- Branch produção: main → auto-deploy Railway
 
 ## CREDENCIAIS DEMO
 - Tenant: bella-vista / admin@bellavista.com / Admin@123
+
+## ESTRUTURA DE SUBAGENTES
+Cada subagente tem escopo fechado. Lê apenas seu .agents/AGENT_*.md + DEVLOG tail.
+
+| Agente | Arquivo | Modelo | Módulo |
+|--------|---------|--------|--------|
+| Auth | .agents/AGENT_AUTH.md | sonnet | Login, cadastro, onboarding, JWT |
+| Dashboard | .agents/AGENT_DASHBOARD.md | haiku | KPIs, gráficos, visão geral |
+| Agenda | .agents/AGENT_AGENDA.md | haiku | Calendário semanal/dia, agendamentos |
+| Clientes | .agents/AGENT_CLIENTES.md | haiku | CRUD clientes, histórico |
+| Profissionais | .agents/AGENT_PROFISSIONAIS.md | haiku | CRUD profissionais, roles, comissão |
+| Serviços | .agents/AGENT_SERVICOS.md | haiku | CRUD serviços, categorias |
+| Comandas | .agents/AGENT_COMANDAS.md | haiku | Comandas, pagamentos, itens |
+| Financeiro | .agents/AGENT_FINANCEIRO.md | sonnet | KPIs, relatórios, metas, cashflow |
+| Configurações | .agents/AGENT_CONFIGURACOES.md | haiku | Settings, plano, notificações |
+| Infra | .agents/AGENT_INFRA.md | sonnet | Schema, migrations, deploy, seed |
+| Booking | .agents/AGENT_BOOKING.md | sonnet | Site público de agendamento |
+
+## COMO SPAWNAR SUBAGENTES EM PARALELO
+Quando receber múltiplas tarefas de módulos diferentes, use Agent tool com run_in_background: true.
+Cada agente inicia lendo: cat .agents/AGENT_<MODULO>.md + cat DEVLOG.md | tail -100
+
+## SMART FORMS (apps/web/src/components/shared/)
+- smart-form-servico.tsx — 4 steps
+- smart-form-profissional.tsx — 4 steps
+- smart-form-categoria.tsx — 2 steps
+- smart-form-meta.tsx — 2 steps
+- smart-form-salao.tsx — 3 steps
+- smart-form-app-cliente.tsx — 4 steps
+
+## ARQUIVOS COMPARTILHADOS (nunca editar em paralelo)
+- packages/database/prisma/schema.prisma → apenas AGENT_INFRA
+- apps/web/src/lib/features.ts → apenas orquestrador
+- apps/web/src/middleware.ts → apenas AGENT_AUTH
+- DEVLOG.md → todos (append >> apenas, nunca sobrescrever)
+
+## VARIÁVEIS DE AMBIENTE
+Frontend (Railway): NEXT_PUBLIC_API_URL, NEXT_PUBLIC_USE_REAL_API=true
+Backend (Railway): DATABASE_URL, JWT_SECRET, JWT_EXPIRES_IN, NODE_ENV=production, PORT
+
+## API CLIENT PATTERN
+- apps/web/src/lib/api/client.ts: api.get<T>(), api.post<T>(), api.delete<T>()
+- Paths devem incluir /api/v1/
+- Auto-unwrap do envelope { success, data }
+- Auto-logout em 401
+- Decimais do Prisma vêm como string → sempre Number(valor ?? 0)
+
+## RESPONSE FORMAT
+Backend retorna: { "success": true, "data": ... }
+Exceção: /reports/kpis retorna objeto flat (não array)
+
+## BUILD & TEST
+npx tsc --noEmit   # Type check (sempre antes de commitar)
+npm run build      # Production build
+npm run lint       # ESLint

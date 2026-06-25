@@ -18,7 +18,7 @@ export const agendaApi = {
       // If date is provided, convert to from/to range for the backend
       if (date) {
         restParams.from = date
-        restParams.to = date
+        restParams.to = `${date}T23:59:59`
       }
       for (const [key, value] of Object.entries(restParams)) {
         if (value !== undefined && value !== null && value !== '') {

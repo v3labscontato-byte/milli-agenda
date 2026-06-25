@@ -479,3 +479,10 @@ _Nenhuma no momento._
 - apps/web/src/components/agenda/day-timeline.tsx (novo arquivo)
 - apps/web/src/app/(dashboard)/agenda/page.tsx (import + day view rendering)
 **npx tsc --noEmit:** âœ… 0 erros
+
+## [2026-06-25] fix(agenda): usar startAt da API para filtrar agendamentos na timeline
+- **Bug**: vista dia não exibia agendamentos — 	o = date convertia para meia-noite UTC, excluindo todos os agendamentos do dia
+- **Fix**: genda.ts L21 — estParams.to passou a ser \\T23:59:59\` para cobrir o dia inteiro
+- **Contexto**: backend usa lte: new Date(filters.to) — data sem hora vira 00:00:00Z, qualquer agendamento em horário comercial tem startAt > 00:00Z e não passava no filtro
+- **tsc**: 0 erros
+- **Arquivo modificado**: apps/web/src/lib/api/agenda.ts

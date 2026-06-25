@@ -457,9 +457,14 @@ _Nenhuma no momento._
 - Testado: npx tsc --noEmit passa com 0 erros ✅
 
 ### [2026-06-25] ORCHESTRATOR — Reestruturação .agents/ contexto isolado
+**Status:** ✅ Concluído
+**Commits:** 4e02820
+
+### [2026-06-25] ORCHESTRATOR — Fix agenda completo
 **Status:** 🔄 Em andamento
-**Objetivo:** Cada agente terá seu próprio contexto de módulo isolado.
-Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
+**Bugs:**
+- Modal novo agendamento: "Nenhum profissional cadastrado" (bug prefixo API)
+- Vista dia: em branco sem timeline de horários
 
 ### [2026-06-25] AGENT_INFRA — Reestruturação .agents/ concluída
 **Status:** Concluído

@@ -12,6 +12,8 @@ RUN npm ci --ignore-scripts
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run build --workspace=@milli/shared-types
+RUN npm run build --workspace=@milli/business-rules
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN cd apps/api && npm run build
 

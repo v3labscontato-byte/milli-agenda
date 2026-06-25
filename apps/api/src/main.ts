@@ -27,10 +27,9 @@ async function bootstrap() {
   })
 
   const fastify = app.getHttpAdapter().getInstance()
-  fastify.get('/api/health', async () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  }))
+  const healthHandler = async () => ({ status: 'ok', timestamp: new Date().toISOString() })
+  fastify.get('/api/health', healthHandler)
+  fastify.get('/api/v1/health', healthHandler)
 
   const port = Number(process.env.PORT) || 3001
 

@@ -13,7 +13,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const tenant = await this.db.tenant.findUnique({
-      where: { slug: dto.tenantSlug },
+      where: { slug: dto.slug },
     })
     if (!tenant || !tenant.active) throw new UnauthorizedException('Invalid credentials')
 
@@ -47,13 +47,7 @@ export class AuthService {
     return { message: 'Logged out successfully' }
   }
 
-  private issueTokens(
-    sub: string,
-    tenantId: string,
-    tenantSlug: string,
-    email: string,
-    role: string,
-  ) {
+  private issueTokens(sub: string, tenantId: string, tenantSlug: string, email: string, role: string) {
     const payload = { sub, tenantId, tenantSlug, email, role }
     return {
       accessToken: this.jwt.sign(payload, { expiresIn: '1h' }),

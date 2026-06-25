@@ -11,4 +11,4 @@ cmds = [
 ]
 
 [start]
-cmd = "node apps/api/dist/main"
+cmd = "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && node apps/api/dist/main"

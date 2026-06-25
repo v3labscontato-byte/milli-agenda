@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { ApiError } from '@/lib/api/client'
 
@@ -16,9 +16,11 @@ const INPUT_BASE = [
 const INPUT_OK  = 'border-[#E2E8F0] focus:border-[#2563EB]'
 const INPUT_ERR = 'border-[#EF4444] focus:border-[#EF4444]'
 
-export default function LoginPage() {
+function LoginForm() {
   const { login } = useAuth()
   const router    = useRouter()
+  const searchParams = useSearchParams()
+  const passwordChanged = searchParams.get('msg') === 'senha-alterada'
 
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -64,6 +66,13 @@ export default function LoginPage() {
             <p className="text-[28px] font-bold text-[#2563EB]">Milli</p>
             <p className="mt-1 text-[14px] text-[#64748B]">Acesse o painel do seu salão</p>
           </div>
+
+          {/* Password-changed banner */}
+          {passwordChanged && (
+            <p className="mb-5 rounded-lg bg-[#ECFDF5] px-3 py-2.5 text-[13px] text-[#16A34A]">
+              Senha alterada com sucesso! Faça login com sua nova senha.
+            </p>
+          )}
 
           {/* Fields */}
           <div className="space-y-5">
@@ -121,6 +130,14 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && <p className="text-[12px] text-[#DC2626]">{errors.password}</p>}
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="rounded text-[13px] text-[#2563EB] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                >
+                  Esqueceu sua senha?
+                </Link>
+              </div>
             </div>
 
             {/* API error */}
@@ -155,12 +172,6 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="mt-6 flex flex-col items-center gap-3">
-            <button
-              type="button"
-              className="rounded text-[13px] text-[#2563EB] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-            >
-              Esqueceu a senha?
-            </button>
             <p className="text-[12px] text-[#475569]">
               Não tem conta?{' '}
               <Link
@@ -176,5 +187,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }

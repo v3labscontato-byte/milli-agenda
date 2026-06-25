@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Eye, EyeOff, Check } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { ApiError } from '@/lib/api/client'
+import { passwordStrength } from '@/lib/password-strength'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -29,6 +30,25 @@ function toSlug(name: string) {
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
+}
+
+function StrengthBar({ password }: { password: string }) {
+  if (!password) return null
+  const { score, label, color } = passwordStrength(password)
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="flex gap-1">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-1.5 flex-1 rounded-full transition-colors"
+            style={{ backgroundColor: i < score ? color : '#E2E8F0' }}
+          />
+        ))}
+      </div>
+      <p className="text-[12px] font-medium" style={{ color }}>{label}</p>
+    </div>
+  )
 }
 
 // ─── Step indicator ───────────────────────────────────────────────────────────
@@ -144,9 +164,18 @@ interface FormState {
 
 type Errors = Partial<Record<keyof FormState, string>>
 
-export default function CadastroPage() {
+const PLAN_PARAM_MAP: Record<string, 'starter' | 'pro'> = {
+  starter:      'starter',
+  professional: 'pro',
+  pro:          'pro',
+  enterprise:   'pro',
+}
+
+function CadastroForm() {
   const { register } = useAuth()
   const router       = useRouter()
+  const searchParams = useSearchParams()
+  const preselectedPlan = PLAN_PARAM_MAP[searchParams.get('plan') ?? '']
 
   const [step, setStep]       = useState<1 | 2 | 3>(1)
   const [loading, setLoading] = useState(false)
@@ -356,6 +385,7 @@ export default function CadastroPage() {
                   </button>
                 </div>
                 {errors.password && <p className={ERR_MSG}>{errors.password}</p>}
+                <StrengthBar password={form.password} />
               </div>
 
               <div>
@@ -392,7 +422,8 @@ export default function CadastroPage() {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="flex-1 rounded-lg bg-[#2563EB] py-3 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                  disabled={!!form.confirmPassword && form.confirmPassword !== form.password}
+                  className="flex-1 rounded-lg bg-[#2563EB] py-3 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:cursor-not-allowed disabled:bg-[#93C5FD]"
                 >
                   Próximo →
                 </button>
@@ -414,6 +445,7 @@ export default function CadastroPage() {
                   name="Starter"
                   price="Grátis"
                   features={['1 profissional', '50 agend./mês', '15 dias trial']}
+                  highlight={preselectedPlan === 'starter'}
                   loading={loading}
                   onChoose={() => handleChoosePlan('starter')}
                 />
@@ -421,7 +453,7 @@ export default function CadastroPage() {
                   name="Pro"
                   price="R$97/mês"
                   features={['10 profissionais', 'Agendamentos ilimitados', 'Relatórios avançados']}
-                  highlight
+                  highlight={preselectedPlan ? preselectedPlan === 'pro' : true}
                   loading={loading}
                   onChoose={() => handleChoosePlan('pro')}
                 />
@@ -451,5 +483,13 @@ export default function CadastroPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={null}>
+      <CadastroForm />
+    </Suspense>
   )
 }

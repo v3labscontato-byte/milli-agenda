@@ -37,4 +37,10 @@ export const authApi = {
     api.post<{ accessToken: string }>('/api/v1/auth/refresh', { refreshToken }),
 
   logout: () => api.post<void>('/api/v1/auth/logout', {}),
+
+  forgotPassword: (email: string, tenantSlug: string) =>
+    api.post<void>('/api/v1/auth/forgot-password', { email, tenantSlug }),
+
+  resetPassword: (token: string, password: string) =>
+    api.post<void>('/api/v1/auth/reset-password', { token, password }),
 }

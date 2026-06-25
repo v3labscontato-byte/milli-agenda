@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo, useState } from 'react'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL } from '@/lib/profissionais-mock'
@@ -24,9 +24,10 @@ interface Props {
   profissionais: Profissional[]
   isFiltered?: boolean
   onView: (p: Profissional) => void
+  onNovo?: () => void
 }
 
-function ProfissionalList({ profissionais, isFiltered = false, onView }: Props) {
+function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
@@ -49,13 +50,28 @@ function ProfissionalList({ profissionais, isFiltered = false, onView }: Props) 
   }, [profissionais, sortKey, sortDir])
 
   if (sorted.length === 0) {
-    return (
-      <div className="flex h-48 flex-col items-center justify-center gap-2">
-        <p className="text-[14px] font-medium text-[#475569]">
-          {isFiltered ? 'Nenhum profissional encontrado' : 'Nenhum profissional cadastrado'}
-        </p>
-        {isFiltered && (
+    if (isFiltered) {
+      return (
+        <div className="flex h-48 flex-col items-center justify-center gap-2">
+          <p className="text-[14px] font-medium text-[#475569]">Nenhum profissional encontrado</p>
           <p className="text-[12px] text-[#94A3B8]">Tente ajustar os filtros</p>
+        </div>
+      )
+    }
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <UserCheck className="mb-4 h-12 w-12 text-[#CBD5E1]" aria-hidden="true" />
+        <h3 className="text-[14px] font-medium text-[#475569]">Nenhum profissional cadastrado</h3>
+        <p className="mt-1 text-[13px] text-[#94A3B8]">Adicione seu primeiro profissional para começar.</p>
+        {onNovo && (
+          <button
+            type="button"
+            onClick={onNovo}
+            className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
+          >
+            <Plus size={14} aria-hidden="true" />
+            Novo Profissional
+          </button>
         )}
       </div>
     )

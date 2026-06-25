@@ -46,12 +46,15 @@ const EMPTY: FormState = {
 interface NovoProfissionalModalProps {
   open: boolean
   onClose: () => void
+  onCreate?: (payload: unknown) => Promise<void>
 }
 
-export default function NovoProfissionalModal({ open, onClose }: NovoProfissionalModalProps) {
+export default function NovoProfissionalModal({ open, onClose, onCreate }: NovoProfissionalModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => { if (open) setForm(EMPTY) }, [open])
+  useEffect(() => { if (open) { setForm(EMPTY); setSaving(false); setSubmitError(null) } }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -76,10 +79,33 @@ export default function NovoProfissionalModal({ open, onClose }: NovoProfissiona
     }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    console.log('novo profissional', form)
-    onClose()
+    if (!onCreate) { onClose(); return }
+    setSaving(true)
+    setSubmitError(null)
+    const payload = {
+      name: form.nome,
+      role: form.role,
+      email: form.email,
+      phone: form.phone,
+      cpf: form.cpf,
+      birthDate: form.birthDate || null,
+      hireDate: form.hireDate || null,
+      workDays: form.workDays,
+      workStart: form.workStart,
+      workEnd: form.workEnd,
+      commissionPct: Number(form.commissionPct) || 0,
+      bio: form.bio,
+    }
+    try {
+      await onCreate(payload)
+      onClose()
+    } catch {
+      setSubmitError('Erro ao cadastrar profissional. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -233,14 +259,17 @@ export default function NovoProfissionalModal({ open, onClose }: NovoProfissiona
 
         {/* Footer */}
         <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-[#F1F5F9] px-5 py-4">
-          <button type="button" onClick={onClose}
-            className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+          {submitError && (
+            <p className="mr-auto text-[12px] text-[#DC2626]">{submitError}</p>
+          )}
+          <button type="button" onClick={onClose} disabled={saving}
+            className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50">
             Cancelar
           </button>
-          <button type="submit" form="novo-prof-form"
-            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1">
+          <button type="submit" form="novo-prof-form" disabled={saving}
+            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60">
             <UserPlus size={13} aria-hidden="true" />
-            Cadastrar
+            {saving ? 'Cadastrando…' : 'Cadastrar'}
           </button>
         </div>
       </div>

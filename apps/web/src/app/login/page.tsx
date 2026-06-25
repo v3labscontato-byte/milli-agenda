@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { ApiError } from '@/lib/api/client'
+import { authApi } from '@/lib/api/auth'
 
 const INPUT_BASE = [
   'w-full rounded-lg border bg-white px-4 py-3 text-[14px] text-[#0F172A]',
@@ -44,7 +45,16 @@ function LoginForm() {
     setLoading(true)
     try {
       await login(email, password)
-      router.push('/dashboard')
+      try {
+        const status = await authApi.getOnboardingStatus()
+        if (!status.completed) {
+          router.push('/onboarding')
+        } else {
+          router.push('/dashboard')
+        }
+      } catch {
+        router.push('/dashboard')
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setApiError('Credenciais inválidas. Verifique e tente novamente.')

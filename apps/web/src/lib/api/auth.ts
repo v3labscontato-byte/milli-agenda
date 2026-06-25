@@ -43,4 +43,23 @@ export const authApi = {
 
   resetPassword: (token: string, password: string) =>
     api.post<void>('/api/v1/auth/reset-password', { token, password }),
+
+  getOnboardingStatus: () =>
+    api.get<{
+      completed: boolean
+      nichoSlug: string | null
+      hasServices: boolean
+      hasProfessionals: boolean
+      hasCategories: boolean
+      tenant: { name: string; slug: string; plan: string; createdAt: string }
+    }>('/api/v1/auth/onboarding'),
+
+  completeOnboarding: () =>
+    api.post<void>('/api/v1/auth/onboarding/complete', {}),
+
+  selectNicho: (nichoSlug: string) =>
+    api.post<{ categoriesCreated: number; servicesCreated: number; rolesCreated: number; nichoSlug: string }>(
+      '/api/v1/auth/onboarding/nicho',
+      { nichoSlug },
+    ),
 }

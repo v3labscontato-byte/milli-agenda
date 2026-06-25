@@ -301,3 +301,8 @@ _Nenhuma no momento._
 **O que foi feito:** WhatsApp/email/PIX fictícios removidos. Plano real do banco. Trial calculado de trialEndsAt.
 **Backlog:** Integração WhatsApp Business real, SMTP real, Billing/subscription real
 
+
+### [2026-06-25] fix-financeiro — Correção mocks remanescentes
+**Status:** ? Concluído
+**O que foi feito:** Todos os valores hardcoded removidos do caminho real-API. buildRealKpis não espalha mais FINANCEIRO_KPIS (metas/trends zerados). ReceitaChart conectado a cashflow.entries no modo real, com empty/loading/error states; donut de método mostra 'Sem pagamentos no período' (API não fornece método). Zeros reais para tenant sem dados.
+

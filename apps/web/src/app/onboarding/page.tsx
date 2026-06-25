@@ -291,29 +291,33 @@ export default function OnboardingPage() {
         {/* Step 4 — Horários */}
         {step === 4 && (
           <div className="w-full max-w-2xl">
-            <h1 className="mb-2 text-2xl font-bold text-[#0F172A]">Horários de funcionamento</h1>
-            <p className="mb-8 text-[14px] text-[#64748B]">Configure quando seu salão estará aberto para agendamentos.</p>
+            <h1 className="mb-2 text-2xl font-bold text-[#0F172A]">Horário de funcionamento</h1>
+            <p className="mb-8 text-[14px] text-[#64748B]">Para finalizar, configure os horários de atendimento.</p>
             <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="bg-[#F8FAFC]">
+                  <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
                     <th className="px-4 py-3 text-left font-medium text-[#64748B]">Dia</th>
                     <th className="px-4 py-3 text-left font-medium text-[#64748B]">Abertura</th>
+                    <th />
                     <th className="px-4 py-3 text-left font-medium text-[#64748B]">Fechamento</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8F0]">
                   {schedule.map((d, idx) => (
-                    <tr key={d.day} className="bg-white">
+                    <tr
+                      key={d.day}
+                      className={['bg-white transition-opacity duration-150', !d.open ? 'opacity-40' : ''].join(' ')}
+                    >
                       <td className="px-4 py-3">
-                        <label className="flex items-center gap-3 cursor-pointer">
+                        <label className="flex cursor-pointer items-center gap-3">
                           <input
                             type="checkbox"
                             checked={d.open}
                             onChange={() => toggleDay(idx)}
-                            className="h-4 w-4 rounded border-[#E2E8F0] accent-[#2563EB]"
+                            className="h-4 w-4 rounded accent-[#2563EB]"
                           />
-                          <span className={d.open ? 'font-medium text-[#0F172A]' : 'text-[#94A3B8]'}>{d.label}</span>
+                          <span className="font-medium text-[#0F172A]">{d.label}</span>
                         </label>
                       </td>
                       <td className="px-4 py-3">
@@ -321,17 +325,18 @@ export default function OnboardingPage() {
                           value={d.start}
                           onChange={(e) => updateTime(idx, 'start', e.target.value)}
                           disabled={!d.open}
-                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
                         >
                           {OPEN_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
                       </td>
+                      <td className="px-2 py-3 text-center text-[12px] text-[#94A3B8]">às</td>
                       <td className="px-4 py-3">
                         <select
                           value={d.end}
                           onChange={(e) => updateTime(idx, 'end', e.target.value)}
                           disabled={!d.open}
-                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
                         >
                           {CLOSE_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -346,6 +351,13 @@ export default function OnboardingPage() {
               className="mt-8 w-full rounded-lg bg-[#2563EB] py-3 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
             >
               Continuar
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(5)}
+              className="mt-3 w-full rounded text-center text-[13px] text-[#64748B] transition-colors duration-150 hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            >
+              Pular
             </button>
           </div>
         )}

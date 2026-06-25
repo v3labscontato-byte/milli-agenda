@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { Search, Plus, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Search, Plus, X, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type Cliente, type ClientTag } from '@/lib/clientes-mock'
 import { useClientes } from '@/hooks/use-clientes'
@@ -46,7 +46,29 @@ export default function ClientesPage() {
   const [selectedCliente, setSelected]  = useState<Cliente | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
-  const { data: clientes, loading, error } = useClientes()
+  const { data: clientes, loading, error, create, remove } = useClientes()
+  const [toast, setToast] = useState<string | null>(null)
+
+  async function handleDelete(id: string) {
+    try {
+      await remove(id)
+      setSelected(null)
+      setToast('Cliente excluído com sucesso.')
+    } catch (e) {
+      const status = (e as { status?: number })?.status
+      setToast(
+        status === 409
+          ? 'Cliente possui agendamentos e não pode ser excluído'
+          : 'Não foi possível excluir o cliente.',
+      )
+    }
+  }
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   const stats = useMemo(() => {
     const total = clientes.length
@@ -206,24 +228,52 @@ export default function ClientesPage() {
         </div>
       </div>
 
-      {/* ── Table ── */}
+      {/* ── Table / Empty ── */}
       <div className="flex-1 overflow-auto bg-white">
-        <ClienteList
-          clientes={filtered}
-          isFiltered={isFiltered}
-          onView={setSelected}
-        />
+        {clientes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Users className="mb-4 h-12 w-12 text-[#CBD5E1]" aria-hidden="true" />
+            <h3 className="text-[14px] font-medium text-[#475569]">Nenhum cliente cadastrado</h3>
+            <p className="mt-1 text-[12px] text-[#94A3B8]">Cadastre seu primeiro cliente para começar.</p>
+            <button
+              type="button"
+              onClick={() => setNovoOpen(true)}
+              className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            >
+              <Plus size={14} aria-hidden="true" />
+              Novo Cliente
+            </button>
+          </div>
+        ) : (
+          <ClienteList
+            clientes={filtered}
+            isFiltered={isFiltered}
+            onView={setSelected}
+          />
+        )}
       </div>
 
       {/* ── Modals ── */}
       <ClienteModal
         cliente={selectedCliente}
         onClose={() => setSelected(null)}
+        onDelete={handleDelete}
       />
       <NovoClienteModal
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
+        onCreate={create}
       />
+
+      {/* ── Toast ── */}
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-lg bg-[#0F172A] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg"
+        >
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

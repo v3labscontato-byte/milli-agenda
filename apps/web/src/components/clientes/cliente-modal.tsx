@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Phone, Mail, CreditCard, Calendar, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Phone, Mail, CreditCard, Calendar, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Cliente, VisitHistory, UpcomingAppt } from '@/lib/clientes-mock'
 import { formatDate, age, clienteSinceLabel } from '@/lib/clientes-mock'
@@ -321,13 +321,16 @@ function TabFinanceiro({ c }: { c: Cliente }) {
 interface ClienteModalProps {
   cliente: Cliente | null
   onClose: () => void
+  onDelete?: (id: string) => Promise<void>
 }
 
-export default function ClienteModal({ cliente, onClose }: ClienteModalProps) {
+export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModalProps) {
   const [tab, setTab] = useState<Tab>('perfil')
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    if (cliente) setTab('perfil')
+    if (cliente) { setTab('perfil'); setConfirming(false); setDeleting(false) }
   }, [cliente?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -363,6 +366,42 @@ export default function ClienteModal({ cliente, onClose }: ClienteModalProps) {
             </div>
             <p className="text-[12px] text-[#94A3B8]">{cliente.email} · {cliente.phone}</p>
           </div>
+          {onDelete && (
+            confirming ? (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span className="text-[12px] text-[#475569]">Excluir?</span>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={async () => {
+                    setDeleting(true)
+                    try { await onDelete(cliente.id) }
+                    finally { setDeleting(false); setConfirming(false) }
+                  }}
+                  className="rounded-md bg-[#DC2626] px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#B91C1C] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                >
+                  {deleting ? 'Excluindo…' : 'Confirmar'}
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => setConfirming(false)}
+                  className="rounded-md border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming(true)}
+                aria-label="Excluir cliente"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              >
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
+            )
+          )}
           <button
             type="button"
             onClick={onClose}

@@ -21,6 +21,9 @@ export const clientesApi = {
   update: (id: string, data: unknown) =>
     api.patch(`/api/v1/clients/${id}`, data),
 
+  delete: (id: string) =>
+    api.delete(`/api/v1/clients/${id}`),
+
   history: (id: string) =>
     api.get(`/api/v1/clients/${id}/history`),
 }

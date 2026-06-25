@@ -16,6 +16,15 @@ const INPUT = cn(
 interface NovoClienteModalProps {
   open: boolean
   onClose: () => void
+  onCreate?: (payload: {
+    name: string
+    phone: string
+    email: string
+    cpf: string
+    birthDate: string
+    favoriteProfessional: string
+    notes: string
+  }) => Promise<void>
 }
 
 interface FormState {
@@ -33,11 +42,13 @@ const EMPTY: FormState = {
   nascimento: '', profissional: '', observacoes: '',
 }
 
-export default function NovoClienteModal({ open, onClose }: NovoClienteModalProps) {
+export default function NovoClienteModal({ open, onClose, onCreate }: NovoClienteModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) setForm(EMPTY)
+    if (open) { setForm(EMPTY); setSaving(false); setError(null) }
   }, [open])
 
   useEffect(() => {
@@ -54,10 +65,28 @@ export default function NovoClienteModal({ open, onClose }: NovoClienteModalProp
       setForm((f) => ({ ...f, [field]: e.target.value }))
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    console.log('novo cliente', form)
-    onClose()
+    if (saving) return
+    setError(null)
+    if (!onCreate) { onClose(); return }
+    setSaving(true)
+    try {
+      await onCreate({
+        name: form.nome.trim(),
+        phone: form.telefone.trim(),
+        email: form.email.trim(),
+        cpf: form.cpf.trim(),
+        birthDate: form.nascimento,
+        favoriteProfessional: form.profissional,
+        notes: form.observacoes.trim(),
+      })
+      onClose()
+    } catch {
+      setError('Não foi possível cadastrar o cliente. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -194,27 +223,38 @@ export default function NovoClienteModal({ open, onClose }: NovoClienteModalProp
             </div>
           </div>
 
+          {/* Error */}
+          {error && (
+            <p className="mt-4 rounded-md bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium text-[#DC2626]" role="alert">
+              {error}
+            </p>
+          )}
+
           {/* Actions */}
           <div className="mt-5 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
+              disabled={saving}
               className={cn(
                 'rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569]',
                 'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                'disabled:opacity-50',
               )}
             >
               Cancelar
             </button>
             <button
               type="submit"
+              disabled={saving}
               className={cn(
                 'flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white',
                 'transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
+                'disabled:opacity-60',
               )}
             >
               <UserPlus size={13} aria-hidden="true" />
-              Cadastrar cliente
+              {saving ? 'Cadastrando…' : 'Cadastrar cliente'}
             </button>
           </div>
         </form>

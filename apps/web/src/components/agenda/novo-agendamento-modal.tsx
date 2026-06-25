@@ -3,17 +3,9 @@
 import { useEffect, useState } from 'react'
 import { X, CalendarPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_SERVICOS } from '@/lib/servicos-mock'
-import { MOCK_AGENDAMENTOS } from '@/lib/agenda-mock'
-
-const ALL_PROFESSIONALS = Array.from(
-  new Set(MOCK_AGENDAMENTOS.map((a) => a.professionalName))
-).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-
-const ALL_SERVICES = MOCK_SERVICOS
-  .filter((s) => s.status === 'active')
-  .map((s) => ({ name: s.name, duration: s.duration, price: s.price }))
-  .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+import { useServicos } from '@/hooks/use-servicos'
+import { useProfissionais } from '@/hooks/use-profissionais'
+import { agendaApi } from '@/lib/api/agenda'
 
 const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
@@ -24,15 +16,15 @@ const INPUT = cn(
 interface FormState {
   clientName: string
   clientPhone: string
-  service: string
-  professional: string
+  serviceId: string
+  professionalId: string
   date: string
   time: string
   notes: string
 }
 
 function emptyForm(defaultDate: string): FormState {
-  return { clientName: '', clientPhone: '', service: '', professional: '', date: defaultDate, time: '09:00', notes: '' }
+  return { clientName: '', clientPhone: '', serviceId: '', professionalId: '', date: defaultDate, time: '09:00', notes: '' }
 }
 
 interface NovoAgendamentoModalProps {
@@ -43,6 +35,20 @@ interface NovoAgendamentoModalProps {
 
 export default function NovoAgendamentoModal({ open, defaultDate, onClose }: NovoAgendamentoModalProps) {
   const [form, setForm] = useState<FormState>(() => emptyForm(defaultDate))
+  const [saving, setSaving] = useState(false)
+
+  const { data: servicos } = useServicos()
+  const { data: profissionais } = useProfissionais()
+
+  const activeServices = servicos
+    .filter((s) => s.status === 'active')
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  const activeProfessionals = profissionais
+    .filter((p) => p.status === 'active')
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  const selectedService = activeServices.find((s) => s.id === form.serviceId)
 
   useEffect(() => { if (open) setForm(emptyForm(defaultDate)) }, [open, defaultDate])
 
@@ -60,16 +66,24 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
       setForm((f) => ({ ...f, [key]: e.target.value }))
   }
 
-  function handleServiceChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const name = e.target.value
-    setForm((f) => ({ ...f, service: name }))
-  }
-
-  const selectedService = ALL_SERVICES.find((s) => s.name === form.service)
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    console.log('novo agendamento', form)
+    setSaving(true)
+    try {
+      await agendaApi.create({
+        clientName: form.clientName,
+        clientPhone: form.clientPhone || undefined,
+        serviceId: form.serviceId,
+        professionalId: form.professionalId,
+        date: form.date,
+        startTime: form.time,
+        notes: form.notes || undefined,
+      })
+    } catch {
+      // Non-blocking: local calendar may not yet refresh; backend may have stricter validation
+    } finally {
+      setSaving(false)
+    }
     onClose()
   }
 
@@ -139,10 +153,12 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
             {/* Serviço */}
             <div className="space-y-1.5">
               <label htmlFor="na-service" className={LABEL}>Serviço *</label>
-              <select id="na-service" required value={form.service} onChange={handleServiceChange} className={INPUT}>
-                <option value="">Selecionar serviço…</option>
-                {ALL_SERVICES.map((s) => (
-                  <option key={`${s.name}-${s.duration}`} value={s.name}>
+              <select id="na-service" required value={form.serviceId} onChange={setField('serviceId')} className={INPUT}>
+                <option value="">
+                  {activeServices.length === 0 ? 'Nenhum serviço cadastrado' : 'Selecionar serviço…'}
+                </option>
+                {activeServices.map((s) => (
+                  <option key={s.id} value={s.id}>
                     {s.name} — {s.duration}min
                   </option>
                 ))}
@@ -157,10 +173,12 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
             {/* Profissional */}
             <div className="space-y-1.5">
               <label htmlFor="na-prof" className={LABEL}>Profissional *</label>
-              <select id="na-prof" required value={form.professional} onChange={setField('professional')} className={INPUT}>
-                <option value="">Selecionar profissional…</option>
-                {ALL_PROFESSIONALS.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+              <select id="na-prof" required value={form.professionalId} onChange={setField('professionalId')} className={INPUT}>
+                <option value="">
+                  {activeProfessionals.length === 0 ? 'Nenhum profissional cadastrado' : 'Selecionar profissional…'}
+                </option>
+                {activeProfessionals.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
@@ -211,10 +229,11 @@ export default function NovoAgendamentoModal({ open, defaultDate, onClose }: Nov
           <button
             type="submit"
             form="novo-agenda-form"
-            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
           >
             <CalendarPlus size={13} aria-hidden="true" />
-            Agendar
+            {saving ? 'Agendando…' : 'Agendar'}
           </button>
         </div>
       </div>

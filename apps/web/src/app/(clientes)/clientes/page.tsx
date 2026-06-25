@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Search, Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { kpiStats, type Cliente, type ClientTag } from '@/lib/clientes-mock'
+import { type Cliente, type ClientTag } from '@/lib/clientes-mock'
 import { useClientes } from '@/hooks/use-clientes'
 import ClienteList from '@/components/clientes/cliente-list'
 import ClienteModal from '@/components/clientes/cliente-modal'
@@ -48,7 +48,15 @@ export default function ClientesPage() {
 
   const { data: clientes, loading, error } = useClientes()
 
-  const stats = useMemo(() => kpiStats(clientes), [clientes])
+  const stats = useMemo(() => {
+    const total = clientes.length
+    const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30)
+    const novos = clientes.filter((c) => new Date(c.clienteSince) >= thirtyAgo).length
+    const returners = clientes.filter((c) => c.visitCount > 1).length
+    const retorno = total > 0 ? Math.round((returners / total) * 100) : 0
+    const avgTicket = total > 0 ? Math.round(clientes.reduce((s, c) => s + c.avgTicket, 0) / total) : 0
+    return { total, novos, retorno, avgTicket }
+  }, [clientes])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

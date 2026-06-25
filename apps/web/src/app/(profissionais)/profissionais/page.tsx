@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { Search, Plus, X, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  kpiStats,
   formatBRL,
   type Profissional,
   type ProfissionalRole,
@@ -75,7 +74,20 @@ export default function ProfissionaisPage() {
   const [novoOpen, setNovoOpen]       = useState(false)
 
   const { data: profissionais, loading, error } = useProfissionais()
-  const stats = useMemo(() => kpiStats(profissionais), [profissionais])
+  const stats = useMemo(() => {
+    const todayDay = new Date().getDay()
+    const ativos = profissionais.filter((p) => p.status === 'active')
+    const ativosHoje = ativos.filter((p) => p.workDays.includes(todayDay))
+    const faturamento = profissionais.reduce((s, p) => s + p.revenueThisMonth, 0)
+    const totalRating = profissionais.reduce((s, p) => s + p.rating * p.ratingCount, 0)
+    const totalRatingCount = profissionais.reduce((s, p) => s + p.ratingCount, 0)
+    return {
+      total: profissionais.length,
+      ativosHoje: ativosHoje.length,
+      faturamentoMes: faturamento,
+      avgRating: totalRatingCount > 0 ? Math.round((totalRating / totalRatingCount) * 10) / 10 : 0,
+    }
+  }, [profissionais])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

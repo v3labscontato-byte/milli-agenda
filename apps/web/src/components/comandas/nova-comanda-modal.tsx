@@ -3,17 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X, ReceiptText } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_SERVICOS } from '@/lib/servicos-mock'
-
-const PROFESSIONALS = [
-  'Lena Santos', 'João Ferreira', 'Lisa Kim', 'Ana Costa',
-  'Carlos Mendes', 'Rafaela Oliveira', 'Bruno Alves', 'Mariana Ribeiro',
-]
-
-const ACTIVE_SERVICES = MOCK_SERVICOS
-  .filter((s) => s.status === 'active')
-  .map((s) => ({ name: s.name, duration: s.duration, price: s.price }))
-  .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+import { useServicos } from '@/hooks/use-servicos'
+import { useProfissionais } from '@/hooks/use-profissionais'
 
 const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
@@ -24,22 +15,24 @@ const INPUT = cn(
 interface FormState {
   clientName: string
   clientPhone: string
-  service: string
-  professional: string
+  serviceId: string
+  professionalId: string
   startTime: string
 }
 
 const EMPTY: FormState = {
-  clientName: '', clientPhone: '', service: '', professional: '', startTime: '',
+  clientName: '', clientPhone: '', serviceId: '', professionalId: '', startTime: '',
 }
 
 export interface NovaComandaData {
   clientName: string
   clientPhone: string
   service: string
+  serviceId: string
   serviceDuration: number
   serviceValue: number
   professional: string
+  professionalId: string
   startTime: string
 }
 
@@ -51,6 +44,20 @@ interface NovaComandaModalProps {
 
 export default function NovaComandaModal({ open, onClose, onCreate }: NovaComandaModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY)
+
+  const { data: servicos } = useServicos()
+  const { data: profissionais } = useProfissionais()
+
+  const activeServices = servicos
+    .filter((s) => s.status === 'active')
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  const activeProfessionals = profissionais
+    .filter((p) => p.status === 'active')
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+
+  const selectedService = activeServices.find((s) => s.id === form.serviceId)
+  const selectedProfessional = activeProfessionals.find((p) => p.id === form.professionalId)
 
   useEffect(() => { if (open) setForm(EMPTY) }, [open])
 
@@ -68,19 +75,19 @@ export default function NovaComandaModal({ open, onClose, onCreate }: NovaComand
       setForm((f) => ({ ...f, [key]: e.target.value }))
   }
 
-  const selectedService = ACTIVE_SERVICES.find((s) => s.name === form.service)
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedService) return
     onCreate({
-      clientName:       form.clientName,
-      clientPhone:      form.clientPhone,
-      service:          form.service,
-      serviceDuration:  selectedService.duration,
-      serviceValue:     selectedService.price,
-      professional:     form.professional,
-      startTime:        form.startTime || '09:00',
+      clientName:      form.clientName,
+      clientPhone:     form.clientPhone,
+      service:         selectedService.name,
+      serviceId:       form.serviceId,
+      serviceDuration: selectedService.duration,
+      serviceValue:    selectedService.price,
+      professional:    selectedProfessional?.name ?? '',
+      professionalId:  form.professionalId,
+      startTime:       form.startTime || '09:00',
     })
     onClose()
   }
@@ -150,10 +157,12 @@ export default function NovaComandaModal({ open, onClose, onCreate }: NovaComand
             {/* Serviço */}
             <div className="space-y-1.5">
               <label htmlFor="nc-service" className={LABEL}>Serviço *</label>
-              <select id="nc-service" required value={form.service} onChange={setField('service')} className={INPUT}>
-                <option value="">Selecionar serviço…</option>
-                {ACTIVE_SERVICES.map((s) => (
-                  <option key={s.name} value={s.name}>
+              <select id="nc-service" required value={form.serviceId} onChange={setField('serviceId')} className={INPUT}>
+                <option value="">
+                  {activeServices.length === 0 ? 'Nenhum serviço cadastrado' : 'Selecionar serviço…'}
+                </option>
+                {activeServices.map((s) => (
+                  <option key={s.id} value={s.id}>
                     {s.name} — {s.duration}min · R$ {s.price.toFixed(2).replace('.', ',')}
                   </option>
                 ))}
@@ -164,9 +173,13 @@ export default function NovaComandaModal({ open, onClose, onCreate }: NovaComand
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label htmlFor="nc-prof" className={LABEL}>Profissional *</label>
-                <select id="nc-prof" required value={form.professional} onChange={setField('professional')} className={INPUT}>
-                  <option value="">Selecionar…</option>
-                  {PROFESSIONALS.map((p) => <option key={p} value={p}>{p}</option>)}
+                <select id="nc-prof" required value={form.professionalId} onChange={setField('professionalId')} className={INPUT}>
+                  <option value="">
+                    {activeProfessionals.length === 0 ? 'Nenhum profissional cadastrado' : 'Selecionar…'}
+                  </option>
+                  {activeProfessionals.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-1.5">

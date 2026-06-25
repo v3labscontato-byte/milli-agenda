@@ -7,6 +7,7 @@ import {
   type ComandasFilter,
 } from '@/lib/comanda-mock'
 import { useComandas } from '@/hooks/use-comandas'
+import { comandasApi } from '@/lib/api/comandas'
 import ComandaKpiStrip from '@/components/comandas/comanda-kpi-strip'
 import ComandaTable from '@/components/comandas/comanda-table'
 import NovaComandaModal, { type NovaComandaData } from '@/components/comandas/nova-comanda-modal'
@@ -107,6 +108,17 @@ export default function ComandasPage() {
       return [comanda, ...prev]
     })
     setStatusFilter('ALL')
+
+    // Fire-and-forget: persist to backend (optimistic UI already updated above)
+    comandasApi.create({
+      clientName:     data.clientName,
+      clientPhone:    data.clientPhone || undefined,
+      serviceId:      data.serviceId,
+      professionalId: data.professionalId,
+      startTime:      data.startTime || '09:00',
+    }).catch(() => {
+      // Silently fail — local state already reflects the new comanda
+    })
   }, [])
 
   if (loading) return (

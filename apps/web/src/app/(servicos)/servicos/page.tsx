@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { Search, Plus, X, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  kpiStats,
   formatBRL,
   type Servico,
   type ServicoCategory,
@@ -67,7 +66,18 @@ export default function ServicosPage() {
   const [novoOpen, setNovoOpen]         = useState(false)
 
   const { data: servicos, loading, error } = useServicos()
-  const stats = useMemo(() => kpiStats(servicos), [servicos])
+  const stats = useMemo(() => {
+    const ativos = servicos.filter((s) => s.status === 'active')
+    const precos = ativos.map((s) => s.price)
+    const avgPrice = precos.length > 0 ? precos.reduce((a, b) => a + b, 0) / precos.length : 0
+    const top = [...servicos].sort((a, b) => b.bookingsThisMonth - a.bookingsThisMonth)[0]
+    return {
+      total: servicos.length,
+      ativos: ativos.length,
+      avgPrice: Math.round(avgPrice * 100) / 100,
+      topServico: top ?? null,
+    }
+  }, [servicos])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

@@ -1,30 +1,34 @@
 import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify'
-import { AppModule } from './app.module'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    new FastifyAdapter(),
   )
 
+  app.setGlobalPrefix('api/v1')
   app.enableCors({
-    origin: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
-    credentials: true,
+    origin: process.env.CORS_ORIGIN || '*',
   })
 
   const fastify = app.getHttpAdapter().getInstance()
-  fastify.get('/api/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
-
-  app.setGlobalPrefix('api/v1')
+  fastify.get('/api/health', async () => ({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  }))
 
   const port = Number(process.env.PORT ?? process.env.API_PORT) || 3001
-  const host = process.env.API_HOST ?? '0.0.0.0'
 
-  await app.listen(port, host)
+  await app.listen(port, '0.0.0.0')
+  console.log(`API rodando na porta ${port}`)
 }
 
-bootstrap()
+bootstrap().catch((err) => {
+  console.error('Erro ao iniciar:', err)
+  process.exit(1)
+})

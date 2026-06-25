@@ -22,6 +22,7 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/packages ./packages
 EXPOSE 3001
 CMD ["node", "dist/main"]

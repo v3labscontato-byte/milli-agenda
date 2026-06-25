@@ -314,3 +314,10 @@ _Nenhuma no momento._
 **Modelos:** Sonnet para Auth/Financeiro/Infra/Booking, Haiku para os demais. ~70% economia estimada ?
 **Pendente:** NEXT_PUBLIC_USE_REAL_API=true deve estar setado no Railway frontend para ativar os guards em produção
 
+
+### [2026-06-25] ORCHESTRATOR â€” Fase 1: Base do Onboarding Inteligente
+**Status:** Em andamento
+**Tarefas:**
+- Agent 1 (INFRA): Template Engine + seed de nichos
+- Agent 2 (PROFISSIONAIS): CRUD de Tipos de Profissionais
+- Agent 3 (SERVICOS): CRUD de Categorias de Servicos

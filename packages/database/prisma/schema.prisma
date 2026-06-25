@@ -73,16 +73,20 @@ model Tenant {
   phone       String?
   email       String?
   logoUrl     String?
-  active      Boolean   @default(true)
-  trialEndsAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  active               Boolean   @default(true)
+  trialEndsAt          DateTime?
+  onboardingCompleted  Boolean   @default(false)
+  nichoSlug            String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  users         User[]
-  roles         Role[]
-  professionals Professional[]
-  services      Service[]
-  clients       Client[]
+  users               User[]
+  roles               Role[]
+  professionals       Professional[]
+  services            Service[]
+  clients             Client[]
+  professionalRoles   ProfessionalRole[]
+  serviceCategories   ServiceCategory[]
   appointments  Appointment[]
   commands      Command[]
   payments      Payment[]
@@ -194,6 +198,7 @@ model Professional {
 model Service {
   id          String   @id @default(cuid())
   tenantId    String
+  categoryId  String?
   name        String
   description String?
   durationMin Int
@@ -202,7 +207,8 @@ model Service {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category     ServiceCategory? @relation(fields: [categoryId], references: [id])
   appointments Appointment[]
   commandItems CommandItem[]
 
@@ -404,4 +410,94 @@ model PasswordResetToken {
 
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+// ─── Onboarding / Template Engine ────────────────────────────────────────────
+
+model NichoTemplate {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  icon        String
+  description String?
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  roles      NichoTemplateRole[]
+  categories NichoTemplateCategory[]
+  services   NichoTemplateService[]
+
+  @@map("nicho_templates")
+}
+
+model NichoTemplateRole {
+  id      String        @id @default(cuid())
+  nichoId String
+  name    String
+  order   Int           @default(0)
+  nicho   NichoTemplate @relation(fields: [nichoId], references: [id], onDelete: Cascade)
+
+  @@map("nicho_template_roles")
+}
+
+model NichoTemplateCategory {
+  id      String        @id @default(cuid())
+  nichoId String
+  name    String
+  color   String        @default("#2563EB")
+  order   Int           @default(0)
+  nicho   NichoTemplate @relation(fields: [nichoId], references: [id], onDelete: Cascade)
+  services NichoTemplateService[]
+
+  @@map("nicho_template_categories")
+}
+
+model NichoTemplateService {
+  id         String                 @id @default(cuid())
+  nichoId    String
+  categoryId String?
+  name       String
+  duration   Int                    @default(60)
+  price      Decimal                @default(0) @db.Decimal(10, 2)
+  order      Int                    @default(0)
+  nicho      NichoTemplate          @relation(fields: [nichoId], references: [id], onDelete: Cascade)
+  category   NichoTemplateCategory? @relation(fields: [categoryId], references: [id])
+
+  @@map("nicho_template_services")
+}
+
+// ─── Tenant-level configurable types ─────────────────────────────────────────
+
+model ProfessionalRole {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  status      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("professional_roles")
+}
+
+model ServiceCategory {
+  id        String    @id @default(cuid())
+  tenantId  String
+  name      String
+  color     String    @default("#2563EB")
+  order     Int       @default(0)
+  status    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  services Service[]
+
+  @@index([tenantId])
+  @@map("service_categories")
 }

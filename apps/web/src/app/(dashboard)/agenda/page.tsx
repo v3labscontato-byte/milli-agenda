@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { startOfWeek } from 'date-fns'
+import { startOfWeek, format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import {
   getAppointmentsForDate,
@@ -211,7 +212,7 @@ export default function AgendaPage() {
             aria-label="Remover filtro de profissional"
             className="flex items-center gap-1 rounded-full bg-[#EFF6FF] px-2.5 py-0.5 text-[12px] font-medium text-[#2563EB] hover:bg-[#DBEAFE]"
           >
-            {filterProfId}
+            {calendarProfessionals.find((p) => p.id === filterProfId)?.name ?? filterProfId}
             <span aria-hidden="true" className="ml-0.5 opacity-60">×</span>
           </button>
         )}
@@ -244,7 +245,10 @@ export default function AgendaPage() {
         <div className="flex-1 overflow-auto">
           {filtered.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-16 text-center text-slate-400">
-              <p className="font-medium text-slate-600">Nenhum agendamento para hoje</p>
+              <p className="font-medium text-slate-600">
+                Nenhum agendamento para {format(selectedDate, "d 'de' MMMM", { locale: ptBR })}
+                {filterProfId && ` · ${calendarProfessionals.find(p => p.id === filterProfId)?.name ?? ''}`}
+              </p>
               <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
             </div>
           ) : (

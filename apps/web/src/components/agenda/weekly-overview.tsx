@@ -65,9 +65,10 @@ function occupancyColor(pct: number): string {
 interface DayCellProps {
   avail: DayAvailability
   onClick?: () => void
+  isPast?: boolean
 }
 
-function DayCell({ avail, onClick }: DayCellProps) {
+function DayCell({ avail, onClick, isPast }: DayCellProps) {
   const { state, booked, total } = avail
   const pct = total > 0 ? Math.round((booked / total) * 100) : 0
 
@@ -107,6 +108,19 @@ function DayCell({ avail, onClick }: DayCellProps) {
   // disponivel
   const free = total - booked
   const color = occupancyColor(pct)
+
+  if (isPast) {
+    return (
+      <td className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top">
+        <div className="flex h-full w-full flex-col items-start px-3 py-3">
+          {booked > 0
+            ? <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
+            : <span className="text-[12px] text-[#CBD5E1]">—</span>
+          }
+        </div>
+      </td>
+    )
+  }
 
   return (
     <td className="relative border-b border-r border-[#F1F5F9] bg-white align-top transition-colors hover:bg-[#EFF6FF]">
@@ -174,6 +188,9 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
       </div>
     )
   }
+
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
   return (
     <div className="flex flex-col">
@@ -310,8 +327,9 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                     <DayCell
                       key={day.toISOString()}
                       avail={avail}
+                      isPast={day < todayStart}
                       onClick={
-                        avail.state !== 'folga'
+                        avail.state !== 'folga' && day >= todayStart
                           ? () => onDaySelect(prof.id, day)
                           : undefined
                       }

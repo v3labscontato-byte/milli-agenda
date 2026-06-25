@@ -1,4 +1,5 @@
 FROM node:20-alpine AS base
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 FROM base AS deps
@@ -20,9 +21,11 @@ RUN cd apps/api && npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/packages ./packages
 EXPOSE 3001
 CMD ["node", "dist/main"]

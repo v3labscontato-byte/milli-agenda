@@ -40,9 +40,10 @@ interface NovaComandaModalProps {
   open: boolean
   onClose: () => void
   onCreate: (data: NovaComandaData) => void
+  prefill?: Partial<NovaComandaData>
 }
 
-export default function NovaComandaModal({ open, onClose, onCreate }: NovaComandaModalProps) {
+export default function NovaComandaModal({ open, onClose, onCreate, prefill }: NovaComandaModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY)
 
   const { data: servicos } = useServicos()
@@ -59,7 +60,20 @@ export default function NovaComandaModal({ open, onClose, onCreate }: NovaComand
   const selectedService = activeServices.find((s) => s.id === form.serviceId)
   const selectedProfessional = activeProfessionals.find((p) => p.id === form.professionalId)
 
-  useEffect(() => { if (open) setForm(EMPTY) }, [open])
+  useEffect(() => {
+    if (!open) return
+    if (prefill?.serviceId && prefill?.professionalId) {
+      setForm({
+        clientName: prefill.clientName || '',
+        clientPhone: prefill.clientPhone || '',
+        serviceId: prefill.serviceId,
+        professionalId: prefill.professionalId,
+        startTime: prefill.startTime || '',
+      })
+    } else {
+      setForm(EMPTY)
+    }
+  }, [open, prefill])
 
   useEffect(() => {
     if (!open) return

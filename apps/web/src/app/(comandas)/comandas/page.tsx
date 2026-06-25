@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   nextNumber,
   type Comanda,
@@ -9,6 +10,7 @@ import {
 import { useComandas } from '@/hooks/use-comandas'
 import { comandasApi } from '@/lib/api/comandas'
 import { pagamentosApi } from '@/lib/api/pagamentos'
+import { agendaApi } from '@/lib/api/agenda'
 import { FEATURES } from '@/lib/features'
 import ComandaKpiStrip from '@/components/comandas/comanda-kpi-strip'
 import ComandaTable from '@/components/comandas/comanda-table'
@@ -36,17 +38,42 @@ const FILTER_PILLS: { label: string; value: ComandasFilter }[] = [
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComandasPage() {
+  const searchParams = useSearchParams()
+  const appointmentId = searchParams?.get('appointmentId')
+
   const { data: initialComandas, loading, error, refetch } = useComandas()
   const [comandas, setComandas]         = useState<Comanda[]>(initialComandas)
   const [statusFilter, setStatusFilter] = useState<ComandasFilter>('ALL')
   const [searchQuery, setSearchQuery]   = useState('')
   const [openId, setOpenId]             = useState<string | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
+  const [prefillData, setPrefillData]   = useState<Partial<NovaComandaData> | null>(null)
 
   // In real-API mode the hook is the source of truth — mirror it (incl. after refetch).
   useEffect(() => {
     if (FEATURES.realComandas) setComandas(initialComandas)
   }, [initialComandas])
+
+  // Handle appointmentId from URL to prefill nova comanda
+  useEffect(() => {
+    if (!appointmentId) return
+    agendaApi.get(appointmentId)
+      .then((appt: any) => {
+        setPrefillData({
+          clientName: appt.client?.name || '',
+          clientPhone: appt.client?.phone || '',
+          professionalId: appt.professional?.id || '',
+          professional: appt.professional?.name || '',
+          serviceId: appt.service?.id || '',
+          service: appt.service?.name || '',
+          serviceValue: Number(appt.service?.price ?? 0),
+          serviceDuration: appt.service?.durationMin || 60,
+          startTime: appt.startAt ? new Date(appt.startAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '09:00',
+        })
+        setNovoOpen(true)
+      })
+      .catch(() => { /* silent fail */ })
+  }, [appointmentId])
 
   const openComanda = useMemo(
     () => comandas.find((c) => c.id === openId) ?? null,
@@ -241,6 +268,7 @@ export default function ComandasPage() {
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
         onCreate={handleCreate}
+        prefill={prefillData ?? undefined}
       />
 
       {/* ── Payment modal ── */}

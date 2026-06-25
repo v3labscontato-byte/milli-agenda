@@ -8,6 +8,7 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/utils'
 import type { WeeklyRevenue, MetodoDistrib, FaturamentoMensal } from '@/lib/financeiro-mock'
+import type { CashflowResponse } from '@/hooks/use-relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -19,6 +20,7 @@ interface DailyEntry { date: string; value: number; isWeekend?: boolean; isToday
 
 const META_DIARIA = 800
 
+// Mock-mode sample for the daily chart (only used when realRelatorios is off).
 const DAILY_DATA: DailyEntry[] = [
   { date:'11/06', value:720,  isWeekend:false },
   { date:'12/06', value:850,  isWeekend:false },
@@ -115,6 +117,66 @@ function Skeleton() {
   )
 }
 
+// ─── Real-data charts ─────────────────────────────────────────────────────────
+
+interface RealChartsProps {
+  dailyData: DailyEntry[]
+  prefersReduced: boolean
+}
+
+function RealCharts({ dailyData, prefersReduced }: RealChartsProps) {
+  const withValue = dailyData.filter((d) => d.value > 0)
+  const avgDiario = withValue.length
+    ? Math.round(withValue.reduce((s, d) => s + d.value, 0) / withValue.length)
+    : 0
+
+  return (
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      {/* Daily revenue chart from cashflow entradas */}
+      <div className="lg:col-span-2 rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="flex items-start justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">Faturamento Diário</h3>
+            <p className="mt-0.5 text-[12px] text-[#475569]">Entradas por dia no período</p>
+          </div>
+          {avgDiario > 0 && (
+            <span className="rounded-sm bg-[#FFFBEB] px-2.5 py-1 text-[11px] font-medium text-[#D97706]">
+              Média {fmtBRL(avgDiario)}/dia
+            </span>
+          )}
+        </div>
+        <div className="px-5 pb-4 pt-5">
+          <ResponsiveContainer width="100%" height={220}>
+            <ComposedChart data={dailyData} barCategoryGap="20%">
+              <CartesianGrid vertical={false} stroke="#F1F5F9" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={44}
+                tickFormatter={(v: number) => `R$${v}`} />
+              <Tooltip content={<DailyTooltip />} cursor={{ fill: '#F8FAFC' }} />
+              <Bar dataKey="value" radius={[3, 3, 0, 0]} isAnimationActive={!prefersReduced}>
+                {dailyData.map((d, i) => (
+                  <Cell key={i} fill={d.value === 0 ? '#F1F5F9' : '#2563EB'} />
+                ))}
+              </Bar>
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Method distribution — no API data yet */}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Por Método</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">Distribuição do período</p>
+        </div>
+        <div className="flex items-center justify-center px-5 py-12">
+          <p className="text-[13px] text-[#64748B]">Sem pagamentos no período.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const MONTHLY_SERIES = [
@@ -124,14 +186,21 @@ const MONTHLY_SERIES = [
 ] as const
 
 interface ReceitaChartProps {
-  weeklyData: WeeklyRevenue[]
-  metodoData: MetodoDistrib[]
-  monthlyData: FaturamentoMensal[]
+  weeklyData?: WeeklyRevenue[]
+  metodoData?: MetodoDistrib[]
+  monthlyData?: FaturamentoMensal[]
+  realCashflow?: CashflowResponse | null
+  loading?: boolean
+  error?: string | null
 }
 
 const META_SEMANAL = 4000
 
-export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: ReceitaChartProps) {
+export default function ReceitaChart({
+  weeklyData = [], metodoData = [], monthlyData = [],
+  realCashflow, loading, error,
+}: ReceitaChartProps) {
+  const isReal = realCashflow !== undefined
   const [mounted, setMounted] = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
   const [monthlyChartType, setMonthlyChartType] = useState<'bar' | 'area'>('bar')
@@ -144,6 +213,24 @@ export default function ReceitaChart({ weeklyData, metodoData, monthlyData }: Re
     mq.addEventListener('change', h)
     return () => mq.removeEventListener('change', h)
   }, [])
+
+  // ── Daily data: from cashflow entries (real) or mock fallback ──
+  const dailyData: DailyEntry[] = isReal
+    ? (realCashflow?.entries ?? []).map((e) => ({ date: e.dateLabel, value: e.entradas }))
+    : []
+
+  if (isReal) {
+    if (error) return <div className="text-sm text-red-500 p-4">Erro ao carregar gráficos. Tente novamente.</div>
+    if (loading || !mounted) return <Skeleton />
+    if (dailyData.length === 0) {
+      return (
+        <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
+          <p className="text-[13px] text-[#64748B]">Sem movimentações no período.</p>
+        </div>
+      )
+    }
+    return <RealCharts dailyData={dailyData} prefersReduced={prefersReduced} />
+  }
 
   if (!mounted) return <Skeleton />
 

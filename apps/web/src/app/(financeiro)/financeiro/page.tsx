@@ -204,21 +204,38 @@ const PERIOD_MAP: Record<PeriodFilter, Period> = {
   custom: 'custom',
 }
 
-function buildRealKpis(raw: ReturnType<typeof useRelatorios>['kpis']): FinanceiroKpis {
+function buildRealKpis(raw: ReturnType<typeof useRelatorios>['kpis'], overdueCount: number): FinanceiroKpis {
   // Map documented API fields onto the FinanceiroKpis shape used by the strip.
-  // Fields the API does not provide (trend strings, metas) fall back to mock —
-  // see backlog TODOs in use-relatorios.ts for /reports/goals.
+  // Fields the API does not provide (trend strings, metas) are zeroed — no mock
+  // leakage. See backlog TODOs in use-relatorios.ts for /reports/goals.
   const k = raw ?? {}
   return {
-    ...FINANCEIRO_KPIS,
-    receitaBruta:    k.receitaBruta ?? 0,
-    despesas:        k.despesas ?? 0,
-    lucroLiquido:    k.lucro ?? 0,
-    margem:          k.margem ?? 0,
-    ticketMedio:     k.ticketMedio ?? 0,
-    aReceber:        k.aReceber ?? 0,
-    receitaHoje:     k.todayRevenue ?? 0,
-    receitaMes:      k.receitaBruta ?? 0,
+    receitaMes:        k.receitaBruta ?? 0,
+    receitaMesTrend:   '',
+    receitaMesTrendUp: true,
+    receitaHoje:       k.todayRevenue ?? 0,
+    receitaHojeTrend:  '',
+    receitaHojeTrendUp: true,
+    aReceber:          k.aReceber ?? 0,
+    pendingCount:      overdueCount,
+    taxaRecebimento:   0,
+    taxaMeta:          0,
+    taxaTrendUp:       true,
+    ticketMedio:       k.ticketMedio ?? 0,
+    ticketTrend:       '',
+    ticketTrendUp:     true,
+    receitaBruta:      k.receitaBruta ?? 0,
+    despesas:          k.despesas ?? 0,
+    lucroLiquido:      k.lucro ?? 0,
+    margem:            k.margem ?? 0,
+    metaAting:         0, // TODO: /reports/goals
+    inadimplenciaPct:  0,
+    totalEntradas:     0,
+    saldoCaixa:        0,
+    receitaSemana:     0,
+    metaDiaria:        0, // TODO: /reports/goals
+    metaSemanal:       0, // TODO: /reports/goals
+    metaMensal:        0, // TODO: /reports/goals
   }
 }
 
@@ -234,7 +251,7 @@ export default function FinanceiroPage() {
     [period, customFrom, customTo],
   )
 
-  const { fetchCommissions, fetchCashflow } = rel
+  const { fetchCommissions, fetchCashflow, fetchOverdue } = rel
   useEffect(() => {
     if (!FEATURES.realRelatorios) return
     if (period === 'custom' && (!customFrom || !customTo)) return
@@ -242,7 +259,11 @@ export default function FinanceiroPage() {
     fetchCashflow(range.from, range.to)
   }, [fetchCommissions, fetchCashflow, range.from, range.to, period, customFrom, customTo])
 
-  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis) : FINANCEIRO_KPIS
+  useEffect(() => {
+    if (FEATURES.realRelatorios) fetchOverdue()
+  }, [fetchOverdue])
+
+  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length) : FINANCEIRO_KPIS
 
   return (
     <div className="space-y-6 px-6 pb-10 pt-5">
@@ -265,11 +286,19 @@ export default function FinanceiroPage() {
       )}
 
       {/* ── Charts ── */}
-      <ReceitaChart
-        weeklyData={RECEITA_SEMANAL}
-        metodoData={METODO_DISTRIBUICAO}
-        monthlyData={FATURAMENTO_MENSAL}
-      />
+      {FEATURES.realRelatorios ? (
+        <ReceitaChart
+          realCashflow={rel.cashflow}
+          loading={rel.cashflowLoading}
+          error={rel.cashflowError}
+        />
+      ) : (
+        <ReceitaChart
+          weeklyData={RECEITA_SEMANAL}
+          metodoData={METODO_DISTRIBUICAO}
+          monthlyData={FATURAMENTO_MENSAL}
+        />
+      )}
 
       {/* ── Despesas ── */}
       <DespesasSection />

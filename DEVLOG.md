@@ -289,3 +289,9 @@ _Nenhuma no momento._
 **Status:** ?? Em andamento
 **Tarefas:** mocks financeiro, mocks configura��es, modelo por agente
 
+
+### [2026-06-25] fix-agentes — Modelos ajustados por agente
+**Status:** ✅ Concluído
+**Sonnet:** Auth, Financeiro, Infra, Booking (tarefas complexas)
+**Haiku:** Dashboard, Agenda, Clientes, Profissionais, Serviços, Comandas, Configurações
+**Economia estimada:** ~70% redução no custo de tokens por rodada

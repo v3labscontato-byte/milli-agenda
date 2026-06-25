@@ -24,7 +24,7 @@ interface MetaBarProps {
 }
 
 function MetaBar({ atual, meta, diasRestantes }: MetaBarProps) {
-  const pct = Math.min(Math.round((atual / meta) * 100), 100)
+  const pct = meta > 0 ? Math.min(Math.round((atual / meta) * 100), 100) : 0
   const color = progressColor(pct)
   const faltam = Math.max(meta - atual, 0)
   const porDia = diasRestantes && diasRestantes > 0 && faltam > 0 ? Math.ceil(faltam / diasRestantes) : null
@@ -75,8 +75,8 @@ function KpiCard({ label, value, sub, trend, trendUp, color = 'default', progres
             style={{ width: `${Math.min(progress, 100)}%` }} />
         </div>
       )}
-      {/* Meta progress bar */}
-      {meta !== undefined && valorNum !== undefined && (
+      {/* Meta progress bar (only when a goal is configured) */}
+      {meta !== undefined && meta > 0 && valorNum !== undefined && (
         <MetaBar atual={valorNum} meta={meta} diasRestantes={diasRestantes} />
       )}
       {sub && <p className="mt-1 text-[11px] text-[#64748B]">{sub}</p>}

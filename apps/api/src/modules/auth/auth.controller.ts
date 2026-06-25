@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
+import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto } from './dto/register.dto'
@@ -46,5 +47,28 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   logout() {
     return this.authService.logout()
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('onboarding')
+  getOnboardingStatus(@TenantFromJwt() tenantId: string) {
+    return this.authService.getOnboardingStatus(tenantId)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('onboarding/complete')
+  @HttpCode(HttpStatus.OK)
+  completeOnboarding(@TenantFromJwt() tenantId: string) {
+    return this.authService.completeOnboarding(tenantId)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('onboarding/nicho')
+  @HttpCode(HttpStatus.OK)
+  selectNicho(
+    @TenantFromJwt() tenantId: string,
+    @Body() body: { nichoSlug: string },
+  ) {
+    return this.authService.selectNicho(tenantId, body.nichoSlug)
   }
 }

@@ -29,7 +29,7 @@ export class TemplateEngineService {
   async importTemplate(tenantId: string, slug: string) {
     const tpl = await this.getTemplate(slug)
 
-    await Promise.all(
+    const roles = await Promise.all(
       tpl.roles.map((r, i) =>
         this.db.professionalRole.create({
           data: { tenantId, name: r.name, order: r.order || i },
@@ -45,8 +45,8 @@ export class TemplateEngineService {
       catMap.set(cat.id, created.id)
     }
 
-    await Promise.all(
-      tpl.services.map((svc, i) =>
+    const services = await Promise.all(
+      tpl.services.map((svc) =>
         this.db.service.create({
           data: {
             tenantId,
@@ -59,9 +59,16 @@ export class TemplateEngineService {
       ),
     )
 
-    return this.db.tenant.update({
+    await this.db.tenant.update({
       where: { id: tenantId },
       data: { nichoSlug: slug },
     })
+
+    return {
+      categoriesCreated: catMap.size,
+      servicesCreated: services.length,
+      rolesCreated: roles.length,
+      nichoSlug: slug,
+    }
   }
 }

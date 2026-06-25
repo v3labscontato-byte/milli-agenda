@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { DatabaseService } from '../../infra/database/database.service'
+import { TemplateEngineService } from '../template-engine/template-engine.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto, PlanOption } from './dto/register.dto'
 import { ForgotPasswordDto } from './dto/forgot-password.dto'
@@ -29,6 +30,7 @@ export class AuthService {
   constructor(
     private readonly db: DatabaseService,
     private readonly jwt: JwtService,
+    private readonly templateEngine: TemplateEngineService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -131,6 +133,54 @@ export class AuthService {
   }
 
   logout() { return { message: 'Logged out successfully' } }
+
+  async getOnboardingStatus(tenantId: string) {
+    const tenant = await this.db.tenant.findUnique({
+      where: { id: tenantId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        plan: true,
+        createdAt: true,
+        onboardingCompleted: true,
+        nichoSlug: true,
+      },
+    })
+    if (!tenant) throw new NotFoundException('Tenant not found')
+
+    const [serviceCount, professionalCount, categoryCount] = await Promise.all([
+      this.db.service.count({ where: { tenantId, active: true } }),
+      this.db.professional.count({ where: { tenantId } }),
+      this.db.serviceCategory.count({ where: { tenantId, status: true } }),
+    ])
+
+    return {
+      completed: tenant.onboardingCompleted,
+      nichoSlug: tenant.nichoSlug,
+      hasServices: serviceCount > 0,
+      hasProfessionals: professionalCount > 0,
+      hasCategories: categoryCount > 0,
+      tenant: {
+        name: tenant.name,
+        slug: tenant.slug,
+        plan: tenant.plan,
+        createdAt: tenant.createdAt,
+      },
+    }
+  }
+
+  async completeOnboarding(tenantId: string) {
+    return this.db.tenant.update({
+      where: { id: tenantId },
+      data: { onboardingCompleted: true },
+      select: { id: true, onboardingCompleted: true },
+    })
+  }
+
+  async selectNicho(tenantId: string, nichoSlug: string) {
+    return this.templateEngine.importTemplate(tenantId, nichoSlug)
+  }
 
   private issueTokens(sub: string, tenantId: string, tenantSlug: string, email: string, role: string) {
     const payload = { sub, tenantId, tenantSlug, email, role }

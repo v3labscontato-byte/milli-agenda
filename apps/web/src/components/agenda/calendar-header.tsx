@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Search, Plus, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDayLong, isTodayUtil } from '@/lib/calendar-utils'
+import { DatePickerPopover } from './date-picker-popover'
 
 interface CalendarHeaderProps {
   selectedDate: Date
@@ -10,6 +11,7 @@ interface CalendarHeaderProps {
   onNext: () => void
   onToday: () => void
   onNew: () => void
+  onDateSelect: (date: Date) => void
   searchQuery: string
   onSearchChange: (v: string) => void
 }
@@ -20,6 +22,7 @@ export default function CalendarHeader({
   onNext,
   onToday,
   onNew,
+  onDateSelect,
   searchQuery,
   onSearchChange,
 }: CalendarHeaderProps) {
@@ -46,7 +49,7 @@ export default function CalendarHeader({
             <ChevronLeft size={16} aria-hidden="true" />
           </button>
 
-          <div className="flex items-center gap-1.5 px-1">
+          <DatePickerPopover value={selectedDate} onChange={onDateSelect}>
             <CalendarDays size={14} className="text-[#94A3B8]" aria-hidden="true" />
             <span
               className="min-w-[220px] text-center text-[13px] font-medium text-[#0F172A]"
@@ -55,7 +58,7 @@ export default function CalendarHeader({
             >
               {capitalised}
             </span>
-          </div>
+          </DatePickerPopover>
 
           <button
             type="button"

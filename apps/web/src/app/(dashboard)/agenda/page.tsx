@@ -116,6 +116,7 @@ export default function AgendaPage() {
         onNext={goToNext}
         onToday={goToToday}
         onNew={openNew}
+        onDateSelect={setSelectedDate}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />

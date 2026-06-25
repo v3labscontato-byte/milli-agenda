@@ -76,7 +76,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             <div>
               <p className="text-[13px] font-medium text-[#0F172A]">{p.commissionPct}% sobre serviços</p>
               <p className="text-[11px] text-[#94A3B8]">
-                Estimado este mês: {formatBRL(p.revenueThisMonth * p.commissionPct / 100)}
+                Estimado este mês: {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
               </p>
             </div>
           </div>
@@ -160,7 +160,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
         <div>
           <p className="text-[11px] text-[#94A3B8]">Avaliação dos clientes</p>
           <p className="font-tabular text-[15px] font-bold text-[#0F172A]">
-            {p.rating.toFixed(1)} <span className="text-[12px] font-normal text-[#94A3B8]">/ 5.0 · {p.ratingCount} avaliações</span>
+            {Number(p.rating ?? 0).toFixed(1)} <span className="text-[12px] font-normal text-[#94A3B8]">/ 5.0 · {p.ratingCount ?? 0} avaliações</span>
           </p>
         </div>
       </div>
@@ -208,10 +208,10 @@ function TabComissao({ p }: { p: Profissional }) {
         <div>
           <p className="text-[12px] text-[#94A3B8]">Comissão este mês</p>
           <p className="mt-1 font-tabular text-[22px] font-bold text-[#0F172A]">
-            {formatBRL(p.revenueThisMonth * p.commissionPct / 100)}
+            {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
           </p>
           <p className="text-[11px] text-[#94A3B8]">
-            {p.commissionPct}% de {formatBRL(p.revenueThisMonth)} faturados
+            {p.commissionPct}% de {formatBRL(p.revenueThisMonth ?? 0)} faturados
           </p>
         </div>
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
@@ -238,7 +238,7 @@ function TabComissao({ p }: { p: Profissional }) {
                     {m.revenue > 0 ? formatBRL(m.revenue) : <span className="text-[#CBD5E1]">—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-right font-tabular font-semibold text-[#0F172A]">
-                    {m.revenue > 0 ? formatBRL(m.revenue * p.commissionPct / 100) : <span className="font-normal text-[#CBD5E1]">—</span>}
+                    {m.revenue > 0 ? formatBRL((m.revenue ?? 0) * Number(p.commissionPct ?? 0) / 100) : <span className="font-normal text-[#CBD5E1]">—</span>}
                   </td>
                 </tr>
               ))}
@@ -303,7 +303,7 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
             <div className="mt-0.5 flex flex-wrap items-center gap-3 text-[12px] text-[#94A3B8]">
               <span className="flex items-center gap-1"><Mail size={11} aria-hidden="true" />{p.email}</span>
               <span className="flex items-center gap-1"><Phone size={11} aria-hidden="true" />{p.phone}</span>
-              <span className="flex items-center gap-1"><Star size={11} className="fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />{p.rating.toFixed(1)}</span>
+              <span className="flex items-center gap-1"><Star size={11} className="fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />{Number(p.rating ?? 0).toFixed(1)}</span>
             </div>
           </div>
           <button

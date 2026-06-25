@@ -174,8 +174,8 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-1">
                   <Star size={11} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
-                  <span className="font-tabular text-[13px] font-medium text-[#0F172A]">{p.rating.toFixed(1)}</span>
-                  <span className="text-[11px] text-[#94A3B8]">({p.ratingCount})</span>
+                  <span className="font-tabular text-[13px] font-medium text-[#0F172A]">{Number(p.rating ?? 0).toFixed(1)}</span>
+                  <span className="text-[11px] text-[#94A3B8]">({p.ratingCount ?? 0})</span>
                 </div>
               </td>
 

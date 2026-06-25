@@ -195,6 +195,15 @@ O hook `use-relatorios.ts` transforma via `toKpiArray()`.
 
 ---
 
+### [2026-06-25] ORCHESTRATOR — Configurar subagentes reais
+**Status:** ✅ Concluído  
+**O que foi feito:** CLAUDE.md criado na raiz com instruções de subagentes. Claude Code agora lê automaticamente o contexto do projeto em toda sessão. Subagentes podem ser executados em paralelo via Task tool.  
+**Como usar:** Enviar múltiplas tarefas de módulos diferentes → Claude Code executa em paralelo  
+**Arquivos criados:** `CLAUDE.md`, `.agents/AGENT_AUTH.md`, `.agents/AGENT_DASHBOARD.md`  
+**Claude Code version:** 2.1.187
+
+---
+
 ## 🔄 TAREFAS EM ANDAMENTO
 
 _Nenhuma no momento._

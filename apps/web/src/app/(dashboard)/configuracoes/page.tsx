@@ -8,6 +8,7 @@ import SectionHorarios     from '@/components/configuracoes/section-horarios'
 import SectionNotificacoes from '@/components/configuracoes/section-notificacoes'
 import SectionPagamentos   from '@/components/configuracoes/section-pagamentos'
 import SectionSiteBooking  from '@/components/configuracoes/section-site-booking'
+import SectionTiposProfissionais from '@/components/configuracoes/section-tipos-profissionais'
 import SectionCategoriasServicos from '@/components/configuracoes/section-categorias-servicos'
 import SectionPlano        from '@/components/configuracoes/section-plano'
 import SectionApi          from '@/components/configuracoes/section-api'
@@ -35,6 +36,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'notificacoes' && <SectionNotificacoes />}
           {activeTab === 'pagamentos'   && <SectionPagamentos />}
           {activeTab === 'site-booking' && <SectionSiteBooking settings={settings} />}
+          {activeTab === 'tipos-profissionais' && <SectionTiposProfissionais />}
           {activeTab === 'categorias-servicos' && <SectionCategoriasServicos />}
           {activeTab === 'plano'        && <SectionPlano />}
           {activeTab === 'api'          && <SectionApi />}

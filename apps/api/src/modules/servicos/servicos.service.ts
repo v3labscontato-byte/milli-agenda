@@ -32,4 +32,29 @@ export class ServicosService {
     await this.findOne(tenantId, id)
     return this.db.service.update({ where: { id }, data: { active: false } })
   }
+
+  getCategories(tenantId: string) {
+    return this.db.serviceCategory.findMany({
+      where: { tenantId, status: true },
+      orderBy: { order: 'asc' },
+    })
+  }
+
+  createCategory(tenantId: string, dto: { name: string; color?: string }) {
+    return this.db.serviceCategory.create({
+      data: { tenantId, name: dto.name, color: dto.color ?? '#2563EB' },
+    })
+  }
+
+  async updateCategory(tenantId: string, id: string, dto: { name?: string; color?: string; order?: number }) {
+    const cat = await this.db.serviceCategory.findFirst({ where: { id, tenantId } })
+    if (!cat) throw new NotFoundException('Category not found')
+    return this.db.serviceCategory.update({ where: { id }, data: dto })
+  }
+
+  async deleteCategory(tenantId: string, id: string) {
+    const cat = await this.db.serviceCategory.findFirst({ where: { id, tenantId } })
+    if (!cat) throw new NotFoundException('Category not found')
+    return this.db.serviceCategory.update({ where: { id }, data: { status: false } })
+  }
 }

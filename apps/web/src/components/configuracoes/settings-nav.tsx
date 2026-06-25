@@ -13,6 +13,7 @@ import {
   Percent,
   Award,
   Tag,
+  Users,
 } from 'lucide-react'
 
 export type TabId =
@@ -21,6 +22,7 @@ export type TabId =
   | 'notificacoes'
   | 'pagamentos'
   | 'site-booking'
+  | 'tipos-profissionais'
   | 'categorias-servicos'
   | 'plano'
   | 'api'
@@ -39,8 +41,9 @@ const TABS: Tab[] = [
   { id: 'horarios',     label: 'Horários',      icon: Clock      },
   { id: 'notificacoes', label: 'Notificações',  icon: Bell       },
   { id: 'pagamentos',   label: 'Pagamentos',    icon: CreditCard },
-  { id: 'site-booking', label: 'Site Booking',  icon: Globe      },
-  { id: 'categorias-servicos', label: 'Categorias Serv.', icon: Tag },
+  { id: 'site-booking',        label: 'Site Booking',    icon: Globe  },
+  { id: 'tipos-profissionais', label: 'Tipos de Prof.',  icon: Users  },
+  { id: 'categorias-servicos', label: 'Categorias Serv.', icon: Tag   },
   { id: 'plano',        label: 'Plano',         icon: Zap        },
   { id: 'api',          label: 'API & Integr.', icon: Code2      },
   { id: 'lgpd',         label: 'LGPD',          icon: Shield     },

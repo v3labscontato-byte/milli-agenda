@@ -14,6 +14,30 @@ export class ServicosController {
     return this.servicosService.findAll(tenantId)
   }
 
+  @Get('categories')
+  getCategories(@TenantFromJwt() tenantId: string) {
+    return this.servicosService.getCategories(tenantId)
+  }
+
+  @Post('categories')
+  createCategory(@TenantFromJwt() tenantId: string, @Body() dto: { name: string; color?: string }) {
+    return this.servicosService.createCategory(tenantId, dto)
+  }
+
+  @Patch('categories/:id')
+  updateCategory(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: { name?: string; color?: string; order?: number },
+  ) {
+    return this.servicosService.updateCategory(tenantId, id, dto)
+  }
+
+  @Delete('categories/:id')
+  deleteCategory(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.servicosService.deleteCategory(tenantId, id)
+  }
+
   @Get(':id')
   findOne(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
     return this.servicosService.findOne(tenantId, id)

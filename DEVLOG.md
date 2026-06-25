@@ -326,3 +326,14 @@ _Nenhuma no momento._
 **Status:** ✅ Concluído
 **Arquivos alterados:** apps/api/src/modules/servicos/{controller,service}.ts, apps/web/src/components/configuracoes/{section-categorias-servicos.tsx,settings-nav.tsx}, apps/web/src/app/(dashboard)/configuracoes/page.tsx
 **O que foi feito:** Backend: 4 endpoints CRUD para categorias (GET, POST, PATCH, DELETE). Frontend: Componente section-categorias-servicos com color picker (8 cores), mock data, e API integration. Aba 'Categorias Serv.' em configuracoes.
+
+### [2026-06-25] ORCHESTRATOR -- Fase 1 concluida
+**Status:** Concluido
+**Entregues:**
+- Template Engine: GET /templates, GET /templates/:slug, POST /templates/:slug/import
+- Seed: 4 nichos (salao-de-beleza, barbearia, clinica-estetica, outros)
+- CRUD Tipos de Profissionais: GET/POST/PATCH/DELETE /professionals/roles
+- CRUD Categorias de Servicos: GET/POST/PATCH/DELETE /services/categories
+- Frontend: section-tipos-profissionais.tsx + section-categorias-servicos.tsx
+- Settings nav: 2 novas abas (Tipos de Prof., Categorias Serv.)
+**Proximo:** Fase 2 -- Onboarding wizard pos-login

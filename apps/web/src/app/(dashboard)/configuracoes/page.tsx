@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
 import SettingsNav, { type TabId } from '@/components/configuracoes/settings-nav'
 import SectionMeuSalao     from '@/components/configuracoes/section-meu-salao'
 import SectionHorarios     from '@/components/configuracoes/section-horarios'
@@ -15,6 +16,7 @@ import SectionFidelidade   from '@/components/configuracoes/section-fidelidade'
 
 export default function ConfiguracoesPage() {
   const [activeTab, setActiveTab] = useState<TabId>('meu-salao')
+  const { settings } = useConfiguracoes()
 
   return (
     <div className="flex h-full flex-col">
@@ -31,7 +33,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'horarios'     && <SectionHorarios />}
           {activeTab === 'notificacoes' && <SectionNotificacoes />}
           {activeTab === 'pagamentos'   && <SectionPagamentos />}
-          {activeTab === 'site-booking' && <SectionSiteBooking />}
+          {activeTab === 'site-booking' && <SectionSiteBooking settings={settings} />}
           {activeTab === 'plano'        && <SectionPlano />}
           {activeTab === 'api'          && <SectionApi />}
           {activeTab === 'lgpd'         && <SectionLgpd />}

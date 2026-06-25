@@ -1,8 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { MOCK_PAYMENT_CONFIG, type PaymentConfig } from '@/lib/configuracoes-mock'
+import { type PaymentConfig } from '@/lib/configuracoes-mock'
 import { Toggle, TextInput, SelectInput, FieldLabel, SectionCard, SaveButton, useSaveState } from './_primitives'
+
+// TODO: integração real via API
+const DEFAULT_PAYMENT_CONFIG: PaymentConfig = {
+  pix: false,
+  pixKey: '',
+  cash: false,
+  debit: false,
+  credit: false,
+  creditMaxInstallments: 1,
+  voucher: false,
+  transfer: false,
+  requireDeposit: false,
+  depositPercent: 30,
+  freeCancelHours: 24,
+  lateCancelFeePercent: 0,
+}
 
 interface PaymentRowProps {
   label: string
@@ -24,7 +40,7 @@ function PaymentRow({ label, checked, onChange, children }: PaymentRowProps) {
 }
 
 export default function SectionPagamentos() {
-  const [cfg, setCfg] = useState<PaymentConfig>(MOCK_PAYMENT_CONFIG)
+  const [cfg, setCfg] = useState<PaymentConfig>(DEFAULT_PAYMENT_CONFIG)
   const [saveState, triggerSave] = useSaveState()
 
   function set<K extends keyof PaymentConfig>(field: K, value: PaymentConfig[K]) {

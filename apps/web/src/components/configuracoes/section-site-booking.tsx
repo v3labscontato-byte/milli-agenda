@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Copy, Check, ExternalLink, ChevronUp, ChevronDown, Tag, Package, Scissors, Star, Banknote } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_BOOKING_SITE, type BookingSiteConfig } from '@/lib/configuracoes-mock'
+import { type BookingSiteConfig } from '@/lib/configuracoes-mock'
 import { CAROUSEL_CONFIG, type CarouselSlideConfig } from '@/lib/carousel-config'
+import type { TenantSettings } from '@/hooks/use-configuracoes'
 import { Toggle, TextInput, SectionCard, SaveButton, useSaveState } from './_primitives'
 
 // ── Carousel config helpers ───────────────────────────────────────────────────
@@ -27,8 +28,31 @@ const SLIDE_LABELS: Record<CarouselSlideConfig['type'], string> = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function SectionSiteBooking() {
-  const [cfg, setCfg] = useState<BookingSiteConfig>(MOCK_BOOKING_SITE)
+interface SectionSiteBookingProps {
+  settings?: TenantSettings | null
+}
+
+const PLAN_LABELS: Record<string, string> = {
+  TRIAL:        'Trial',
+  STARTER:      'Starter',
+  PROFESSIONAL: 'Professional',
+  ENTERPRISE:   'Enterprise',
+}
+
+export default function SectionSiteBooking({ settings }: SectionSiteBookingProps) {
+  const plan = (settings?.plan ?? 'STARTER').toUpperCase()
+  const planLabel = PLAN_LABELS[plan] ?? plan
+  const hasCustomDomain = plan === 'ENTERPRISE'
+
+  const [cfg, setCfg] = useState<BookingSiteConfig>({
+    slug: settings?.slug ?? '',
+    customDomain: '',
+    primaryColor: '#2563EB',
+    description: '',
+    showPrices: true,
+    showProfessionals: true,
+    allowProfessionalChoice: false,
+  })
   const [saveState, triggerSave] = useSaveState()
   const [copied, setCopied] = useState(false)
 
@@ -116,24 +140,26 @@ export default function SectionSiteBooking() {
         {/* Domínio próprio */}
         <SectionCard title="Domínio Próprio">
           <div className="space-y-3">
-            <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-2">
-              <p className="text-[12px] text-[#92400E]">
-                Disponível nos planos Business. Você está no plano Growth.
-              </p>
-            </div>
+            {!hasCustomDomain && (
+              <div className="rounded-md border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-2">
+                <p className="text-[12px] text-[#92400E]">
+                  Disponível no plano Enterprise. Você está no plano {planLabel}.
+                </p>
+              </div>
+            )}
             <div className="flex gap-2">
               <TextInput
                 id="custom-domain"
                 value={cfg.customDomain}
                 onChange={(v) => set('customDomain', v)}
                 placeholder="agenda.seusalao.com.br"
-                disabled
+                disabled={!hasCustomDomain}
               />
               <button
                 type="button"
-                disabled
+                disabled={!hasCustomDomain}
                 aria-label="Verificar domínio"
-                className="shrink-0 rounded-md border border-[#E2E8F0] px-3 py-2 text-[12px] text-[#CBD5E1] cursor-not-allowed"
+                className="shrink-0 rounded-md border border-[#E2E8F0] px-3 py-2 text-[12px] text-[#CBD5E1] cursor-not-allowed disabled:cursor-not-allowed"
               >
                 Verificar
               </button>

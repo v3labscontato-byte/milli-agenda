@@ -13,6 +13,7 @@ import { useProfissionais } from '@/hooks/use-profissionais'
 import ProfissionalList from '@/components/profissionais/profissional-list'
 import ProfissionalModal from '@/components/profissionais/profissional-modal'
 import NovoProfissionalModal from '@/components/profissionais/novo-profissional-modal'
+import SmartFormProfissional from '@/components/shared/smart-form-profissional'
 
 // ─── KPI card ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +73,7 @@ export default function ProfissionaisPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(null)
   const [selected, setSelected]       = useState<Profissional | null>(null)
   const [novoOpen, setNovoOpen]       = useState(false)
+  const [smartOpen, setSmartOpen]     = useState(false)
 
   const { data: profissionais, loading, error, create } = useProfissionais()
   const stats = useMemo(() => {
@@ -135,7 +137,7 @@ export default function ProfissionaisPage() {
           </p>
           <button
             type="button"
-            onClick={() => setNovoOpen(true)}
+            onClick={() => setSmartOpen(true)}
             aria-label="Novo profissional"
             className={cn(
               'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
@@ -256,7 +258,7 @@ export default function ProfissionaisPage() {
           profissionais={filtered}
           isFiltered={isFiltered}
           onView={setSelected}
-          onNovo={() => setNovoOpen(true)}
+          onNovo={() => setSmartOpen(true)}
         />
       </div>
 
@@ -269,6 +271,11 @@ export default function ProfissionaisPage() {
         open={novoOpen}
         onClose={() => setNovoOpen(false)}
         onCreate={create}
+      />
+      <SmartFormProfissional
+        open={smartOpen}
+        onClose={() => setSmartOpen(false)}
+        onCreated={create}
       />
     </div>
   )

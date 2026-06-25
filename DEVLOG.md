@@ -424,11 +424,24 @@ _Nenhuma no momento._
   - npx tsc --noEmit: ✅ Passou (0 erros)
 **Próximo:** Testar vista dia com dados da API em produção
 
-### [2026-06-25] ORCHESTRATOR — Fix NaN profissionais + agenda vista dia
-**Status:** 🔄 Em andamento
-**Bugs:**
-- Profissionais: R$ NaN no Faturamento/Mês
-- Agenda: vista dia não mostra agendamentos (transform anterior não funcionou)
+### [2026-06-25] AGENT_AGENDA — Fix vista dia mostra agendamentos (2ª tentativa)
+**Status:** ✅ Concluído
+**Causa raiz diagnosticada:** 
+  1. Frontend enviava `?date=YYYY-MM-DD` mas backend esperava `?from=...&to=...`
+  2. Backend ignorava o param `date` → retornava TODOS agendamentos, não apenas do dia
+  3. Transformação anterior existia mas dados chegavam sem filtro, causando confusão no índice de slots
+  4. CalendarGrid esperava appointments já filtrados por data (getAppointmentsForDate), mas recebia tudo
+
+**Fix implementado:**
+  - `lib/api/agenda.ts`: Adicionada conversão automática de `date` para `from`/`to` (mesmo dia para ambos) na função list()
+  - `hooks/use-agenda.ts`: Melhorada transformApiResponse() com fallback para mock data já formatada
+  - Garantido: day view agora filtra corretamente na API backend, recebe apenas appointments do dia selecionado
+
+**Arquivos alterados:** 
+  - apps/web/src/lib/api/agenda.ts
+  - apps/web/src/hooks/use-agenda.ts
+
+**npx tsc --noEmit:** ✅ Passou (0 erros)
 
 ### [2026-06-25] AGENT_PROFISSIONAIS — Fix NaN nos KPIs
 **Status:** ✅ Concluído

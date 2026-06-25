@@ -2,6 +2,8 @@ import { api } from './client'
 
 export interface AppointmentParams {
   date?: string
+  from?: string
+  to?: string
   professionalId?: string
   status?: string
   page?: number
@@ -12,7 +14,13 @@ export const agendaApi = {
   list: (params?: AppointmentParams) => {
     const qs = new URLSearchParams()
     if (params) {
-      for (const [key, value] of Object.entries(params)) {
+      let { date, ...restParams } = params
+      // If date is provided, convert to from/to range for the backend
+      if (date) {
+        restParams.from = date
+        restParams.to = date
+      }
+      for (const [key, value] of Object.entries(restParams)) {
         if (value !== undefined && value !== null && value !== '') {
           qs.set(key, String(value))
         }

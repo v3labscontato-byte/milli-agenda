@@ -8,6 +8,13 @@ import type { AppointmentStatus } from '@/lib/mock-data'
 
 function transformApiResponse(raw: unknown): CalendarAppointment {
   const r = raw as Record<string, unknown>
+
+  // If it's already a CalendarAppointment (from mock data), return as-is
+  if ('date' in r && 'startTime' in r && typeof r.date === 'string' && typeof r.startTime === 'string') {
+    return r as unknown as CalendarAppointment
+  }
+
+  // Transform from API response (with startAt/endAt DateTime fields)
   const startAt = new Date(r.startAt as string)
   const endAt = new Date(r.endAt as string)
   const prof = (r.professional as any) ?? {}

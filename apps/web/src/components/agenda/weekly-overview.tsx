@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react'
 import { addDays, format, isToday as dfIsToday, getDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import { CALENDAR_PROFESSIONALS } from '@/lib/calendar-utils'
+import { CALENDAR_PROFESSIONALS, type CalendarAppointment, type CalendarProfessional } from '@/lib/calendar-utils'
+import { FEATURES } from '@/lib/features'
 
 // ─── Work schedule (0=Sun … 6=Sat) ──────────────────────────────────────────
 
@@ -44,6 +45,13 @@ function getMockAvailability(profId: string, date: Date): DayAvailability {
 
   const booked = Math.min(Math.max(1, Math.round(total * (0.2 + seed * 0.08))), total - 1)
   return { state: 'disponivel', booked, total }
+}
+
+function getRealAvailability(profId: string, date: Date, appointments: CalendarAppointment[]): DayAvailability {
+  const dateStr = format(date, 'yyyy-MM-dd')
+  const booked = appointments.filter((a) => a.professionalId === profId && a.date === dateStr).length
+  const total = Math.max(booked, 10)
+  return { state: booked >= total ? 'esgotado' : 'disponivel', booked, total }
 }
 
 function occupancyColor(pct: number): string {
@@ -126,10 +134,13 @@ function DayCell({ avail, onClick }: DayCellProps) {
 export interface WeeklyOverviewProps {
   weekStart: Date
   onDaySelect: (professionalId: string, date: Date) => void
+  professionals: CalendarProfessional[]
+  appointments: CalendarAppointment[]
 }
 
-export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOverviewProps) {
+export default function WeeklyOverview({ weekStart, onDaySelect, professionals, appointments }: WeeklyOverviewProps) {
   const [selectedProfs, setSelectedProfs] = useState<Set<string>>(new Set())
+  const allProfs = FEATURES.realAgenda ? professionals : CALENDAR_PROFESSIONALS
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -152,8 +163,17 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
 
   const visibleProfs =
     selectedProfs.size === 0
-      ? CALENDAR_PROFESSIONALS
-      : CALENDAR_PROFESSIONALS.filter((p) => selectedProfs.has(p.id))
+      ? allProfs
+      : allProfs.filter((p) => selectedProfs.has(p.id))
+
+  if (FEATURES.realAgenda && professionals.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-[14px] font-medium text-[#0F172A]">Nenhum profissional cadastrado.</p>
+        <p className="mt-1 text-[13px] text-[#475569]">Adicione profissionais para ver a agenda semanal.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col">
@@ -174,7 +194,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
           Todos
         </button>
 
-        {CALENDAR_PROFESSIONALS.map((prof) => {
+        {allProfs.map((prof) => {
           const active = selectedProfs.has(prof.id)
           return (
             <button
@@ -204,7 +224,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
         })}
 
         <span className="ml-auto text-[11px] text-[#475569]">
-          {visibleProfs.length} de {CALENDAR_PROFESSIONALS.length} profissionais
+          {visibleProfs.length} de {allProfs.length} profissionais
         </span>
       </div>
 
@@ -283,7 +303,9 @@ export default function WeeklyOverview({ weekStart, onDaySelect }: WeeklyOvervie
                 </td>
 
                 {weekDays.map((day) => {
-                  const avail = getMockAvailability(prof.id, day)
+                  const avail = FEATURES.realAgenda
+                    ? getRealAvailability(prof.id, day, appointments)
+                    : getMockAvailability(prof.id, day)
                   return (
                     <DayCell
                       key={day.toISOString()}

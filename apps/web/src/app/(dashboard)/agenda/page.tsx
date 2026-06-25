@@ -4,14 +4,15 @@ import { useState, useCallback, useMemo } from 'react'
 import { startOfWeek } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
-  CALENDAR_PROFESSIONALS,
   getAppointmentsForDate,
   nextDay,
   prevDay,
   toDateString,
   type CalendarAppointment,
+  type CalendarProfessional,
 } from '@/lib/calendar-utils'
 import { useAgenda } from '@/hooks/use-agenda'
+import { useProfissionais } from '@/hooks/use-profissionais'
 import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
 import CalendarGrid from '@/components/agenda/calendar-grid'
@@ -21,8 +22,18 @@ import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
 import NovoAgendamentoModal from '@/components/agenda/novo-agendamento-modal'
 import AgendaTable from '@/components/agenda-table'
 
-function toAppointment(ca: CalendarAppointment): Appointment {
-  const prof = CALENDAR_PROFESSIONALS.find((p) => p.id === ca.professionalId)
+const PROF_PALETTE = ['#7C3AED', '#2563EB', '#DB2777', '#059669', '#D97706', '#0891B2', '#DC2626']
+
+function toCalendarProfessional(p: { id: string; name: string; role: string }, idx: number): CalendarProfessional {
+  const words = p.name.trim().split(/\s+/)
+  const initials = words.length >= 2
+    ? ((words[0]?.[0] ?? '') + ((words[words.length - 1] ?? '')[0] ?? '')).toUpperCase()
+    : p.name.slice(0, 2).toUpperCase()
+  return { id: p.id, name: p.name, role: p.role, initials, color: PROF_PALETTE[idx % PROF_PALETTE.length] ?? '#7C3AED' }
+}
+
+function toAppointment(ca: CalendarAppointment, profs: CalendarProfessional[]): Appointment {
+  const prof = profs.find((p) => p.id === ca.professionalId)
   const initials = ca.client.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
   return {
     id: ca.id,
@@ -119,6 +130,8 @@ export default function AgendaPage() {
   )
 
   const { data: allAppointments, loading, error } = useAgenda(agendaParams)
+  const { data: profissionais } = useProfissionais()
+  const calendarProfessionals = useMemo(() => profissionais.map(toCalendarProfessional), [profissionais])
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
@@ -207,7 +220,12 @@ export default function AgendaPage() {
       {/* Content area */}
       {view === 'week' ? (
         <div className="flex-1 overflow-auto">
-          <WeeklyOverview weekStart={weekStart} onDaySelect={handleDaySelect} />
+          <WeeklyOverview
+            weekStart={weekStart}
+            onDaySelect={handleDaySelect}
+            professionals={calendarProfessionals}
+            appointments={allAppointments}
+          />
           <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-4">
             <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">
               Atendimentos da Semana
@@ -218,7 +236,7 @@ export default function AgendaPage() {
                 <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
               </div>
             ) : (
-              <AgendaTable appointments={allAppointments.map(toAppointment)} />
+              <AgendaTable appointments={allAppointments.map((ca) => toAppointment(ca, calendarProfessionals))} />
             )}
           </div>
         </div>

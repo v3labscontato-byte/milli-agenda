@@ -65,7 +65,7 @@ export default function ServicosPage() {
   const [selected, setSelected]         = useState<Servico | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
-  const { data: servicos, loading, error, create } = useServicos()
+  const { data: servicos, loading, error, create, update } = useServicos()
   const stats = useMemo(() => {
     const ativos = servicos.filter((s) => s.status === 'active')
     const precos = ativos.map((s) => s.price)
@@ -296,6 +296,7 @@ export default function ServicosPage() {
             servicos={filtered}
             isFiltered={isFiltered}
             onView={setSelected}
+            onUpdate={update}
           />
         )}
       </div>

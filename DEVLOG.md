@@ -486,3 +486,13 @@ _Nenhuma no momento._
 - **Contexto**: backend usa lte: new Date(filters.to) — data sem hora vira 00:00:00Z, qualquer agendamento em horário comercial tem startAt > 00:00Z e não passava no filtro
 - **tsc**: 0 erros
 - **Arquivo modificado**: apps/web/src/lib/api/agenda.ts
+
+### [2026-06-25] ORCHESTRATOR â€” DiagnÃ³stico + correÃ§Ãµes estruturadas
+**Status:** Em andamento
+**Problemas confirmados:**
+- Profissionais: p.workDays undefined (nao retornado pela API) -> crash .includes(todayDay)
+- Profissionais: p.specialties undefined (API retorna specialty string, nao array) -> crash .some()
+- Profissionais: p.name/p.role podem ser null -> crash .toLowerCase().includes()
+- Agenda: weekly-overview sem cards coloridos por status nos slots com agendamentos
+- Agenda: day-timeline sem botoes de acao (Fechar Comanda, Reagendar, Cancelar)
+- Comandas: sem appointmentId no backend/frontend, fluxo agenda->comanda nao existe

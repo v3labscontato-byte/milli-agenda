@@ -4,13 +4,13 @@ import { useState, useCallback } from 'react'
 import { startOfWeek } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
-  MOCK_CALENDAR_APPOINTMENTS,
   CALENDAR_PROFESSIONALS,
   getAppointmentsForDate,
   nextDay,
   prevDay,
   type CalendarAppointment,
 } from '@/lib/calendar-utils'
+import { useAgenda } from '@/hooks/use-agenda'
 import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
 import CalendarGrid from '@/components/agenda/calendar-grid'
@@ -95,9 +95,10 @@ export default function AgendaPage() {
     setNewModalOpen(true)
   }, [])
 
+  const { data: allAppointments, loading, error } = useAgenda()
+
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
-  const allAppointments = MOCK_CALENDAR_APPOINTMENTS
-  const dayAppointments = getAppointmentsForDate(selectedDate, MOCK_CALENDAR_APPOINTMENTS)
+  const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
 
   const filtered = dayAppointments.filter((a) => {
     const matchesSearch =
@@ -107,6 +108,23 @@ export default function AgendaPage() {
     const matchesProf = !filterProfId || a.professionalId === filterProfId
     return matchesSearch && matchesProf
   })
+
+  if (loading) return (
+    <div className="flex h-full flex-col animate-pulse">
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-4">
+        <div className="h-9 w-64 rounded-lg bg-[#F1F5F9]" />
+      </div>
+      <div className="flex-1 space-y-3 p-6">
+        {[0,1,2,3,4,5].map((i) => <div key={i} className="h-16 rounded-lg bg-[#F1F5F9]" />)}
+      </div>
+    </div>
+  )
+
+  if (error) return (
+    <div className="flex h-full items-center justify-center">
+      <p className="text-[14px] text-[#DC2626]">{error}</p>
+    </div>
+  )
 
   return (
     <div className="flex h-full flex-col">

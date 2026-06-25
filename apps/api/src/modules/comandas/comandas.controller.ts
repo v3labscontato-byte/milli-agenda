@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { ComandasService } from './comandas.service'
@@ -6,13 +6,17 @@ import { CreateComandaDto } from './dto/create-comanda.dto'
 import { AddItemDto } from './dto/add-item.dto'
 
 @UseGuards(JwtAuthGuard)
-@Controller('comandas')
+@Controller('commands')
 export class ComandasController {
   constructor(private readonly comandasService: ComandasService) {}
 
   @Get()
-  findAll(@TenantFromJwt() tenantId: string) {
-    return this.comandasService.findAll(tenantId)
+  findAll(
+    @TenantFromJwt() tenantId: string,
+    @Query('status') status?: string,
+    @Query('clientId') clientId?: string,
+  ) {
+    return this.comandasService.findAll(tenantId, { status, clientId })
   }
 
   @Get(':id')
@@ -34,7 +38,25 @@ export class ComandasController {
     return this.comandasService.addItem(tenantId, id, dto)
   }
 
-  @Patch(':id/close')
+  @Delete(':id/items/:itemId')
+  removeItem(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+  ) {
+    return this.comandasService.removeItem(tenantId, id, itemId)
+  }
+
+  @Post(':id/discount')
+  discount(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body('amount') amount: number,
+  ) {
+    return this.comandasService.applyDiscount(tenantId, id, amount)
+  }
+
+  @Post(':id/close')
   close(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
     return this.comandasService.close(tenantId, id)
   }

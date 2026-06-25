@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 
 import { DatabaseModule } from './infra/database/database.module'
-import { CacheModule } from './infra/cache/cache.module'
 
 import { AuthModule } from './modules/auth/auth.module'
 import { AgendaModule } from './modules/agenda/agenda.module'
@@ -19,9 +18,8 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
+    ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
-    CacheModule,
     AuthModule,
     AgendaModule,
     ClientesModule,

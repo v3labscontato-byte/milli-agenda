@@ -4,7 +4,7 @@ import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { RelatoriosService } from './relatorios.service'
 
 @UseGuards(JwtAuthGuard)
-@Controller('relatorios')
+@Controller('reports')
 export class RelatoriosController {
   constructor(private readonly relatoriosService: RelatoriosService) {}
 
@@ -13,8 +13,8 @@ export class RelatoriosController {
     return this.relatoriosService.kpis(tenantId, date)
   }
 
-  @Get('receita')
-  receita(
+  @Get('revenue')
+  revenue(
     @TenantFromJwt() tenantId: string,
     @Query('from') from: string,
     @Query('to') to: string,
@@ -22,12 +22,21 @@ export class RelatoriosController {
     return this.relatoriosService.receita(tenantId, from, to)
   }
 
-  @Get('ocupacao')
-  ocupacao(
+  @Get('appointments')
+  appointments(
     @TenantFromJwt() tenantId: string,
     @Query('from') from: string,
     @Query('to') to: string,
   ) {
     return this.relatoriosService.ocupacao(tenantId, from, to)
+  }
+
+  @Get('professionals')
+  professionals(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.relatoriosService.professionals(tenantId, from, to)
   }
 }

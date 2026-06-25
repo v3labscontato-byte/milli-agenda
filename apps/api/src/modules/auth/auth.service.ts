@@ -12,30 +12,32 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
+    const tenant = await this.db.tenant.findUnique({ where: { slug: dto.slug } })
+    if (!tenant || !tenant.active) throw new UnauthorizedException('Invalid credentials')
     const user = await this.db.user.findFirst({
-      where: { email: dto.email },
-      include: { tenant: true },
+      where: { email: dto.email, tenantId: tenant.id, active: true },
     })
-
-    if (!user || !user.active) throw new UnauthorizedException('Invalid credentials')
-
+    if (!user) throw new UnauthorizedException('Invalid credentials')
     const valid = await bcrypt.compare(dto.password, user.passwordHash)
     if (!valid) throw new UnauthorizedException('Invalid credentials')
-
-    return this.issueTokens(user.id, user.tenantId, user.email, user.role)
+    return this.issueTokens(user.id, tenant.id, tenant.slug, user.email, user.role)
   }
 
   async refresh(token: string) {
     try {
-      const payload = this.jwt.verify<{ sub: string; tenantId: string; email: string; role: string }>(token)
-      return this.issueTokens(payload.sub, payload.tenantId, payload.email, payload.role)
+      const payload = this.jwt.verify<{
+        sub: string; tenantId: string; tenantSlug: string; email: string; role: string
+      }>(token)
+      return this.issueTokens(payload.sub, payload.tenantId, payload.tenantSlug, payload.email, payload.role)
     } catch {
       throw new UnauthorizedException('Invalid refresh token')
     }
   }
 
-  private issueTokens(sub: string, tenantId: string, email: string, role: string) {
-    const payload = { sub, tenantId, email, role }
+  logout() { return { message: 'Logged out successfully' } }
+
+  private issueTokens(sub: string, tenantId: string, tenantSlug: string, email: string, role: string) {
+    const payload = { sub, tenantId, tenantSlug, email, role }
     return {
       accessToken: this.jwt.sign(payload, { expiresIn: '1h' }),
       refreshToken: this.jwt.sign(payload, { expiresIn: '30d' }),

@@ -72,4 +72,41 @@ export class RelatoriosService {
       byStatus: appts.map((a) => ({ status: a.status, count: a._count })),
     }
   }
+
+  async professionals(tenantId: string, from: string, to: string) {
+    const profs = await this.db.professional.findMany({
+      where: { tenantId, active: true },
+      select: {
+        id: true,
+        name: true,
+        specialty: true,
+        appointments: {
+          where: {
+            startAt: { gte: new Date(from), lte: new Date(to) },
+            status: AppointmentStatus.COMPLETED,
+          },
+          select: {
+            id: true,
+            command: {
+              select: {
+                payments: {
+                  where: { status: PaymentStatus.PAID },
+                  select: { amount: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    return profs.map((p) => {
+      const completedAppts = p.appointments.length
+      const revenue = p.appointments.reduce((sum, appt) => {
+        const paid = (appt.command?.payments ?? []).reduce((s, pay) => s + Number(pay.amount), 0)
+        return sum + paid
+      }, 0)
+      return { id: p.id, name: p.name, specialty: p.specialty, completedAppts, revenue }
+    })
+  }
 }

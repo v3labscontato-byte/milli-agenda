@@ -1,27 +1,21 @@
 import { NestFactory } from '@nestjs/core'
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify'
 import { AppModule } from './app.module'
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
+
+process.on('uncaughtException', (err) => { console.error('UNCAUGHT EXCEPTION:', err); process.exit(1) })
+process.on('unhandledRejection', (err) => { console.error('UNHANDLED REJECTION:', err); process.exit(1) })
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({ logger: true }),
-  )
-
-  app.enableCors({
-    origin: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
-    credentials: true,
-  })
-
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter())
   app.setGlobalPrefix('api/v1')
-
-  const port = Number(process.env.API_PORT) || 3001
-  const host = process.env.API_HOST ?? '0.0.0.0'
-
-  await app.listen(port, host)
+  app.enableCors({ origin: process.env.CORS_ORIGIN || '*' })
+  const fastify = app.getHttpAdapter().getInstance()
+  const healthHandler = async () => ({ status: 'ok', timestamp: new Date().toISOString() })
+  fastify.get('/api/health', healthHandler)
+  fastify.get('/api/v1/health', healthHandler)
+  const port = Number(process.env.PORT) || 3001
+  await app.listen(port, '0.0.0.0')
+  console.log(`API rodando na porta ${port}`)
 }
 
-bootstrap()
+bootstrap().catch((err) => { console.error('Erro ao iniciar:', err); process.exit(1) })

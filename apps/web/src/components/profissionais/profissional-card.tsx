@@ -10,16 +10,18 @@ const AVATAR_COLORS: [string, string][] = [
 ]
 
 function colorForName(name: string): [string, string] {
+  const safe = name ?? ''
   let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  for (let i = 0; i < safe.length; i++) h = (h * 31 + safe.charCodeAt(i)) >>> 0
   return AVATAR_COLORS[h % AVATAR_COLORS.length]
 }
 
 function initials(name: string): string {
-  const parts = name.trim().split(' ')
+  const safe = (name ?? '').trim()
+  const parts = safe.split(' ')
   return parts.length >= 2
     ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase()
+    : safe.slice(0, 2).toUpperCase()
 }
 
 interface ProfissionalAvatarProps {

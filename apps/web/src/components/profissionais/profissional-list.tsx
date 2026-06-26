@@ -123,7 +123,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
                 Avaliação <SortIcon col="rating" active={sortKey} dir={sortDir} />
               </span>
             </th>
-            <th scope="col" className={cn(TH, 'w-16')}><span className="sr-only">Ações</span></th>
+            <th scope="col" className={cn(TH, 'w-16')}>Detalhes</th>
           </tr>
         </thead>
 
@@ -179,22 +179,15 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
                 </div>
               </td>
 
-              {/* Ação */}
+              {/* Detalhes */}
               <td className="px-4 py-3">
                 <button
                   type="button"
                   onClick={() => onView(p)}
                   aria-label={`Ver perfil de ${p.name}`}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md border border-[#E2E8F0] px-2.5 py-1.5',
-                    'text-[12px] font-medium text-[#475569] transition-colors',
-                    'hover:border-[#2563EB] hover:text-[#2563EB]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                    'opacity-0 group-hover:opacity-100 motion-reduce:transition-none',
-                  )}
+                  className="text-[#94A3B8] hover:text-[#2563EB] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
                 >
-                  <Eye size={12} aria-hidden="true" />
-                  Ver
+                  <Eye size={16} aria-hidden="true" />
                 </button>
               </td>
             </tr>

@@ -229,6 +229,7 @@ export class RelatoriosService {
   }
 
   private goalsTableEnsured = false
+  private goalsTableErr = ''
 
   private async ensureGoalsTableInline() {
     if (this.goalsTableEnsured) return
@@ -241,8 +242,10 @@ export class RelatoriosService {
         'PRIMARY KEY (id))',
       )
       this.goalsTableEnsured = true
+      this.goalsTableErr = ''
     } catch (e: unknown) {
-      console.error('GOALS_TABLE_CREATE_ERR', (e as Error).message)
+      this.goalsTableErr = (e as Error).message || 'unknown CREATE error'
+      console.error('GOALS_TABLE_CREATE_ERR', this.goalsTableErr)
     }
   }
 
@@ -260,9 +263,9 @@ export class RelatoriosService {
       )
       return { id, tenantId, tipo: dto.tipo, periodo: dto.periodo, valor: dto.valor, dataInicio, dataFim, createdAt: now, updatedAt: now }
     } catch (err: unknown) {
-      const e = err as { message?: string; code?: string }
-      console.error('GOAL_INSERT_ERR', JSON.stringify({ msg: e?.message, code: e?.code }))
-      return null
+      const msg = (err as Error).message || 'unknown INSERT error'
+      console.error('GOAL_INSERT_ERR', msg)
+      return { _debug: true, tableErr: this.goalsTableErr, insertErr: msg }
     }
   }
 

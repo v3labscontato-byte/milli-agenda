@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, Min, Max } from 'class-validator'
+import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, Min, Max } from 'class-validator'
 
 export class CreateProfissionalDto {
   @IsString()
@@ -25,4 +25,16 @@ export class CreateProfissionalDto {
   @IsOptional()
   @IsBoolean()
   active?: boolean
+
+  @IsOptional()
+  @IsArray()
+  workDays?: number[]
+
+  @IsOptional()
+  @IsString()
+  workStart?: string
+
+  @IsOptional()
+  @IsString()
+  workEnd?: string
 }

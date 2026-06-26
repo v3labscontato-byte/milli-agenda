@@ -1,17 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Mail, Phone, CreditCard, Calendar, Star, TrendingUp } from 'lucide-react'
+import { X, Mail, Phone, Star, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL, formatDate, age, hireSince, workDaysLabel } from '@/lib/profissionais-mock'
 import { ProfissionalAvatar, RoleBadge, StatusBadge } from './profissional-card'
 
-type Tab = 'perfil' | 'agenda' | 'desempenho' | 'comissao'
+type Tab = 'perfil' | 'desempenho' | 'comissao'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'perfil',     label: 'Perfil'      },
-  { id: 'agenda',     label: 'Agenda'      },
   { id: 'desempenho', label: 'Desempenho'  },
   { id: 'comissao',   label: 'Comissão'    },
 ]
@@ -82,53 +81,6 @@ function TabPerfil({ p }: { p: Profissional }) {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// ─── Tab: Agenda ──────────────────────────────────────────────────────────────
-
-function TabAgenda({ p }: { p: Profissional }) {
-  const today = '2026-06-24'
-  const upcoming = p.upcoming.filter((a) => a.date >= today)
-  const grouped = upcoming.reduce<Record<string, typeof upcoming>>((acc, a) => {
-    acc[a.date] = acc[a.date] ?? []
-    acc[a.date].push(a)
-    return acc
-  }, {})
-
-  if (upcoming.length === 0) {
-    return (
-      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#E2E8F0]">
-        <Calendar size={20} className="text-[#CBD5E1]" aria-hidden="true" />
-        <p className="text-[13px] text-[#94A3B8]">Sem agendamentos futuros</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([date, appts]) => (
-        <div key={date}>
-          <p className="mb-2 text-[12px] font-medium text-[#64748B]">{formatDate(date)}</p>
-          <div className="space-y-2">
-            {appts.map((a) => (
-              <div key={a.id} className="flex items-center justify-between gap-3 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="shrink-0 font-tabular text-[13px] font-semibold text-[#2563EB]">{a.time}</span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-medium text-[#0F172A]">{a.clientName}</p>
-                    <p className="text-[11px] text-[#94A3B8]">{a.service} · {a.duration}min</p>
-                  </div>
-                </div>
-                <span className="shrink-0 font-tabular text-[13px] font-semibold text-[#0F172A]">
-                  {formatBRL(a.value)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
     </div>
   )
 }
@@ -341,7 +293,6 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {tab === 'perfil'     && <TabPerfil      p={p} />}
-          {tab === 'agenda'     && <TabAgenda      p={p} />}
           {tab === 'desempenho' && <TabDesempenho  p={p} />}
           {tab === 'comissao'   && <TabComissao    p={p} />}
         </div>

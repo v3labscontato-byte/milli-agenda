@@ -30,17 +30,32 @@ cat DEVLOG.md | tail -100
 - DELETE /api/v1/services/categories/:id
 
 ## ESTADO ATUAL DO MÓDULO
-✅ Lista com coluna DETALHES sempre visível
-✅ Edição inline de Duração e Preço (clique para editar)
+✅ Lista com coluna DETALHES sempre visível (Eye icon sem opacity-0)
+✅ Coluna Categoria separada (exibe nome da categoria via lookup por ID)
+✅ Edição inline de Duração e Preço (clique para editar, blur/Enter para salvar)
+✅ Toggle status: botão ativo/inativo com UI otimista (PATCH active)
+✅ Excluir: botão Trash com confirmação inline (soft delete via PATCH active: false)
+✅ Modal de serviço com aba Profissionais (read-only — lista profissionais que têm este serviço em enabledServices)
+✅ Modal de serviço com aba Detalhes (duração, preço, categoria, descrição)
 ✅ Smart Form 4 steps (Básico, Valores, Profissionais, Visibilidade)
 ✅ Smart Form Categoria 2 steps com color picker (8 cores)
-✅ Botão Excluir com soft delete
-✅ KPIs inline via useMemo
+✅ KPIs inline via useMemo (total, ativos, inativos, ticket médio)
+✅ Impeccable audit 20/20 (CSS vars via var(--color-*), a11y, responsive)
+✅ GET /services retorna TODOS (ativos e inativos) — filtro no frontend
+
+## CAMPOS NO BANCO (Service)
+```
+name, description?, durationMin Int, price Decimal, active Boolean
+categoryId? (FK → ServiceCategory)
+```
 
 ## PADRÕES DO MÓDULO
-- price: Decimal no Prisma → string da API → Number(s.price ?? 0)
+- price: Decimal no Prisma → vem como string da API → SEMPRE Number(s.price ?? 0)
 - durationMin: int, mínimo 5
-- active: true por padrão, false = soft delete
+- active: true por padrão; PATCH { active: false } = soft delete; PATCH { active: true } = reativar
+- GET retorna todos os serviços (ativos e inativos) — campo `active` distingue no frontend
+- Aba Profissionais no modal: faz GET /professionals → filtra p.enabledServices.includes(s.id) — read-only (não edita aqui)
+- toServico() mapper em use-servicos.ts: backend `durationMin`/`price`/`active` → frontend `Servico` type
 
 ## BACKLOG DO MÓDULO
 - [ ] Upload foto do serviço (precisa S3/R2)

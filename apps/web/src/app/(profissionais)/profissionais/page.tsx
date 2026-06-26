@@ -75,7 +75,7 @@ export default function ProfissionaisPage() {
   const [novoOpen, setNovoOpen]       = useState(false)
   const [smartOpen, setSmartOpen]     = useState(false)
 
-  const { data: profissionais, loading, error, create } = useProfissionais()
+  const { data: profissionais, loading, error, create, update, remove } = useProfissionais()
   const stats = useMemo(() => {
     const todayDay = new Date().getDay()
     const ativos = profissionais.filter((p) => p.status === 'active')
@@ -259,6 +259,8 @@ export default function ProfissionaisPage() {
           isFiltered={isFiltered}
           onView={setSelected}
           onNovo={() => setSmartOpen(true)}
+          onToggleStatus={(id, active) => update(id, { active })}
+          onDelete={remove}
         />
       </div>
 

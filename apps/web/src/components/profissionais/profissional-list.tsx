@@ -17,7 +17,7 @@ function SortIcon({ col, active, dir }: { col: SortKey; active: SortKey; dir: So
     : <ChevronDown size={12} className="text-[#2563EB]" aria-hidden="true" />
 }
 
-const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8] text-left'
+const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748B] text-left'
 const TH_SORT = cn(TH, 'cursor-pointer select-none hover:text-[#475569] transition-colors')
 
 interface Props {
@@ -103,13 +103,15 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
         <thead>
           <tr className="border-b border-[#E2E8F0]">
             <th
-              className={cn(TH_SORT, 'flex items-center gap-1')}
+              className={TH_SORT}
               onClick={() => handleSort('name')}
               aria-sort={sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
               scope="col"
             >
-              <span>Profissional</span>
-              <SortIcon col="name" active={sortKey} dir={sortDir} />
+              <span className="flex items-center gap-1">
+                Profissional
+                <SortIcon col="name" active={sortKey} dir={sortDir} />
+              </span>
             </th>
             <th scope="col" className={TH}>Status</th>
             <th scope="col" className={TH}>Especialidade</th>
@@ -212,7 +214,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                     type="button"
                     onClick={() => onView(p)}
                     aria-label={`Ver perfil de ${p.name}`}
-                    className="text-[#94A3B8] hover:text-[#2563EB] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                    className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                   >
                     <Eye size={16} aria-hidden="true" />
                   </button>
@@ -221,7 +223,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                       type="button"
                       onClick={() => setDeleteModal({ id: p.id, name: p.name })}
                       aria-label={`Excluir ${p.name}`}
-                      className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                      className="flex h-8 w-8 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                     >
                       <Trash2 size={14} className="text-[#94A3B8] hover:text-[#DC2626] transition-colors" />
                     </button>
@@ -234,9 +236,14 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
       </table>
     </div>
       {deleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm mx-4">
-            <h3 className="text-[15px] font-medium text-[#0F172A] mb-2">Excluir profissional</h3>
+            <h3 id="delete-modal-title" className="text-[15px] font-medium text-[#0F172A] mb-2">Excluir profissional</h3>
             <p className="text-[13px] text-[#475569] mb-6">
               Tem certeza que deseja excluir <strong>{deleteModal.name}</strong>?{' '}
               Esta ação não pode ser desfeita.

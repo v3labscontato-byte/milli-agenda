@@ -54,18 +54,20 @@ function PaymentStatusCell({ appt }: { appt: Appointment }) {
 
 // ─── Atendimento status ───────────────────────────────────────────────────────
 
-type AtendimentoSt = 'realizado' | 'pendente' | 'cancelado'
+type AtendimentoSt = 'realizado' | 'pendente' | 'cancelado' | 'confirmado'
 
 function getAtendimentoStatus(appt: Appointment): AtendimentoSt {
   if (appt.status === 'COMPLETED') return 'realizado'
   if (appt.status === 'CANCELLED') return 'cancelado'
+  if (appt.status === 'CONFIRMED') return 'confirmado'
   return 'pendente'
 }
 
 const ATENDIMENTO_STYLES: Record<AtendimentoSt, { bg: string; text: string; border: string; label: string }> = {
-  realizado: { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Realizado' },
-  pendente:  { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Pendente'  },
-  cancelado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cancelado' },
+  realizado:  { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Realizado'  },
+  pendente:   { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente'   },
+  confirmado: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Confirmado' },
+  cancelado:  { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cancelado'  },
 }
 
 function AtendimentoCell({ appt }: { appt: Appointment }) {

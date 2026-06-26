@@ -197,23 +197,28 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   })()
   const servicoSelecionado = servicos.find((s) => s.id === selectedServId)
 
-  function handleAction(label: string) {
+  async function handleAction(label: string) {
     if (!appointment) return
     if (PAYMENT_ACTIONS.has(label)) { setPaymentOpen(true); return }
     if (label === 'Reagendar') {
-      console.log('[REAGENDAR] appointment:', JSON.stringify({
-        id:             appointment.id,
-        date:           appointment.date,
-        startTime:      appointment.startTime,
-        professionalId: appointment.professionalId,
-        serviceId:      appointment.serviceId,
-        client:         appointment.client,
-      }, null, 2))
       setNovaData(appointment.date)
       setNovoHorario(appointment.startTime)
       setSelectedProfId(appointment.professionalId)
       setSelectedServId(appointment.serviceId ?? '')
       setReagendando(true)
+      return
+    }
+    if (label === 'Confirmar') {
+      setSaving(true)
+      try {
+        await agendaApi.update(appointment.id, { status: 'CONFIRMED' })
+        onSuccess?.()
+        onClose()
+      } catch (e) {
+        console.error('Confirmar erro:', e)
+      } finally {
+        setSaving(false)
+      }
       return
     }
     if (label === 'Cancelar') setCancelMode(true)

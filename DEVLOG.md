@@ -644,3 +644,11 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Arquivos alterados:** apps/web/src/lib/profissionais-mock.ts, apps/web/src/hooks/use-profissionais.ts, apps/web/src/components/profissionais/profissional-modal.tsx
 **O que foi feito:** (1) Adicionado vinculo?: string ao tipo Profissional (opcional para não quebrar mock data). (2) toFrontend() agora mapeia String(raw.cpf ?? ''), String(raw.birthDate ?? ''), String(raw.vinculo ?? '') em vez de strings vazias hardcoded. (3) Removidos todos os casts (p as unknown as { vinculo?: string }) do modal — agora usa p.vinculo diretamente.
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-26] CLAUDE 2 — Fix: GET retorna todos + delete é hard delete real
+**Status:** Concluído
+**Arquivos alterados:** apps/api/src/modules/profissionais/profissionais.service.ts
+**O que foi feito:** (1) findAll() removeu filtro active: true — agora retorna todos os profissionais do tenant. Frontend pode filtrar por status via UI. (2) remove() mudado de soft delete (update active: false) para hard delete real (db.professional.delete). Assim inativar (PATCH active: false) e excluir são operações distintas.
+**tsc --noEmit:** 0 erros ✅

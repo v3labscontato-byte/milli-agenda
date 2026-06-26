@@ -773,3 +773,6 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** Concluido
 **Causa raiz:** useEffect([appointment?.id]) limpava selectedProfId/novaData DEPOIS do handleAction preenchê-los
 **Fix:** guard !reagendando no reset — só limpa campos quando não está em modo reagendamento
+### [$(date +%Y-%m-%d)] AGENT_AGENDA — Fix reagendar usa AppointmentModal correto
+**Status:** ✅ Concluído
+**Fix:** ManageModal → AppointmentModal (dados reais) em vez de NewAppointmentModal (mock)

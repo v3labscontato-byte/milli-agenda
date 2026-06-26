@@ -7,7 +7,11 @@ import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from 
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
+import { api } from '@/lib/api/client'
 import { FEATURES } from '@/lib/features'
+
+interface ProfItem { id: string; name: string; specialty?: string }
+interface ServItem { id: string; name: string; durationMin?: number }
 
 interface Action {
   label: string
@@ -39,9 +43,12 @@ const HORARIOS = [
   '15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00',
 ]
 
+const SELECT_CLS = 'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
+
 interface AppointmentModalProps {
   appointment: CalendarAppointment | null
   onClose: () => void
+  onSuccess?: () => void
   onReschedule?: (appt: CalendarAppointment) => void
 }
 
@@ -50,34 +57,68 @@ function formatDateDisplay(dateStr: string): string {
   return `${d}/${m}/${y}`
 }
 
-export default function AppointmentModal({ appointment, onClose, onReschedule }: AppointmentModalProps) {
-  const [paymentOpen, setPaymentOpen] = useState(false)
-  const [reagendando, setReagendando] = useState(false)
-  const [novaData, setNovaData]       = useState('')
-  const [novoHorario, setNovoHorario] = useState('')
-  const [saving, setSaving]           = useState(false)
+export default function AppointmentModal({ appointment, onClose, onSuccess, onReschedule: _onReschedule }: AppointmentModalProps) {
+  const [paymentOpen, setPaymentOpen]         = useState(false)
+  const [reagendando, setReagendando]         = useState(false)
+  const [cancelMode, setCancelMode]           = useState(false)
+  const [motivo, setMotivo]                   = useState('')
+  const [novaData, setNovaData]               = useState('')
+  const [novoHorario, setNovoHorario]         = useState('')
+  const [selectedProfId, setSelectedProfId]   = useState('')
+  const [selectedServId, setSelectedServId]   = useState('')
+  const [profissionais, setProfissionais]     = useState<ProfItem[]>([])
+  const [servicos, setServicos]               = useState<ServItem[]>([])
+  const [saving, setSaving]                   = useState(false)
   const paymentOpenRef = useRef(false)
   useEffect(() => { paymentOpenRef.current = paymentOpen }, [paymentOpen])
 
+  // Reset all transient state when appointment changes
   useEffect(() => {
     setPaymentOpen(false)
     setReagendando(false)
+    setCancelMode(false)
+    setMotivo('')
     setNovaData('')
     setNovoHorario('')
+    setSelectedProfId('')
+    setSelectedServId('')
     setSaving(false)
   }, [appointment?.id])
+
+  // Fetch professionals from real API
+  useEffect(() => {
+    if (!FEATURES.realAgenda) return
+    ;(api as any).get('/api/v1/professionals')
+      .then((r: unknown) => {
+        const arr = Array.isArray(r) ? r : []
+        setProfissionais(arr as ProfItem[])
+      })
+      .catch(() => {})
+  }, [])
+
+  // Fetch services from real API
+  useEffect(() => {
+    if (!FEATURES.realAgenda) return
+    ;(api as any).get('/api/v1/services')
+      .then((r: unknown) => {
+        const arr = Array.isArray(r) ? r : []
+        setServicos(arr as ServItem[])
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!appointment) return
     const handler = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       if (paymentOpenRef.current) { setPaymentOpen(false); return }
-      if (reagendando) { setReagendando(false); return }
+      if (reagendando)             { setReagendando(false); return }
+      if (cancelMode)              { setCancelMode(false);  return }
       onClose()
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [appointment, onClose, reagendando])
+  }, [appointment, onClose, reagendando, cancelMode])
 
   if (!appointment) return null
 
@@ -91,16 +132,46 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
     if (label === 'Reagendar') {
       setNovaData(appointment.date)
       setNovoHorario(appointment.startTime)
+      setSelectedProfId(appointment.professionalId)
+      setSelectedServId(appointment.serviceId ?? '')
       setReagendando(true)
+      return
+    }
+    if (label === 'Cancelar') {
+      setCancelMode(true)
     }
   }
 
   async function handleReagendar() {
     if (!novaData || !novoHorario || !appointment) return
-    if (!FEATURES.realAgenda) { onClose(); return }
     setSaving(true)
     try {
-      await agendaApi.update(appointment.id, { date: novaData, startTime: novoHorario })
+      if (FEATURES.realAgenda) {
+        await agendaApi.update(appointment.id, {
+          professionalId: selectedProfId || undefined,
+          serviceId:      selectedServId || undefined,
+          date:           novaData,
+          startTime:      novoHorario,
+        })
+      }
+      onSuccess?.()
+      onClose()
+    } catch {
+      setSaving(false)
+    }
+  }
+
+  async function handleCancelar() {
+    if (!appointment) return
+    setSaving(true)
+    try {
+      if (FEATURES.realAgenda) {
+        await agendaApi.update(appointment.id, {
+          status:       'CANCELLED',
+          cancelReason: motivo || undefined,
+        } as Parameters<typeof agendaApi.update>[1])
+      }
+      onSuccess?.()
       onClose()
     } catch {
       setSaving(false)
@@ -111,6 +182,8 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
     setPaymentOpen(false)
     onClose()
   }
+
+  const showActions = !reagendando && !cancelMode && actions.length > 0
 
   return (
     <>
@@ -178,23 +251,44 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
           {/* Inline reagendar form */}
           {reagendando && (
             <div className="space-y-3 border-t border-[#F1F5F9] px-5 py-4">
-              <p className="text-[12px] font-medium text-[#475569]">Nova data e horário</p>
+              <p className="text-[12px] font-medium text-[#475569]">Reagendar</p>
+
+              {FEATURES.realAgenda && profissionais.length > 0 && (
+                <div>
+                  <label className="mb-1 block text-[12px] text-[#64748B]">Profissional</label>
+                  <select value={selectedProfId} onChange={(e) => setSelectedProfId(e.target.value)} className={SELECT_CLS}>
+                    <option value="">Selecionar profissional…</option>
+                    {profissionais.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}{p.specialty ? ` — ${p.specialty}` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {FEATURES.realAgenda && servicos.length > 0 && (
+                <div>
+                  <label className="mb-1 block text-[12px] text-[#64748B]">Serviço</label>
+                  <select value={selectedServId} onChange={(e) => setSelectedServId(e.target.value)} className={SELECT_CLS}>
+                    <option value="">Selecionar serviço…</option>
+                    {servicos.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="mb-1 block text-[12px] text-[#64748B]">Data</label>
                 <input
                   type="date"
                   value={novaData}
                   onChange={(e) => setNovaData(e.target.value)}
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                  className={SELECT_CLS}
                 />
               </div>
               <div>
                 <label className="mb-1 block text-[12px] text-[#64748B]">Horário</label>
-                <select
-                  value={novoHorario}
-                  onChange={(e) => setNovoHorario(e.target.value)}
-                  className="w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
-                >
+                <select value={novoHorario} onChange={(e) => setNovoHorario(e.target.value)} className={SELECT_CLS}>
                   {HORARIOS.map((h) => (
                     <option key={h} value={h}>{h}</option>
                   ))}
@@ -204,10 +298,7 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
                 <button
                   type="button"
                   onClick={() => setReagendando(false)}
-                  className={cn(
-                    'flex-1 rounded-lg border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]',
-                    'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                  )}
+                  className={cn('flex-1 rounded-lg border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]', 'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
                 >
                   Voltar
                 </button>
@@ -215,11 +306,7 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
                   type="button"
                   onClick={handleReagendar}
                   disabled={saving || !novaData || !novoHorario}
-                  className={cn(
-                    'flex-1 rounded-lg bg-[#2563EB] py-2 text-[13px] font-medium text-white',
-                    'transition-colors hover:bg-[#1D4ED8] disabled:opacity-50',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                  )}
+                  className={cn('flex-1 rounded-lg bg-[#2563EB] py-2 text-[13px] font-medium text-white', 'transition-colors hover:bg-[#1D4ED8] disabled:opacity-50', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
                 >
                   {saving ? 'Salvando…' : 'Confirmar'}
                 </button>
@@ -227,8 +314,39 @@ export default function AppointmentModal({ appointment, onClose, onReschedule }:
             </div>
           )}
 
+          {/* Cancel form */}
+          {cancelMode && (
+            <div className="space-y-4 border-t border-[#F1F5F9] px-5 py-4">
+              <p className="text-[12px] font-medium text-[#475569]">Motivo do cancelamento (opcional)</p>
+              <textarea
+                rows={3}
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                placeholder="Ex.: cliente solicitou, conflito de agenda…"
+                className={cn('w-full resize-none rounded-md border border-[#E2E8F0] px-3 py-2', 'text-[13px] text-[#0F172A] placeholder:text-[#94A3B8]', 'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]')}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelMode(false)}
+                  className={cn('flex-1 rounded-md border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]', 'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
+                >
+                  Voltar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelar}
+                  disabled={saving}
+                  className={cn('flex-1 rounded-md bg-[#DC2626] py-2 text-[13px] font-medium text-white', 'transition-colors hover:bg-[#B91C1C] disabled:opacity-50', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
+                >
+                  {saving ? 'Cancelando…' : 'Confirmar cancelamento'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
-          {!reagendando && actions.length > 0 && (
+          {showActions && (
             <div className="flex gap-2 border-t border-[#F1F5F9] px-5 py-4">
               {actions.map((action) => {
                 const Icon = action.icon

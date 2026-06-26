@@ -255,6 +255,7 @@ export default function AgendaPage() {
       <AppointmentModal
         appointment={selectedAppt}
         onClose={closeAppt}
+        onSuccess={handleCreated}
         onReschedule={handleReschedule}
       />
 

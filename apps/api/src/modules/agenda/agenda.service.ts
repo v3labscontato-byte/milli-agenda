@@ -3,6 +3,7 @@ import { DatabaseService } from '../../infra/database/database.service'
 import { assertTransition } from '@milli/business-rules'
 import { AppointmentStatus } from '@milli/shared-types'
 import { CreateAppointmentDto } from './dto/create-appointment.dto'
+import { UpdateAppointmentDto } from './dto/update-appointment.dto'
 
 type Filters = {
   from?: string
@@ -75,13 +76,15 @@ export class AgendaService {
     })
   }
 
-  async update(tenantId: string, id: string, dto: Partial<CreateAppointmentDto>) {
+  async update(tenantId: string, id: string, dto: UpdateAppointmentDto) {
     await this.findOne(tenantId, id)
     const data: Record<string, unknown> = {}
     if (dto.clientId)            data.clientId = dto.clientId
     if (dto.professionalId)      data.professionalId = dto.professionalId
     if (dto.serviceId)           data.serviceId = dto.serviceId
     if (dto.notes !== undefined) data.notes = dto.notes
+    if (dto.status)              data.status = dto.status
+    if (dto.cancelReason)        data.notes = dto.cancelReason
     if (dto.date && dto.startTime) {
       const startAt = this.parseDateTime(dto.date, dto.startTime)
       const endAt = new Date(startAt)

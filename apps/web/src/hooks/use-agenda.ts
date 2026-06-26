@@ -30,6 +30,7 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
     durationMinutes: Math.round((endAt.getTime() - startAt.getTime()) / 60000),
     client: client.name as string,
     service: service.name as string,
+    serviceId: r.serviceId as string,
     professionalId: r.professionalId as string,
     amount: (r.amount as number) ?? 0,
     status,

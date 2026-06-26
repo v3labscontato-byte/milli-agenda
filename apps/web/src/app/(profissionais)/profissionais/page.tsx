@@ -23,7 +23,7 @@ function KpiCard({ label, value, sub, accent }: KpiCardProps) {
   return (
     <div className={cn(
       'flex flex-col rounded-xl border p-5',
-      accent ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]' : 'border-[#E2E8F0] bg-white',
+      accent ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]' : 'border-[var(--color-border-primary)] bg-white',
     )}>
       <span className={cn('font-tabular text-3xl font-bold leading-none', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
         {value}
@@ -31,7 +31,7 @@ function KpiCard({ label, value, sub, accent }: KpiCardProps) {
       <span className={cn('mt-1.5 text-sm font-semibold', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
         {label}
       </span>
-      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[#3B82F6]' : 'text-[var(--color-text-tertiary)]')}>
+      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[var(--color-brand-dark)]' : 'text-[var(--color-text-tertiary)]')}>
         {sub}
       </span>
     </div>
@@ -109,20 +109,20 @@ export default function ProfissionaisPage() {
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
+      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white px-6 py-5">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
+          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[var(--color-surface-tertiary)]" />)}
         </div>
       </div>
       <div className="flex-1 space-y-3 p-6">
-        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[#F1F5F9]" />)}
+        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[var(--color-surface-tertiary)]" />)}
       </div>
     </div>
   )
 
   if (error) return (
     <div className="flex h-full items-center justify-center">
-      <p className="text-[14px] text-[#DC2626]">{error}</p>
+      <p className="text-[14px] text-[var(--color-danger)]">{error}</p>
     </div>
   )
 
@@ -130,7 +130,7 @@ export default function ProfissionaisPage() {
     <div className="flex h-full flex-col">
 
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white">
+      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white">
         <div className="flex items-center justify-between px-6 pb-3 pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
             Visão geral
@@ -181,7 +181,7 @@ export default function ProfissionaisPage() {
       </div>
 
       {/* ── Search + filters ── */}
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-3 space-y-2.5">
+      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white px-6 py-3 space-y-2.5">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="relative">
@@ -197,7 +197,7 @@ export default function ProfissionaisPage() {
               placeholder="Buscar por nome ou especialidade…"
               aria-label="Buscar profissional"
               className={cn(
-                'w-64 rounded-md border border-[#E2E8F0] bg-white py-1.5 pl-8 pr-8 text-[13px] text-[var(--color-text-primary)]',
+                'w-64 rounded-md border border-[var(--color-border-primary)] bg-white py-1.5 pl-8 pr-8 text-[13px] text-[var(--color-text-primary)]',
                 'placeholder:text-[var(--color-text-secondary)]',
                 'focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]',
               )}
@@ -220,7 +220,7 @@ export default function ProfissionaisPage() {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
                   roleFilter === value
                     ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)] text-[var(--color-brand)]'
-                    : 'border-[#E2E8F0] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
+                    : 'border-[var(--color-border-primary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
                 )}>
                 {label}
               </button>
@@ -237,7 +237,7 @@ export default function ProfissionaisPage() {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
                   statusFilter === value
                     ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)] text-[var(--color-brand)]'
-                    : 'border-[#E2E8F0] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
+                    : 'border-[var(--color-border-primary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
                 )}>
                 {label}
               </button>

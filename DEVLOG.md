@@ -603,3 +603,12 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **O que foi feito:** (1) Adicionado cpf/birthDate/vinculo como String? no modelo Professional do schema Prisma. (2) DTO aceita os 3 campos como opcionais (?string | null). (3) Frontend: roles buscados via fetch ao montar TabPerfil; editingEspec usa select com roles ou fallback "Cadastrar agora"; saveEspec simplificado para enviar specialty diretamente.
 **Pendente (usuário):** Rodar SQL no Railway Console do Homolog (ver abaixo).
 **Problemas encontrados:** Nenhum — tsc sem erros em web e api.
+
+---
+
+### [2026-06-26] CLAUDE 2 — Auditoria impeccable 20/20 — módulo Profissionais
+**Status:** Concluído
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx, apps/web/src/components/profissionais/profissional-list.tsx, apps/web/src/app/(profissionais)/profissionais/page.tsx, apps/web/src/components/shared/smart-form-profissional.tsx
+**O que foi feito:** Substituição completa de todos os hex hardcoded por CSS vars do design system (var(--color-*)). Melhorias de acessibilidade: focus-visible rings em todos os elementos interativos, label/htmlFor em todos os inputs, aria-label nos checkboxes, role="tabpanel" + aria-labelledby no body do modal, id nos botões de tab. Responsividade: ZONA 2 usa grid-cols-1 sm:grid-cols-2. Performance: removido backdrop-blur-[2px] de todos os overlays modais. Anti-patterns: nenhum glassmorphism.
+**Dimensões auditadas:** A11y ✅ | Performance ✅ | Responsive ✅ | Theming ✅ | Anti-patterns ✅
+**tsc --noEmit:** 0 erros ✅

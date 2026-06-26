@@ -149,11 +149,11 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
           </tr>
         </thead>
 
-        <tbody className="divide-y divide-[#F1F5F9]">
+        <tbody className="divide-y divide-[var(--color-surface-tertiary)]">
           {sorted.map((p) => (
             <tr
               key={p.id}
-              className="group transition-colors hover:bg-[#F8FAFC]"
+              className="group transition-colors hover:bg-[var(--color-surface-secondary)]"
             >
               {/* Nome + cargo */}
               <td className="px-4 py-3">
@@ -225,7 +225,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                       aria-label={`Excluir ${p.name}`}
                       className="flex h-8 w-8 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
                     >
-                      <Trash2 size={14} className="text-[var(--color-text-tertiary)] hover:text-[#DC2626] transition-colors" />
+                      <Trash2 size={14} className="text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] transition-colors" />
                     </button>
                   )}
                 </div>
@@ -259,7 +259,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
               <button
                 type="button"
                 onClick={() => void handleDelete(deleteModal.id)}
-                className="px-4 py-2 text-[13px] text-white bg-[#DC2626] rounded-lg hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+                className="px-4 py-2 text-[13px] text-white bg-[var(--color-danger)] rounded-lg hover:bg-[var(--color-danger-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
               >
                 Excluir
               </button>

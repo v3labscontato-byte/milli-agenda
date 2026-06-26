@@ -31,7 +31,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           key={i}
           className={cn(
             'h-2 rounded-full transition-all duration-150',
-            i + 1 === step ? 'w-6 bg-[var(--color-brand)]' : i + 1 < step ? 'w-2 bg-[var(--color-brand)]/40' : 'w-2 bg-[#E2E8F0]',
+            i + 1 === step ? 'w-6 bg-[var(--color-brand)]' : i + 1 < step ? 'w-2 bg-[var(--color-brand)]/40' : 'w-2 bg-[var(--color-border-primary)]',
           )}
         />
       ))}
@@ -132,11 +132,11 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Novo profissional">
-      <div className="absolute inset-0 bg-[var(--color-text-primary)]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-[var(--color-text-primary)]/40" onClick={onClose} aria-hidden="true" />
       <div className="relative z-10 flex w-full max-w-lg flex-col rounded-xl bg-white shadow-xl" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
 
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-surface-tertiary)] px-5 py-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-text-tertiary)]">
               Etapa {step} de 4 — {STEP_LABELS[step]}
@@ -147,7 +147,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -172,7 +172,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Maria Silva"
                   autoFocus
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                  className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                 />
               </div>
               <div className="space-y-1.5">
@@ -183,7 +183,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="(11) 99999-9999"
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                  className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                 />
               </div>
               <div className="space-y-1.5">
@@ -194,7 +194,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="maria@email.com"
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                  className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                 />
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     id="sf-cargo"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
-                    className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                    className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                   >
                     <option value="">Selecionar cargo…</option>
                     {roles.map((r) => <option key={r.id} value={r.name}>{r.name}</option>)}
@@ -226,7 +226,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
                     placeholder="Ex: Cabeleireiro, Barbeiro..."
-                    className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                    className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                   />
                 )}
               </div>
@@ -244,7 +244,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
                         workDays.includes(idx)
                           ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)] text-[var(--color-brand)]'
-                          : 'border-[#E2E8F0] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)]',
+                          : 'border-[var(--color-border-primary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)]',
                       )}
                     >
                       {label}
@@ -260,7 +260,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     <select
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="border border-[#E2E8F0] rounded-md px-3 py-2 text-[13px] bg-white appearance-none pr-8 cursor-pointer min-w-[100px] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                      className="border border-[var(--color-border-primary)] rounded-md px-3 py-2 text-[13px] bg-white appearance-none pr-8 cursor-pointer min-w-[100px] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                       style={{
                         backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
                         backgroundRepeat: 'no-repeat',
@@ -276,7 +276,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     <select
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="border border-[#E2E8F0] rounded-md px-3 py-2 text-[13px] bg-white appearance-none pr-8 cursor-pointer min-w-[100px] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                      className="border border-[var(--color-border-primary)] rounded-md px-3 py-2 text-[13px] bg-white appearance-none pr-8 cursor-pointer min-w-[100px] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                       style={{
                         backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
                         backgroundRepeat: 'no-repeat',
@@ -310,7 +310,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     >
                       Selecionar todos
                     </button>
-                    <span className="text-[#E2E8F0]">|</span>
+                    <span className="text-[var(--color-border-primary)]">|</span>
                     <button
                       type="button"
                       onClick={() => setSelectedServices(new Set())}
@@ -326,7 +326,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                       const m = s.durationMin % 60
                       const dur = h > 0 ? `${h}h${m > 0 ? ` ${m}min` : ''}` : `${m}min`
                       return (
-                        <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#E2E8F0] px-3 py-2.5 transition-colors hover:bg-[#F8FAFC]">
+                        <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5 transition-colors hover:bg-[#F8FAFC]">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -370,12 +370,12 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                     step="1"
                     value={commissionPct}
                     onChange={(e) => setCommissionPct(e.target.value)}
-                    className="w-20 rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                    className="w-20 rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                   />
                   <span className="text-[13px] text-[var(--color-text-secondary)]">%</span>
                 </div>
               </div>
-              <div className="rounded-xl border border-[#E2E8F0] p-4">
+              <div className="rounded-xl border border-[var(--color-border-primary)] p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">Resumo</p>
                 <p className="mt-2 text-[14px] font-semibold text-[var(--color-text-primary)]">{name}</p>
                 <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">{specialty}</p>
@@ -387,14 +387,14 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 )}
                 {commissionPct && <p className="mt-0.5 text-[12px] text-[var(--color-text-tertiary)]">Comissão: {commissionPct}%</p>}
               </div>
-              {error && <p className="text-[12px] text-[#DC2626]">{error}</p>}
+              {error && <p className="text-[12px] text-[var(--color-danger)]">{error}</p>}
             </div>
           )}
 
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-between border-t border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-t border-[var(--color-surface-tertiary)] px-5 py-4">
           <button
             type="button"
             onClick={() => step > 1 ? setStep((s) => (s - 1) as Step) : onClose()}

@@ -8,7 +8,7 @@ export class ServicosService {
 
   findAll(tenantId: string) {
     return this.db.service.findMany({
-      where: { tenantId, active: true },
+      where: { tenantId },
       orderBy: { name: 'asc' },
     })
   }

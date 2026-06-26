@@ -465,3 +465,13 @@ Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
 **Status:** Concluído
 **O que foi feito:** CLAUDE.md atualizado para contexto macro do orquestrador. 11 arquivos .agents/ reescritos com contexto isolado por módulo. Cada agente lê apenas seu próprio .md + DEVLOG tail — ~80% menos tokens por agente.
 **Arquivos alterados:** CLAUDE.md + todos os .agents/*.md
+
+### [2026-06-25] Fix smart-form-profissional: horário + erro 400
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/web/src/components/shared/smart-form-profissional.tsx, apps/api/src/modules/profissionais/dto/create-profissional.dto.ts
+**Fixes:**
+- Layout horário: selects agora têm labels "Das"/"Até" acima deles, `flex-col gap-1`, `min-w-[100px]` e seta SVG inline — sem sobreposição
+- Erro 400 email: `@IsEmail()` trocado por `@IsString()` no DTO — aceita qualquer string incluindo emails sem TLD
+- handleSave: `commissionPct: Number(commissionPct)` sem `|| undefined` (evita 0% virar undefined), `active: true` adicionado
+**tsc --noEmit:** 0 erros (frontend + backend) ✅
+**Commit:** d7426c3

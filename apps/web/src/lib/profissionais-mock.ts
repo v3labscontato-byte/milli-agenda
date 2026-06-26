@@ -49,6 +49,7 @@ export interface Profissional {
   ratingCount: number
   monthlyData: MonthlyData[]
   upcoming: ProfAgenda[]
+  enabledServices?: string[]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

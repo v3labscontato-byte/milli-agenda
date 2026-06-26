@@ -9,12 +9,13 @@ import { ProfissionalAvatar, RoleBadge, StatusBadge } from './profissional-card'
 import { FEATURES } from '@/lib/features'
 import { profissionaisApi } from '@/lib/api/profissionais'
 
-type Tab = 'perfil' | 'desempenho' | 'comissao'
+type Tab = 'perfil' | 'desempenho' | 'comissao' | 'servicos'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'perfil',     label: 'Perfil'      },
   { id: 'desempenho', label: 'Desempenho'  },
   { id: 'comissao',   label: 'Comissão'    },
+  { id: 'servicos',   label: 'Serviços'    },
 ]
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -476,6 +477,95 @@ function TabComissao({ p }: { p: Profissional }) {
   )
 }
 
+// ─── Tab: Serviços ───────────────────────────────────────────────────────────
+
+interface RawService { id: string; name: string }
+
+function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) {
+  const [allServices, setAllServices] = useState<RawService[]>([])
+  const [enabled, setEnabled]         = useState<string[]>(p.enabledServices ?? [])
+  const [saving, setSaving]           = useState<string | null>(null)
+
+  useEffect(() => { setEnabled(p.enabledServices ?? []) }, [p.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!FEATURES.realProfissionais) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/services`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((r: unknown) => {
+        const list = Array.isArray((r as { data?: unknown }).data)
+          ? (r as { data: RawService[] }).data
+          : []
+        setAllServices(list)
+      })
+      .catch(() => {})
+  }, [])
+
+  async function toggleServico(serviceId: string) {
+    const original = enabled
+    const next = enabled.includes(serviceId)
+      ? enabled.filter((id) => id !== serviceId)
+      : [...enabled, serviceId]
+    setEnabled(next)
+    setSaving(serviceId)
+    try {
+      if (FEATURES.realProfissionais) {
+        await profissionaisApi.update(p.id, { enabledServices: next })
+        onUpdate?.()
+      }
+    } catch {
+      setEnabled(original)
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  if (!FEATURES.realProfissionais) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-border-primary)]">
+        <p className="text-[13px] text-[var(--color-text-tertiary)]">Disponível com API real</p>
+        <p className="text-[11px] text-[var(--color-text-disabled)]">Configure NEXT_PUBLIC_USE_REAL_API=true</p>
+      </div>
+    )
+  }
+
+  if (allServices.length === 0) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-border-primary)]">
+        <p className="text-[13px] text-[var(--color-text-tertiary)]">Nenhum serviço cadastrado</p>
+        <p className="text-[11px] text-[var(--color-text-disabled)]">Configure em Serviços → Novo Serviço</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {allServices.map((s) => (
+        <label
+          key={s.id}
+          className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-secondary)]"
+        >
+          <input
+            type="checkbox"
+            checked={enabled.includes(s.id)}
+            onChange={() => void toggleServico(s.id)}
+            disabled={saving === s.id}
+            className="h-4 w-4 accent-[var(--color-brand)]"
+          />
+          <span className="flex-1 text-[13px] text-[var(--color-text-primary)]">{s.name}</span>
+          {saving === s.id && (
+            <span className="text-[11px] text-[var(--color-text-tertiary)]">Salvando…</span>
+          )}
+        </label>
+      ))}
+    </div>
+  )
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 interface ProfissionalModalProps {
@@ -571,6 +661,7 @@ export default function ProfissionalModal({ profissional, onClose, onUpdate }: P
           {tab === 'perfil'     && <TabPerfil      p={p} onUpdate={onUpdate} />}
           {tab === 'desempenho' && <TabDesempenho  p={p} />}
           {tab === 'comissao'   && <TabComissao    p={p} />}
+          {tab === 'servicos'   && <TabServicos    p={p} onUpdate={onUpdate} />}
         </div>
       </div>
     </div>

@@ -140,7 +140,7 @@ function ClienteList({
             <Th label="Próx. Agend."    col="nextAppointment" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
             <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Visitas</th>
             <Th label="Ticket Méd."     col="avgTicket"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
-            <th scope="col" className="px-4 py-3" aria-label="Ações" />
+            <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Detalhes</th>
           </tr>
         </thead>
 
@@ -223,7 +223,6 @@ function ClienteList({
                       'text-[12px] font-medium text-[#475569] transition-colors',
                       'hover:border-[#2563EB] hover:text-[#2563EB]',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                      'opacity-0 group-hover:opacity-100 motion-reduce:transition-none',
                     )}
                   >
                     <Eye size={12} aria-hidden="true" />

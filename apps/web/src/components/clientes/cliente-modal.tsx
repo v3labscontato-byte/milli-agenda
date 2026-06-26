@@ -53,7 +53,7 @@ function ApptStatusBadge({ status }: { status: UpcomingAppt['status'] }) {
 
 // ─── Tab content ──────────────────────────────────────────────────────────────
 
-function TabPerfil({ c }: { c: Cliente }) {
+function TabPerfil({ c, profFavoritoNome }: { c: Cliente; profFavoritoNome: string }) {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
       {/* Dados Pessoais */}
@@ -98,7 +98,7 @@ function TabPerfil({ c }: { c: Cliente }) {
         <dl className="space-y-3">
           <div>
             <dt className="text-[11px] text-[#94A3B8]">Profissional favorito</dt>
-            <dd className="mt-0.5 text-[13px] font-medium text-[#0F172A]">{c.favoriteProfessional || '—'}</dd>
+            <dd className="mt-0.5 text-[13px] font-medium text-[#0F172A]">{profFavoritoNome || '—'}</dd>
           </div>
           <div>
             <dt className="text-[11px] text-[#94A3B8]">Serviço mais frequente</dt>
@@ -328,10 +328,27 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
   const [tab, setTab] = useState<Tab>('perfil')
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [profissionais, setProfissionais] = useState<Array<{ id: string; name: string }>>([])
 
   useEffect(() => {
     if (cliente) { setTab('perfil'); setConfirming(false); setDeleting(false) }
   }, [cliente?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/professionals`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((r: unknown) => {
+        const list = Array.isArray((r as { data?: unknown }).data)
+          ? (r as { data: { id: string; name: string }[] }).data
+          : []
+        setProfissionais(list)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!cliente) return
@@ -341,6 +358,8 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
   }, [cliente, onClose])
 
   if (!cliente) return null
+
+  const profFavoritoNome = profissionais.find((p) => p.id === cliente.favoriteProfessional)?.name ?? ''
 
   return (
     <div
@@ -438,7 +457,7 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5" role="tabpanel">
-          {tab === 'perfil'       && <TabPerfil        c={cliente} />}
+          {tab === 'perfil'       && <TabPerfil        c={cliente} profFavoritoNome={profFavoritoNome} />}
           {tab === 'historico'    && <TabHistorico      c={cliente} />}
           {tab === 'agendamentos' && <TabAgendamentos   c={cliente} />}
           {tab === 'financeiro'   && <TabFinanceiro     c={cliente} />}

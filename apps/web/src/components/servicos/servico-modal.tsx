@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import type { Servico } from '@/lib/servicos-mock'
 import { formatBRL, formatDuration } from '@/lib/servicos-mock'
 import { CategoryBadge, ServicoStatusBadge, DurationChip } from './servico-card'
-import { ProfissionalAvatar } from '@/components/profissionais/profissional-card'
+import { FEATURES } from '@/lib/features'
 
 type Tab = 'detalhes' | 'desempenho' | 'profissionais' | 'fotos'
 
@@ -163,8 +163,44 @@ function TabDesempenho({ s }: { s: Servico }) {
 
 // ─── Tab: Profissionais ───────────────────────────────────────────────────────
 
-function TabProfissionais({ s }: { s: Servico }) {
-  if (s.professionals.length === 0) {
+interface ProfRaw { id: string; name: string; specialty?: string; enabledServices?: string[] }
+
+function TabProfissionais({ serviceId }: { serviceId: string }) {
+  const [profissionais, setProfissionais] = useState<ProfRaw[]>([])
+  const [loading, setLoading]             = useState(true)
+
+  useEffect(() => {
+    if (!FEATURES.realProfissionais) { setLoading(false); return }
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/professionals`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((r: unknown) => {
+        const all: ProfRaw[] = Array.isArray((r as { data?: unknown }).data)
+          ? (r as { data: ProfRaw[] }).data
+          : []
+        setProfissionais(all.filter((p) => Array.isArray(p.enabledServices) && p.enabledServices.includes(serviceId)))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [serviceId])
+
+  if (!FEATURES.realProfissionais) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#E2E8F0]">
+        <Users size={20} className="text-[#CBD5E1]" aria-hidden="true" />
+        <p className="text-[13px] text-[#94A3B8]">Nenhum profissional habilitado para este serviço</p>
+        <p className="text-[11px] text-[#CBD5E1]">Configure em Profissionais → aba Serviços</p>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return <div className="py-8 text-center text-[13px] text-[#94A3B8]">Carregando…</div>
+  }
+
+  if (profissionais.length === 0) {
     return (
       <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#E2E8F0]">
         <Users size={20} className="text-[#CBD5E1]" aria-hidden="true" />
@@ -176,18 +212,20 @@ function TabProfissionais({ s }: { s: Servico }) {
 
   return (
     <div className="space-y-2">
-      {s.professionals.map((name) => (
-        <div
-          key={name}
-          className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5"
-        >
-          <ProfissionalAvatar name={name} size={36} />
-          <div>
-            <p className="text-[13px] font-medium text-[#0F172A]">{name}</p>
-            <p className="text-[11px] text-[#94A3B8]">Habilitado para {s.name}</p>
+      {profissionais.map((p) => {
+        const initials = (p.name ?? '').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+        return (
+          <div key={p.id} className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF] text-[12px] font-medium text-[#2563EB]">
+              {initials}
+            </div>
+            <div>
+              <p className="text-[13px] font-medium text-[#0F172A]">{p.name}</p>
+              <p className="text-[11px] text-[#94A3B8]">{p.specialty || '—'}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -308,7 +346,7 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {tab === 'detalhes'      && <TabDetalhes      s={s} />}
           {tab === 'desempenho'    && <TabDesempenho    s={s} />}
-          {tab === 'profissionais' && <TabProfissionais s={s} />}
+          {tab === 'profissionais' && <TabProfissionais serviceId={s.id} />}
           {tab === 'fotos'         && <TabFotos         s={s} />}
         </div>
       </div>

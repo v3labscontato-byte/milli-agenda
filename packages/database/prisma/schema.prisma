@@ -227,12 +227,14 @@ model Service {
 model Client {
   id        String    @id @default(cuid())
   tenantId  String
-  name      String
-  email     String?
-  phone     String?
-  birthDate DateTime?
-  notes     String?
-  createdAt DateTime  @default(now())
+  name                   String
+  email                  String?
+  phone                  String?
+  birthDate              DateTime?
+  notes                  String?
+  cpf                    String?
+  favoriteProfessionalId String?
+  createdAt              DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)

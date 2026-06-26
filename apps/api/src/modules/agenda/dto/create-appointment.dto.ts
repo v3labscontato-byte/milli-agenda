@@ -1,21 +1,33 @@
-import { IsString, IsDateString, IsInt, IsOptional, Min } from 'class-validator'
+import { IsString, IsOptional, IsInt, Min } from 'class-validator'
 
 export class CreateAppointmentDto {
   @IsString()
-  clientId: string
+  clientName: string
+
+  @IsOptional()
+  @IsString()
+  clientPhone?: string
+
+  @IsOptional()
+  @IsString()
+  clientId?: string
+
+  @IsString()
+  serviceId: string
 
   @IsString()
   professionalId: string
 
   @IsString()
-  serviceId: string
+  date: string // "2026-06-26"
 
-  @IsDateString()
-  startAt: string
+  @IsString()
+  startTime: string // "12:30"
 
+  @IsOptional()
   @IsInt()
-  @Min(5)
-  durationMin: number
+  @Min(1)
+  durationMin?: number
 
   @IsOptional()
   @IsString()

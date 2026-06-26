@@ -11,14 +11,14 @@ type SortKey = 'name' | 'appointmentsThisMonth' | 'revenueThisMonth' | 'rating'
 type SortDir = 'asc' | 'desc'
 
 function SortIcon({ col, active, dir }: { col: SortKey; active: SortKey; dir: SortDir }) {
-  if (col !== active) return <ChevronsUpDown size={12} className="text-[#CBD5E1]" aria-hidden="true" />
+  if (col !== active) return <ChevronsUpDown size={12} className="text-[var(--color-border-secondary)]" aria-hidden="true" />
   return dir === 'asc'
-    ? <ChevronUp size={12} className="text-[#2563EB]" aria-hidden="true" />
-    : <ChevronDown size={12} className="text-[#2563EB]" aria-hidden="true" />
+    ? <ChevronUp size={12} className="text-[var(--color-brand)]" aria-hidden="true" />
+    : <ChevronDown size={12} className="text-[var(--color-brand)]" aria-hidden="true" />
 }
 
-const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748B] text-left'
-const TH_SORT = cn(TH, 'cursor-pointer select-none hover:text-[#475569] transition-colors')
+const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-secondary)] text-left'
+const TH_SORT = cn(TH, 'cursor-pointer select-none hover:text-[var(--color-text-secondary)] transition-colors')
 
 interface Props {
   profissionais: Profissional[]
@@ -72,21 +72,21 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
     if (isFiltered) {
       return (
         <div className="flex h-48 flex-col items-center justify-center gap-2">
-          <p className="text-[14px] font-medium text-[#475569]">Nenhum profissional encontrado</p>
-          <p className="text-[12px] text-[#94A3B8]">Tente ajustar os filtros</p>
+          <p className="text-[14px] font-medium text-[var(--color-text-secondary)]">Nenhum profissional encontrado</p>
+          <p className="text-[12px] text-[var(--color-text-tertiary)]">Tente ajustar os filtros</p>
         </div>
       )
     }
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <UserCheck className="mb-4 h-12 w-12 text-[#CBD5E1]" aria-hidden="true" />
-        <h3 className="text-[14px] font-medium text-[#475569]">Nenhum profissional cadastrado</h3>
-        <p className="mt-1 text-[13px] text-[#94A3B8]">Adicione seu primeiro profissional para começar.</p>
+        <UserCheck className="mb-4 h-12 w-12 text-[var(--color-border-secondary)]" aria-hidden="true" />
+        <h3 className="text-[14px] font-medium text-[var(--color-text-secondary)]">Nenhum profissional cadastrado</h3>
+        <p className="mt-1 text-[13px] text-[var(--color-text-tertiary)]">Adicione seu primeiro profissional para começar.</p>
         {onNovo && (
           <button
             type="button"
             onClick={onNovo}
-            className="mt-4 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
+            className="mt-4 flex items-center gap-1.5 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1"
           >
             <Plus size={14} aria-hidden="true" />
             Novo Profissional
@@ -101,7 +101,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] border-collapse text-[13px]">
         <thead>
-          <tr className="border-b border-[#E2E8F0]">
+          <tr className="border-b border-[var(--color-border-primary)]">
             <th
               className={TH_SORT}
               onClick={() => handleSort('name')}
@@ -160,7 +160,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                 <div className="flex items-center gap-3">
                   <ProfissionalAvatar name={p.name} size={32} />
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-[#0F172A]">{p.name}</p>
+                    <p className="truncate font-medium text-[var(--color-text-primary)]">{p.name}</p>
                   </div>
                 </div>
               </td>
@@ -172,7 +172,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                     type="button"
                     onClick={() => void onToggleStatus(p.id, p.status !== 'active')}
                     aria-label={`Alternar status de ${p.name}`}
-                    className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded-full"
+                    className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] rounded-full"
                   >
                     <StatusBadge status={p.status} />
                   </button>
@@ -183,27 +183,27 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
 
               {/* Especialidade */}
               <td className="px-4 py-3">
-                <span className="text-[13px] text-[#475569]">
+                <span className="text-[13px] text-[var(--color-text-secondary)]">
                   {p.role || '—'}
                 </span>
               </td>
 
               {/* Agendamentos mês */}
-              <td className="px-4 py-3 text-right font-tabular text-[#0F172A]">
-                {p.appointmentsThisMonth || <span className="text-[#CBD5E1]">0</span>}
+              <td className="px-4 py-3 text-right font-tabular text-[var(--color-text-primary)]">
+                {p.appointmentsThisMonth || <span className="text-[var(--color-border-secondary)]">0</span>}
               </td>
 
               {/* Faturamento mês */}
-              <td className="px-4 py-3 text-right font-tabular font-semibold text-[#0F172A]">
-                {p.revenueThisMonth > 0 ? formatBRL(p.revenueThisMonth) : <span className="font-normal text-[#CBD5E1]">—</span>}
+              <td className="px-4 py-3 text-right font-tabular font-semibold text-[var(--color-text-primary)]">
+                {p.revenueThisMonth > 0 ? formatBRL(p.revenueThisMonth) : <span className="font-normal text-[var(--color-border-secondary)]">—</span>}
               </td>
 
               {/* Avaliação */}
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-1">
                   <Star size={11} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
-                  <span className="font-tabular text-[13px] font-medium text-[#0F172A]">{Number(p.rating ?? 0).toFixed(1)}</span>
-                  <span className="text-[11px] text-[#94A3B8]">({p.ratingCount ?? 0})</span>
+                  <span className="font-tabular text-[13px] font-medium text-[var(--color-text-primary)]">{Number(p.rating ?? 0).toFixed(1)}</span>
+                  <span className="text-[11px] text-[var(--color-text-tertiary)]">({p.ratingCount ?? 0})</span>
                 </div>
               </td>
 
@@ -214,7 +214,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                     type="button"
                     onClick={() => onView(p)}
                     aria-label={`Ver perfil de ${p.name}`}
-                    className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                    className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] hover:text-[var(--color-brand)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
                   >
                     <Eye size={16} aria-hidden="true" />
                   </button>
@@ -223,9 +223,9 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                       type="button"
                       onClick={() => setDeleteModal({ id: p.id, name: p.name })}
                       aria-label={`Excluir ${p.name}`}
-                      className="flex h-8 w-8 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                      className="flex h-8 w-8 items-center justify-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
                     >
-                      <Trash2 size={14} className="text-[#94A3B8] hover:text-[#DC2626] transition-colors" />
+                      <Trash2 size={14} className="text-[var(--color-text-tertiary)] hover:text-[#DC2626] transition-colors" />
                     </button>
                   )}
                 </div>
@@ -243,8 +243,8 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
         >
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm mx-4">
-            <h3 id="delete-modal-title" className="text-[15px] font-medium text-[#0F172A] mb-2">Excluir profissional</h3>
-            <p className="text-[13px] text-[#475569] mb-6">
+            <h3 id="delete-modal-title" className="text-[15px] font-medium text-[var(--color-text-primary)] mb-2">Excluir profissional</h3>
+            <p className="text-[13px] text-[var(--color-text-secondary)] mb-6">
               Tem certeza que deseja excluir <strong>{deleteModal.name}</strong>?{' '}
               Esta ação não pode ser desfeita.
             </p>
@@ -252,14 +252,14 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
               <button
                 type="button"
                 onClick={() => setDeleteModal(null)}
-                className="px-4 py-2 text-[13px] text-[#475569] border border-[#E2E8F0] rounded-lg hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="px-4 py-2 text-[13px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-lg hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={() => void handleDelete(deleteModal.id)}
-                className="px-4 py-2 text-[13px] text-white bg-[#DC2626] rounded-lg hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="px-4 py-2 text-[13px] text-white bg-[#DC2626] rounded-lg hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
               >
                 Excluir
               </button>

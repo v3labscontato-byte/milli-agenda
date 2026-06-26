@@ -6,7 +6,7 @@ import { CheckCircle2, Clock, CircleDashed } from 'lucide-react'
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 
 const AVATAR_COLORS: [string, string][] = [
-  ['#EFF6FF', '#1D4ED8'], ['#F3E8FF', '#6B21A8'], ['#F0FDF4', '#166534'],
+  ['var(--color-brand-light)', 'var(--color-brand-dark)'], ['#F3E8FF', '#6B21A8'], ['#F0FDF4', '#166534'],
   ['#FEF3C7', '#B45309'], ['#FEF2F2', '#991B1B'], ['#F0F9FF', '#075985'],
 ]
 
@@ -48,10 +48,10 @@ export function ProfissionalAvatar({ name, size = 36, className = '' }: Profissi
 // ─── Role badge ───────────────────────────────────────────────────────────────
 
 const ROLE_STYLES: Record<ProfissionalRole, { bg: string; text: string }> = {
-  Cabeleireira:   { bg: '#EFF6FF', text: '#2563EB' },
-  Cabeleireiro:   { bg: '#EFF6FF', text: '#2563EB' },
+  Cabeleireira:   { bg: 'var(--color-brand-light)', text: 'var(--color-brand)' },
+  Cabeleireiro:   { bg: 'var(--color-brand-light)', text: 'var(--color-brand)' },
   Colorista:      { bg: '#F3E8FF', text: '#7C3AED' },
-  Barbeiro:       { bg: '#F1F5F9', text: '#475569' },
+  Barbeiro:       { bg: '#F1F5F9', text: 'var(--color-text-secondary)' },
   Manicure:       { bg: '#FDF2F8', text: '#9D174D' },
   'Nail Designer':{ bg: '#FDF2F8', text: '#BE185D' },
   Esteticista:    { bg: '#F0FDF4', text: '#166534' },
@@ -60,14 +60,14 @@ const ROLE_STYLES: Record<ProfissionalRole, { bg: string; text: string }> = {
 // ─── Specialty badge ──────────────────────────────────────────────────────────
 
 const SPECIALTY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  '':                      { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
-  default:                 { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  '':                      { bg: '#F1F5F9', text: 'var(--color-text-secondary)', border: '#E2E8F0' },
+  default:                 { bg: '#F1F5F9', text: 'var(--color-text-secondary)', border: '#E2E8F0' },
   'Corte Feminino':        { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
   'Escova Progressiva':    { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
-  'Hidratação':            { bg: '#DBEAFE', text: '#075985', border: '#BAE6FD' },
-  'Corte Masculino':       { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' },
-  'Barba':                 { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
-  'Navalhado':             { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' },
+  'Hidratação':            { bg: 'var(--color-brand-light)', text: '#075985', border: '#BAE6FD' },
+  'Corte Masculino':       { bg: 'var(--color-brand-light)', text: 'var(--color-brand)', border: '#BFDBFE' },
+  'Barba':                 { bg: '#F1F5F9', text: 'var(--color-text-secondary)', border: '#E2E8F0' },
+  'Navalhado':             { bg: '#F1F5F9', text: 'var(--color-text-secondary)', border: '#E2E8F0' },
   'Coloração':             { bg: '#F3E8FF', text: '#7C3AED', border: '#E9D5FF' },
   'Mechas':                { bg: '#FDF2F8', text: '#9D174D', border: '#FBCFE8' },
   'Balayage':              { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A' },
@@ -92,7 +92,7 @@ function getSpecialtyColors(specialty: string | null | undefined) {
 }
 
 export function RoleBadge({ role }: { role: string | null | undefined }) {
-  const s = ROLE_STYLES[role as ProfissionalRole] ?? { bg: '#F1F5F9', text: '#475569' }
+  const s = ROLE_STYLES[role as ProfissionalRole] ?? { bg: '#F1F5F9', text: 'var(--color-text-secondary)' }
   return (
     <span
       className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"
@@ -126,11 +126,11 @@ const STATUS_ICONS: Record<ProfissionalStatus, typeof CheckCircle2> = {
 export const STATUS_STYLES: Record<ProfissionalStatus, { bg: string; text: string; label: string }> = {
   active:   { bg: '#F0FDF4', text: '#166534', label: 'Ativo'    },
   vacation: { bg: '#FEF3C7', text: '#B45309', label: 'Férias'   },
-  inactive: { bg: '#F1F5F9', text: '#64748B', label: 'Inativo'  },
+  inactive: { bg: '#F1F5F9', text: 'var(--color-text-secondary)', label: 'Inativo'  },
 }
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {
-  const s = STATUS_STYLES[status as ProfissionalStatus] ?? { bg: '#F1F5F9', text: '#64748B', label: status ?? 'Inativo' }
+  const s = STATUS_STYLES[status as ProfissionalStatus] ?? { bg: '#F1F5F9', text: 'var(--color-text-secondary)', label: status ?? 'Inativo' }
   const Icon = STATUS_ICONS[status as ProfissionalStatus] ?? CircleDashed
   return (
     <span

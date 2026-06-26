@@ -538,3 +538,14 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workStart" TEXT DEFAULT '0
 ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:00';
 **tsc --noEmit:** 0 erros ✅ (frontend + backend)
 **Commit:** 236a04e
+
+### [2026-06-26] AGENT_PROFISSIONAIS — Validação impeccable
+**Status:** ✅ Concluído
+**Revisão:** tipografia, espaçamento, cores, componentes, acessibilidade, fluxos
+**Fixes aplicados:**
+- BUG smart-form-profissional.tsx: handleSave agora inclui workDays, workStart, workEnd no payload (campos eram coletados no step 2 mas nunca enviados à API)
+- POLISH profissional-modal.tsx: especialidades vazias exibem "—" em vez de seção vazia
+- LINT profissional-modal.tsx: useEffect([p.id]) com eslint-disable comment
+**Fluxos validados:** listagem, filtros, smart form 4 steps, modal abas Perfil/Desempenho/Comissão, edição horário inline, toggle status, excluir com modal de confirmação
+**tsc --noEmit:** 0 erros ✅
+**Commit:** ec07166

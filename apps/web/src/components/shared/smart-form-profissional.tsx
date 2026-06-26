@@ -116,6 +116,9 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
         email: email.trim() || undefined,
         specialty: specialty.trim() || undefined,
         commissionPct: Number(commissionPct),
+        workDays,
+        workStart: startTime,
+        workEnd: endTime,
         active: true,
       })
       onClose()

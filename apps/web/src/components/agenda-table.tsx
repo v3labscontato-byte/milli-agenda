@@ -53,6 +53,37 @@ function PaymentStatusCell({ appt }: { appt: Appointment }) {
   )
 }
 
+// ─── Atendimento status ───────────────────────────────────────────────────────
+
+type AtendimentoSt = 'realizado' | 'pendente' | 'cancelado'
+
+function getAtendimentoStatus(appt: Appointment): AtendimentoSt {
+  if (appt.status === 'COMPLETED') return 'realizado'
+  if (appt.status === 'CANCELLED') return 'cancelado'
+  return 'pendente'
+}
+
+const ATENDIMENTO_STYLES: Record<AtendimentoSt, { bg: string; text: string; border: string; label: string }> = {
+  realizado: { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Realizado' },
+  pendente:  { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Pendente'  },
+  cancelado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cancelado' },
+}
+
+function AtendimentoCell({ appt }: { appt: Appointment }) {
+  const s = getAtendimentoStatus(appt)
+  const style = ATENDIMENTO_STYLES[s]
+  return (
+    <td className="px-4 py-3">
+      <span
+        className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium"
+        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+      >
+        {style.label}
+      </span>
+    </td>
+  )
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function TableSkeleton() {
@@ -355,6 +386,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                   <th scope="col" className={cn(TH, 'hidden md:table-cell')}>Serviço</th>
                   <th scope="col" className={cn(TH, 'hidden lg:table-cell')}>Profissional</th>
                   <th scope="col" className={TH}>Pagamento</th>
+                  <th scope="col" className={TH}>Atendimento</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Agenda</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Comanda</th>
                 </tr>
@@ -363,7 +395,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center">
+                    <td colSpan={8} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
                         Nenhum atendimento encontrado para o período.
                       </p>
@@ -399,7 +431,8 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                         </span>
                       </td>
 
-                      <PaymentStatusCell appt={appt} />
+                      <PaymentStatusCell  appt={appt} />
+                      <AtendimentoCell   appt={appt} />
 
                       <AgendaCell  appt={appt} onManage={() => setManageAppt(appt)} />
                       <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />

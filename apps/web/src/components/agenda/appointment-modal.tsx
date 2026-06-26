@@ -7,7 +7,6 @@ import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from 
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
-import { api } from '@/lib/api/client'
 import { FEATURES } from '@/lib/features'
 
 interface ProfItem { id: string; name: string; specialty?: string }
@@ -85,24 +84,17 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     setSaving(false)
   }, [appointment?.id])
 
-  // Fetch professionals from real API
+  // Fetch professionals + services — always when token exists, regardless of FEATURES flag
   useEffect(() => {
-    if (!FEATURES.realAgenda) return
-    ;(api as any).get('/api/v1/professionals')
-      .then((r: unknown) => {
-        const arr = Array.isArray(r) ? r : []
-        setProfissionais(arr as ProfItem[])
-      })
-      .catch(() => {})
-  }, [])
-
-  // Fetch services from real API
-  useEffect(() => {
-    if (!FEATURES.realAgenda) return
-    ;(api as any).get('/api/v1/services')
-      .then((r: unknown) => {
-        const arr = Array.isArray(r) ? r : []
-        setServicos(arr as ServItem[])
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    Promise.all([
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/professionals`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services`,      { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+    ])
+      .then(([profs, svcs]) => {
+        setProfissionais(profs.data ?? [])
+        setServicos(svcs.data ?? [])
       })
       .catch(() => {})
   }, [])
@@ -253,7 +245,15 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             <div className="space-y-3 border-t border-[#F1F5F9] px-5 py-4">
               <p className="text-[12px] font-medium text-[#475569]">Reagendar</p>
 
-              {FEATURES.realAgenda && profissionais.length > 0 && (
+              <div>
+                <label className="mb-1 block text-[12px] text-[#64748B]">Cliente</label>
+                <div className="rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-[13px] text-[#475569]">
+                  {appointment.client}
+                  <span className="ml-2 text-[11px] text-[#94A3B8]">(bloqueado)</span>
+                </div>
+              </div>
+
+              {profissionais.length > 0 && (
                 <div>
                   <label className="mb-1 block text-[12px] text-[#64748B]">Profissional</label>
                   <select value={selectedProfId} onChange={(e) => setSelectedProfId(e.target.value)} className={SELECT_CLS}>
@@ -265,7 +265,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                 </div>
               )}
 
-              {FEATURES.realAgenda && servicos.length > 0 && (
+              {servicos.length > 0 && (
                 <div>
                   <label className="mb-1 block text-[12px] text-[#64748B]">Serviço</label>
                   <select value={selectedServId} onChange={(e) => setSelectedServId(e.target.value)} className={SELECT_CLS}>

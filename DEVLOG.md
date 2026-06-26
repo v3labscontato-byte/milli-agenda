@@ -748,3 +748,8 @@ d48f169 â€” style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Fix reagendar + cancelar
 **Status:** Concluido
 **Fixes:** profissionais/servicos reais no reagendamento, cancelar funcional com motivo via PATCH, UpdateAppointmentDto no backend aceita status+cancelReason
+
+---
+### [2026-06-26] AGENT_AGENDA — Fix reagendar pre-preenchido + cancelar mantém lista + coluna Atendimento
+**Status:** Concluido
+**Fixes:** reagendar mostra cliente (bloqueado) + selects pre-preenchidos; fetch profissionais/servicos sempre via token; coluna Atendimento (Realizado/Pendente/Cancelado) na tabela

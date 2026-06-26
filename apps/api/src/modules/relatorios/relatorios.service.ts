@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { DatabaseService } from '../../infra/database/database.service'
 import { AppointmentStatus, PaymentStatus } from '@milli/shared-types'
 
@@ -228,38 +229,67 @@ export class RelatoriosService {
   }
 
   async createGoal(tenantId: string, dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string }) {
+    const id = randomUUID()
+    const now = new Date()
+    const dataInicio = new Date(dto.dataInicio)
+    const dataFim = new Date(dto.dataFim)
+
+    // Try Prisma model first
     try {
-      return await this.db.goal.create({
-        data: {
-          tenantId,
-          tipo: dto.tipo,
-          periodo: dto.periodo,
-          valor: dto.valor,
-          dataInicio: new Date(dto.dataInicio),
-          dataFim: new Date(dto.dataFim),
-        },
-      })
+      if (this.db.goal) {
+        return await this.db.goal.create({
+          data: { id, tenantId, tipo: dto.tipo, periodo: dto.periodo, valor: dto.valor, dataInicio, dataFim },
+        })
+      }
     } catch (err: unknown) {
-      const e = err as { message?: string; code?: string; meta?: unknown }
-      console.error('GOAL_CREATE_ERR', JSON.stringify({ msg: e?.message, code: e?.code, meta: e?.meta }))
+      const e = err as { message?: string; code?: string }
+      console.error('GOAL_CREATE_PRISMA_ERR', JSON.stringify({ msg: e?.message, code: e?.code }))
+    }
+
+    // Fallback: raw SQL insert
+    try {
+      await this.db.$executeRawUnsafe(
+        `INSERT INTO "goals" ("id","tenantId","tipo","periodo","valor","dataInicio","dataFim","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        id, tenantId, dto.tipo, dto.periodo, dto.valor, dataInicio, dataFim, now, now,
+      )
+      return { id, tenantId, tipo: dto.tipo, periodo: dto.periodo, valor: dto.valor, dataInicio, dataFim, createdAt: now, updatedAt: now }
+    } catch (err: unknown) {
+      const e = err as { message?: string; code?: string }
+      console.error('GOAL_CREATE_RAW_ERR', JSON.stringify({ msg: e?.message, code: e?.code }))
       return null
     }
   }
 
   async listGoals(tenantId: string) {
+    // Try Prisma model first
     try {
-      return await this.db.goal.findMany({
-        where: { tenantId },
-        orderBy: { createdAt: 'desc' },
-      })
+      if (this.db.goal) {
+        return await this.db.goal.findMany({ where: { tenantId }, orderBy: { createdAt: 'desc' } })
+      }
+    } catch { /* fall through to raw */ }
+
+    // Fallback: raw SQL
+    try {
+      return await this.db.$queryRawUnsafe<object[]>(
+        `SELECT * FROM "goals" WHERE "tenantId" = $1 ORDER BY "createdAt" DESC`, tenantId,
+      )
     } catch {
       return []
     }
   }
 
   async deleteGoal(tenantId: string, id: string) {
+    // Try Prisma model first
     try {
-      return await this.db.goal.delete({ where: { id, tenantId } })
+      if (this.db.goal) {
+        return await this.db.goal.delete({ where: { id, tenantId } })
+      }
+    } catch { /* fall through to raw */ }
+
+    // Fallback: raw SQL
+    try {
+      await this.db.$executeRawUnsafe(`DELETE FROM "goals" WHERE "id" = $1 AND "tenantId" = $2`, id, tenantId)
+      return { id }
     } catch {
       return null
     }

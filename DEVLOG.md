@@ -743,3 +743,8 @@ d48f169 â€” style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Fix tabela + tooltip semana
 **Status:** Concluido
 **Fixes:** colunas corretas (status pagamento visivel, removido status agendamento e valor), tooltip hover com posicao inteligente e horarios livres em verde
+
+---
+### [2026-06-26] AGENT_AGENDA — Fix reagendar + cancelar
+**Status:** Concluido
+**Fixes:** profissionais/servicos reais no reagendamento, cancelar funcional com motivo via PATCH, UpdateAppointmentDto no backend aceita status+cancelReason

@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { AgendaService } from './agenda.service'
 import { CreateAppointmentDto } from './dto/create-appointment.dto'
+import { UpdateAppointmentDto } from './dto/update-appointment.dto'
 import { TransitionStatusDto } from './dto/transition-status.dto'
 
 @UseGuards(JwtAuthGuard)
@@ -38,7 +39,7 @@ export class AgendaController {
   update(
     @TenantFromJwt() tenantId: string,
     @Param('id') id: string,
-    @Body() dto: Partial<CreateAppointmentDto>,
+    @Body() dto: UpdateAppointmentDto,
   ) {
     return this.agendaService.update(tenantId, id, dto)
   }

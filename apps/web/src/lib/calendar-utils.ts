@@ -92,6 +92,7 @@ export interface CalendarAppointment {
   durationMinutes: number
   client: string
   service: string
+  serviceId?: string
   professionalId: string
   amount: number
   status: AppointmentStatus

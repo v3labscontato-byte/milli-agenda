@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle, CalendarClock } from 'lucide-react'
+import { X, Clock, User, Scissors, CreditCard, CheckSquare, XCircle, CalendarClock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
@@ -21,7 +21,7 @@ const REAGENDAR: Action = { label: 'Reagendar', icon: CalendarClock, variant: 's
 
 const ACTIONS: Partial<Record<AppointmentStatus, Action[]>> = {
   SCHEDULED:        [REAGENDAR, { label: 'Confirmar',    icon: CheckSquare, variant: 'primary'   }, { label: 'Cancelar', icon: XCircle,   variant: 'danger'    }],
-  CONFIRMED:        [REAGENDAR, { label: 'Check-in',     icon: UserCheck,   variant: 'primary'   }, { label: 'Cancelar', icon: XCircle,   variant: 'danger'    }],
+  CONFIRMED:        [REAGENDAR, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
   CHECKED_IN:       [REAGENDAR, { label: 'Iniciar',      icon: Scissors,    variant: 'primary'   }, { label: 'Cancelar', icon: XCircle,   variant: 'danger'    }],
   IN_SERVICE:       [{ label: 'Finalizar',   icon: CheckSquare, variant: 'secondary' }, { label: 'Cobrar',      icon: CreditCard, variant: 'primary'   }],
   AWAITING_PAYMENT: [{ label: 'Cobrar Agora', icon: CreditCard, variant: 'primary'   }],
@@ -138,12 +138,12 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         const dayOfWeek = new Date(novaData + 'T12:00:00').getDay()
         const isFolga = profData?.workDays.length ? !profData.workDays.includes(dayOfWeek) : false
 
-        const ocupados: { startTime: string; durMin: number }[] = (r.data ?? []).map(
-          (a: { startAt?: string; durationMin?: number }) => ({
+        const ocupados: { startTime: string; durMin: number }[] = (r.data ?? [])
+          .filter((a: { startAt?: string; durationMin?: number; status?: string }) => a.status !== 'CANCELLED')
+          .map((a: { startAt?: string; durationMin?: number }) => ({
             startTime: a.startAt?.slice(11, 16) ?? '',
             durMin:    a.durationMin ?? 60,
-          })
-        )
+          }))
 
         const slots: string[] = []
         if (!isFolga) {

@@ -52,7 +52,7 @@ export default function DayTimeline({
     const map: Record<string, Set<string>> = {}
     for (const prof of professionals) {
       const covered = new Set<string>()
-      for (const appt of appointments.filter((a) => a.professionalId === prof.id)) {
+      for (const appt of appointments.filter((a) => a.professionalId === prof.id && a.status !== 'CANCELLED')) {
         const si = getSlotIndex(appt.startTime)
         if (si < 0) continue
         const spans = getDurationSlots(appt.durationMinutes)
@@ -136,19 +136,23 @@ export default function DayTimeline({
                     // Slot already covered by a previous appointment's rowspan
                     if (coveredSlots[prof.id]?.has(slot)) return null
 
-                    const appt = appointments.find(
-                      (a) => a.professionalId === prof.id && a.startTime === slot,
+                    const activeAppt = appointments.find(
+                      (a) => a.professionalId === prof.id && a.startTime === slot && a.status !== 'CANCELLED',
                     )
-                    const rowSpan = appt ? getDurationSlots(appt.durationMinutes) : 1
+                    const cancelledAppts = appointments.filter(
+                      (a) => a.professionalId === prof.id && a.startTime === slot && a.status === 'CANCELLED',
+                    )
+                    const hasAnything = activeAppt || cancelledAppts.length > 0
+                    const rowSpan = activeAppt ? getDurationSlots(activeAppt.durationMinutes) : 1
                     const cellH = rowSpan * SLOT_HEIGHT
 
                     return (
                       <td
                         key={prof.id}
                         rowSpan={rowSpan}
-                        onClick={!appt ? () => onSlotClick?.(prof.id, slot, dateStr) : undefined}
+                        onClick={!hasAnything ? () => onSlotClick?.(prof.id, slot, dateStr) : undefined}
                         onKeyDown={
-                          !appt
+                          !hasAnything
                             ? (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault()
@@ -157,21 +161,40 @@ export default function DayTimeline({
                               }
                             : undefined
                         }
-                        tabIndex={!appt ? 0 : undefined}
+                        tabIndex={!hasAnything ? 0 : undefined}
                         className={cn(
                           'border-b border-r border-[#F1F5F9] align-top group',
                           isToday ? 'bg-[#FAFCFF]' : 'bg-white',
-                          !appt && 'cursor-pointer hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
-                          appt && 'p-0.5',
+                          !hasAnything && 'cursor-pointer hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
+                          hasAnything && 'p-0.5',
                         )}
                         style={{ height: `${cellH}px` }}
                       >
-                        {appt ? (
-                          <AppointmentBlock
-                            appointment={appt}
-                            onClick={() => onAppointmentClick?.(appt)}
-                            heightPx={cellH - 4}
-                          />
+                        {hasAnything ? (
+                          <div className={cn('flex h-full gap-0.5', activeAppt && cancelledAppts.length > 0 && 'flex-row')}>
+                            {activeAppt && (
+                              <div className={cn('min-w-0', cancelledAppts.length > 0 ? 'flex-1' : 'w-full h-full')}>
+                                <AppointmentBlock
+                                  appointment={activeAppt}
+                                  onClick={() => onAppointmentClick?.(activeAppt)}
+                                  heightPx={cellH - 4}
+                                />
+                              </div>
+                            )}
+                            {cancelledAppts.map((ca) => (
+                              <div
+                                key={ca.id}
+                                className={cn('min-w-0', activeAppt ? 'flex-1' : 'w-full')}
+                                style={{ height: `${SLOT_HEIGHT - 4}px` }}
+                              >
+                                <AppointmentBlock
+                                  appointment={ca}
+                                  onClick={() => onAppointmentClick?.(ca)}
+                                  heightPx={SLOT_HEIGHT - 4}
+                                />
+                              </div>
+                            ))}
+                          </div>
                         ) : (
                           <span
                             className="flex h-full items-center justify-center opacity-0 transition-opacity duration-100 group-hover:opacity-100 motion-reduce:transition-none"

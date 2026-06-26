@@ -148,13 +148,13 @@ export default function NovoAgendamentoModal({
     )
       .then((r) => r.json())
       .then((r) => {
-        const agendsDia: ApptSlot[] = (r.data ?? []).map(
-          (a: { professionalId: string; startAt?: string; durationMin?: number }) => ({
+        const agendsDia: ApptSlot[] = (r.data ?? [])
+          .filter((a: { professionalId: string; startAt?: string; durationMin?: number; status?: string }) => a.status !== 'CANCELLED')
+          .map((a: { professionalId: string; startAt?: string; durationMin?: number }) => ({
             professionalId: a.professionalId,
             startTime: a.startAt?.slice(11, 16) ?? '',
             durationMinutes: a.durationMin ?? 60,
-          }),
-        )
+          }))
         const slots = getSlotsDia(prof, form.date, agendsDia, durMin)
         setHorarios(slots)
         setForm((f) => ({

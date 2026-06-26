@@ -174,7 +174,7 @@ function DayTooltip({ tooltip, onMouseLeave }: { tooltip: TooltipState; onMouseL
         </thead>
         <tbody>
           {TOOLTIP_HOURS.map((hour) => {
-            const appt = tooltip.appts.find((a) => a.startTime.startsWith(hour.slice(0, 2)))
+            const appt = tooltip.appts.filter((a) => a.status !== 'CANCELLED').find((a) => a.startTime.startsWith(hour.slice(0, 2)))
             return (
               <tr key={hour} className="border-b border-[#F8FAFC] last:border-0">
                 <td className="py-1 font-tabular text-[#94A3B8]">{hour}</td>

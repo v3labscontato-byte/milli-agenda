@@ -703,3 +703,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_CLIENTES — Modal perfil editável + preferências
 **Status:** ✅ Concluído
 **Fixes:** dados pessoais editáveis (nome/email/telefone/CPF/nascimento/observações), profissional favorito via select, empty states nas abas Histórico/Agendamentos/Financeiro
+
+### [2026-06-26] AGENT_AGENDA — Restaurar design semana + dia
+**Status:** ✅ Concluído
+**Fixes:** dias passados com disponibilidade (0 agend. / X livres em cinza, sem "—"), vista dia reescrita com timeline por profissional (colunas, linha "agora", grade sempre visível)

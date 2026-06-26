@@ -7,10 +7,9 @@ import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from 
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
-import { FEATURES } from '@/lib/features'
 
 interface ProfItem { id: string; name: string; specialty?: string }
-interface ServItem { id: string; name: string; durationMin?: number }
+interface ServItem { id: string; name: string; durationMin?: number; price?: number }
 
 interface Action {
   label: string
@@ -36,13 +35,11 @@ const BTN = {
 
 const PAYMENT_ACTIONS = new Set(['Cobrar', 'Cobrar Agora', 'Finalizar'])
 
-const HORARIOS = [
-  '07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30',
-  '11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30',
-  '15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00',
-]
-
 const SELECT_CLS = 'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
+
+function getAuthToken() {
+  return typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+}
 
 interface AppointmentModalProps {
   appointment: CalendarAppointment | null
@@ -57,17 +54,19 @@ function formatDateDisplay(dateStr: string): string {
 }
 
 export default function AppointmentModal({ appointment, onClose, onSuccess, onReschedule: _onReschedule }: AppointmentModalProps) {
-  const [paymentOpen, setPaymentOpen]         = useState(false)
-  const [reagendando, setReagendando]         = useState(false)
-  const [cancelMode, setCancelMode]           = useState(false)
-  const [motivo, setMotivo]                   = useState('')
-  const [novaData, setNovaData]               = useState('')
-  const [novoHorario, setNovoHorario]         = useState('')
-  const [selectedProfId, setSelectedProfId]   = useState('')
-  const [selectedServId, setSelectedServId]   = useState('')
-  const [profissionais, setProfissionais]     = useState<ProfItem[]>([])
-  const [servicos, setServicos]               = useState<ServItem[]>([])
-  const [saving, setSaving]                   = useState(false)
+  const [paymentOpen, setPaymentOpen]               = useState(false)
+  const [reagendando, setReagendando]               = useState(false)
+  const [cancelMode, setCancelMode]                 = useState(false)
+  const [motivo, setMotivo]                         = useState('')
+  const [novaData, setNovaData]                     = useState('')
+  const [novoHorario, setNovoHorario]               = useState('')
+  const [selectedProfId, setSelectedProfId]         = useState('')
+  const [selectedServId, setSelectedServId]         = useState('')
+  const [profissionais, setProfissionais]           = useState<ProfItem[]>([])
+  const [servicos, setServicos]                     = useState<ServItem[]>([])
+  const [horariosDisponiveis, setHorariosDisp]      = useState<string[]>([])
+  const [loadingHorarios, setLoadingHorarios]       = useState(false)
+  const [saving, setSaving]                         = useState(false)
   const paymentOpenRef = useRef(false)
   useEffect(() => { paymentOpenRef.current = paymentOpen }, [paymentOpen])
 
@@ -81,16 +80,18 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     setNovoHorario('')
     setSelectedProfId('')
     setSelectedServId('')
+    setHorariosDisp([])
     setSaving(false)
   }, [appointment?.id])
 
-  // Fetch professionals + services — always when token exists, regardless of FEATURES flag
+  // Fetch professionals + services — always when token exists
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    const token = getAuthToken()
     if (!token) return
+    const base = process.env.NEXT_PUBLIC_API_URL
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/professionals`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services`,      { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${base}/api/v1/professionals`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${base}/api/v1/services`,      { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
       .then(([profs, svcs]) => {
         setProfissionais(profs.data ?? [])
@@ -98,6 +99,43 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       })
       .catch(() => {})
   }, [])
+
+  // Fetch available time slots when profissional + data change
+  useEffect(() => {
+    if (!selectedProfId || !novaData) { setHorariosDisp([]); return }
+    const token = getAuthToken()
+    setLoadingHorarios(true)
+    const base = process.env.NEXT_PUBLIC_API_URL
+    fetch(
+      `${base}/api/v1/appointments?professionalId=${selectedProfId}&from=${novaData}&to=${novaData}`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    )
+      .then((r) => r.json())
+      .then((r) => {
+        const ocupados: string[] = (r.data ?? []).map((a: { startTime: string }) => a.startTime)
+        const servico = servicos.find((s) => s.id === selectedServId)
+        const durMin = servico?.durationMin ?? 60
+        const slots: string[] = []
+        for (let h = 8; h < 20; h++) {
+          for (let m = 0; m < 60; m += 30) {
+            const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+            const slotMin = h * 60 + m
+            const endMin = slotMin + durMin
+            const conflito = ocupados.some((o) => {
+              const [oh, om] = o.split(':').map(Number)
+              const oMin = oh * 60 + om
+              return slotMin < oMin + durMin && endMin > oMin
+            })
+            if (!conflito) slots.push(slot)
+          }
+        }
+        setHorariosDisp(slots)
+        if (slots.length > 0 && !slots.includes(novoHorario)) setNovoHorario(slots[0])
+      })
+      .catch(() => {})
+      .finally(() => setLoadingHorarios(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProfId, novaData, selectedServId, servicos])
 
   useEffect(() => {
     if (!appointment) return
@@ -117,6 +155,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   const style = STATUS_STYLES[appointment.status]
   const prof = CALENDAR_PROFESSIONALS.find((p) => p.id === appointment.professionalId)
   const actions = ACTIONS[appointment.status] ?? []
+  const servicoSelecionado = servicos.find((s) => s.id === selectedServId)
 
   function handleAction(label: string) {
     if (!appointment) return
@@ -129,23 +168,19 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       setReagendando(true)
       return
     }
-    if (label === 'Cancelar') {
-      setCancelMode(true)
-    }
+    if (label === 'Cancelar') setCancelMode(true)
   }
 
   async function handleReagendar() {
     if (!novaData || !novoHorario || !appointment) return
     setSaving(true)
     try {
-      if (FEATURES.realAgenda) {
-        await agendaApi.update(appointment.id, {
-          professionalId: selectedProfId || undefined,
-          serviceId:      selectedServId || undefined,
-          date:           novaData,
-          startTime:      novoHorario,
-        })
-      }
+      await agendaApi.update(appointment.id, {
+        professionalId: selectedProfId || undefined,
+        serviceId:      selectedServId || undefined,
+        date:           novaData,
+        startTime:      novoHorario,
+      })
       onSuccess?.()
       onClose()
     } catch {
@@ -157,12 +192,10 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     if (!appointment) return
     setSaving(true)
     try {
-      if (FEATURES.realAgenda) {
-        await agendaApi.update(appointment.id, {
-          status:       'CANCELLED',
-          cancelReason: motivo || undefined,
-        } as Parameters<typeof agendaApi.update>[1])
-      }
+      await agendaApi.update(appointment.id, {
+        status:       'CANCELLED',
+        cancelReason: motivo || undefined,
+      } as Parameters<typeof agendaApi.update>[1])
       onSuccess?.()
       onClose()
     } catch {
@@ -186,21 +219,15 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         aria-label={`Detalhes: ${appointment.client}`}
       >
         {/* Backdrop */}
-        <div
-          className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]"
-          onClick={onClose}
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
 
         {/* Panel */}
-        <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
+        <div className="relative z-10 w-full max-w-sm overflow-y-auto rounded-xl bg-white shadow-xl" style={{ maxHeight: '90vh' }}>
           {/* Header */}
           <div className={cn('rounded-t-xl px-5 py-4', style.bg)}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className={cn('text-[16px] font-semibold leading-tight', style.text)}>
-                  {appointment.client}
-                </p>
+                <p className={cn('text-[16px] font-semibold leading-tight', style.text)}>{appointment.client}</p>
                 <p className="mt-0.5 text-[13px] text-[#475569]">{appointment.service}</p>
               </div>
               <button
@@ -226,14 +253,12 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                 <span className="ml-1.5 text-[12px] text-[#94A3B8]">({appointment.durationMinutes} min)</span>
               </span>
             </div>
-
             {prof && (
               <div className="flex items-center gap-2.5 text-[13px] text-[#475569]">
                 <User size={14} className="shrink-0 text-[#94A3B8]" aria-hidden="true" />
                 <span>{prof.name} · <span className="text-[#94A3B8]">{prof.role}</span></span>
               </div>
             )}
-
             <div className="flex items-center gap-2.5 text-[13px] text-[#475569]">
               <CreditCard size={14} className="shrink-0 text-[#94A3B8]" aria-hidden="true" />
               <span className="font-tabular font-semibold text-[#0F172A]">R$ {appointment.amount}</span>
@@ -274,6 +299,22 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
+                  {servicoSelecionado && (
+                    <div className="mt-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5">
+                      <div className="flex justify-between text-[12px]">
+                        <span className="text-[#64748B]">Duração</span>
+                        <span className="font-medium text-[#0F172A]">{servicoSelecionado.durationMin ?? '—'} min</span>
+                      </div>
+                      {servicoSelecionado.price != null && (
+                        <div className="mt-1 flex justify-between text-[12px]">
+                          <span className="text-[#64748B]">Valor</span>
+                          <span className="font-tabular font-medium text-[#0F172A]">
+                            R$ {Number(servicoSelecionado.price).toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -286,14 +327,23 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                   className={SELECT_CLS}
                 />
               </div>
+
               <div>
                 <label className="mb-1 block text-[12px] text-[#64748B]">Horário</label>
-                <select value={novoHorario} onChange={(e) => setNovoHorario(e.target.value)} className={SELECT_CLS}>
-                  {HORARIOS.map((h) => (
-                    <option key={h} value={h}>{h}</option>
-                  ))}
+                <select
+                  value={novoHorario}
+                  onChange={(e) => setNovoHorario(e.target.value)}
+                  className={SELECT_CLS}
+                  disabled={loadingHorarios}
+                >
+                  <option value="">Selecionar horário…</option>
+                  {loadingHorarios
+                    ? <option disabled>Carregando…</option>
+                    : horariosDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)
+                  }
                 </select>
               </div>
+
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"

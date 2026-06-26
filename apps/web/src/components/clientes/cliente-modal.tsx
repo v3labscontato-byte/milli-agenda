@@ -16,8 +16,6 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 const PAGE_SIZE = 5
 
-// ─── Status chips ─────────────────────────────────────────────────────────────
-
 function VisitStatusChip({ status }: { status: VisitHistory['status'] }) {
   if (status === 'COMPLETED') return (
     <span className="flex items-center gap-1 text-[11px] font-medium text-[#16A34A]">
@@ -38,10 +36,10 @@ function VisitStatusChip({ status }: { status: VisitHistory['status'] }) {
 
 function ApptStatusBadge({ status }: { status: UpcomingAppt['status'] }) {
   const map: Record<UpcomingAppt['status'], { bg: string; text: string; label: string }> = {
-    SCHEDULED:  { bg: '#F1F5F9', text: '#475569', label: 'Agendado' },
-    CONFIRMED:  { bg: '#EFF6FF', text: '#2563EB', label: 'Confirmado' },
-    COMPLETED:  { bg: '#F0FDF4', text: '#16A34A', label: 'Concluído' },
-    CANCELLED:  { bg: '#FEF2F2', text: '#DC2626', label: 'Cancelado' },
+    SCHEDULED: { bg: '#F1F5F9', text: '#475569', label: 'Agendado' },
+    CONFIRMED: { bg: '#EFF6FF', text: '#2563EB', label: 'Confirmado' },
+    COMPLETED: { bg: '#F0FDF4', text: '#16A34A', label: 'Concluído' },
+    CANCELLED: { bg: '#FEF2F2', text: '#DC2626', label: 'Cancelado' },
   }
   const s = map[status]
   return (
@@ -51,78 +49,201 @@ function ApptStatusBadge({ status }: { status: UpcomingAppt['status'] }) {
   )
 }
 
-// ─── Tab content ──────────────────────────────────────────────────────────────
+const inputCls = 'w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]'
+const btnSave = 'rounded-md bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
+const btnCancel = 'rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
 
-function TabPerfil({ c, profFavoritoNome }: { c: Cliente; profFavoritoNome: string }) {
+function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id: string; name: string }> }) {
+  const [editingDados, setEditingDados] = useState(false)
+  const [editName,  setEditName]  = useState(c.name)
+  const [editEmail, setEditEmail] = useState(c.email)
+  const [editPhone, setEditPhone] = useState(c.phone)
+  const [editCpf,   setEditCpf]   = useState(c.cpf ?? '')
+  const [editBirth, setEditBirth] = useState(() => {
+    if (!c.birthDate) return ''
+    const d = new Date(c.birthDate as unknown as string)
+    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
+  })
+  const [editNotes, setEditNotes] = useState(c.notes ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const [editingPref, setEditingPref] = useState(false)
+  const [editFavProf, setEditFavProf] = useState(c.favoriteProfessional ?? '')
+  const [savingPref, setSavingPref] = useState(false)
+
+  async function saveDados() {
+    setSaving(true)
+    try {
+      const token = localStorage.getItem('accessToken')
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/clients/${c.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: editName, email: editEmail, phone: editPhone, cpf: editCpf, birthDate: editBirth || null, notes: editNotes }),
+      })
+      setEditingDados(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function savePrefs() {
+    setSavingPref(true)
+    try {
+      const token = localStorage.getItem('accessToken')
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/clients/${c.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ favoriteProfessionalId: editFavProf }),
+      })
+      setEditingPref(false)
+    } finally {
+      setSavingPref(false)
+    }
+  }
+
+  const profFavoritoNome = profissionais.find((p) => p.id === editFavProf)?.name ?? ''
+
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div className="space-y-5">
       {/* Dados Pessoais */}
       <div>
-        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Dados Pessoais</p>
-        <dl className="space-y-3">
-          {[
-            { icon: Phone, label: 'Telefone', value: c.phone },
-            { icon: Mail,  label: 'E-mail',   value: c.email },
-            { icon: CreditCard, label: 'CPF', value: c.cpf },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex items-start gap-2.5">
-              <Icon size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[12px] font-medium text-[#64748B]">Dados Pessoais</p>
+          {!editingDados && (
+            <button type="button" onClick={() => setEditingDados(true)} className="text-[11px] text-[#2563EB] hover:underline">
+              Editar
+            </button>
+          )}
+        </div>
+
+        {editingDados ? (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Nome</label>
+              <input value={editName} onChange={e => setEditName(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Email</label>
+              <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Telefone</label>
+              <input value={editPhone} onChange={e => setEditPhone(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">CPF</label>
+              <input value={editCpf} onChange={e => setEditCpf(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Nascimento</label>
+              <input type="date" value={editBirth} onChange={e => setEditBirth(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Observações</label>
+              <textarea value={editNotes} onChange={e => setEditNotes(e.target.value)} rows={3} className={`${inputCls} resize-none`} />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={saveDados} disabled={saving} className={btnSave}>
+                {saving ? 'Salvando…' : 'Salvar'}
+              </button>
+              <button type="button" onClick={() => setEditingDados(false)} disabled={saving} className={btnCancel}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <dl className="space-y-3">
+            {[
+              { icon: Phone,      label: 'Telefone', value: c.phone },
+              { icon: Mail,       label: 'E-mail',   value: c.email },
+              { icon: CreditCard, label: 'CPF',      value: c.cpf },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-2.5">
+                <Icon size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
+                <div>
+                  <dt className="text-[11px] text-[#94A3B8]">{label}</dt>
+                  <dd className="text-[13px] font-medium text-[#0F172A]">{value || '—'}</dd>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-start gap-2.5">
+              <Calendar size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
               <div>
-                <dt className="text-[11px] text-[#94A3B8]">{label}</dt>
-                <dd className="text-[13px] font-medium text-[#0F172A]">{value || '—'}</dd>
+                <dt className="text-[11px] text-[#94A3B8]">Nascimento</dt>
+                <dd className="text-[13px] font-medium text-[#0F172A]">
+                  {formatDate(c.birthDate)} · {age(c.birthDate)} anos
+                </dd>
               </div>
             </div>
-          ))}
-          <div className="flex items-start gap-2.5">
-            <Calendar size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
-            <div>
-              <dt className="text-[11px] text-[#94A3B8]">Nascimento</dt>
-              <dd className="text-[13px] font-medium text-[#0F172A]">
-                {formatDate(c.birthDate)} · {age(c.birthDate)} anos
-              </dd>
+            <div className="flex items-start gap-2.5">
+              <Clock size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
+              <div>
+                <dt className="text-[11px] text-[#94A3B8]">Cliente desde</dt>
+                <dd className="text-[13px] font-medium text-[#0F172A]">{clienteSinceLabel(c.clienteSince)}</dd>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <Clock size={14} className="mt-0.5 shrink-0 text-[#94A3B8]" aria-hidden="true" />
-            <div>
-              <dt className="text-[11px] text-[#94A3B8]">Cliente desde</dt>
-              <dd className="text-[13px] font-medium text-[#0F172A]">{clienteSinceLabel(c.clienteSince)}</dd>
-            </div>
-          </div>
-        </dl>
+            {c.notes && (
+              <div>
+                <dt className="text-[11px] text-[#94A3B8]">Observações</dt>
+                <dd className="mt-0.5 rounded-lg bg-[#FFFBEB] px-3 py-2 text-[12px] leading-relaxed text-[#475569]">
+                  {c.notes}
+                </dd>
+              </div>
+            )}
+          </dl>
+        )}
       </div>
 
       {/* Preferências */}
-      <div>
-        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Preferências</p>
-        <dl className="space-y-3">
-          <div>
-            <dt className="text-[11px] text-[#94A3B8]">Profissional favorito</dt>
-            <dd className="mt-0.5 text-[13px] font-medium text-[#0F172A]">{profFavoritoNome || '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-[11px] text-[#94A3B8]">Serviço mais frequente</dt>
-            <dd className="mt-0.5 text-[13px] font-medium text-[#0F172A]">
-              {c.serviceFreq[0]?.service ?? '—'}
-            </dd>
-          </div>
-          {c.tags.length > 0 && (
-            <div>
-              <dt className="mb-1.5 text-[11px] text-[#94A3B8]">Tags</dt>
-              <dd className="flex flex-wrap gap-1.5">
-                {c.tags.map((t) => <ClienteTagBadge key={t} tag={t} />)}
-              </dd>
-            </div>
+      <div className="border-t border-[#F1F5F9] pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[12px] font-medium text-[#64748B]">Preferências</p>
+          {!editingPref && (
+            <button type="button" onClick={() => setEditingPref(true)} className="text-[11px] text-[#2563EB] hover:underline">
+              Editar
+            </button>
           )}
-          {c.notes && (
+        </div>
+
+        {editingPref ? (
+          <div className="space-y-3">
             <div>
-              <dt className="text-[11px] text-[#94A3B8]">Observações</dt>
-              <dd className="mt-0.5 rounded-lg bg-[#FFFBEB] px-3 py-2 text-[12px] leading-relaxed text-[#475569]">
-                {c.notes}
-              </dd>
+              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Profissional favorito</label>
+              <select value={editFavProf} onChange={e => setEditFavProf(e.target.value)}
+                className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]">
+                <option value="">Nenhum</option>
+                {profissionais.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
             </div>
-          )}
-        </dl>
+            <div className="flex gap-2">
+              <button type="button" onClick={savePrefs} disabled={savingPref} className={btnSave}>
+                {savingPref ? 'Salvando…' : 'Salvar'}
+              </button>
+              <button type="button" onClick={() => setEditingPref(false)} disabled={savingPref} className={btnCancel}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex justify-between text-[13px]">
+              <span className="text-[#64748B]">Profissional favorito</span>
+              <span className="text-[#0F172A] font-medium">{profFavoritoNome || '—'}</span>
+            </div>
+            <div className="flex justify-between text-[13px]">
+              <span className="text-[#64748B]">Serviço mais frequente</span>
+              <span className="text-[#94A3B8]">— (calculado do histórico)</span>
+            </div>
+            {c.tags.length > 0 && (
+              <div className="pt-1">
+                <p className="mb-1.5 text-[11px] text-[#94A3B8]">Tags</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.tags.map((t) => <ClienteTagBadge key={t} tag={t} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -132,6 +253,14 @@ function TabHistorico({ c }: { c: Cliente }) {
   const [page, setPage] = useState(0)
   const totalPages = Math.ceil(c.history.length / PAGE_SIZE)
   const slice = c.history.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+
+  if (c.history.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <p className="text-[13px] text-[#94A3B8]">Nenhum atendimento registrado ainda.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-3">
@@ -166,22 +295,14 @@ function TabHistorico({ c }: { c: Cliente }) {
             {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, c.history.length)} de {c.history.length}
           </p>
           <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
+            <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
               aria-label="Página anterior"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-            >
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
               <ChevronLeft size={14} aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page === totalPages - 1}
+            <button type="button" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}
               aria-label="Próxima página"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-            >
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
               <ChevronRight size={14} aria-hidden="true" />
             </button>
           </div>
@@ -194,6 +315,14 @@ function TabHistorico({ c }: { c: Cliente }) {
 function TabAgendamentos({ c }: { c: Cliente }) {
   const upcoming = c.upcoming.filter((a) => a.status !== 'COMPLETED' && a.status !== 'CANCELLED')
   const past = c.upcoming.filter((a) => a.status === 'COMPLETED' || a.status === 'CANCELLED').slice(0, 5)
+
+  if (c.upcoming.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <p className="text-[13px] text-[#94A3B8]">Nenhum agendamento encontrado.</p>
+      </div>
+    )
+  }
 
   function ApptRow({ a }: { a: UpcomingAppt }) {
     return (
@@ -215,28 +344,19 @@ function TabAgendamentos({ c }: { c: Cliente }) {
   return (
     <div className="space-y-5">
       <div>
-        <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">
-          Próximos ({upcoming.length})
-        </p>
+        <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">Próximos ({upcoming.length})</p>
         {upcoming.length > 0 ? (
-          <div className="space-y-2">
-            {upcoming.map((a) => <ApptRow key={a.id} a={a} />)}
-          </div>
+          <div className="space-y-2">{upcoming.map((a) => <ApptRow key={a.id} a={a} />)}</div>
         ) : (
           <p className="rounded-lg border border-dashed border-[#E2E8F0] py-6 text-center text-[12px] text-[#94A3B8]">
             Nenhum agendamento futuro
           </p>
         )}
       </div>
-
       {past.length > 0 && (
         <div>
-          <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">
-            Passados (últimos {past.length})
-          </p>
-          <div className="space-y-2">
-            {past.map((a) => <ApptRow key={a.id} a={a} />)}
-          </div>
+          <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">Passados (últimos {past.length})</p>
+          <div className="space-y-2">{past.map((a) => <ApptRow key={a.id} a={a} />)}</div>
         </div>
       )}
     </div>
@@ -244,16 +364,23 @@ function TabAgendamentos({ c }: { c: Cliente }) {
 }
 
 function TabFinanceiro({ c }: { c: Cliente }) {
+  if (c.history.length === 0 && c.serviceFreq.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-2">
+        <p className="text-[13px] text-[#94A3B8]">Sem movimentação financeira registrada.</p>
+      </div>
+    )
+  }
+
   const maxFreq = Math.max(...c.serviceFreq.map((s) => s.totalSpent), 1)
 
   return (
     <div className="space-y-5">
-      {/* KPI cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { label: 'Total Gasto', value: `R$ ${c.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` },
+          { label: 'Total Gasto',  value: `R$ ${c.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` },
           { label: 'Ticket Médio', value: `R$ ${c.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` },
-          { label: 'Visitas', value: c.visitCount.toString() },
+          { label: 'Visitas',      value: c.visitCount.toString() },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-lg border border-[#E2E8F0] bg-white p-4">
             <p className="text-[11px] text-[#94A3B8]">{label}</p>
@@ -262,12 +389,9 @@ function TabFinanceiro({ c }: { c: Cliente }) {
         ))}
       </div>
 
-      {/* Services bar chart */}
       {c.serviceFreq.length > 0 && (
         <div>
-          <p className="mb-3 text-[12px] font-medium text-[#64748B]">
-            Serviços
-          </p>
+          <p className="mb-3 text-[12px] font-medium text-[#64748B]">Serviços</p>
           <div className="space-y-2.5">
             {c.serviceFreq.map((s) => (
               <div key={s.service}>
@@ -278,14 +402,9 @@ function TabFinanceiro({ c }: { c: Cliente }) {
                   </span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#F1F5F9]">
-                  <div
-                    className="h-full rounded-full bg-[#2563EB] transition-all duration-300 motion-reduce:transition-none"
+                  <div className="h-full rounded-full bg-[#2563EB] transition-all duration-300 motion-reduce:transition-none"
                     style={{ width: `${(s.totalSpent / maxFreq) * 100}%` }}
-                    role="progressbar"
-                    aria-valuenow={s.totalSpent}
-                    aria-valuemax={maxFreq}
-                    aria-label={s.service}
-                  />
+                    role="progressbar" aria-valuenow={s.totalSpent} aria-valuemax={maxFreq} aria-label={s.service} />
                 </div>
               </div>
             ))}
@@ -293,11 +412,8 @@ function TabFinanceiro({ c }: { c: Cliente }) {
         </div>
       )}
 
-      {/* Últimos pagamentos */}
       <div>
-        <p className="mb-3 text-[12px] font-medium text-[#64748B]">
-          Últimos pagamentos
-        </p>
+        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Últimos pagamentos</p>
         <div className="space-y-2">
           {c.history.filter((h) => h.status === 'COMPLETED').slice(0, 5).map((h) => (
             <div key={h.id} className="flex items-center justify-between rounded-lg bg-[#F8FAFC] px-3 py-2">
@@ -359,20 +475,9 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
 
   if (!cliente) return null
 
-  const profFavoritoNome = profissionais.find((p) => p.id === cliente.favoriteProfessional)?.name ?? ''
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Perfil: ${cliente.name}`}
-    >
-      <div
-        className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Perfil: ${cliente.name}`}>
+      <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
 
       <div className="relative z-10 flex w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
         {/* Header */}
@@ -389,44 +494,25 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
             confirming ? (
               <div className="flex shrink-0 items-center gap-1.5">
                 <span className="text-[12px] text-[#475569]">Excluir?</span>
-                <button
-                  type="button"
-                  disabled={deleting}
-                  onClick={async () => {
-                    setDeleting(true)
-                    try { await onDelete(cliente.id) }
-                    finally { setDeleting(false); setConfirming(false) }
-                  }}
-                  className="rounded-md bg-[#DC2626] px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#B91C1C] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                >
+                <button type="button" disabled={deleting}
+                  onClick={async () => { setDeleting(true); try { await onDelete(cliente.id) } finally { setDeleting(false); setConfirming(false) } }}
+                  className="rounded-md bg-[#DC2626] px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#B91C1C] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
                   {deleting ? 'Excluindo…' : 'Confirmar'}
                 </button>
-                <button
-                  type="button"
-                  disabled={deleting}
-                  onClick={() => setConfirming(false)}
-                  className="rounded-md border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                >
+                <button type="button" disabled={deleting} onClick={() => setConfirming(false)}
+                  className="rounded-md border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
                   Cancelar
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => setConfirming(true)}
-                aria-label="Excluir cliente"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-              >
+              <button type="button" onClick={() => setConfirming(true)} aria-label="Excluir cliente"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
                 <Trash2 size={16} aria-hidden="true" />
               </button>
             )
           )}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-          >
+          <button type="button" onClick={onClose} aria-label="Fechar"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
             <X size={16} aria-hidden="true" />
           </button>
         </div>
@@ -435,20 +521,12 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
         <div className="shrink-0 border-b border-[#F1F5F9] px-6" role="tablist" aria-label="Seções do perfil">
           <div className="flex gap-0">
             {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.id}
-                onClick={() => setTab(t.id)}
+              <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
                 className={cn(
                   'border-b-2 px-4 py-3 text-[13px] font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
-                  tab === t.id
-                    ? 'border-[#2563EB] text-[#2563EB]'
-                    : 'border-transparent text-[#94A3B8] hover:text-[#475569]',
-                )}
-              >
+                  tab === t.id ? 'border-[#2563EB] text-[#2563EB]' : 'border-transparent text-[#94A3B8] hover:text-[#475569]',
+                )}>
                 {t.label}
               </button>
             ))}
@@ -457,10 +535,10 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5" role="tabpanel">
-          {tab === 'perfil'       && <TabPerfil        c={cliente} profFavoritoNome={profFavoritoNome} />}
-          {tab === 'historico'    && <TabHistorico      c={cliente} />}
-          {tab === 'agendamentos' && <TabAgendamentos   c={cliente} />}
-          {tab === 'financeiro'   && <TabFinanceiro     c={cliente} />}
+          {tab === 'perfil'       && <TabPerfil key={cliente.id} c={cliente} profissionais={profissionais} />}
+          {tab === 'historico'    && <TabHistorico    c={cliente} />}
+          {tab === 'agendamentos' && <TabAgendamentos c={cliente} />}
+          {tab === 'financeiro'   && <TabFinanceiro   c={cliente} />}
         </div>
       </div>
     </div>

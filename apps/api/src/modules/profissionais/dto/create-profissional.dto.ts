@@ -37,4 +37,16 @@ export class CreateProfissionalDto {
   @IsOptional()
   @IsString()
   workEnd?: string
+
+  @IsOptional()
+  @IsString()
+  cpf?: string | null
+
+  @IsOptional()
+  @IsString()
+  birthDate?: string | null
+
+  @IsOptional()
+  @IsString()
+  vinculo?: string | null
 }

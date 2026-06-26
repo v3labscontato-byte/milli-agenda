@@ -44,7 +44,23 @@ export class ProfissionaisService {
 
   async update(tenantId: string, id: string, dto: Partial<CreateProfissionalDto>) {
     await this.findOne(tenantId, id)
-    return this.db.professional.update({ where: { id }, data: dto })
+    return this.db.professional.update({
+      where: { id },
+      data: {
+        ...(dto.name          !== undefined && { name: dto.name }),
+        ...(dto.phone         !== undefined && { phone: dto.phone }),
+        ...(dto.email         !== undefined && { email: dto.email }),
+        ...(dto.specialty     !== undefined && { specialty: dto.specialty }),
+        ...(dto.active        !== undefined && { active: dto.active }),
+        ...(dto.commissionPct !== undefined && { commissionPct: dto.commissionPct }),
+        ...(dto.workDays      !== undefined && { workDays: dto.workDays }),
+        ...(dto.workStart     !== undefined && { workStart: dto.workStart }),
+        ...(dto.workEnd       !== undefined && { workEnd: dto.workEnd }),
+        ...(dto.cpf           !== undefined && { cpf: dto.cpf }),
+        ...(dto.birthDate     !== undefined && { birthDate: dto.birthDate }),
+        ...(dto.vinculo       !== undefined && { vinculo: dto.vinculo }),
+      },
+    })
   }
 
   async remove(tenantId: string, id: string) {

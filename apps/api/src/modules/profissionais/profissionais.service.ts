@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { DatabaseService } from '../../infra/database/database.service'
 import { getAvailableSlots } from '@milli/business-rules'
 import { CreateProfissionalDto } from './dto/create-profissional.dto'
@@ -48,7 +48,25 @@ export class ProfissionaisService {
   }
 
   async remove(tenantId: string, id: string) {
-    await this.findOne(tenantId, id)
+    const prof = await this.db.professional.findFirst({
+      where: { id, tenantId },
+      include: {
+        _count: {
+          select: {
+            appointments: {
+              where: {
+                startAt: { gte: new Date() },
+                status: { notIn: ['CANCELLED', 'NO_SHOW'] },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!prof) throw new NotFoundException('Professional not found')
+    if (prof._count.appointments > 0) {
+      throw new ConflictException('Este profissional possui agendamentos futuros e não pode ser excluído.')
+    }
     return this.db.professional.update({ where: { id }, data: { active: false } })
   }
 

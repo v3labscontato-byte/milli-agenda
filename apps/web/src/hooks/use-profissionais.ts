@@ -79,11 +79,30 @@ export function useProfissionais() {
     await fetchData()
   }, [fetchData])
 
+  const toggleStatus = useCallback(async (id: string, active: boolean) => {
+    if (!FEATURES.realProfissionais) return
+    setData(prev => prev.map(p =>
+      p.id === id ? { ...p, status: active ? 'active' : 'inactive' } : p
+    ))
+    try {
+      await profissionaisApi.update(id, { active })
+    } catch {
+      setData(prev => prev.map(p =>
+        p.id === id ? { ...p, status: active ? 'inactive' : 'active' } : p
+      ))
+    }
+  }, [])
+
   const remove = useCallback(async (id: string) => {
     if (!FEATURES.realProfissionais) return
-    await profissionaisApi.update(id, { status: 'inactive' })
-    await fetchData()
+    setData(prev => prev.filter(p => p.id !== id))
+    try {
+      await profissionaisApi.delete(id)
+    } catch (err: unknown) {
+      await fetchData()
+      throw err
+    }
   }, [fetchData])
 
-  return { data, loading, error, refetch: fetchData, create, update, remove }
+  return { data, loading, error, refetch: fetchData, create, update, toggleStatus, remove }
 }

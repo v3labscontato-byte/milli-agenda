@@ -504,13 +504,13 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
       aria-label={`Perfil: ${p.name}`}
     >
       <div
-        className="absolute inset-0 bg-[var(--color-text-primary)]/40"
+        className="absolute inset-0 bg-[var(--color-text-primary)]/50"
         onClick={onClose}
         aria-hidden="true"
       />
 
       <div
-        className="relative z-10 flex w-full max-w-2xl flex-col rounded-xl bg-white shadow-xl"
+        className="relative z-10 flex w-full max-w-2xl flex-col rounded-xl bg-white shadow-[0_20px_60px_-10px_rgba(0,0,0,0.25),0_0_0_1px_rgba(0,0,0,0.05)]"
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}

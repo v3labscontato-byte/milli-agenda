@@ -2,7 +2,42 @@
 import { useCallback, useEffect, useState } from 'react'
 import { FEATURES } from '@/lib/features'
 import { clientesApi } from '@/lib/api/clientes'
-import { MOCK_CLIENTES, type Cliente } from '@/lib/clientes-mock'
+import { MOCK_CLIENTES, type Cliente, type ClientTag } from '@/lib/clientes-mock'
+
+function toFrontend(raw: Record<string, unknown>): Cliente {
+  return {
+    id: String(raw.id ?? ''),
+    name: String(raw.name ?? ''),
+    email: String(raw.email ?? ''),
+    phone: String(raw.phone ?? ''),
+    cpf: String(raw.cpf ?? ''),
+    birthDate: String(raw.birthDate ?? '').slice(0, 10) || '2000-01-01',
+    clienteSince: String(raw.createdAt ?? '').slice(0, 10) || '2000-01-01',
+    favoriteProfessional: String(raw.favoriteProfessionalId ?? ''),
+    visitCount: Number(raw.visitCount ?? 0),
+    lastVisit: raw.lastVisit ? String(raw.lastVisit).slice(0, 10) : null,
+    lastVisitService: String(raw.lastVisitService ?? ''),
+    lastVisitProfessional: String(raw.lastVisitProfessional ?? ''),
+    nextAppointment: raw.nextAppointment ? String(raw.nextAppointment).slice(0, 10) : null,
+    nextAppointmentTime: String(raw.nextAppointmentTime ?? ''),
+    nextAppointmentService: String(raw.nextAppointmentService ?? ''),
+    nextAppointmentProfessional: String(raw.nextAppointmentProfessional ?? ''),
+    avgTicket: Number(raw.avgTicket ?? 0),
+    totalSpent: Number(raw.totalSpent ?? 0),
+    notes: String(raw.notes ?? ''),
+    history: [],
+    upcoming: [],
+    serviceFreq: [],
+    tags: [] as ClientTag[],
+  }
+}
+
+function parseList(res: unknown): Record<string, unknown>[] {
+  if (Array.isArray(res)) return res as Record<string, unknown>[]
+  const nested = (res as { data?: unknown }).data
+  if (Array.isArray(nested)) return nested as Record<string, unknown>[]
+  return []
+}
 
 export function useClientes(params?: { search?: string }) {
   const [data, setData]       = useState<Cliente[]>(() => FEATURES.realClientes ? [] : MOCK_CLIENTES)
@@ -14,10 +49,7 @@ export function useClientes(params?: { search?: string }) {
     setLoading(true)
     setError(null)
     return clientesApi.list(params)
-      .then((res: unknown) => {
-        const list = Array.isArray(res) ? res : (Array.isArray((res as { data?: unknown }).data) ? (res as { data: Cliente[] }).data : [])
-        setData(list)
-      })
+      .then((res: unknown) => { setData(parseList(res).map(toFrontend)) })
       .catch(() => { setError('Erro ao carregar clientes') })
       .finally(() => { setLoading(false) })
   }, [params?.search])
@@ -28,12 +60,7 @@ export function useClientes(params?: { search?: string }) {
     setLoading(true)
     setError(null)
     clientesApi.list(params)
-      .then((res: unknown) => {
-        if (!cancelled) {
-          const list = Array.isArray(res) ? res : (Array.isArray((res as { data?: unknown }).data) ? (res as { data: Cliente[] }).data : [])
-          setData(list)
-        }
-      })
+      .then((res: unknown) => { if (!cancelled) setData(parseList(res).map(toFrontend)) })
       .catch(() => { if (!cancelled) setError('Erro ao carregar clientes') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }

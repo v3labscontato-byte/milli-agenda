@@ -15,7 +15,7 @@ export class ProfissionaisService {
   }
 
   async findOne(tenantId: string, id: string) {
-    const prof = await this.db.professional.findFirst({ where: { id, tenantId } })
+    const prof = await this.db.professional.findFirst({ where: { id, tenantId, active: true } })
     if (!prof) throw new NotFoundException('Professional not found')
     return prof
   }

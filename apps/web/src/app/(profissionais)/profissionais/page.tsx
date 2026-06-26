@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Search, Plus, X, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -106,6 +106,14 @@ export default function ProfissionaisPage() {
   }, [profissionais, search, roleFilter, statusFilter])
 
   const isFiltered = search.trim().length > 0 || roleFilter !== null || statusFilter !== null
+
+  const handleUpdate = useCallback(async () => {
+    const novos = await refetch()
+    if (novos && selected) {
+      const atualizado = novos.find(p => p.id === selected.id)
+      if (atualizado) setSelected(atualizado)
+    }
+  }, [refetch, selected])
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
@@ -268,7 +276,7 @@ export default function ProfissionaisPage() {
       <ProfissionalModal
         profissional={selected}
         onClose={() => setSelected(null)}
-        onUpdate={() => void refetch()}
+        onUpdate={handleUpdate}
       />
       <NovoProfissionalModal
         open={novoOpen}

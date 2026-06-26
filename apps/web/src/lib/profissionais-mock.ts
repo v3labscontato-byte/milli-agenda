@@ -62,18 +62,19 @@ export function formatBRL(n: number): string {
   return `R$ ${n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-export function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-')
-  return `${d}/${m}/${y}`
+export function formatDate(d: string | undefined | null): string {
+  if (!d) return '—'
+  const [y, m, day] = d.split('-')
+  if (!y || !m || !day) return '—'
+  return `${day}/${m}/${y}`
 }
 
-export function age(iso: string): number {
-  const birth = new Date(iso)
-  const today = new Date()
-  let a = today.getFullYear() - birth.getFullYear()
-  const before = today.getMonth() < birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())
-  return before ? a - 1 : a
+export function age(d: string | undefined | null): string {
+  if (!d) return '—'
+  const birth = new Date(d)
+  if (isNaN(birth.getTime())) return '—'
+  const diff = Date.now() - birth.getTime()
+  return String(Math.floor(diff / (365.25 * 24 * 3600 * 1000)))
 }
 
 export function hireSince(iso: string): string {

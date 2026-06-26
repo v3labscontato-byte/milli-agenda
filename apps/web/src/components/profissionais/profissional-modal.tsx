@@ -48,39 +48,43 @@ function TabPerfil({ p }: { p: Profissional }) {
   }
 
   const infoRows: [string, string][] = [
-    ['E-mail',      p.email],
-    ['Telefone',    p.phone],
-    ['CPF',         p.cpf],
-    ['Nascimento',  `${formatDate(p.birthDate)} (${age(p.birthDate)} anos)`],
-    ['Contratação', `${formatDate(p.hireDate)} · ${hireSince(p.hireDate)} no salão`],
+    ['E-mail',          p.email || '—'],
+    ['Telefone',        p.phone || '—'],
+    ['CPF',             p.cpf || '—'],
+    ['Nascimento',      p.birthDate ? `${formatDate(p.birthDate)} (${age(p.birthDate)} anos)` : '—'],
+    ['Contratação',     p.hireDate ? `${formatDate(p.hireDate)} · ${hireSince(p.hireDate)} no salão` : '—'],
+    ['Tipo de vínculo', (p as unknown as { vinculo?: string }).vinculo ?? 'Não definido'],
   ]
 
+  const SVG_ARROW_SM = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
+
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-      {/* Dados */}
-      <div>
-        <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Contato e dados</p>
-        <ul className="space-y-2.5">
-          {infoRows.map(([label, value]) => (
-            <li key={label} className="flex items-start gap-2">
-              <span className="mt-px min-w-[90px] shrink-0 text-[11px] text-[var(--color-text-tertiary)]">{label}</span>
-              <span className="text-[13px] font-medium text-[var(--color-text-primary)] break-words">{value}</span>
-            </li>
-          ))}
-        </ul>
-        {p.bio && (
-          <div className="mt-4 rounded-lg bg-[#F8FAFC] px-3 py-2.5">
-            <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{p.bio}</p>
-          </div>
-        )}
-      </div>
+    <div className="space-y-4">
 
-      {/* Horário, especialidades, comissão */}
-      <div className="space-y-4">
+      {/* ZONA 1 — 2 colunas */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
-        {/* Horário de trabalho */}
+        {/* Esquerda — Contato e dados */}
         <div>
-          <div className="flex items-center justify-between mb-2.5">
+          <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Contato e dados</p>
+          <ul className="space-y-2.5">
+            {infoRows.map(([label, value]) => (
+              <li key={label} className="flex items-start gap-2">
+                <span className="mt-px min-w-[100px] shrink-0 text-[11px] text-[var(--color-text-tertiary)]">{label}</span>
+                <span className="text-[13px] font-medium text-[var(--color-text-primary)] break-words">{value}</span>
+              </li>
+            ))}
+          </ul>
+          {p.bio && (
+            <div className="mt-4 rounded-lg bg-[#F8FAFC] px-3 py-2.5">
+              <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{p.bio}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Direita — Horário de trabalho */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
             <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">Horário de trabalho</p>
             {!editingHorario && (
               <button
@@ -94,112 +98,138 @@ function TabPerfil({ p }: { p: Profissional }) {
           </div>
 
           {!editingHorario ? (
-            <div className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5 text-[13px]">
-              <p className="font-medium text-[var(--color-text-primary)]">{editStart} – {editEnd}</p>
-              <p className="mt-0.5 text-[11px] text-[var(--color-text-tertiary)]">
-                {editDays.length > 0 ? editDays.map(d => DAYS[d]).join(', ') : '—'}
-              </p>
-            </div>
+            <table className="w-full text-[12px] mt-2">
+              <thead>
+                <tr className="border-b border-[#F1F5F9]">
+                  <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)] w-10">Dia</th>
+                  <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Entrada</th>
+                  <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Saída</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DAYS.map((day, i) => {
+                  const ativo = (editDays ?? []).includes(i)
+                  return (
+                    <tr key={i} className="border-b border-[#F8FAFC] last:border-0">
+                      <td className="py-1.5 font-medium text-[var(--color-text-secondary)]">{day}</td>
+                      <td className="py-1.5 text-[var(--color-text-primary)]">
+                        {ativo ? editStart : <span className="text-[var(--color-border-secondary)] text-[11px]">Folga</span>}
+                      </td>
+                      <td className="py-1.5 text-[var(--color-text-primary)]">
+                        {ativo ? editEnd : ''}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           ) : (
-            <div className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-3 space-y-3">
-              {/* Dias */}
-              <div>
-                <p className="text-[11px] text-[var(--color-text-tertiary)] mb-1.5">Dias de trabalho</p>
-                <div className="flex gap-1 flex-wrap">
-                  {DAYS.map((d, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setEditDays(prev =>
-                        prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i].sort((a, b) => a - b)
-                      )}
-                      className={cn(
-                        'rounded-full px-2 py-0.5 text-[11px] font-medium border transition-colors',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
-                        editDays.includes(i)
-                          ? 'bg-[var(--color-brand)] border-[var(--color-brand)] text-white'
-                          : 'bg-white border-[#E2E8F0] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)]',
-                      )}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Seleção de horários */}
-              <div className="flex items-end gap-2">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] text-[var(--color-text-tertiary)]">Entrada</span>
-                  <select
-                    value={editStart}
-                    onChange={e => setEditStart(e.target.value)}
-                    className="border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none pr-6 min-w-[80px] focus:outline-none focus:border-[var(--color-brand)]"
-                    style={{ backgroundImage: SVG_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
-                  >
-                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <span className="text-[12px] text-[var(--color-text-tertiary)] pb-2">–</span>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] text-[var(--color-text-tertiary)]">Saída</span>
-                  <select
-                    value={editEnd}
-                    onChange={e => setEditEnd(e.target.value)}
-                    className="border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none pr-6 min-w-[80px] focus:outline-none focus:border-[var(--color-brand)]"
-                    style={{ backgroundImage: SVG_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
-                  >
-                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-              {/* Ações */}
-              <div className="flex gap-2 justify-end">
+            <>
+              <table className="w-full text-[12px] mt-2">
+                <thead>
+                  <tr className="border-b border-[#F1F5F9]">
+                    <th className="pb-1.5 w-5"></th>
+                    <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)] w-10">Dia</th>
+                    <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Entrada</th>
+                    <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Saída</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DAYS.map((day, i) => {
+                    const ativo = editDays.includes(i)
+                    return (
+                      <tr key={i} className="border-b border-[#F8FAFC] last:border-0">
+                        <td className="py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={ativo}
+                            onChange={() => setEditDays(prev =>
+                              prev.includes(i)
+                                ? prev.filter(x => x !== i)
+                                : [...prev, i].sort((a, b) => a - b)
+                            )}
+                            className="accent-[var(--color-brand)] w-3.5 h-3.5"
+                          />
+                        </td>
+                        <td className={cn('py-1.5 font-medium', ativo ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-border-secondary)]')}>
+                          {day}
+                        </td>
+                        <td className="py-1.5">
+                          {ativo ? (
+                            <select
+                              value={editStart}
+                              onChange={e => setEditStart(e.target.value)}
+                              className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
+                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}
+                            >
+                              {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          ) : <span className="text-[var(--color-border-secondary)]">—</span>}
+                        </td>
+                        <td className="py-1.5">
+                          {ativo ? (
+                            <select
+                              value={editEnd}
+                              onChange={e => setEditEnd(e.target.value)}
+                              className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
+                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}
+                            >
+                              {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          ) : <span className="text-[var(--color-border-secondary)]">—</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              <div className="flex gap-2 justify-end mt-3">
                 <button
                   type="button"
                   onClick={() => setEditingHorario(false)}
-                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={() => void saveHorario()}
-                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)]"
                 >
                   Salvar
                 </button>
               </div>
-            </div>
+            </>
           )}
         </div>
+      </div>
 
-        {/* Especialidades */}
-        <div>
-          <p className="mb-2.5 text-[12px] font-medium text-[var(--color-text-secondary)]">Especialidades</p>
-          {p.specialties.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {p.specialties.map((s) => (
-                <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">
-                  {s}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-[12px] text-[var(--color-text-tertiary)]">—</p>
-          )}
+      {/* ZONA 2 — Especialidades + Comissão */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
+          <p className="text-[11px] font-medium text-[var(--color-text-tertiary)] mb-2">Especialidade</p>
+          <div className="flex flex-wrap gap-1">
+            {p.specialties.length > 0
+              ? p.specialties.map(s => (
+                  <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">
+                    {s}
+                  </span>
+                ))
+              : <span className="text-[12px] text-[var(--color-text-tertiary)]">—</span>
+            }
+          </div>
         </div>
 
-        {/* Comissão */}
-        <div>
-          <p className="mb-2.5 text-[12px] font-medium text-[var(--color-text-secondary)]">Comissão</p>
-          <div className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-light)]">
-              <span className="text-[13px] font-bold text-[var(--color-brand)]">{p.commissionPct}%</span>
-            </div>
+        <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
+          <p className="text-[11px] font-medium text-[var(--color-text-tertiary)] mb-2">Comissão</p>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-light)] text-[11px] font-bold text-[var(--color-brand)]">
+              {p.commissionPct}%
+            </span>
             <div>
               <p className="text-[13px] font-medium text-[var(--color-text-primary)]">{p.commissionPct}% sobre serviços</p>
               <p className="text-[11px] text-[var(--color-text-tertiary)]">
-                Estimado este mês: {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
+                Est. este mês: {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
               </p>
             </div>
           </div>

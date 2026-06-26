@@ -47,14 +47,21 @@ export function useProfissionais() {
   const [loading, setLoading] = useState(FEATURES.realProfissionais)
   const [error, setError]     = useState<string | null>(null)
 
-  const fetchData = useCallback(() => {
-    if (!FEATURES.realProfissionais) return Promise.resolve()
+  const fetchData = useCallback(async (): Promise<Profissional[] | undefined> => {
+    if (!FEATURES.realProfissionais) return undefined
     setLoading(true)
     setError(null)
-    return profissionaisApi.list()
-      .then((res: unknown) => { setData(parseList(res)) })
-      .catch(() => { setError('Erro ao carregar profissionais') })
-      .finally(() => { setLoading(false) })
+    try {
+      const res = await profissionaisApi.list()
+      const parsed = parseList(res)
+      setData(parsed)
+      return parsed
+    } catch {
+      setError('Erro ao carregar profissionais')
+      return undefined
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {

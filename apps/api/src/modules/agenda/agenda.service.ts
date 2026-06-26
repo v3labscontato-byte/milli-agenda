@@ -45,15 +45,30 @@ export class AgendaService {
   }
 
   async create(tenantId: string, dto: CreateAppointmentDto) {
-    const endAt = new Date(dto.startAt)
-    endAt.setMinutes(endAt.getMinutes() + dto.durationMin)
+    let clientId = dto.clientId
+    if (!clientId) {
+      let client = await this.db.client.findFirst({
+        where: { tenantId, phone: dto.clientPhone ?? '' },
+      })
+      if (!client) {
+        client = await this.db.client.create({
+          data: { tenantId, name: dto.clientName, phone: dto.clientPhone ?? '' },
+        })
+      }
+      clientId = client.id
+    }
+
+    const startAt = this.parseDateTime(dto.date, dto.startTime)
+    const endAt = new Date(startAt)
+    endAt.setMinutes(endAt.getMinutes() + (dto.durationMin ?? 60))
+
     return this.db.appointment.create({
       data: {
         tenantId,
-        clientId: dto.clientId,
+        clientId,
         professionalId: dto.professionalId,
         serviceId: dto.serviceId,
-        startAt: new Date(dto.startAt),
+        startAt,
         endAt,
         notes: dto.notes,
       },
@@ -63,17 +78,23 @@ export class AgendaService {
   async update(tenantId: string, id: string, dto: Partial<CreateAppointmentDto>) {
     await this.findOne(tenantId, id)
     const data: Record<string, unknown> = {}
-    if (dto.clientId)       data.clientId = dto.clientId
-    if (dto.professionalId) data.professionalId = dto.professionalId
-    if (dto.serviceId)      data.serviceId = dto.serviceId
+    if (dto.clientId)            data.clientId = dto.clientId
+    if (dto.professionalId)      data.professionalId = dto.professionalId
+    if (dto.serviceId)           data.serviceId = dto.serviceId
     if (dto.notes !== undefined) data.notes = dto.notes
-    if (dto.startAt) {
-      data.startAt = new Date(dto.startAt)
-      const endAt = new Date(dto.startAt)
+    if (dto.date && dto.startTime) {
+      const startAt = this.parseDateTime(dto.date, dto.startTime)
+      const endAt = new Date(startAt)
       endAt.setMinutes(endAt.getMinutes() + (dto.durationMin ?? 60))
+      data.startAt = startAt
       data.endAt = endAt
     }
     return this.db.appointment.update({ where: { id }, data })
+  }
+
+  private parseDateTime(date: string, time: string): Date {
+    const [h, m] = time.split(':').map(Number)
+    return new Date(`${date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`)
   }
 
   async transition(tenantId: string, id: string, toStatus: AppointmentStatus) {

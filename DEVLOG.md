@@ -707,3 +707,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Restaurar design semana + dia
 **Status:** ✅ Concluído
 **Fixes:** dias passados com disponibilidade (0 agend. / X livres em cinza, sem "—"), vista dia reescrita com timeline por profissional (colunas, linha "agora", grade sempre visível)
+
+### [2026-06-26] AGENT_AGENDA — Fix criar agendamento 400
+**Status:** Concluido
+**Fix:** DTO atualizado (clientName/clientPhone/date/startTime) + find-or-create cliente + startAt/endAt calculados

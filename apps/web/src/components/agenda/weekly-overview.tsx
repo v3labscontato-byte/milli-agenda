@@ -111,14 +111,19 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
 
   if (isPast) {
     return (
-      <td className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top">
-        <div className="flex h-full w-full flex-col items-start px-3 py-3">
+      <td className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top transition-colors hover:bg-[#F1F5F9]">
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex h-full w-full flex-col items-start px-3 py-3 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+          aria-label={`${booked} agendamentos`}
+        >
           <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
           <span className="mt-0.5 flex items-center gap-1 text-[11px] text-[#94A3B8]">
             {free} livres
             <span className="h-1.5 w-1.5 rounded-full bg-[#94A3B8]" aria-hidden="true" />
           </span>
-        </div>
+        </button>
       </td>
     )
   }
@@ -337,7 +342,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                       avail={avail}
                       isPast={day < todayStart}
                       onClick={
-                        avail.state !== 'folga' && day >= todayStart
+                        avail.state !== 'folga'
                           ? () => onDaySelect(prof.id, day)
                           : undefined
                       }

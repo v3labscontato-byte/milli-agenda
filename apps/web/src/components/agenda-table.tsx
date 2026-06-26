@@ -218,8 +218,28 @@ function AgendaCell({ appt, onManage }: { appt: Appointment; onManage: () => voi
 function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {
   const { status } = appt
 
-  if (status === 'SCHEDULED' || status === 'CONFIRMED' || status === 'CANCELLED' || status === 'NO_SHOW') {
+  if (status === 'CANCELLED' || status === 'NO_SHOW') {
     return <Dash />
+  }
+
+  if (status === 'SCHEDULED' || status === 'CONFIRMED') {
+    return (
+      <td className="w-32 px-2 py-3 text-center">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`Abrir comanda de ${appt.client}`}
+          className={cn(
+            'inline-flex items-center gap-1 rounded-md px-2.5 py-1.5',
+            'bg-[#2563EB] text-[11px] font-medium text-white transition-colors hover:bg-[#1D4ED8]',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+          )}
+        >
+          <ClipboardList size={12} aria-hidden="true" />
+          Abrir Comanda
+        </button>
+      </td>
+    )
   }
 
   if (status === 'AWAITING_PAYMENT') {

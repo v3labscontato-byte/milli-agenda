@@ -39,7 +39,7 @@ function TabPerfil({ p }: { p: Profissional }) {
     setEditStart(p.workStart || '08:00')
     setEditEnd(p.workEnd || '18:00')
     setEditingHorario(false)
-  }, [p.id])
+  }, [p.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function saveHorario() {
     if (!FEATURES.realProfissionais) { setEditingHorario(false); return }
@@ -176,13 +176,17 @@ function TabPerfil({ p }: { p: Profissional }) {
         {/* Especialidades */}
         <div>
           <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">Especialidades</p>
-          <div className="flex flex-wrap gap-1.5">
-            {p.specialties.map((s) => (
-              <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[#475569]">
-                {s}
-              </span>
-            ))}
-          </div>
+          {p.specialties.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {p.specialties.map((s) => (
+                <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[#475569]">
+                  {s}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-[#94A3B8]">—</p>
+          )}
         </div>
 
         {/* Comissão */}

@@ -23,15 +23,15 @@ function KpiCard({ label, value, sub, accent }: KpiCardProps) {
   return (
     <div className={cn(
       'flex flex-col rounded-xl border p-5',
-      accent ? 'border-[#2563EB] bg-[#EFF6FF]' : 'border-[#E2E8F0] bg-white',
+      accent ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]' : 'border-[var(--color-border-primary)] bg-white',
     )}>
-      <span className={cn('font-tabular text-3xl font-bold leading-none', accent ? 'text-[#2563EB]' : 'text-[#0F172A]')}>
+      <span className={cn('font-tabular text-3xl font-bold leading-none', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
         {value}
       </span>
-      <span className={cn('mt-1.5 text-sm font-semibold', accent ? 'text-[#2563EB]' : 'text-[#0F172A]')}>
+      <span className={cn('mt-1.5 text-sm font-semibold', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
         {label}
       </span>
-      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[#3B82F6]' : 'text-[#94A3B8]')}>
+      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[var(--color-brand-dark)]' : 'text-[var(--color-text-tertiary)]')}>
         {sub}
       </span>
     </div>
@@ -105,20 +105,20 @@ export default function ServicosPage() {
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
+      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white px-6 py-5">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
+          {[0,1,2,3].map((i) => <div key={i} className="h-20 rounded-xl bg-[var(--color-surface-tertiary)]" />)}
         </div>
       </div>
       <div className="flex-1 space-y-3 p-6">
-        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[#F1F5F9]" />)}
+        {[0,1,2,3,4,5,6,7].map((i) => <div key={i} className="h-12 rounded-lg bg-[var(--color-surface-tertiary)]" />)}
       </div>
     </div>
   )
 
   if (error) return (
     <div className="flex h-full items-center justify-center">
-      <p className="text-[14px] text-[#DC2626]">{error}</p>
+      <p className="text-[14px] text-[var(--color-danger)]">{error}</p>
     </div>
   )
 
@@ -126,9 +126,9 @@ export default function ServicosPage() {
     <div className="flex h-full flex-col">
 
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white">
+      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white">
         <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
             Visão geral
           </p>
           <button
@@ -136,9 +136,9 @@ export default function ServicosPage() {
             onClick={() => setSmartOpen(true)}
             aria-label="Novo serviço"
             className={cn(
-              'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
-              'text-[12px] font-semibold text-white transition-colors hover:bg-[#1D4ED8]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
+              'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
+              'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
             )}
           >
             <Plus size={13} aria-hidden="true" />
@@ -180,13 +180,13 @@ export default function ServicosPage() {
       </div>
 
       {/* ── Search + filters ── */}
-      <div className="shrink-0 space-y-2.5 border-b border-[#E2E8F0] bg-white px-6 py-3">
+      <div className="shrink-0 space-y-2.5 border-b border-[var(--color-border-primary)] bg-white px-6 py-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="relative">
             <Search
               size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"
               aria-hidden="true"
             />
             <input
@@ -196,9 +196,9 @@ export default function ServicosPage() {
               placeholder="Buscar por nome ou categoria…"
               aria-label="Buscar serviço"
               className={cn(
-                'w-64 rounded-md border border-[#E2E8F0] bg-white py-1.5 pl-8 pr-8 text-[13px] text-[#0F172A]',
-                'placeholder:text-[#64748B]',
-                'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
+                'w-64 rounded-md border border-[var(--color-border-primary)] bg-white py-1.5 pl-8 pr-8 text-[13px] text-[var(--color-text-primary)]',
+                'placeholder:text-[var(--color-text-secondary)]',
+                'focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]',
               )}
             />
             {search && (
@@ -206,7 +206,7 @@ export default function ServicosPage() {
                 type="button"
                 onClick={() => setSearch('')}
                 aria-label="Limpar busca"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded text-[#94A3B8] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
               >
                 <X size={13} aria-hidden="true" />
               </button>
@@ -223,10 +223,10 @@ export default function ServicosPage() {
                 aria-pressed={categoryFilter === value}
                 className={cn(
                   'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
                   categoryFilter === value
-                    ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                    : 'border-[#E2E8F0] text-[#475569] hover:border-[#CBD5E1] hover:text-[#0F172A]',
+                    ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)] text-[var(--color-brand)]'
+                    : 'border-[var(--color-border-primary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
                 )}
               >
                 {label}
@@ -244,10 +244,10 @@ export default function ServicosPage() {
                 aria-pressed={statusFilter === value}
                 className={cn(
                   'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
                   statusFilter === value
-                    ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
-                    : 'border-[#E2E8F0] text-[#475569] hover:border-[#CBD5E1] hover:text-[#0F172A]',
+                    ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)] text-[var(--color-brand)]'
+                    : 'border-[var(--color-border-primary)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-secondary)] hover:text-[var(--color-text-primary)]',
                 )}
               >
                 {label}
@@ -257,13 +257,13 @@ export default function ServicosPage() {
 
           {isFiltered && (
             <div className="flex items-center gap-2">
-              <span className="text-[12px] text-[#94A3B8]">
+              <span className="text-[12px] text-[var(--color-text-tertiary)]">
                 {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
               </span>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="flex items-center gap-1 rounded text-[12px] text-[#94A3B8] underline-offset-2 hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="flex items-center gap-1 rounded text-[12px] text-[var(--color-text-tertiary)] underline-offset-2 hover:text-[var(--color-text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
               >
                 <X size={11} aria-hidden="true" />
                 Limpar
@@ -277,17 +277,17 @@ export default function ServicosPage() {
       <div className="flex-1 overflow-auto bg-white">
         {filtered.length === 0 && !isFiltered ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F1F5F9]">
-              <Scissors size={20} className="text-[#94A3B8]" aria-hidden="true" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-surface-tertiary)]">
+              <Scissors size={20} className="text-[var(--color-text-tertiary)]" aria-hidden="true" />
             </div>
             <div className="text-center">
-              <p className="text-[14px] font-medium text-[#475569]">Nenhum serviço cadastrado</p>
-              <p className="mt-1 text-[12px] text-[#94A3B8]">Cadastre seu primeiro serviço para começar.</p>
+              <p className="text-[14px] font-medium text-[var(--color-text-secondary)]">Nenhum serviço cadastrado</p>
+              <p className="mt-1 text-[12px] text-[var(--color-text-tertiary)]">Cadastre seu primeiro serviço para começar.</p>
             </div>
             <button
               type="button"
               onClick={() => setSmartOpen(true)}
-              className="mt-1 flex items-center gap-1.5 rounded-lg bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1"
+              className="mt-1 flex items-center gap-1.5 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1"
             >
               <Plus size={14} aria-hidden="true" />
               Novo Serviço

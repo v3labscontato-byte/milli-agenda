@@ -27,7 +27,7 @@ function ProgressDots({ step, total }: { step: number; total: number }) {
           key={i}
           className={cn(
             'h-2 rounded-full transition-all duration-150',
-            i + 1 === step ? 'w-6 bg-[#2563EB]' : i + 1 < step ? 'w-2 bg-[#2563EB]/40' : 'w-2 bg-[#E2E8F0]',
+            i + 1 === step ? 'w-6 bg-[var(--color-brand)]' : i + 1 < step ? 'w-2 bg-[var(--color-brand)]/40' : 'w-2 bg-[var(--color-border-primary)]',
           )}
         />
       ))}
@@ -120,13 +120,13 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Novo serviço">
-      <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-[var(--color-text-primary)]/40" onClick={onClose} aria-hidden="true" />
       <div className="relative z-10 flex w-full max-w-lg flex-col rounded-xl bg-white shadow-xl" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
 
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-surface-tertiary)] px-5 py-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#94A3B8]">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-text-tertiary)]">
               Etapa {step} de 4 — {STEP_LABELS[step]}
             </p>
             <ProgressDots step={step} total={4} />
@@ -135,7 +135,7 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -148,34 +148,37 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <p className="text-[15px] font-semibold text-[#0F172A]">Novo serviço — Informações básicas</p>
-                <p className="mt-0.5 text-[13px] text-[#64748B]">Como se chama o serviço e a qual categoria pertence?</p>
+                <p className="text-[15px] font-semibold text-[var(--color-text-primary)]">Novo serviço — Informações básicas</p>
+                <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">Como se chama o serviço e a qual categoria pertence?</p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Nome do serviço *</label>
+                <label htmlFor="sf-name" className="text-[12px] font-medium text-[var(--color-text-secondary)]">Nome do serviço *</label>
                 <input
+                  id="sf-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Corte Feminino"
                   autoFocus
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                  className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Categoria</label>
+                <label htmlFor="sf-category" className="text-[12px] font-medium text-[var(--color-text-secondary)]">Categoria</label>
                 <select
+                  id="sf-category"
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                  className="w-full appearance-none rounded-md border border-[var(--color-border-primary)] px-3 py-2 pr-8 text-[13px] text-[var(--color-text-primary)] bg-no-repeat bg-[right_0.5rem_center] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                  style={{ backgroundImage: SVG_ARROW }}
                 >
                   <option value="">Sem categoria</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 {categories.length === 0 && (
-                  <p className="text-[12px] text-[#94A3B8]">
+                  <p className="text-[12px] text-[var(--color-text-tertiary)]">
                     Nenhuma categoria cadastrada. Configure em{' '}
-                    <span className="text-[#2563EB]">Configurações → Categorias</span>.
+                    <span className="text-[var(--color-brand)]">Configurações → Categorias</span>.
                   </p>
                 )}
               </div>
@@ -186,16 +189,17 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
           {step === 2 && (
             <div className="space-y-5">
               <div>
-                <p className="text-[15px] font-semibold text-[#0F172A]">Duração e valor</p>
-                <p className="mt-0.5 text-[13px] text-[#64748B]">Quanto tempo dura e qual o valor cobrado?</p>
+                <p className="text-[15px] font-semibold text-[var(--color-text-primary)]">Duração e valor</p>
+                <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">Quanto tempo dura e qual o valor cobrado?</p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Duração</label>
-                <div className="flex items-center gap-2">
+                <label className="text-[12px] font-medium text-[var(--color-text-secondary)]">Duração</label>
+                <div className="flex items-center gap-2" role="group" aria-label="Duração do serviço">
                   <select
                     value={hours}
                     onChange={(e) => setHours(Number(e.target.value))}
-                    className="appearance-none rounded-md border border-[#E2E8F0] px-3 py-2 pr-8 text-[13px] text-[#0F172A] bg-no-repeat bg-[right_0.5rem_center] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    aria-label="Horas"
+                    className="appearance-none rounded-md border border-[var(--color-border-primary)] px-3 py-2 pr-8 text-[13px] text-[var(--color-text-primary)] bg-no-repeat bg-[right_0.5rem_center] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                     style={{ backgroundImage: SVG_ARROW }}
                   >
                     {HOURS.map((h) => <option key={h} value={h}>{h}h</option>)}
@@ -203,7 +207,8 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                   <select
                     value={minutes}
                     onChange={(e) => setMinutes(Number(e.target.value))}
-                    className="appearance-none rounded-md border border-[#E2E8F0] px-3 py-2 pr-8 text-[13px] text-[#0F172A] bg-no-repeat bg-[right_0.5rem_center] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    aria-label="Minutos"
+                    className="appearance-none rounded-md border border-[var(--color-border-primary)] px-3 py-2 pr-8 text-[13px] text-[var(--color-text-primary)] bg-no-repeat bg-[right_0.5rem_center] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                     style={{ backgroundImage: SVG_ARROW }}
                   >
                     {MINUTES.map((m) => <option key={m} value={m}>{m} min</option>)}
@@ -211,10 +216,11 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Preço *</label>
+                <label htmlFor="sf-price" className="text-[12px] font-medium text-[var(--color-text-secondary)]">Preço *</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-[#64748B]">R$</span>
+                  <span className="text-[13px] text-[var(--color-text-secondary)]">R$</span>
                   <input
+                    id="sf-price"
                     type="number"
                     min="0"
                     step="0.01"
@@ -222,18 +228,18 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0,00"
                     autoFocus
-                    className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    className="w-full rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                   />
                 </div>
               </div>
               {durationMin > 0 && priceNum > 0 && (
-                <div className="rounded-lg bg-[#F8FAFC] px-4 py-3 text-[13px] text-[#475569]">
+                <div className="rounded-lg bg-[var(--color-surface-secondary)] px-4 py-3 text-[13px] text-[var(--color-text-secondary)]">
                   Este serviço terá duração de{' '}
-                  <strong className="text-[#0F172A]">
+                  <strong className="text-[var(--color-text-primary)]">
                     {hours > 0 ? `${hours}h ` : ''}{minutes > 0 ? `${minutes}min` : hours === 0 ? '0min' : ''}
                   </strong>{' '}
                   e custará{' '}
-                  <strong className="text-[#0F172A]">
+                  <strong className="text-[var(--color-text-primary)]">
                     R$ {priceNum.toFixed(2).replace('.', ',')}
                   </strong>
                 </div>
@@ -245,18 +251,18 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
           {step === 3 && (
             <div className="space-y-4">
               <div>
-                <p className="text-[15px] font-semibold text-[#0F172A]">Quem pode realizar este serviço?</p>
-                <p className="mt-0.5 text-[13px] text-[#64748B]">Selecione os profissionais habilitados (opcional)</p>
+                <p className="text-[15px] font-semibold text-[var(--color-text-primary)]">Quem pode realizar este serviço?</p>
+                <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">Selecione os profissionais habilitados (opcional)</p>
               </div>
               {professionals.length === 0 ? (
-                <p className="text-[13px] text-[#94A3B8]">Nenhum profissional cadastrado ainda. Você pode pular e adicionar depois.</p>
+                <p className="text-[13px] text-[var(--color-text-tertiary)]">Nenhum profissional cadastrado ainda. Você pode pular e adicionar depois.</p>
               ) : (
                 <div className="space-y-2">
                   {professionals.map((p) => {
                     const initials = p.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
                     const checked = selectedProfs.has(p.id)
                     return (
-                      <label key={p.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#E2E8F0] px-3 py-2.5 transition-colors hover:bg-[#F8FAFC]">
+                      <label key={p.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-secondary)]">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -267,12 +273,12 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                               return n
                             })
                           }}
-                          className="accent-[#2563EB]"
+                          className="accent-[var(--color-brand)]"
                         />
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EFF6FF] text-[11px] font-bold text-[#2563EB]">{initials}</span>
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-brand-light)] text-[11px] font-bold text-[var(--color-brand)]">{initials}</span>
                         <div>
-                          <p className="text-[13px] font-medium text-[#0F172A]">{p.name}</p>
-                          {p.specialty && <p className="text-[11px] text-[#94A3B8]">{p.specialty}</p>}
+                          <p className="text-[13px] font-medium text-[var(--color-text-primary)]">{p.name}</p>
+                          {p.specialty && <p className="text-[11px] text-[var(--color-text-tertiary)]">{p.specialty}</p>}
                         </div>
                       </label>
                     )
@@ -286,10 +292,10 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
           {step === 4 && (
             <div className="space-y-5">
               <div>
-                <p className="text-[15px] font-semibold text-[#0F172A]">Como este serviço será exibido?</p>
+                <p className="text-[15px] font-semibold text-[var(--color-text-primary)]">Como este serviço será exibido?</p>
               </div>
-              <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[#E2E8F0] px-4 py-3">
-                <span className="text-[13px] font-medium text-[#0F172A]">Ativo</span>
+              <label className="flex cursor-pointer items-center justify-between rounded-lg border border-[var(--color-border-primary)] px-4 py-3">
+                <span className="text-[13px] font-medium text-[var(--color-text-primary)]">Ativo</span>
                 <button
                   type="button"
                   role="switch"
@@ -297,7 +303,7 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                   onClick={() => setActive((v) => !v)}
                   className={cn(
                     'relative h-5 w-9 rounded-full transition-colors duration-150',
-                    active ? 'bg-[#2563EB]' : 'bg-[#CBD5E1]',
+                    active ? 'bg-[var(--color-brand)]' : 'bg-[var(--color-border-secondary)]',
                   )}
                 >
                   <span className={cn(
@@ -306,29 +312,29 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                   )} />
                 </button>
               </label>
-              <div className="rounded-xl border border-[#E2E8F0] p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Resumo</p>
-                <p className="mt-2 text-[14px] font-semibold text-[#0F172A]">{name || '—'}</p>
-                <p className="mt-0.5 text-[13px] text-[#64748B]">
+              <div className="rounded-xl border border-[var(--color-border-primary)] p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-tertiary)]">Resumo</p>
+                <p className="mt-2 text-[14px] font-semibold text-[var(--color-text-primary)]">{name || '—'}</p>
+                <p className="mt-0.5 text-[13px] text-[var(--color-text-secondary)]">
                   {hours > 0 ? `${hours}h ` : ''}{minutes > 0 ? `${minutes}min` : ''} · R$ {priceNum.toFixed(2).replace('.', ',')}
                 </p>
                 {selectedProfs.size > 0 && (
-                  <p className="mt-0.5 text-[12px] text-[#94A3B8]">{selectedProfs.size} profissional(is) habilitado(s)</p>
+                  <p className="mt-0.5 text-[12px] text-[var(--color-text-tertiary)]">{selectedProfs.size} profissional(is) habilitado(s)</p>
                 )}
-                <p className="mt-0.5 text-[12px] text-[#94A3B8]">Status: {active ? 'Ativo' : 'Inativo'}</p>
+                <p className="mt-0.5 text-[12px] text-[var(--color-text-tertiary)]">Status: {active ? 'Ativo' : 'Inativo'}</p>
               </div>
-              {error && <p className="text-[12px] text-[#DC2626]">{error}</p>}
+              {error && <p className="text-[12px] text-[var(--color-danger)]">{error}</p>}
             </div>
           )}
 
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-between border-t border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-t border-[var(--color-surface-tertiary)] px-5 py-4">
           <button
             type="button"
             onClick={() => step > 1 ? setStep((s) => (s - 1) as Step) : onClose()}
-            className="rounded text-[13px] text-[#64748B] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="rounded text-[13px] text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]"
           >
             {step === 1 ? 'Cancelar' : '← Voltar'}
           </button>
@@ -337,7 +343,7 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
               type="button"
               onClick={() => setStep((s) => (s + 1) as Step)}
               disabled={!canAdvance()}
-              className="flex items-center gap-1.5 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              className="flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]"
             >
               Próximo <ChevronRight size={14} aria-hidden="true" />
             </button>
@@ -346,7 +352,7 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-1.5 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              className="flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]"
             >
               {saving ? 'Criando…' : 'Criar serviço'}
               {!saving && <Check size={14} aria-hidden="true" />}

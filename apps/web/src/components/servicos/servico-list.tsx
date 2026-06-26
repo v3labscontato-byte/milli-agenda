@@ -11,15 +11,15 @@ type SortKey = 'name' | 'price' | 'bookingsThisMonth' | 'revenueThisMonth'
 type SortDir = 'asc' | 'desc'
 
 function SortIcon({ col, active, dir }: { col: SortKey; active: SortKey; dir: SortDir }) {
-  if (col !== active) return <ChevronsUpDown size={12} className="text-[#CBD5E1]" aria-hidden="true" />
+  if (col !== active) return <ChevronsUpDown size={12} className="text-[var(--color-text-disabled)]" aria-hidden="true" />
   return dir === 'asc'
-    ? <ChevronUp size={12} className="text-[#2563EB]" aria-hidden="true" />
-    : <ChevronDown size={12} className="text-[#2563EB]" aria-hidden="true" />
+    ? <ChevronUp size={12} className="text-[var(--color-brand)]" aria-hidden="true" />
+    : <ChevronDown size={12} className="text-[var(--color-brand)]" aria-hidden="true" />
 }
 
-const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8] text-left'
+const TH = 'px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)] text-left'
 const TH_R = cn(TH, 'text-right')
-const TH_S = cn(TH, 'cursor-pointer select-none hover:text-[#475569] transition-colors')
+const TH_S = cn(TH, 'cursor-pointer select-none hover:text-[var(--color-text-secondary)] transition-colors')
 
 interface Props {
   servicos: Servico[]
@@ -95,10 +95,10 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
   if (sorted.length === 0) {
     return (
       <div className="flex h-48 flex-col items-center justify-center gap-2">
-        <p className="text-[14px] font-medium text-[#475569]">
+        <p className="text-[14px] font-medium text-[var(--color-text-secondary)]">
           {isFiltered ? 'Nenhum serviço encontrado' : 'Nenhum serviço cadastrado'}
         </p>
-        {isFiltered && <p className="text-[12px] text-[#94A3B8]">Tente ajustar os filtros</p>}
+        {isFiltered && <p className="text-[12px] text-[var(--color-text-tertiary)]">Tente ajustar os filtros</p>}
       </div>
     )
   }
@@ -108,7 +108,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] border-collapse text-[13px]">
           <thead>
-            <tr className="border-b border-[#E2E8F0]">
+            <tr className="border-b border-[var(--color-border-primary)]">
               <th scope="col" className={cn(TH_S, 'min-w-[180px]')} onClick={() => handleSort('name')}
                 aria-sort={sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
                 <span className="flex items-center gap-1">Serviço <SortIcon col="name" active={sortKey} dir={sortDir} /></span>
@@ -132,9 +132,9 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-[#F1F5F9]">
+          <tbody className="divide-y divide-[var(--color-surface-tertiary)]">
             {sorted.map((s) => (
-              <tr key={s.id} className="group transition-colors hover:bg-[#F8FAFC]">
+              <tr key={s.id} className="group transition-colors hover:bg-[var(--color-surface-secondary)]">
 
                 {/* Serviço — foto + nome editável */}
                 <td className="px-4 py-3">
@@ -148,7 +148,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                         </span>
                       </div>
                     ) : (
-                      <div className="h-10 w-10 shrink-0 rounded-lg border border-dashed border-[#E2E8F0]" aria-hidden="true" />
+                      <div className="h-10 w-10 shrink-0 rounded-lg border border-dashed border-[var(--color-border-primary)]" aria-hidden="true" />
                     )}
                     {editingName === s.id ? (
                       <input
@@ -160,7 +160,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                           if (e.key === 'Enter') void handleSaveName(s.id)
                           if (e.key === 'Escape') setEditingName(null)
                         }}
-                        className="w-36 rounded border border-[#2563EB] px-2 py-0.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                        className="w-36 rounded border border-[var(--color-brand)] px-2 py-0.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
                       />
                     ) : (
                       <span
@@ -169,7 +169,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                         title="Clique para editar o nome"
                         onClick={() => { setEditingName(s.id); setEditNameVal(s.name) }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { setEditingName(s.id); setEditNameVal(s.name) } }}
-                        className="cursor-pointer font-medium text-[#0F172A] transition-colors hover:text-[#2563EB]"
+                        className="cursor-pointer font-medium text-[var(--color-text-primary)] transition-colors hover:text-[var(--color-brand)]"
                       >
                         {s.name}
                       </span>
@@ -189,13 +189,13 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                       <input type="number" min="5" step="5" value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') void saveEdit(s.id, 'duration'); if (e.key === 'Escape') cancelEdit() }}
-                        autoFocus className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] focus:outline-none" />
+                        autoFocus className="w-20 rounded-md border border-[var(--color-brand)] px-2 py-1 text-[13px] focus:outline-none" />
                       <button type="button" onClick={() => void saveEdit(s.id, 'duration')} disabled={savingCell === s.id + 'duration'}
-                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                         <Check size={14} aria-hidden="true" />
                       </button>
                       <button type="button" onClick={cancelEdit}
-                        className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                         <X size={14} aria-hidden="true" />
                       </button>
                     </span>
@@ -204,7 +204,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                       <DurationChip minutes={s.duration} />
                       {onUpdate && (
                         <button type="button" onClick={() => startEdit(s.id, 'duration', s.duration)}
-                          className="rounded text-[#94A3B8] opacity-0 transition-colors group-hover:opacity-100 hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                          className="rounded text-[var(--color-text-tertiary)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                           <Pencil size={13} aria-hidden="true" />
                         </button>
                       )}
@@ -220,22 +220,22 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                       <input type="number" min="0" step="0.01" value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') void saveEdit(s.id, 'price'); if (e.key === 'Escape') cancelEdit() }}
-                        autoFocus className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] text-right focus:outline-none" />
+                        autoFocus className="w-20 rounded-md border border-[var(--color-brand)] px-2 py-1 text-[13px] text-right focus:outline-none" />
                       <button type="button" onClick={() => void saveEdit(s.id, 'price')} disabled={savingCell === s.id + 'price'}
-                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                         <Check size={14} aria-hidden="true" />
                       </button>
                       <button type="button" onClick={cancelEdit}
-                        className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                         <X size={14} aria-hidden="true" />
                       </button>
                     </span>
                   ) : (
                     <span className="flex items-center justify-end gap-1.5">
-                      <span className="font-tabular font-semibold text-[#0F172A]">{formatBRL(s.price)}</span>
+                      <span className="font-tabular font-semibold text-[var(--color-text-primary)]">{formatBRL(s.price)}</span>
                       {onUpdate && (
                         <button type="button" onClick={() => startEdit(s.id, 'price', s.price)}
-                          className="rounded text-[#94A3B8] opacity-0 transition-colors group-hover:opacity-100 hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                          className="rounded text-[var(--color-text-tertiary)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                           <Pencil size={13} aria-hidden="true" />
                         </button>
                       )}
@@ -244,13 +244,13 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                 </td>
 
                 {/* Agendamentos mês */}
-                <td className="px-4 py-3 text-right font-tabular text-[#0F172A]">
-                  {s.bookingsThisMonth > 0 ? s.bookingsThisMonth : <span className="text-[#CBD5E1]">—</span>}
+                <td className="px-4 py-3 text-right font-tabular text-[var(--color-text-primary)]">
+                  {s.bookingsThisMonth > 0 ? s.bookingsThisMonth : <span className="text-[var(--color-text-disabled)]">—</span>}
                 </td>
 
                 {/* Faturamento mês */}
-                <td className="px-4 py-3 text-right font-tabular font-semibold text-[#0F172A]">
-                  {s.revenueThisMonth > 0 ? formatBRL(s.revenueThisMonth) : <span className="font-normal text-[#CBD5E1]">—</span>}
+                <td className="px-4 py-3 text-right font-tabular font-semibold text-[var(--color-text-primary)]">
+                  {s.revenueThisMonth > 0 ? formatBRL(s.revenueThisMonth) : <span className="font-normal text-[var(--color-text-disabled)]">—</span>}
                 </td>
 
                 {/* Status — clicável */}
@@ -264,8 +264,8 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                       'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors',
                       onToggleStatus ? 'cursor-pointer' : 'cursor-default',
                       s.status === 'active'
-                        ? 'bg-[#F0FDF4] text-[#166534] hover:bg-[#DCFCE7]'
-                        : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]',
+                        ? 'bg-[var(--color-success-light)] text-[var(--color-success)] hover:bg-[#DCFCE7]'
+                        : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border-primary)]',
                     )}
                   >
                     {s.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -276,13 +276,13 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-0.5">
                     <button type="button" onClick={() => onView(s)} aria-label={`Ver detalhes de ${s.name}`}
-                      className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] transition-colors hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                      className="flex h-10 w-10 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                       <Eye size={15} aria-hidden="true" />
                     </button>
                     {onDelete && (
                       <button type="button" onClick={() => setDeleteModal({ id: s.id, name: s.name })}
                         aria-label={`Excluir ${s.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] transition-colors hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        className="flex h-10 w-10 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-danger)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                         <Trash2 size={14} aria-hidden="true" />
                       </button>
                     )}
@@ -299,17 +299,17 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
         <div role="dialog" aria-modal="true" aria-labelledby="del-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl">
-            <h3 id="del-title" className="text-[15px] font-semibold text-[#0F172A]">Excluir serviço</h3>
-            <p className="mt-2 text-[13px] text-[#475569]">
+            <h3 id="del-title" className="text-[15px] font-semibold text-[var(--color-text-primary)]">Excluir serviço</h3>
+            <p className="mt-2 text-[13px] text-[var(--color-text-secondary)]">
               Tem certeza que deseja excluir <strong>{deleteModal.name}</strong>? Esta ação não pode ser desfeita.
             </p>
             <div className="mt-5 flex justify-end gap-2.5">
-              <button type="button" onClick={() => setDeleteModal(null)}
-                className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-[13px] text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+              <button type="button" autoFocus onClick={() => setDeleteModal(null)}
+                className="rounded-lg border border-[var(--color-border-primary)] px-4 py-2 text-[13px] text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                 Cancelar
               </button>
               <button type="button" onClick={() => void handleDelete()}
-                className="rounded-lg bg-[#DC2626] px-4 py-2 text-[13px] text-white transition-colors hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                className="rounded-lg bg-[var(--color-danger)] px-4 py-2 text-[13px] text-white transition-colors hover:bg-[var(--color-danger-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                 Excluir
               </button>
             </div>

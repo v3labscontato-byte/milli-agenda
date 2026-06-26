@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Clock, User, Scissors, CreditCard, CheckSquare, UserCheck, XCircle, CalendarClock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { STATUS_STYLES, CALENDAR_PROFESSIONALS, type CalendarAppointment } from '@/lib/calendar-utils'
+import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
@@ -153,7 +153,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   if (!appointment) return null
 
   const style = STATUS_STYLES[appointment.status]
-  const prof = CALENDAR_PROFESSIONALS.find((p) => p.id === appointment.professionalId)
+  const prof = profissionais.find((p) => p.id === appointment.professionalId)
   const actions = ACTIONS[appointment.status] ?? []
   const servicoSelecionado = servicos.find((s) => s.id === selectedServId)
 
@@ -256,7 +256,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             {prof && (
               <div className="flex items-center gap-2.5 text-[13px] text-[#475569]">
                 <User size={14} className="shrink-0 text-[#94A3B8]" aria-hidden="true" />
-                <span>{prof.name} · <span className="text-[#94A3B8]">{prof.role}</span></span>
+                <span>{prof.name}{prof.specialty ? <> · <span className="text-[#94A3B8]">{prof.specialty}</span></> : null}</span>
               </div>
             )}
             <div className="flex items-center gap-2.5 text-[13px] text-[#475569]">

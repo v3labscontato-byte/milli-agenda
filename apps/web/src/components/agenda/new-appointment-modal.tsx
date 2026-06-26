@@ -3,14 +3,6 @@
 import { useEffect, useState } from 'react'
 import { X, Plus, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { CALENDAR_PROFESSIONALS, type CalendarProfessional } from '@/lib/calendar-utils'
-
-const SERVICES_BY_PROF: Record<string, string[]> = {
-  lisa:  ['Corte', 'Escova', 'Coloração', 'Hidratação', 'Alisamento'],
-  joao:  ['Corte', 'Barba', 'Corte + Barba', 'Nevou', 'Pigmentação'],
-  ana:   ['Manicure', 'Pedicure', 'Manicure + Pedicure', 'Gel', 'Fibra'],
-  lena:  ['Coloração', 'Hidratação', 'Escova', 'Mechas', 'Ombré'],
-}
 
 const TIME_OPTIONS: string[] = Array.from({ length: 25 }, (_, i) => {
   const h = Math.floor(i / 2) + 8
@@ -28,6 +20,9 @@ const INPUT_HIGHLIGHT = cn(
   'w-full rounded-md border-2 border-[#2563EB] bg-[#EFF6FF] px-3 py-2 text-[13px] text-[#0F172A]',
   'focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
+
+interface ProfItem { id: string; name: string; specialty?: string }
+interface ServItem { id: string; name: string }
 
 interface NewAppointmentModalProps {
   open: boolean
@@ -56,6 +51,9 @@ export default function NewAppointmentModal({
   const [time, setTime]       = useState<string>('')
   const [client, setClient]   = useState<string>('')
 
+  const [profissionais, setProfissionais] = useState<ProfItem[]>([])
+  const [servicos, setServicos]           = useState<ServItem[]>([])
+
   useEffect(() => {
     if (!open) return
     setProfId(initialProfessionalId ?? '')
@@ -72,10 +70,24 @@ export default function NewAppointmentModal({
     return () => document.removeEventListener('keydown', handler)
   }, [open, onClose])
 
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    const base = process.env.NEXT_PUBLIC_API_URL
+    Promise.all([
+      fetch(`${base}/api/v1/professionals`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(`${base}/api/v1/services`,      { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+    ])
+      .then(([profs, svcs]) => {
+        setProfissionais(profs.data ?? [])
+        setServicos(svcs.data ?? [])
+      })
+      .catch(() => {})
+  }, [])
+
   if (!open) return null
 
-  const services = profId ? (SERVICES_BY_PROF[profId] ?? []) : []
-  const selectedProf: CalendarProfessional | undefined = CALENDAR_PROFESSIONALS.find((p) => p.id === profId)
+  const selectedProf = profissionais.find((p) => p.id === profId)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -136,8 +148,8 @@ export default function NewAppointmentModal({
               className={INPUT}
             >
               <option value="" disabled>Selecionar profissional…</option>
-              {CALENDAR_PROFESSIONALS.map((p) => (
-                <option key={p.id} value={p.id}>{p.name} — {p.role}</option>
+              {profissionais.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}{p.specialty ? ` — ${p.specialty}` : ''}</option>
               ))}
             </select>
           </div>
@@ -156,7 +168,7 @@ export default function NewAppointmentModal({
               <option value="" disabled>
                 {profId ? 'Selecionar serviço…' : 'Selecione o profissional primeiro'}
               </option>
-              {services.map((s) => <option key={s} value={s}>{s}</option>)}
+              {servicos.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
 
@@ -214,16 +226,11 @@ export default function NewAppointmentModal({
           {/* Professional preview */}
           {selectedProf && (
             <div className="flex items-center gap-2.5 rounded-lg bg-[#F8FAFC] px-3 py-2.5">
-              <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-                style={{ backgroundColor: selectedProf.color }}
-                aria-hidden="true"
-              >
-                {selectedProf.initials}
-              </span>
               <div className="min-w-0">
                 <p className="text-[12px] font-medium text-[#0F172A]">{selectedProf.name}</p>
-                <p className="text-[11px] text-[#475569]">{selectedProf.role}</p>
+                {selectedProf.specialty && (
+                  <p className="text-[11px] text-[#475569]">{selectedProf.specialty}</p>
+                )}
               </div>
             </div>
           )}

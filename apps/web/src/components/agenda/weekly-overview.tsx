@@ -4,21 +4,7 @@ import { useState, useMemo, type MouseEvent } from 'react'
 import { addDays, format, parseISO, isToday as dfIsToday, getDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-import { CALENDAR_PROFESSIONALS, type CalendarAppointment, type CalendarProfessional } from '@/lib/calendar-utils'
-import { FEATURES } from '@/lib/features'
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const WORK_DAYS: Record<string, ReadonlySet<number>> = {
-  lisa: new Set([1, 2, 3, 4, 5]),
-  joao: new Set([1, 2, 3, 4, 5, 6]),
-  ana:  new Set([2, 3, 4, 5, 6]),
-  lena: new Set([1, 2, 3, 4, 5]),
-}
-
-const CAPACITY: Record<string, number> = {
-  lisa: 10, joao: 12, ana: 10, lena: 8,
-}
+import { type CalendarAppointment, type CalendarProfessional } from '@/lib/calendar-utils'
 
 const TOOLTIP_HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
 
@@ -30,22 +16,6 @@ interface DayAvailability {
   state: DayState
   booked: number
   total: number
-}
-
-function getMockAvailability(profId: string, date: Date): DayAvailability {
-  const dow = getDay(date)
-  const total = CAPACITY[profId] ?? 10
-
-  if (!WORK_DAYS[profId]?.has(dow)) {
-    return { state: 'folga', booked: 0, total }
-  }
-
-  const seed = ((date.getDate() * 7 + dow) * ((profId.charCodeAt(0) % 5) + 1)) % 10
-
-  if (seed < 3) return { state: 'esgotado', booked: total, total }
-
-  const booked = Math.min(Math.max(1, Math.round(total * (0.2 + seed * 0.08))), total - 1)
-  return { state: 'disponivel', booked, total }
 }
 
 function getRealAvailability(profId: string, date: Date, appointments: CalendarAppointment[]): DayAvailability {
@@ -241,7 +211,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
   const [selectedProfs, setSelectedProfs] = useState<Set<string>>(new Set())
   const [tooltip, setTooltip]             = useState<TooltipState | null>(null)
 
-  const allProfs = FEATURES.realAgenda ? professionals : CALENDAR_PROFESSIONALS
+  const allProfs = professionals
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -267,7 +237,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
       ? allProfs
       : allProfs.filter((p) => selectedProfs.has(p.id))
 
-  if (FEATURES.realAgenda && professionals.length === 0) {
+  if (professionals.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <p className="text-[14px] font-medium text-[#0F172A]">Nenhum profissional cadastrado.</p>
@@ -392,9 +362,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
 
                 {weekDays.map((day) => {
                   const dateStr = format(day, 'yyyy-MM-dd')
-                  const avail = FEATURES.realAgenda
-                    ? getRealAvailability(prof.id, day, appointments)
-                    : getMockAvailability(prof.id, day)
+                  const avail = getRealAvailability(prof.id, day, appointments)
                   const dayAppts = appointments.filter(
                     (a) => a.professionalId === prof.id && a.date === dateStr,
                   )

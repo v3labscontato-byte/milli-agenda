@@ -189,8 +189,9 @@ model Professional {
   workEnd       String?  @default("18:00")
   cpf           String?
   birthDate     String?
-  vinculo       String?
-  createdAt     DateTime @default(now())
+  vinculo         String?
+  enabledServices String[]  @default([])
+  createdAt       DateTime  @default(now())
   updatedAt     DateTime @updatedAt
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)

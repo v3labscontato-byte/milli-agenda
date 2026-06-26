@@ -4,8 +4,8 @@ import { memo, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Pencil, Check, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Servico } from '@/lib/servicos-mock'
-import { formatBRL, formatDuration } from '@/lib/servicos-mock'
-import { CategoryBadge, ServicoStatusBadge, DurationChip } from './servico-card'
+import { formatBRL } from '@/lib/servicos-mock'
+import { CategoryBadge, DurationChip } from './servico-card'
 
 type SortKey = 'name' | 'price' | 'bookingsThisMonth' | 'revenueThisMonth'
 type SortDir = 'asc' | 'desc'
@@ -25,39 +25,51 @@ interface Props {
   servicos: Servico[]
   isFiltered?: boolean
   onView: (s: Servico) => void
-  onUpdate?: (id: string, data: { durationMin?: number; price?: number }) => Promise<void>
+  onUpdate?: (id: string, data: { name?: string; durationMin?: number; price?: number }) => Promise<void>
+  onToggleStatus?: (id: string, active: boolean) => Promise<void>
   onDelete?: (id: string) => Promise<void>
 }
 
-function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onDelete }: Props) {
+function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleStatus, onDelete }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   type EditingCell = { id: string; field: 'duration' | 'price' } | null
   const [editingCell, setEditingCell] = useState<EditingCell>(null)
-  const [editValue, setEditValue] = useState('')
-  const [savingCell, setSavingCell] = useState<string | null>(null)
+  const [editValue, setEditValue]     = useState('')
+  const [savingCell, setSavingCell]   = useState<string | null>(null)
+  const [editingName, setEditingName] = useState<string | null>(null)
+  const [editNameVal, setEditNameVal] = useState('')
+  const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null)
 
-  function startEdit(id: string, field: 'duration' | 'price', currentValue: number) {
+  function startEdit(id: string, field: 'duration' | 'price', current: number) {
     setEditingCell({ id, field })
-    setEditValue(field === 'price' ? currentValue.toFixed(2) : String(currentValue))
+    setEditValue(field === 'price' ? current.toFixed(2) : String(current))
   }
 
   async function saveEdit(id: string, field: 'duration' | 'price') {
     if (!onUpdate) { setEditingCell(null); return }
     setSavingCell(id + field)
     try {
-      if (field === 'duration') {
-        await onUpdate(id, { durationMin: Number(editValue) })
-      } else {
-        await onUpdate(id, { price: parseFloat(editValue) })
-      }
+      if (field === 'duration') await onUpdate(id, { durationMin: Number(editValue) })
+      else await onUpdate(id, { price: parseFloat(editValue) })
       setEditingCell(null)
-    } catch {
-      // user can try again
-    } finally {
+    } catch { /* user can retry */ } finally {
       setSavingCell(null)
     }
+  }
+
+  async function handleSaveName(id: string) {
+    const trimmed = editNameVal.trim()
+    setEditingName(null)
+    if (!onUpdate || !trimmed) return
+    try { await onUpdate(id, { name: trimmed }) } catch { /* ignore */ }
+  }
+
+  async function handleDelete() {
+    if (!deleteModal || !onDelete) return
+    try { await onDelete(deleteModal.id) } catch { /* ignore */ }
+    setDeleteModal(null)
   }
 
   function cancelEdit() { setEditingCell(null); setEditValue('') }
@@ -71,10 +83,10 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onDelete 
     const list = [...servicos]
     list.sort((a, b) => {
       let diff = 0
-      if (sortKey === 'name')               diff = a.name.localeCompare(b.name, 'pt-BR')
-      if (sortKey === 'price')              diff = a.price - b.price
-      if (sortKey === 'bookingsThisMonth')  diff = a.bookingsThisMonth - b.bookingsThisMonth
-      if (sortKey === 'revenueThisMonth')   diff = a.revenueThisMonth - b.revenueThisMonth
+      if (sortKey === 'name')              diff = a.name.localeCompare(b.name, 'pt-BR')
+      if (sortKey === 'price')             diff = a.price - b.price
+      if (sortKey === 'bookingsThisMonth') diff = a.bookingsThisMonth - b.bookingsThisMonth
+      if (sortKey === 'revenueThisMonth')  diff = a.revenueThisMonth - b.revenueThisMonth
       return sortDir === 'asc' ? diff : -diff
     })
     return list
@@ -92,241 +104,219 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onDelete 
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[700px] border-collapse text-[13px]">
-        <thead>
-          <tr className="border-b border-[#E2E8F0]">
-            <th
-              scope="col"
-              className={cn(TH_S, 'min-w-[180px]')}
-              onClick={() => handleSort('name')}
-              aria-sort={sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-            >
-              <span className="flex items-center gap-1">
-                Serviço <SortIcon col="name" active={sortKey} dir={sortDir} />
-              </span>
-            </th>
-            <th scope="col" className={TH}>Duração</th>
-            <th
-              scope="col"
-              className={cn(TH_S, TH_R)}
-              onClick={() => handleSort('price')}
-              aria-sort={sortKey === 'price' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-            >
-              <span className="flex items-center justify-end gap-1">
-                Preço <SortIcon col="price" active={sortKey} dir={sortDir} />
-              </span>
-            </th>
-            <th
-              scope="col"
-              className={cn(TH_S, TH_R)}
-              onClick={() => handleSort('bookingsThisMonth')}
-              aria-sort={sortKey === 'bookingsThisMonth' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-            >
-              <span className="flex items-center justify-end gap-1">
-                Agend./Mês <SortIcon col="bookingsThisMonth" active={sortKey} dir={sortDir} />
-              </span>
-            </th>
-            <th
-              scope="col"
-              className={cn(TH_S, TH_R)}
-              onClick={() => handleSort('revenueThisMonth')}
-              aria-sort={sortKey === 'revenueThisMonth' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-            >
-              <span className="flex items-center justify-end gap-1">
-                Fat./Mês <SortIcon col="revenueThisMonth" active={sortKey} dir={sortDir} />
-              </span>
-            </th>
-            <th scope="col" className={TH}>Status</th>
-            <th scope="col" className={cn(TH, 'w-16')}>DETALHES</th>
-          </tr>
-        </thead>
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[820px] border-collapse text-[13px]">
+          <thead>
+            <tr className="border-b border-[#E2E8F0]">
+              <th scope="col" className={cn(TH_S, 'min-w-[180px]')} onClick={() => handleSort('name')}
+                aria-sort={sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <span className="flex items-center gap-1">Serviço <SortIcon col="name" active={sortKey} dir={sortDir} /></span>
+              </th>
+              <th scope="col" className={TH}>Categoria</th>
+              <th scope="col" className={TH}>Duração</th>
+              <th scope="col" className={cn(TH_S, TH_R)} onClick={() => handleSort('price')}
+                aria-sort={sortKey === 'price' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <span className="flex items-center justify-end gap-1">Preço <SortIcon col="price" active={sortKey} dir={sortDir} /></span>
+              </th>
+              <th scope="col" className={cn(TH_S, TH_R)} onClick={() => handleSort('bookingsThisMonth')}
+                aria-sort={sortKey === 'bookingsThisMonth' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <span className="flex items-center justify-end gap-1">Agend./Mês <SortIcon col="bookingsThisMonth" active={sortKey} dir={sortDir} /></span>
+              </th>
+              <th scope="col" className={cn(TH_S, TH_R)} onClick={() => handleSort('revenueThisMonth')}
+                aria-sort={sortKey === 'revenueThisMonth' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                <span className="flex items-center justify-end gap-1">Fat./Mês <SortIcon col="revenueThisMonth" active={sortKey} dir={sortDir} /></span>
+              </th>
+              <th scope="col" className={TH}>Status</th>
+              <th scope="col" className={cn(TH, 'w-20')}>Ações</th>
+            </tr>
+          </thead>
 
-        <tbody className="divide-y divide-[#F1F5F9]">
-          {sorted.map((s) => (
-            <tr key={s.id} className="group transition-colors hover:bg-[#F8FAFC]">
+          <tbody className="divide-y divide-[#F1F5F9]">
+            {sorted.map((s) => (
+              <tr key={s.id} className="group transition-colors hover:bg-[#F8FAFC]">
 
-              {/* Serviço + categoria */}
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  {s.photos.length > 0 ? (
-                    <div className="relative shrink-0" title={`${s.photos.length} foto${s.photos.length !== 1 ? 's' : ''}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={s.photos[0]}
-                        alt=""
-                        aria-hidden="true"
-                        className="h-10 w-10 rounded-lg object-cover"
+                {/* Serviço — foto + nome editável */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    {s.photos.length > 0 ? (
+                      <div className="relative shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={s.photos[0]} alt="" aria-hidden="true" className="h-10 w-10 rounded-lg object-cover" />
+                        <span className="absolute -bottom-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2563EB] px-1 text-[9px] font-bold text-white">
+                          {s.photos.length}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 shrink-0 rounded-lg border border-dashed border-[#E2E8F0]" aria-hidden="true" />
+                    )}
+                    {editingName === s.id ? (
+                      <input
+                        autoFocus
+                        value={editNameVal}
+                        onChange={(e) => setEditNameVal(e.target.value)}
+                        onBlur={() => void handleSaveName(s.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') void handleSaveName(s.id)
+                          if (e.key === 'Escape') setEditingName(null)
+                        }}
+                        className="w-36 rounded border border-[#2563EB] px-2 py-0.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
                       />
-                      <span className="absolute -bottom-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2563EB] px-1 text-[9px] font-bold text-white">
-                        {s.photos.length}
+                    ) : (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Clique para editar o nome"
+                        onClick={() => { setEditingName(s.id); setEditNameVal(s.name) }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { setEditingName(s.id); setEditNameVal(s.name) } }}
+                        className="cursor-pointer font-medium text-[#0F172A] transition-colors hover:text-[#2563EB]"
+                      >
+                        {s.name}
                       </span>
-                    </div>
-                  ) : (
-                    <div className="h-10 w-10 shrink-0 rounded-lg border border-dashed border-[#E2E8F0]" aria-hidden="true" />
-                  )}
-                  <div>
-                    <p className="font-medium text-[#0F172A]">{s.name}</p>
-                    <div className="mt-1">
-                      <CategoryBadge category={s.category} />
-                    </div>
+                    )}
                   </div>
-                </div>
-              </td>
+                </td>
 
-              {/* Duração */}
-              <td className="px-4 py-3">
-                {editingCell?.id === s.id && editingCell.field === 'duration' ? (
-                  <span className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="5"
-                      step="5"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit(s.id, 'duration')
-                        if (e.key === 'Escape') cancelEdit()
-                      }}
-                      autoFocus
-                      className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => saveEdit(s.id, 'duration')}
-                      disabled={savingCell === s.id + 'duration'}
-                      className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                    >
-                      <Check size={14} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                    >
-                      <X size={14} aria-hidden="true" />
-                    </button>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5">
-                    <DurationChip minutes={s.duration} />
-                    {onUpdate && (
-                      <button
-                        type="button"
-                        onClick={() => startEdit(s.id, 'duration', s.duration)}
-                        className="text-[#94A3B8] opacity-0 group-hover:opacity-100 hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
-                      >
-                        <Pencil size={13} aria-hidden="true" />
+                {/* Categoria */}
+                <td className="px-4 py-3">
+                  <CategoryBadge category={s.category} />
+                </td>
+
+                {/* Duração */}
+                <td className="px-4 py-3">
+                  {editingCell?.id === s.id && editingCell.field === 'duration' ? (
+                    <span className="flex items-center gap-1">
+                      <input type="number" min="5" step="5" value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') void saveEdit(s.id, 'duration'); if (e.key === 'Escape') cancelEdit() }}
+                        autoFocus className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] focus:outline-none" />
+                      <button type="button" onClick={() => void saveEdit(s.id, 'duration')} disabled={savingCell === s.id + 'duration'}
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        <Check size={14} aria-hidden="true" />
                       </button>
-                    )}
-                  </span>
-                )}
-              </td>
-
-              {/* Preço */}
-              <td className="px-4 py-3 text-right">
-                {editingCell?.id === s.id && editingCell.field === 'price' ? (
-                  <span className="flex items-center justify-end gap-1">
-                    <span className="text-[12px] text-[#64748B]">R$</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit(s.id, 'price')
-                        if (e.key === 'Escape') cancelEdit()
-                      }}
-                      autoFocus
-                      className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] text-right focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => saveEdit(s.id, 'price')}
-                      disabled={savingCell === s.id + 'price'}
-                      className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                    >
-                      <Check size={14} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                    >
-                      <X size={14} aria-hidden="true" />
-                    </button>
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-end gap-1.5">
-                    <span className="font-tabular font-semibold text-[#0F172A]">{formatBRL(s.price)}</span>
-                    {onUpdate && (
-                      <button
-                        type="button"
-                        onClick={() => startEdit(s.id, 'price', s.price)}
-                        className="text-[#94A3B8] opacity-0 group-hover:opacity-100 hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
-                      >
-                        <Pencil size={13} aria-hidden="true" />
+                      <button type="button" onClick={cancelEdit}
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        <X size={14} aria-hidden="true" />
                       </button>
-                    )}
-                  </span>
-                )}
-              </td>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <DurationChip minutes={s.duration} />
+                      {onUpdate && (
+                        <button type="button" onClick={() => startEdit(s.id, 'duration', s.duration)}
+                          className="rounded text-[#94A3B8] opacity-0 transition-colors group-hover:opacity-100 hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                          <Pencil size={13} aria-hidden="true" />
+                        </button>
+                      )}
+                    </span>
+                  )}
+                </td>
 
-              {/* Agendamentos mês */}
-              <td className="px-4 py-3 text-right font-tabular text-[#0F172A]">
-                {s.bookingsThisMonth > 0
-                  ? s.bookingsThisMonth
-                  : <span className="text-[#CBD5E1]">—</span>
-                }
-              </td>
+                {/* Preço */}
+                <td className="px-4 py-3 text-right">
+                  {editingCell?.id === s.id && editingCell.field === 'price' ? (
+                    <span className="flex items-center justify-end gap-1">
+                      <span className="text-[12px] text-[#64748B]">R$</span>
+                      <input type="number" min="0" step="0.01" value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') void saveEdit(s.id, 'price'); if (e.key === 'Escape') cancelEdit() }}
+                        autoFocus className="w-20 rounded-md border border-[#2563EB] px-2 py-1 text-[13px] text-right focus:outline-none" />
+                      <button type="button" onClick={() => void saveEdit(s.id, 'price')} disabled={savingCell === s.id + 'price'}
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#059669] hover:bg-[#ECFDF5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        <Check size={14} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={cancelEdit}
+                        className="flex h-6 w-6 items-center justify-center rounded text-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        <X size={14} aria-hidden="true" />
+                      </button>
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-end gap-1.5">
+                      <span className="font-tabular font-semibold text-[#0F172A]">{formatBRL(s.price)}</span>
+                      {onUpdate && (
+                        <button type="button" onClick={() => startEdit(s.id, 'price', s.price)}
+                          className="rounded text-[#94A3B8] opacity-0 transition-colors group-hover:opacity-100 hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                          <Pencil size={13} aria-hidden="true" />
+                        </button>
+                      )}
+                    </span>
+                  )}
+                </td>
 
-              {/* Faturamento mês */}
-              <td className="px-4 py-3 text-right font-tabular font-semibold text-[#0F172A]">
-                {s.revenueThisMonth > 0
-                  ? formatBRL(s.revenueThisMonth)
-                  : <span className="font-normal text-[#CBD5E1]">—</span>
-                }
-              </td>
+                {/* Agendamentos mês */}
+                <td className="px-4 py-3 text-right font-tabular text-[#0F172A]">
+                  {s.bookingsThisMonth > 0 ? s.bookingsThisMonth : <span className="text-[#CBD5E1]">—</span>}
+                </td>
 
-              {/* Status */}
-              <td className="px-4 py-3">
-                <ServicoStatusBadge status={s.status} />
-              </td>
+                {/* Faturamento mês */}
+                <td className="px-4 py-3 text-right font-tabular font-semibold text-[#0F172A]">
+                  {s.revenueThisMonth > 0 ? formatBRL(s.revenueThisMonth) : <span className="font-normal text-[#CBD5E1]">—</span>}
+                </td>
 
-              {/* Detalhes */}
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-1">
+                {/* Status — clicável */}
+                <td className="px-4 py-3">
                   <button
                     type="button"
-                    onClick={() => onView(s)}
-                    aria-label={`Ver detalhes de ${s.name}`}
+                    onClick={() => void onToggleStatus?.(s.id, s.status !== 'active')}
+                    disabled={!onToggleStatus}
+                    aria-label={`Status ${s.status === 'active' ? 'Ativo' : 'Inativo'} — clique para alternar`}
                     className={cn(
-                      'flex items-center gap-1.5 rounded-md px-2 py-1.5',
-                      'text-[#94A3B8] transition-colors',
-                      'hover:text-[#2563EB]',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                      'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors',
+                      onToggleStatus ? 'cursor-pointer' : 'cursor-default',
+                      s.status === 'active'
+                        ? 'bg-[#F0FDF4] text-[#166534] hover:bg-[#DCFCE7]'
+                        : 'bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]',
                     )}
                   >
-                    <Eye size={15} aria-hidden="true" />
+                    {s.status === 'active' ? 'Ativo' : 'Inativo'}
                   </button>
-                  {onDelete && (
-                    <button
-                      type="button"
-                      onClick={() => { void onDelete(s.id) }}
-                      aria-label={`Excluir ${s.name}`}
-                      className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[#DC2626] opacity-0 group-hover:opacity-100 transition-colors hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-                    >
-                      <Trash2 size={15} aria-hidden="true" />
+                </td>
+
+                {/* Ações */}
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-0.5">
+                    <button type="button" onClick={() => onView(s)} aria-label={`Ver detalhes de ${s.name}`}
+                      className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] transition-colors hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                      <Eye size={15} aria-hidden="true" />
                     </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                    {onDelete && (
+                      <button type="button" onClick={() => setDeleteModal({ id: s.id, name: s.name })}
+                        aria-label={`Excluir ${s.name}`}
+                        className="flex h-8 w-8 items-center justify-center rounded text-[#94A3B8] transition-colors hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                        <Trash2 size={14} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Confirmation modal */}
+      {deleteModal && (
+        <div role="dialog" aria-modal="true" aria-labelledby="del-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl">
+            <h3 id="del-title" className="text-[15px] font-semibold text-[#0F172A]">Excluir serviço</h3>
+            <p className="mt-2 text-[13px] text-[#475569]">
+              Tem certeza que deseja excluir <strong>{deleteModal.name}</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="mt-5 flex justify-end gap-2.5">
+              <button type="button" onClick={() => setDeleteModal(null)}
+                className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-[13px] text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                Cancelar
+              </button>
+              <button type="button" onClick={() => void handleDelete()}
+                className="rounded-lg bg-[#DC2626] px-4 py-2 text-[13px] text-white transition-colors hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

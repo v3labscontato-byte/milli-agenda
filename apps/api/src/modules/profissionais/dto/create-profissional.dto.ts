@@ -49,4 +49,9 @@ export class CreateProfissionalDto {
   @IsOptional()
   @IsString()
   vinculo?: string | null
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  enabledServices?: string[]
 }

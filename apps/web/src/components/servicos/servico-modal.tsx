@@ -66,23 +66,6 @@ function TabDetalhes({ s }: { s: Servico }) {
         </div>
       </div>
 
-      {/* Professionals summary */}
-      <div>
-        <div className="mb-2.5 flex items-center gap-1.5">
-          <Users size={13} className="text-[#94A3B8]" aria-hidden="true" />
-          <p className="text-[12px] font-medium text-[#64748B]">
-            {s.professionals.length} profissional{s.professionals.length !== 1 ? 'is' : ''} habilitado{s.professionals.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {s.professionals.map((name) => (
-            <div key={name} className="flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white py-1 pl-1.5 pr-3">
-              <ProfissionalAvatar name={name} size={20} />
-              <span className="text-[12px] font-medium text-[#475569]">{name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
@@ -185,7 +168,8 @@ function TabProfissionais({ s }: { s: Servico }) {
     return (
       <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#E2E8F0]">
         <Users size={20} className="text-[#CBD5E1]" aria-hidden="true" />
-        <p className="text-[13px] text-[#94A3B8]">Nenhum profissional habilitado</p>
+        <p className="text-[13px] text-[#94A3B8]">Nenhum profissional habilitado para este serviço</p>
+        <p className="text-[11px] text-[#CBD5E1]">Configure em Profissionais → aba Serviços</p>
       </div>
     )
   }
@@ -286,7 +270,6 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
             <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[12px] text-[#94A3B8]">
               <DurationChip minutes={s.duration} />
               <span className="font-tabular font-semibold text-[#0F172A]">{formatBRL(s.price)}</span>
-              <span>{s.professionals.length} profissional{s.professionals.length !== 1 ? 'is' : ''}</span>
             </div>
           </div>
           <button

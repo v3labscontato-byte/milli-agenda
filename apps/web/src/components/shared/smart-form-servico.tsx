@@ -17,6 +17,7 @@ const STEP_LABELS: Record<Step, string> = {
 
 const HOURS = Array.from({ length: 9 }, (_, i) => i)
 const MINUTES = [0, 15, 30, 45]
+const SVG_ARROW = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
 
 function ProgressDots({ step, total }: { step: number; total: number }) {
   return (
@@ -194,14 +195,16 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                   <select
                     value={hours}
                     onChange={(e) => setHours(Number(e.target.value))}
-                    className="rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    className="appearance-none rounded-md border border-[#E2E8F0] px-3 py-2 pr-8 text-[13px] text-[#0F172A] bg-no-repeat bg-[right_0.5rem_center] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    style={{ backgroundImage: SVG_ARROW }}
                   >
                     {HOURS.map((h) => <option key={h} value={h}>{h}h</option>)}
                   </select>
                   <select
                     value={minutes}
                     onChange={(e) => setMinutes(Number(e.target.value))}
-                    className="rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    className="appearance-none rounded-md border border-[#E2E8F0] px-3 py-2 pr-8 text-[13px] text-[#0F172A] bg-no-repeat bg-[right_0.5rem_center] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    style={{ backgroundImage: SVG_ARROW }}
                   >
                     {MINUTES.map((m) => <option key={m} value={m}>{m} min</option>)}
                   </select>

@@ -93,5 +93,14 @@ export function useServicos() {
     await refetch()
   }, [refetch])
 
-  return { data, loading, error, refetch, create, update, remove }
+  const toggleStatus = useCallback(async (id: string, active: boolean) => {
+    setData(prev => prev.map(s => s.id === id ? { ...s, status: active ? 'active' : 'inactive' } : s))
+    try {
+      if (FEATURES.realServicos) await servicosApi.update(id, { active })
+    } catch {
+      setData(prev => prev.map(s => s.id === id ? { ...s, status: active ? 'inactive' : 'active' } : s))
+    }
+  }, [])
+
+  return { data, loading, error, refetch, create, update, remove, toggleStatus }
 }

@@ -33,6 +33,7 @@ function toFrontend(raw: Record<string, unknown>): Profissional {
     ratingCount: 0,
     monthlyData: [],
     upcoming: [],
+    enabledServices: Array.isArray(raw.enabledServices) ? raw.enabledServices as string[] : [],
   }
 }
 

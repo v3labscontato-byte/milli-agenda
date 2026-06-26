@@ -135,10 +135,14 @@ function DayCell({ avail, onClick, isPast, dayAppts }: DayCellProps) {
         <div className="flex h-full w-full flex-col items-start px-3 py-3">
           {dayAppts && dayAppts.length > 0 ? (
             <DayCellCards appts={dayAppts} />
-          ) : booked > 0 ? (
-            <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
           ) : (
-            <span className="text-[12px] text-[#CBD5E1]">—</span>
+            <>
+              <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
+              <span className="mt-0.5 flex items-center gap-1 text-[11px] text-[#94A3B8]">
+                {free} livres
+                <span className="h-1.5 w-1.5 rounded-full bg-[#94A3B8]" aria-hidden="true" />
+              </span>
+            </>
           )}
         </div>
       </td>

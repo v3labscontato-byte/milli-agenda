@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { startOfWeek, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { startOfWeek } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
   getAppointmentsForDate,
@@ -16,7 +15,7 @@ import { useAgenda } from '@/hooks/use-agenda'
 import { useProfissionais } from '@/hooks/use-profissionais'
 import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
-import CalendarGrid from '@/components/agenda/calendar-grid'
+import DayTimeline from '@/components/agenda/day-timeline'
 import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
 import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
@@ -242,23 +241,14 @@ export default function AgendaPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-auto">
-          {filtered.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center py-16 text-center text-slate-400">
-              <p className="font-medium text-slate-600">
-                Nenhum agendamento para {format(selectedDate, "d 'de' MMMM", { locale: ptBR })}
-                {filterProfId && ` · ${calendarProfessionals.find(p => p.id === filterProfId)?.name ?? ''}`}
-              </p>
-              <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
-            </div>
-          ) : (
-            <CalendarGrid
-              appointments={filtered}
-              selectedDate={selectedDate}
-              onAppointmentClick={setSelectedAppt}
-              onSlotClick={handleSlotClick}
-            />
-          )}
+        <div className="flex-1 overflow-hidden">
+          <DayTimeline
+            appointments={filtered}
+            professionals={calendarProfessionals}
+            date={selectedDate}
+            onAppointmentClick={setSelectedAppt}
+            onSlotClick={handleSlotClick}
+          />
         </div>
       )}
 

@@ -763,3 +763,8 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] fix(agenda): remover gate FEATURES.realAgenda � usar API real sempre
 **Status:** Concluido
 **Fix:** use-agenda.ts agora usa token check em vez de FEATURES.realAgenda; mock data removida; hook sempre busca da API real quando accessToken existe
+
+### [2026-06-26] AGENT_AGENDA — Remover CALENDAR_PROFESSIONALS mock
+**Status:** Concluido
+**Causa raiz:** CALENDAR_PROFESSIONALS mock hardcoded em 3 componentes (weekly-overview, appointment-modal, new-appointment-modal)
+**Fix:** professionals buscados da API em todos os componentes; removidos FEATURES gate, WORK_DAYS, CAPACITY, getMockAvailability

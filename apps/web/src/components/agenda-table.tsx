@@ -20,6 +20,40 @@ function Dash() {
   )
 }
 
+// ─── Payment status ────────────────────────────────────────────────────────────
+
+type PaymentSt = 'pago' | 'pendente' | 'atrasado'
+
+function getPaymentStatus(appt: Appointment): PaymentSt {
+  if (appt.status === 'COMPLETED') return 'pago'
+  if (appt.status === 'AWAITING_PAYMENT') return 'atrasado'
+  return 'pendente'
+}
+
+const PAYMENT_STYLES: Record<PaymentSt, { bg: string; text: string; border: string; label: string }> = {
+  pago:     { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Pago'     },
+  pendente: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente' },
+  atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Atrasado' },
+}
+
+function PaymentStatusCell({ appt }: { appt: Appointment }) {
+  if (appt.status === 'CANCELLED' || appt.status === 'NO_SHOW') {
+    return <td className="px-4 py-3"><span className="text-[#CBD5E1]" aria-hidden="true">—</span></td>
+  }
+  const ps = getPaymentStatus(appt)
+  const style = PAYMENT_STYLES[ps]
+  return (
+    <td className="px-4 py-3">
+      <span
+        className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium"
+        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+      >
+        {style.label}
+      </span>
+    </td>
+  )
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function TableSkeleton() {
@@ -215,72 +249,36 @@ function AgendaCell({ appt, onManage }: { appt: Appointment; onManage: () => voi
   )
 }
 
-function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {
-  const { status } = appt
+const COMANDA_STYLES: Record<PaymentSt, { bg: string; text: string; border: string; label: string; icon: typeof ClipboardList }> = {
+  pago:     { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Ver Comanda',   icon: ClipboardList },
+  pendente: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Abrir Comanda', icon: ClipboardList },
+  atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cobrar',        icon: CreditCard   },
+}
 
-  if (status === 'CANCELLED' || status === 'NO_SHOW') {
+function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {
+  if (appt.status === 'CANCELLED' || appt.status === 'NO_SHOW') {
     return <Dash />
   }
 
-  if (status === 'SCHEDULED' || status === 'CONFIRMED') {
-    return (
-      <td className="w-32 px-2 py-3 text-center">
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label={`Abrir comanda de ${appt.client}`}
-          className={cn(
-            'inline-flex items-center gap-1 rounded-md px-2.5 py-1.5',
-            'bg-[#2563EB] text-[11px] font-medium text-white transition-colors hover:bg-[#1D4ED8]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-          )}
-        >
-          <ClipboardList size={12} aria-hidden="true" />
-          Abrir Comanda
-        </button>
-      </td>
-    )
-  }
-
-  if (status === 'AWAITING_PAYMENT') {
-    return (
-      <td className="w-32 px-2 py-3 text-center">
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label={`Cobrar: ${appt.client}`}
-          className={cn(
-            'inline-flex items-center gap-1 rounded-md px-2.5 py-1.5',
-            'bg-[#F97316] text-[11px] font-medium text-white transition-colors hover:bg-[#EA580C]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-          )}
-        >
-          <CreditCard size={12} aria-hidden="true" />
-          Cobrar
-        </button>
-      </td>
-    )
-  }
-
-  const isAbrir = status === 'IN_SERVICE' || status === 'CHECKED_IN'
+  const ps = getPaymentStatus(appt)
+  const style = COMANDA_STYLES[ps]
+  const Icon = style.icon
 
   return (
     <td className="w-32 px-2 py-3 text-center">
       <button
         type="button"
-        onClick={isAbrir ? onOpen : undefined}
-        aria-label={`${isAbrir ? 'Abrir' : 'Ver'} comanda de ${appt.client}`}
+        onClick={onOpen}
+        aria-label={`${style.label}: ${appt.client}`}
         className={cn(
           'inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5',
           'text-[11px] font-medium transition-colors',
-          isAbrir
-            ? 'border-[#16A34A] bg-[#F0FDF4] text-[#16A34A] hover:bg-[#DCFCE7]'
-            : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
         )}
+        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
       >
-        <ClipboardList size={12} aria-hidden="true" />
-        {isAbrir ? 'Abrir Comanda' : 'Ver Comanda'}
+        <Icon size={12} aria-hidden="true" />
+        {style.label}
       </button>
     </td>
   )
@@ -359,6 +357,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                   <th scope="col" className={cn(TH, 'hidden lg:table-cell')}>Profissional</th>
                   <th scope="col" className={cn(TH, 'hidden text-right xl:table-cell')}>Valor</th>
                   <th scope="col" className={TH}>Status</th>
+                  <th scope="col" className={cn(TH, 'hidden xl:table-cell')}>Pagamento</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Agenda</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Comanda</th>
                 </tr>
@@ -367,7 +366,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center">
+                    <td colSpan={9} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
                         Nenhum atendimento encontrado para o período.
                       </p>
@@ -412,6 +411,8 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                       <td className="px-4 py-3">
                         <StatusBadge status={appt.status} />
                       </td>
+
+                      <PaymentStatusCell appt={appt} />
 
                       <AgendaCell  appt={appt} onManage={() => setManageAppt(appt)} />
                       <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />

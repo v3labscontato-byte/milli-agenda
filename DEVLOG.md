@@ -727,3 +727,14 @@ d48f169 â€” style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA â€” Tooltip semana + modal completo
 **Status:** Concluido
 **Fixes:** tooltip hover com agenda do dia, Finalizar abre PaymentModal, fluxo Reagendar inline com data+horario+PATCH API
+
+---
+## [2026-06-26] feat(agenda): coluna status pagamento + botão comanda colorido
+
+**Módulo:** Agenda — `apps/web/src/components/agenda-table.tsx`
+
+**O que foi feito:**
+- Adicionados helper `PaymentSt`, `getPaymentStatus()`, `PAYMENT_STYLES` e componente `PaymentStatusCell`
+- Nova coluna "Pagamento" no thead (oculta em < xl), com badge colorida: Pago (verde), Pendente (âmbar), Atrasado (vermelho)
+- `ComandaCell` refatorado: usa `COMANDA_STYLES` por status de pagamento — Ver Comanda (verde), Abrir Comanda (âmbar), Cobrar (vermelho)
+- colSpan atualizado 8?9 no estado vazio

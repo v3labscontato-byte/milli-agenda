@@ -620,3 +620,11 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx
 **O que foi feito:** Card do modal ganhou shadow customizada (0_20px_60px) para destacar do fundo. Backdrop escurecido de /40 para /50.
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-26] CLAUDE 2 — Fix: refetch após salvar no modal de profissional
+**Status:** Concluído
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx, apps/web/src/app/(profissionais)/profissionais/page.tsx
+**O que foi feito:** Adicionada prop onUpdate?: () => void no ProfissionalModal e em TabPerfil. Cada save (saveHorario, saveDados, saveEspec, saveComissao) chama onUpdate?.() após fechar o modo edição. page.tsx passa onUpdate={() => void refetch()} — refetch já existia em useProfissionais como fetchData.
+**tsc --noEmit:** 0 erros ✅

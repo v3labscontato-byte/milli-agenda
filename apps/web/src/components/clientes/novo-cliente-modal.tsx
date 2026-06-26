@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { X, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const PROFESSIONALS = ['Lena', 'João', 'Lisa Kim', 'Ana Costa']
-
 const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
   'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
@@ -22,7 +20,7 @@ interface NovoClienteModalProps {
     email: string
     cpf: string
     birthDate: string
-    favoriteProfessional: string
+    favoriteProfessionalId: string
     notes: string
   }) => Promise<void>
 }
@@ -46,9 +44,27 @@ export default function NovoClienteModal({ open, onClose, onCreate }: NovoClient
   const [form, setForm] = useState<FormState>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [profissionais, setProfissionais] = useState<Array<{ id: string; name: string }>>([])
 
   useEffect(() => {
     if (open) { setForm(EMPTY); setSaving(false); setError(null) }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/professionals`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((r: unknown) => {
+        const list = Array.isArray((r as { data?: unknown }).data)
+          ? (r as { data: { id: string; name: string }[] }).data
+          : []
+        setProfissionais(list.map((p) => ({ id: p.id, name: p.name })))
+      })
+      .catch(() => {})
   }, [open])
 
   useEffect(() => {
@@ -78,7 +94,7 @@ export default function NovoClienteModal({ open, onClose, onCreate }: NovoClient
         email: form.email.trim(),
         cpf: form.cpf.trim(),
         birthDate: form.nascimento,
-        favoriteProfessional: form.profissional,
+        favoriteProfessionalId: form.profissional,
         notes: form.observacoes.trim(),
       })
       onClose()
@@ -203,8 +219,8 @@ export default function NovoClienteModal({ open, onClose, onCreate }: NovoClient
                 className={INPUT}
               >
                 <option value="">Selecionar…</option>
-                {PROFESSIONALS.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                {profissionais.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>

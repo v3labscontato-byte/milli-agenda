@@ -29,7 +29,16 @@ export class ClientesService {
 
   create(tenantId: string, dto: CreateClienteDto) {
     return this.db.client.create({
-      data: { tenantId, ...dto, birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined },
+      data: {
+        tenantId,
+        name: dto.name,
+        phone: dto.phone || null,
+        email: dto.email || null,
+        cpf: dto.cpf || null,
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
+        notes: dto.notes || null,
+        favoriteProfessionalId: dto.favoriteProfessionalId || null,
+      },
     })
   }
 

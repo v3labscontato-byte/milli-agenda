@@ -652,3 +652,38 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Arquivos alterados:** apps/api/src/modules/profissionais/profissionais.service.ts
 **O que foi feito:** (1) findAll() removeu filtro active: true — agora retorna todos os profissionais do tenant. Frontend pode filtrar por status via UI. (2) remove() mudado de soft delete (update active: false) para hard delete real (db.professional.delete). Assim inativar (PATCH active: false) e excluir são operações distintas.
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+## [2026-06-26] style(servicos): impeccable 20/20
+
+**Tarefa:** Auditoria impeccable — módulo Serviços
+**Status:** Concluído | **Deploy:** homolog
+
+### O que foi feito
+- Convertidos todos os hex hardcoded → CSS custom properties em 3 arquivos:
+  - pps/web/src/app/(servicos)/servicos/page.tsx
+  - pps/web/src/components/servicos/servico-list.tsx
+  - pps/web/src/components/shared/smart-form-servico.tsx
+- Removido ackdrop-blur-[2px] do overlay do modal (anti-pattern)
+- Labels associados por htmlFor/id (nome, categoria, preço) — WCAG AA
+- ole="group" + ria-label no seletor de duração
+- Touch targets h-10 w-10 nos botões da tabela
+- utoFocus no botão Cancelar do modal de exclusão
+
+### Variáveis CSS mapeadas
+#2563EB → --color-brand | #1D4ED8 → --color-brand-dark | #DBEAFE → --color-primary-light
+#E2E8F0 → --color-border-primary | #CBD5E1 → --color-border-secondary
+#475569 → --color-text-secondary | #64748B → --color-text-secondary
+#DC2626 → --color-danger | #F1F5F9 → --color-surface-tertiary
+
+### Commit
+d48f169 — style(servicos): impeccable 20/20
+
+---
+
+### [2026-06-26] ORCHESTRATOR — Sincronização de contexto dos agentes
+**Status:** ✅ Concluído
+**Módulos atualizados:** AGENT_PROFISSIONAIS, AGENT_SERVICOS, AGENT_CLIENTES
+**O que foi feito:** Seções ESTADO ATUAL e PADRÕES CRÍTICOS reescritas em cada agente com o estado real pós-implementação. Inclui campos no banco, patterns toFrontend(), bugs resolvidos, SQL pendente e backlog atualizado.
+

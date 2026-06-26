@@ -699,3 +699,7 @@ d48f169 — style(servicos): impeccable 20/20
 **Módulos atualizados:** AGENT_PROFISSIONAIS, AGENT_SERVICOS, AGENT_CLIENTES
 **O que foi feito:** Seções ESTADO ATUAL e PADRÕES CRÍTICOS reescritas em cada agente com o estado real pós-implementação. Inclui campos no banco, patterns toFrontend(), bugs resolvidos, SQL pendente e backlog atualizado.
 
+
+### [2026-06-26] AGENT_CLIENTES — Modal perfil editável + preferências
+**Status:** ✅ Concluído
+**Fixes:** dados pessoais editáveis (nome/email/telefone/CPF/nascimento/observações), profissional favorito via select, empty states nas abas Histórico/Agendamentos/Financeiro

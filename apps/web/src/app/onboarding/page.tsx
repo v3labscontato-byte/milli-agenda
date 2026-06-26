@@ -307,10 +307,10 @@ export default function OnboardingPage() {
                   {schedule.map((d, idx) => (
                     <tr
                       key={d.day}
-                      className={['bg-white transition-opacity duration-150', !d.open ? 'opacity-40' : ''].join(' ')}
+                      className={['bg-white transition-opacity duration-150', !d.open ? 'opacity-40 pointer-events-none' : ''].join(' ')}
                     >
                       <td className="px-4 py-3">
-                        <label className="flex cursor-pointer items-center gap-3">
+                        <label className="flex cursor-pointer items-center gap-3" style={{ pointerEvents: 'auto' }}>
                           <input
                             type="checkbox"
                             checked={d.open}
@@ -325,7 +325,8 @@ export default function OnboardingPage() {
                           value={d.start}
                           onChange={(e) => updateTime(idx, 'start', e.target.value)}
                           disabled={!d.open}
-                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          className="appearance-none rounded-lg border border-[#E2E8F0] px-3 py-1.5 pr-8 text-[13px] text-[#0F172A] bg-white cursor-pointer disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
                         >
                           {OPEN_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -336,7 +337,8 @@ export default function OnboardingPage() {
                           value={d.end}
                           onChange={(e) => updateTime(idx, 'end', e.target.value)}
                           disabled={!d.open}
-                          className="rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] text-[#0F172A] disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          className="appearance-none rounded-lg border border-[#E2E8F0] px-3 py-1.5 pr-8 text-[13px] text-[#0F172A] bg-white cursor-pointer disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
                         >
                           {CLOSE_TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>

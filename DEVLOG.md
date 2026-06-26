@@ -780,3 +780,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — ManageModal reagendar conectado ao AppointmentModal
 **Status:** Concluido
 **Fix:** AgendaTable.onReschedule prop → setSelectedAppt(calAppt) → abre AppointmentModal com dados reais. Removidos rescheduleOpen/reschedulePrefill/handleReschedule/NewAppointmentModal do fluxo de reagendamento.
+
+### [2026-06-26] AGENT_AGENDA — Remover ManageModal intermediário
+**Status:** Concluido
+**Fix:** botão Agenda chama onReschedule diretamente → abre AppointmentModal. Removidos ManageModal, manageAppt state, import useEffect/X.

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Calendar, ClipboardList, CreditCard, X } from 'lucide-react'
+import { useState } from 'react'
+import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
@@ -107,163 +107,15 @@ function TableSkeleton() {
   )
 }
 
-// ─── Manage Modal ─────────────────────────────────────────────────────────────
-
-interface ManageModalProps {
-  appt: Appointment
-  onClose: () => void
-  onReschedule: () => void
-}
-
-function ManageModal({ appt, onClose, onReschedule }: ManageModalProps) {
-  const [cancelMode, setCancelMode] = useState(false)
-  const [reason, setReason]         = useState('')
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [onClose])
-
-  function handleConfirmCancel() {
-    onClose()
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Gerenciar Agendamento"
-    >
-      <div
-        className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Gerenciar Agendamento</h2>
-            <p className="mt-0.5 text-[12px] text-[#64748B]">
-              {appt.client} · {appt.service} · {appt.time}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-          >
-            <X size={15} aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-5 py-5">
-          {!cancelMode ? (
-            <div className="flex flex-col gap-3">
-              {/* Reagendar option */}
-              <button
-                type="button"
-                onClick={onReschedule}
-                className={cn(
-                  'flex w-full items-center gap-3 rounded-lg border border-[#E2E8F0] px-4 py-3.5 text-left',
-                  'transition-colors hover:border-[#2563EB] hover:bg-[#EFF6FF]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                )}
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EFF6FF]">
-                  <Calendar size={16} className="text-[#2563EB]" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-[#0F172A]">Reagendar</p>
-                  <p className="text-[11px] text-[#64748B]">Escolher nova data e horário</p>
-                </div>
-              </button>
-
-              {/* Cancelar option */}
-              <button
-                type="button"
-                onClick={() => setCancelMode(true)}
-                className={cn(
-                  'flex w-full items-center gap-3 rounded-lg border border-[#E2E8F0] px-4 py-3.5 text-left',
-                  'transition-colors hover:border-[#DC2626] hover:bg-[#FEF2F2]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                )}
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FEF2F2]">
-                  <X size={16} className="text-[#DC2626]" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-[#0F172A]">Cancelar agendamento</p>
-                  <p className="text-[11px] text-[#64748B]">Registrar motivo do cancelamento</p>
-                </div>
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="cancel-reason"
-                  className="mb-1.5 block text-[12px] font-medium text-[#475569]"
-                >
-                  Motivo do cancelamento (opcional)
-                </label>
-                <textarea
-                  id="cancel-reason"
-                  rows={3}
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Ex.: cliente solicitou, conflito de agenda…"
-                  className={cn(
-                    'w-full resize-none rounded-md border border-[#E2E8F0] px-3 py-2',
-                    'text-[13px] text-[#0F172A] placeholder:text-[#94A3B8]',
-                    'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
-                  )}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCancelMode(false)}
-                  className={cn(
-                    'flex-1 rounded-md border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]',
-                    'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                  )}
-                >
-                  Voltar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmCancel}
-                  className={cn(
-                    'flex-1 rounded-md bg-[#DC2626] py-2 text-[13px] font-medium text-white',
-                    'transition-colors hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                  )}
-                >
-                  Confirmar cancelamento
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ─── Action cell renderers ─────────────────────────────────────────────────────
 
-function AgendaCell({ appt, onManage }: { appt: Appointment; onManage: () => void }) {
+function AgendaCell({ appt, onReschedule }: { appt: Appointment; onReschedule?: (id: string) => void }) {
   if (appt.status !== 'SCHEDULED' && appt.status !== 'CONFIRMED') return <Dash />
   return (
     <td className="w-32 px-2 py-3 text-center">
       <button
         type="button"
-        onClick={onManage}
+        onClick={() => onReschedule?.(appt.id)}
         aria-label={`Gerenciar agendamento de ${appt.client}`}
         className={cn(
           'inline-flex items-center gap-1 rounded-md px-2.5 py-1.5',
@@ -323,7 +175,6 @@ interface AgendaTableProps {
 
 export default function AgendaTable({ appointments, isLoading = false, onReschedule }: AgendaTableProps) {
   const [activeProf, setActiveProf]   = useState<Professional>('Todos')
-  const [manageAppt, setManageAppt]   = useState<Appointment | null>(null)
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
 
   const filtered =
@@ -433,7 +284,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       <PaymentStatusCell  appt={appt} />
                       <AtendimentoCell   appt={appt} />
 
-                      <AgendaCell  appt={appt} onManage={() => setManageAppt(appt)} />
+                      <AgendaCell  appt={appt} onReschedule={onReschedule} />
                       <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />
                     </tr>
                   ))
@@ -445,16 +296,6 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       )}
 
       {/* Modals */}
-      {manageAppt && (
-        <ManageModal
-          appt={manageAppt}
-          onClose={() => setManageAppt(null)}
-          onReschedule={() => {
-            onReschedule?.(manageAppt.id)
-            setManageAppt(null)
-          }}
-        />
-      )}
 
       {paymentAppt && (
         <PaymentModal

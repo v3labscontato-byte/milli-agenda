@@ -544,24 +544,35 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
 
   return (
     <div className="space-y-1.5">
-      {allServices.map((s) => (
-        <label
-          key={s.id}
-          className="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-secondary)]"
-        >
-          <input
-            type="checkbox"
-            checked={enabled.includes(s.id)}
-            onChange={() => void toggleServico(s.id)}
+      {allServices.map((s) => {
+        const habilitado = enabled.includes(s.id)
+        return (
+          <button
+            key={s.id}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); void toggleServico(s.id) }}
             disabled={saving === s.id}
-            className="h-4 w-4 accent-[var(--color-brand)]"
-          />
-          <span className="flex-1 text-[13px] text-[var(--color-text-primary)]">{s.name}</span>
-          {saving === s.id && (
-            <span className="text-[11px] text-[var(--color-text-tertiary)]">Salvando…</span>
-          )}
-        </label>
-      ))}
+            className={cn(
+              'flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors',
+              habilitado
+                ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]'
+                : 'border-[var(--color-border-primary)] bg-white hover:bg-[var(--color-surface-secondary)]',
+            )}
+          >
+            <p className={cn('text-[13px] font-medium', habilitado ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
+              {s.name}
+            </p>
+            <span className={cn(
+              'rounded-full px-2 py-0.5 text-[11px] font-medium',
+              habilitado
+                ? 'bg-[var(--color-brand)] text-white'
+                : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-tertiary)]',
+            )}>
+              {saving === s.id ? 'Salvando…' : habilitado ? 'Habilitado' : 'Desabilitado'}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

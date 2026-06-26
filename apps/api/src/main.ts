@@ -11,7 +11,15 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
   app.setGlobalPrefix('api/v1')
-  app.enableCors({ origin: process.env.CORS_ORIGIN || '*' })
+  app.enableCors({
+    origin: [
+      'https://milli-agenda-production.up.railway.app',
+      'https://frontend-nextjs-milli-homolog.up.railway.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+    ],
+    credentials: true,
+  })
 
   const fastify = app.getHttpAdapter().getInstance()
   const healthHandler = async () => ({ status: 'ok', timestamp: new Date().toISOString() })

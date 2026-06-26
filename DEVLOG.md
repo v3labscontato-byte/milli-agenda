@@ -723,3 +723,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Celulas clicaveis + comanda visivel
 **Status:** Concluido
 **Fixes:** dias passados clicaveis (button + sem restricao de data), coluna comanda mostra botao Abrir Comanda para SCHEDULED/CONFIRMED
+
+### [2026-06-26] AGENT_AGENDA — Tooltip semana + modal completo
+**Status:** Concluido
+**Fixes:** tooltip hover com agenda do dia, Finalizar abre PaymentModal, fluxo Reagendar inline com data+horario+PATCH API

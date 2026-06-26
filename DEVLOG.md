@@ -682,6 +682,18 @@ d48f169 — style(servicos): impeccable 20/20
 
 ---
 
+### [2026-06-26] AGENT_CLIENTES — Coluna email separada + edição inline na tabela
+**Status:** ✅ Concluído
+**Arquivos alterados:** use-clientes.ts, cliente-list.tsx, clientes/page.tsx
+**O que foi feito:**
+- Coluna "Cliente" separada em "Cliente" (nome+tags) + "Email" (coluna própria)
+- Edição inline de nome, email e telefone: clicar no valor → input → Enter/blur salva via PATCH /clients/:id
+- `updateField()` adicionado ao hook (otimista: setData imediato, reverte em erro com refetch)
+- `onUpdateField` prop adicionada ao ClienteList e conectada ao `updateField` do hook
+**tsc --noEmit:** 0 erros ✅
+
+---
+
 ### [2026-06-26] ORCHESTRATOR — Sincronização de contexto dos agentes
 **Status:** ✅ Concluído
 **Módulos atualizados:** AGENT_PROFISSIONAIS, AGENT_SERVICOS, AGENT_CLIENTES

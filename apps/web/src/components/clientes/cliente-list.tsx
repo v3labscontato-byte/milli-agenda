@@ -46,12 +46,14 @@ function Th({
   )
 }
 
+const INLINE_INPUT = 'rounded border border-[#2563EB] bg-white px-2 py-0.5 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#DBEAFE]'
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function SkeletonRow() {
   return (
     <tr aria-hidden="true">
-      {[40, 120, 80, 80, 80, 48, 72, 56].map((w, i) => (
+      {[40, 120, 100, 80, 80, 80, 48, 72, 56].map((w, i) => (
         <td key={i} className="px-4 py-3">
           <div
             className="h-4 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]"
@@ -68,7 +70,7 @@ function SkeletonRow() {
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
     <tr>
-      <td colSpan={8} className="py-16 text-center">
+      <td colSpan={9} className="py-16 text-center">
         <p className="text-[14px] font-medium text-[#475569]">
           {filtered ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
         </p>
@@ -87,6 +89,7 @@ interface ClienteListProps {
   isLoading?: boolean
   isFiltered?: boolean
   onView: (c: Cliente) => void
+  onUpdateField?: (id: string, field: string, value: string) => Promise<void>
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -96,13 +99,21 @@ function ClienteList({
   isLoading = false,
   isFiltered = false,
   onView,
+  onUpdateField,
 }: ClienteListProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [editingField, setEditingField] = useState<{ id: string; field: 'name' | 'email' | 'phone' } | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   function handleSort(k: SortKey) {
     if (k === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else { setSortKey(k); setSortDir('asc') }
+  }
+
+  async function handleSaveField(id: string, field: 'name' | 'email' | 'phone', value: string) {
+    setEditingField(null)
+    await onUpdateField?.(id, field, value)
   }
 
   const sorted = useMemo(() => {
@@ -135,6 +146,7 @@ function ClienteList({
           <tr className="border-b border-[#E2E8F0]">
             <th scope="col" className="w-10 px-4 py-3" aria-label="Avatar" />
             <Th label="Cliente"         col="name"            sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+            <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Email</th>
             <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Telefone</th>
             <Th label="Último Agend."   col="lastVisit"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
             <Th label="Próx. Agend."    col="nextAppointment" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
@@ -160,11 +172,30 @@ function ClienteList({
                   <ClienteAvatar name={c.name} />
                 </td>
 
-                {/* Name + email + tags */}
+                {/* Name + tags (email removed) */}
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] font-semibold text-[#0F172A]">{c.name}</span>
-                    <span className="text-[12px] text-[#94A3B8]">{c.email}</span>
+                    {editingField?.id === c.id && editingField.field === 'name' ? (
+                      <input
+                        autoFocus
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => void handleSaveField(c.id, 'name', editValue)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveField(c.id, 'name', editValue) }}
+                        className={cn(INLINE_INPUT, 'w-36 font-semibold')}
+                      />
+                    ) : (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Clique para editar"
+                        onClick={() => { setEditingField({ id: c.id, field: 'name' }); setEditValue(c.name) }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { setEditingField({ id: c.id, field: 'name' }); setEditValue(c.name) } }}
+                        className="cursor-pointer text-[13px] font-semibold text-[#0F172A] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:underline"
+                      >
+                        {c.name}
+                      </span>
+                    )}
                     {c.tags.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
                         {c.tags.map((t) => <ClienteTagBadge key={t} tag={t} />)}
@@ -173,9 +204,56 @@ function ClienteList({
                   </div>
                 </td>
 
+                {/* Email */}
+                <td className="px-4 py-3">
+                  {editingField?.id === c.id && editingField.field === 'email' ? (
+                    <input
+                      autoFocus
+                      type="email"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => void handleSaveField(c.id, 'email', editValue)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveField(c.id, 'email', editValue) }}
+                      className={cn(INLINE_INPUT, 'w-40')}
+                    />
+                  ) : (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Clique para editar"
+                      onClick={() => { setEditingField({ id: c.id, field: 'email' }); setEditValue(c.email) }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { setEditingField({ id: c.id, field: 'email' }); setEditValue(c.email) } }}
+                      className="cursor-pointer text-[12px] text-[#94A3B8] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:underline"
+                    >
+                      {c.email || <span className="text-[#CBD5E1]">—</span>}
+                    </span>
+                  )}
+                </td>
+
                 {/* Phone */}
-                <td className="px-4 py-3 font-tabular text-[13px] text-[#475569]">
-                  {c.phone}
+                <td className="px-4 py-3">
+                  {editingField?.id === c.id && editingField.field === 'phone' ? (
+                    <input
+                      autoFocus
+                      type="tel"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => void handleSaveField(c.id, 'phone', editValue)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveField(c.id, 'phone', editValue) }}
+                      className={cn(INLINE_INPUT, 'w-36')}
+                    />
+                  ) : (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      title="Clique para editar"
+                      onClick={() => { setEditingField({ id: c.id, field: 'phone' }); setEditValue(c.phone) }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { setEditingField({ id: c.id, field: 'phone' }); setEditValue(c.phone) } }}
+                      className="cursor-pointer font-tabular text-[13px] text-[#475569] hover:text-[#2563EB] transition-colors focus-visible:outline-none focus-visible:underline"
+                    >
+                      {c.phone || <span className="text-[#CBD5E1]">—</span>}
+                    </span>
+                  )}
                 </td>
 
                 {/* Last visit */}

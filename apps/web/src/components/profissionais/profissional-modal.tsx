@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, Mail, Phone, Star, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
@@ -587,10 +587,14 @@ interface ProfissionalModalProps {
 
 export default function ProfissionalModal({ profissional, onClose, onUpdate }: ProfissionalModalProps) {
   const [tab, setTab] = useState<Tab>('perfil')
+  const openedIdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
-    if (profissional) setTab('perfil')
-  }, [profissional?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (profissional && profissional.id !== openedIdRef.current) {
+      openedIdRef.current = profissional.id
+      setTab('perfil')
+    }
+  }, [profissional])
 
   useEffect(() => {
     if (!profissional) return

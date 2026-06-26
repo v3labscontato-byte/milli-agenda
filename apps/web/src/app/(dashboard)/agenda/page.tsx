@@ -18,7 +18,6 @@ import CalendarHeader from '@/components/agenda/calendar-header'
 import DayTimeline from '@/components/agenda/day-timeline'
 import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
-import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
 import NovoAgendamentoModal from '@/components/agenda/novo-agendamento-modal'
 import AgendaTable from '@/components/agenda-table'
 
@@ -65,10 +64,8 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [filterProfId, setFilterProfId]   = useState<string | null>(null)
   const [selectedAppt, setSelectedAppt]   = useState<CalendarAppointment | null>(null)
-  const [newModalOpen, setNewModalOpen]   = useState(false)
+  const [newModalOpen, setNewModalOpen]       = useState(false)
   const [newModalPrefill, setNewModalPrefill] = useState<NewModalPrefill>({})
-  const [rescheduleOpen, setRescheduleOpen]   = useState(false)
-  const [reschedulePrefill, setReschedulePrefill] = useState<NewModalPrefill>({})
   const [searchQuery, setSearchQuery]     = useState('')
   const [refetchKey, setRefetchKey]       = useState(0)
 
@@ -98,24 +95,6 @@ export default function AgendaPage() {
   const handleSlotClick = useCallback((professionalId: string, time: string, date: string) => {
     setNewModalPrefill({ profId: professionalId, date, time })
     setNewModalOpen(true)
-  }, [])
-
-  const handleReschedule = useCallback((appt: CalendarAppointment) => {
-    setSelectedAppt(null)
-    setReschedulePrefill({
-      profId:       appt.professionalId,
-      date:         appt.date,
-      time:         appt.startTime,
-      service:      appt.service,
-      client:       appt.client,
-      isReschedule: true,
-    })
-    setRescheduleOpen(true)
-  }, [])
-
-  const closeReschedule = useCallback(() => {
-    setRescheduleOpen(false)
-    setReschedulePrefill({})
   }, [])
 
   // Day view scopes the fetch to the selected date; week view fetches the broader
@@ -236,7 +215,13 @@ export default function AgendaPage() {
                 <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
               </div>
             ) : (
-              <AgendaTable appointments={allAppointments.map((ca) => toAppointment(ca, calendarProfessionals))} />
+              <AgendaTable
+                appointments={allAppointments.map((ca) => toAppointment(ca, calendarProfessionals))}
+                onReschedule={(id) => {
+                  const calAppt = allAppointments.find((a) => a.id === id)
+                  if (calAppt) setSelectedAppt(calAppt)
+                }}
+              />
             )}
           </div>
         </div>
@@ -256,7 +241,6 @@ export default function AgendaPage() {
         appointment={selectedAppt}
         onClose={closeAppt}
         onSuccess={handleCreated}
-        onReschedule={handleReschedule}
       />
 
       {/* New appointment — real API (services/professionals from hooks, agendaApi.create) */}
@@ -269,17 +253,6 @@ export default function AgendaPage() {
         onCreated={handleCreated}
       />
 
-      {/* Reschedule flow keeps the lightweight modal */}
-      <NewAppointmentModal
-        open={rescheduleOpen}
-        onClose={closeReschedule}
-        initialProfessionalId={reschedulePrefill.profId}
-        initialDate={reschedulePrefill.date}
-        initialTime={reschedulePrefill.time}
-        initialService={reschedulePrefill.service}
-        isReschedule={reschedulePrefill.isReschedule}
-        rescheduleClientName={reschedulePrefill.client}
-      />
     </div>
   )
 }

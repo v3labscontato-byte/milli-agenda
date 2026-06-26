@@ -5,7 +5,6 @@ import { Calendar, ClipboardList, CreditCard, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
-import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -319,13 +318,13 @@ function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }
 interface AgendaTableProps {
   appointments: Appointment[]
   isLoading?: boolean
+  onReschedule?: (id: string) => void
 }
 
-export default function AgendaTable({ appointments, isLoading = false }: AgendaTableProps) {
-  const [activeProf, setActiveProf]         = useState<Professional>('Todos')
-  const [manageAppt, setManageAppt]         = useState<Appointment | null>(null)
-  const [paymentAppt, setPaymentAppt]       = useState<Appointment | null>(null)
-  const [rescheduleAppt, setRescheduleAppt] = useState<Appointment | null>(null)
+export default function AgendaTable({ appointments, isLoading = false, onReschedule }: AgendaTableProps) {
+  const [activeProf, setActiveProf]   = useState<Professional>('Todos')
+  const [manageAppt, setManageAppt]   = useState<Appointment | null>(null)
+  const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
 
   const filtered =
     activeProf === 'Todos'
@@ -451,7 +450,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
           appt={manageAppt}
           onClose={() => setManageAppt(null)}
           onReschedule={() => {
-            setRescheduleAppt(manageAppt)
+            onReschedule?.(manageAppt.id)
             setManageAppt(null)
           }}
         />
@@ -472,14 +471,6 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
         />
       )}
 
-      {rescheduleAppt && (
-        <NewAppointmentModal
-          open={!!rescheduleAppt}
-          onClose={() => setRescheduleAppt(null)}
-          isReschedule={true}
-          rescheduleClientName={rescheduleAppt.client}
-        />
-      )}
     </section>
   )
 }

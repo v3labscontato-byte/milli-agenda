@@ -776,3 +776,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [$(date +%Y-%m-%d)] AGENT_AGENDA — Fix reagendar usa AppointmentModal correto
 **Status:** ✅ Concluído
 **Fix:** ManageModal → AppointmentModal (dados reais) em vez de NewAppointmentModal (mock)
+
+### [2026-06-26] AGENT_AGENDA — ManageModal reagendar conectado ao AppointmentModal
+**Status:** Concluido
+**Fix:** AgendaTable.onReschedule prop → setSelectedAppt(calAppt) → abre AppointmentModal com dados reais. Removidos rescheduleOpen/reschedulePrefill/handleReschedule/NewAppointmentModal do fluxo de reagendamento.

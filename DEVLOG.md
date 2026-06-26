@@ -628,3 +628,11 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx, apps/web/src/app/(profissionais)/profissionais/page.tsx
 **O que foi feito:** Adicionada prop onUpdate?: () => void no ProfissionalModal e em TabPerfil. Cada save (saveHorario, saveDados, saveEspec, saveComissao) chama onUpdate?.() após fechar o modo edição. page.tsx passa onUpdate={() => void refetch()} — refetch já existia em useProfissionais como fetchData.
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-26] CLAUDE 2 — Fix: cpf/birthDate/vinculo salvando no update do service
+**Status:** Concluído
+**Arquivos alterados:** apps/api/src/modules/profissionais/profissionais.service.ts
+**O que foi feito:** Substituído data: dto genérico por mapeamento explícito com spreads condicionais (dto.field !== undefined). Garante que cpf, birthDate e vinculo são incluídos no update do Prisma. Prisma aceita number para campos Decimal sem conversão explícita.
+**tsc --noEmit:** 0 erros ✅

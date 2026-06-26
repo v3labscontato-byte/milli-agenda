@@ -515,7 +515,6 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
     try {
       if (FEATURES.realProfissionais) {
         await profissionaisApi.update(p.id, { enabledServices: next })
-        onUpdate?.()
       }
     } catch {
       setEnabled(original)

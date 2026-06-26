@@ -46,7 +46,7 @@ export default function ClientesPage() {
   const [selectedCliente, setSelected]  = useState<Cliente | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
 
-  const { data: clientes, loading, error, create, remove } = useClientes()
+  const { data: clientes, loading, error, create, updateField, remove } = useClientes()
   const [toast, setToast] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
@@ -249,6 +249,7 @@ export default function ClientesPage() {
             clientes={filtered}
             isFiltered={isFiltered}
             onView={setSelected}
+            onUpdateField={updateField}
           />
         )}
       </div>

@@ -78,11 +78,21 @@ export function useClientes(params?: { search?: string }) {
     await fetchData()
   }, [fetchData])
 
+  const updateField = useCallback(async (id: string, field: string, value: string) => {
+    if (!FEATURES.realClientes) return
+    setData((prev) => prev.map((c) => c.id === id ? { ...c, [field]: value } : c))
+    try {
+      await clientesApi.update(id, { [field]: value })
+    } catch {
+      void fetchData()
+    }
+  }, [fetchData])
+
   const remove = useCallback(async (id: string) => {
     if (!FEATURES.realClientes) return
     await clientesApi.delete(id)
     await fetchData()
   }, [fetchData])
 
-  return { data, loading, error, refetch: fetchData, create, update, remove }
+  return { data, loading, error, refetch: fetchData, create, update, updateField, remove }
 }

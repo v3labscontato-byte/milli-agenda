@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   nextNumber,
@@ -37,7 +37,7 @@ const FILTER_PILLS: { label: string; value: ComandasFilter }[] = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function ComandasPage() {
+function ComandasPageInner() {
   const searchParams = useSearchParams()
   const appointmentId = searchParams?.get('appointmentId')
 
@@ -290,5 +290,17 @@ export default function ComandasPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function ComandasPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#2563EB] border-t-transparent" />
+      </div>
+    }>
+      <ComandasPageInner />
+    </Suspense>
   )
 }

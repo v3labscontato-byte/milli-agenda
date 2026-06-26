@@ -33,6 +33,7 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
     professionalId: r.professionalId as string,
     amount: (r.amount as number) ?? 0,
     status,
+    commandId: r.commandId as string | undefined,
   }
 }
 

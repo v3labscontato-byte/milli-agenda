@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X, Clock, User, Scissors, CreditCard, CheckSquare, XCircle, CalendarClock } from 'lucide-react'
+import { X, Clock, User, Scissors, CreditCard, CheckSquare, XCircle, CalendarClock, Receipt } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
@@ -14,16 +14,16 @@ interface ServItem { id: string; name: string; durationMin?: number; price?: num
 interface Action {
   label: string
   icon: React.ElementType
-  variant: 'primary' | 'secondary' | 'danger'
+  variant: 'primary' | 'secondary' | 'danger' | 'success'
 }
 
 const REAGENDAR: Action = { label: 'Reagendar', icon: CalendarClock, variant: 'secondary' }
 
 const ACTIONS: Partial<Record<AppointmentStatus, Action[]>> = {
-  SCHEDULED:        [REAGENDAR, { label: 'Confirmar',    icon: CheckSquare, variant: 'primary'   }, { label: 'Cancelar', icon: XCircle,   variant: 'danger'    }],
-  CONFIRMED:        [REAGENDAR, { label: 'Cancelar', icon: XCircle, variant: 'danger' }],
-  CHECKED_IN:       [REAGENDAR, { label: 'Iniciar',      icon: Scissors,    variant: 'primary'   }, { label: 'Cancelar', icon: XCircle,   variant: 'danger'    }],
-  IN_SERVICE:       [{ label: 'Finalizar',   icon: CheckSquare, variant: 'secondary' }, { label: 'Cobrar',      icon: CreditCard, variant: 'primary'   }],
+  SCHEDULED:        [REAGENDAR, { label: 'Confirmar',    icon: CheckSquare, variant: 'primary'   }, { label: 'Cancelar',    icon: XCircle,   variant: 'danger'   }],
+  CONFIRMED:        [REAGENDAR, { label: 'Finalizar',    icon: Receipt,     variant: 'success'   }, { label: 'Cancelar',    icon: XCircle,   variant: 'danger'   }],
+  CHECKED_IN:       [REAGENDAR, { label: 'Iniciar',      icon: Scissors,    variant: 'primary'   }, { label: 'Cancelar',    icon: XCircle,   variant: 'danger'   }],
+  IN_SERVICE:       [{ label: 'Finalizar',   icon: Receipt,     variant: 'success'   }, { label: 'Cobrar',      icon: CreditCard, variant: 'primary'  }],
   AWAITING_PAYMENT: [{ label: 'Cobrar Agora', icon: CreditCard, variant: 'primary'   }],
 }
 
@@ -31,6 +31,7 @@ const BTN = {
   primary:   'bg-[#2563EB] text-white hover:bg-[#1D4ED8]',
   secondary: 'border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]',
   danger:    'border border-[#FEE2E2] text-[#991B1B] hover:bg-[#FEF2F2]',
+  success:   'bg-[#16A34A] text-white hover:bg-[#15803D]',
 }
 
 const PAYMENT_ACTIONS = new Set(['Cobrar', 'Cobrar Agora', 'Finalizar'])

@@ -784,3 +784,17 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Remover ManageModal intermediário
 **Status:** Concluido
 **Fix:** botão Agenda chama onReschedule diretamente → abre AppointmentModal. Removidos ManageModal, manageAppt state, import useEffect/X.
+
+### [2026-06-26] AGENT_AGENDA — Cancelar e Confirmar funcionais
+**Status:** Concluído
+**Fixes:** handleAction async + Confirmar faz PATCH status=CONFIRMED; coluna Atendimento adiciona 'confirmado' com badge azul; Cancelar já estava correto via agendaApi.update
+**Arquivos:** appointment-modal.tsx, agenda-table.tsx
+
+### [2026-06-26] AGENT_AGENDA — Check-in removido + slots cancelados livres + tooltip
+**Status:** Concluído
+**Fixes:** Check-in removido de CONFIRMED; filtro CANCELLED nos fetches de horários (appointment-modal + novo-agendamento-modal); day-timeline cancelados não bloqueiam coveredSlots e aparecem lado a lado; tooltip weekly-overview ignora CANCELLED
+
+### [2026-06-26] AGENT_AGENDA — Vista dia completa
+**Status:** Concluído
+**Entregues:** cards coloridos por status (appointment-block.tsx reescrito com CARD_STYLES inline); ícone de pagamento (PaymentDot — verde=pago, amarelo=pendente); bloqueio de agenda via Shift+clique com mini-form e card hachurado; legenda no rodapé da timeline; botão Finalizar adicionado ao status CONFIRMED (Receipt icon, variant success); commandId adicionado à CalendarAppointment e mapeado no transformApiResponse
+**Arquivos:** appointment-block.tsx, day-timeline.tsx, appointment-modal.tsx, calendar-utils.ts, use-agenda.ts

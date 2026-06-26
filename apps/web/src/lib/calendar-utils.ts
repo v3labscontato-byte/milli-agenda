@@ -96,6 +96,7 @@ export interface CalendarAppointment {
   professionalId: string
   amount: number
   status: AppointmentStatus
+  commandId?: string
   services?: ServiceLineItem[]   // line items; if absent, derived from service + amount
   deposit?: DepositInfo | null   // pre-paid deposit/signal
 }

@@ -9,7 +9,7 @@ export class ProfissionaisService {
 
   findAll(tenantId: string) {
     return this.db.professional.findMany({
-      where: { tenantId, active: true },
+      where: { tenantId },
       orderBy: { name: 'asc' },
     })
   }
@@ -83,7 +83,7 @@ export class ProfissionaisService {
     if (prof._count.appointments > 0) {
       throw new ConflictException('Este profissional possui agendamentos futuros e não pode ser excluído.')
     }
-    return this.db.professional.update({ where: { id }, data: { active: false } })
+    return this.db.professional.delete({ where: { id } })
   }
 
   getRoles(tenantId: string) {

@@ -636,3 +636,11 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Arquivos alterados:** apps/api/src/modules/profissionais/profissionais.service.ts
 **O que foi feito:** Substituído data: dto genérico por mapeamento explícito com spreads condicionais (dto.field !== undefined). Garante que cpf, birthDate e vinculo são incluídos no update do Prisma. Prisma aceita number para campos Decimal sem conversão explícita.
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-26] CLAUDE 2 — Fix: cpf/birthDate/vinculo aparecem no modal
+**Status:** Concluído
+**Arquivos alterados:** apps/web/src/lib/profissionais-mock.ts, apps/web/src/hooks/use-profissionais.ts, apps/web/src/components/profissionais/profissional-modal.tsx
+**O que foi feito:** (1) Adicionado vinculo?: string ao tipo Profissional (opcional para não quebrar mock data). (2) toFrontend() agora mapeia String(raw.cpf ?? ''), String(raw.birthDate ?? ''), String(raw.vinculo ?? '') em vez de strings vazias hardcoded. (3) Removidos todos os casts (p as unknown as { vinculo?: string }) do modal — agora usa p.vinculo diretamente.
+**tsc --noEmit:** 0 erros ✅

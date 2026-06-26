@@ -475,3 +475,39 @@ Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
 - handleSave: `commissionPct: Number(commissionPct)` sem `|| undefined` (evita 0% virar undefined), `active: true` adicionado
 **tsc --noEmit:** 0 erros (frontend + backend) ✅
 **Commit:** d7426c3
+
+### [2026-06-26] Fix profissionais: mapeamento API + status + cargo + coluna Detalhes
+**Status:** ✅ Concluído
+**Arquivos alterados:** use-profissionais.ts, profissional-list.tsx, profissional-card.tsx
+**Root cause:** Hook fazia cast direto `(res as Profissional[])` sem mapear. Backend retorna `{ active: boolean, specialty: string }` mas frontend espera `{ status: 'active'|'inactive', role, specialties[], workDays[] }`.
+**Fixes:**
+- `toFrontend()` mapper em use-profissionais.ts: `specialty` → `role` + `specialties[]`, `active` → `status`, defaults para campos ausentes na API (workDays: [], rating: 0, etc.)
+- `initials()` / `colorForName()` em profissional-card.tsx: `(name ?? '').trim()` evita .split de undefined
+- Coluna Detalhes: header "DETALHES" visível, Eye icon sempre visível (removido opacity-0/group-hover)
+**tsc --noEmit:** 0 erros ✅
+**Commit:** 84404a9 → homolog
+
+### [2026-06-26] feat(profissionais): coluna Hoje -> Especialidade + toggle status + excluir
+**Status:** ✅ Concluído
+**Arquivos alterados:** profissional-list.tsx, page.tsx, create-profissional.dto.ts
+**O que foi feito:**
+- Coluna "Hoje" substituída por "Especialidade" (exibe p.role da API)
+- StatusBadge clicável: PATCH /professionals/:id com { active: !currentActive }
+- Botão Trash2 com confirmação inline "Excluir? Sim / Não" (soft-delete via remove())
+- DTO backend: adicionado `@IsOptional() @IsBoolean() active?: boolean`
+- page.tsx: desestruturado update/remove do hook, passados como onToggleStatus/onDelete
+**tsc --noEmit:** 0 erros ✅ (frontend + backend)
+**Commit:** 8181150 → homolog
+
+### [2026-06-26] fix(profissionais): especialidade duplicada + toggle otimista + modal excluir + soft delete backend
+**Status:** ✅ Concluído
+**Arquivos alterados:** use-profissionais.ts, profissional-list.tsx, page.tsx, profissionais.service.ts
+**Fixes:**
+- Coluna Profissional: removido RoleBadge (especialidade não aparece mais em duplicata)
+- Toggle status: UI otimista (setData imediato, sem refetch) — evita profissional sumir da lista
+- remove(): UI otimista (filter imediato) + re-throw de erro para o componente tratar
+- toggleStatus exportado do hook; page.tsx usa `toggleStatus` diretamente (não mais `update`)
+- Modal de confirmação ao excluir (estado `deleteModal: { id, name } | null`) com botões Cancelar/Excluir
+- Backend: soft delete verifica agendamentos futuros; lança 409 ConflictException se houver
+- Frontend: handleDelete detecta status 409 via duck-typing e exibe mensagem específica
+**tsc --noEmit:** 0 erros ✅ (frontend + backend)

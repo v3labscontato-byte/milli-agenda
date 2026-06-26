@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus, Tra
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL } from '@/lib/profissionais-mock'
-import { ProfissionalAvatar, RoleBadge, StatusBadge } from './profissional-card'
+import { ProfissionalAvatar, StatusBadge } from './profissional-card'
 
 type SortKey = 'name' | 'appointmentsThisMonth' | 'revenueThisMonth' | 'rating'
 type SortDir = 'asc' | 'desc'
@@ -32,7 +32,23 @@ interface Props {
 function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, onToggleStatus, onDelete }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null)
+
+  async function handleDelete(id: string) {
+    try {
+      await onDelete!(id)
+      setDeleteModal(null)
+    } catch (err: unknown) {
+      setDeleteModal(null)
+      const status = err !== null && typeof err === 'object' && 'status' in err
+        ? (err as { status: number }).status : 0
+      if (status === 409) {
+        alert(err instanceof Error ? err.message : 'Profissional possui agendamentos futuros.')
+      } else {
+        alert('Erro ao excluir profissional. Tente novamente.')
+      }
+    }
+  }
 
   function handleSort(k: SortKey) {
     if (k === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -81,6 +97,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
   }
 
   return (
+    <>
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] border-collapse text-[13px]">
         <thead>
@@ -142,7 +159,6 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                   <ProfissionalAvatar name={p.name} size={32} />
                   <div className="min-w-0">
                     <p className="truncate font-medium text-[#0F172A]">{p.name}</p>
-                    <RoleBadge role={p.role} />
                   </div>
                 </div>
               </td>
@@ -201,34 +217,14 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
                     <Eye size={16} aria-hidden="true" />
                   </button>
                   {onDelete && (
-                    confirmDelete === p.id ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-[#DC2626]">Excluir?</span>
-                        <button
-                          type="button"
-                          onClick={() => { void onDelete(p.id); setConfirmDelete(null) }}
-                          className="text-[11px] text-[#DC2626] font-medium hover:underline focus-visible:outline-none"
-                        >
-                          Sim
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDelete(null)}
-                          className="text-[11px] text-[#64748B] hover:underline focus-visible:outline-none"
-                        >
-                          Não
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDelete(p.id)}
-                        aria-label={`Excluir ${p.name}`}
-                        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
-                      >
-                        <Trash2 size={14} className="text-[#94A3B8] hover:text-[#DC2626] transition-colors" />
-                      </button>
-                    )
+                    <button
+                      type="button"
+                      onClick={() => setDeleteModal({ id: p.id, name: p.name })}
+                      aria-label={`Excluir ${p.name}`}
+                      className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                    >
+                      <Trash2 size={14} className="text-[#94A3B8] hover:text-[#DC2626] transition-colors" />
+                    </button>
                   )}
                 </div>
               </td>
@@ -237,6 +233,34 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
         </tbody>
       </table>
     </div>
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm mx-4">
+            <h3 className="text-[15px] font-medium text-[#0F172A] mb-2">Excluir profissional</h3>
+            <p className="text-[13px] text-[#475569] mb-6">
+              Tem certeza que deseja excluir <strong>{deleteModal.name}</strong>?{' '}
+              Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="px-4 py-2 text-[13px] text-[#475569] border border-[#E2E8F0] rounded-lg hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete(deleteModal.id)}
+                className="px-4 py-2 text-[13px] text-white bg-[#DC2626] rounded-lg hover:bg-[#B91C1C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

@@ -354,7 +354,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                   <th scope="col" className={TH}>Cliente</th>
                   <th scope="col" className={cn(TH, 'hidden md:table-cell')}>Serviço</th>
                   <th scope="col" className={cn(TH, 'hidden lg:table-cell')}>Profissional</th>
-                  <th scope="col" className={TH}>Status</th>
+                  <th scope="col" className={TH}>Pagamento</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Agenda</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Comanda</th>
                 </tr>

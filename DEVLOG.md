@@ -594,3 +594,12 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **O que foi feito:** Adicionados editCpf, editBirth, editVinculo ao modo de edição de dados pessoais. dadosInputs agora inclui CPF (text) e Nascimento (date input). Select de Tipo de vínculo com opções Funcionário/Comissionado/Parceiro/Autônomo. saveDados() envia todos os campos. useEffect reseta os 3 novos estados ao trocar de profissional.
 **Problemas encontrados:** Nenhum — tsc sem erros.
 **Próximo passo sugerido:** FIX 2 e FIX 3 (pendentes — mensagem foi truncada).
+
+---
+
+### [2026-06-26] CLAUDE 2 — Fix 500 dados pessoais + especialidade select roles
+**Status:** Concluído
+**Arquivos alterados:** packages/database/prisma/schema.prisma, apps/api/src/modules/profissionais/dto/create-profissional.dto.ts, apps/web/src/components/profissionais/profissional-modal.tsx
+**O que foi feito:** (1) Adicionado cpf/birthDate/vinculo como String? no modelo Professional do schema Prisma. (2) DTO aceita os 3 campos como opcionais (?string | null). (3) Frontend: roles buscados via fetch ao montar TabPerfil; editingEspec usa select com roles ou fallback "Cadastrar agora"; saveEspec simplificado para enviar specialty diretamente.
+**Pendente (usuário):** Rodar SQL no Railway Console do Homolog (ver abaixo).
+**Problemas encontrados:** Nenhum — tsc sem erros em web e api.

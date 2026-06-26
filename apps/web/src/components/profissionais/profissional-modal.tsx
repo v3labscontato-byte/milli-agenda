@@ -60,6 +60,17 @@ function TabPerfil({ p }: { p: Profissional }) {
   const [editEspec,       setEditEspec]        = useState(p.specialties.join(', '))
   const [editingComissao, setEditingComissao]  = useState(false)
   const [editComissao,    setEditComissao]     = useState(String(p.commissionPct))
+  const [roles,           setRoles]            = useState<string[]>([])
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/professionals/roles`,
+      { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(r => { const list = Array.isArray(r.data) ? r.data : []; setRoles(list.map((x: { name: string }) => x.name)) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     setEditDays(p.workDays ?? []);  setEditStart(p.workStart || '08:00'); setEditEnd(p.workEnd || '18:00')
@@ -87,8 +98,7 @@ function TabPerfil({ p }: { p: Profissional }) {
   }
   async function saveEspec() {
     if (!FEATURES.realProfissionais) { setEditingEspec(false); return }
-    const especialidades = editEspec.split(',').map(s => s.trim()).filter(Boolean)
-    await profissionaisApi.update(p.id, { specialty: especialidades[0] ?? '' })
+    await profissionaisApi.update(p.id, { specialty: editEspec })
     setEditingEspec(false)
   }
   async function saveComissao() {
@@ -287,13 +297,21 @@ function TabPerfil({ p }: { p: Profissional }) {
               }
             </div>
           ) : (
-            <>
-              <input value={editEspec} onChange={e => setEditEspec(e.target.value)}
-                placeholder="Ex: Cabeleireiro, Colorista"
-                className="w-full border border-[#E2E8F0] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[#2563EB]" />
-              <p className="text-[10px] text-[#94A3B8] mt-1">Separe por vírgula</p>
+            <div className="space-y-2">
+              {roles.length > 0 ? (
+                <select value={editEspec} onChange={e => setEditEspec(e.target.value)}
+                  className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]">
+                  <option value="">Selecionar especialidade...</option>
+                  {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              ) : (
+                <p className="text-[12px] text-[#94A3B8]">
+                  Nenhum cargo cadastrado.
+                  <a href="/configuracoes" className="text-[#2563EB] hover:underline ml-1">Cadastrar agora</a>
+                </p>
+              )}
               <EditActions onCancel={() => setEditingEspec(false)} onSave={() => void saveEspec()} />
-            </>
+            </div>
           )}
         </div>
 

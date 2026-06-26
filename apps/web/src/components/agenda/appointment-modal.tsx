@@ -8,7 +8,7 @@ import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
 
-interface ProfItem { id: string; name: string; specialty?: string }
+interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string }
 interface ServItem { id: string; name: string; durationMin?: number; price?: number }
 
 interface Action {
@@ -94,7 +94,16 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       fetch(`${base}/api/v1/services`,      { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
     ])
       .then(([profs, svcs]) => {
-        setProfissionais(profs.data ?? [])
+        setProfissionais(
+          (profs.data ?? []).map((p: Record<string, unknown>) => ({
+            id:        String(p.id ?? ''),
+            name:      String(p.name ?? ''),
+            specialty: p.specialty as string | undefined,
+            workDays:  Array.isArray(p.workDays) ? (p.workDays as number[]) : [],
+            workStart: String(p.workStart ?? '08:00'),
+            workEnd:   String(p.workEnd   ?? '18:00'),
+          }))
+        )
         setServicos(svcs.data ?? [])
       })
       .catch(() => {})
@@ -112,30 +121,49 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     )
       .then((r) => r.json())
       .then((r) => {
-        const ocupados: string[] = (r.data ?? []).map((a: { startTime: string }) => a.startTime)
-        const servico = servicos.find((s) => s.id === selectedServId)
-        const durMin = servico?.durationMin ?? 60
+        const servico  = servicos.find((s) => s.id === selectedServId)
+        const durMin   = servico?.durationMin ?? 60
+        const profData = profissionais.find((p) => p.id === selectedProfId)
+
+        const [startH = 8,  startM = 0] = (profData?.workStart ?? '08:00').split(':').map(Number)
+        const [endH   = 18, endM   = 0] = (profData?.workEnd   ?? '18:00').split(':').map(Number)
+        const windowStart = startH * 60 + startM
+        const windowEnd   = endH   * 60 + endM
+
+        const dayOfWeek = new Date(novaData + 'T12:00:00').getDay()
+        const isFolga = profData?.workDays.length ? !profData.workDays.includes(dayOfWeek) : false
+
+        const ocupados: { startTime: string; durMin: number }[] = (r.data ?? []).map(
+          (a: { startAt?: string; durationMin?: number }) => ({
+            startTime: a.startAt?.slice(11, 16) ?? '',
+            durMin:    a.durationMin ?? 60,
+          })
+        )
+
         const slots: string[] = []
-        for (let h = 8; h < 20; h++) {
-          for (let m = 0; m < 60; m += 30) {
-            const slot = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-            const slotMin = h * 60 + m
-            const endMin = slotMin + durMin
+        if (!isFolga) {
+          for (let min = windowStart; min + durMin <= windowEnd; min += 30) {
+            const h    = Math.floor(min / 60).toString().padStart(2, '0')
+            const m    = (min % 60).toString().padStart(2, '0')
+            const slot = `${h}:${m}`
+            const slotEnd = min + durMin
             const conflito = ocupados.some((o) => {
-              const [oh, om] = o.split(':').map(Number)
+              if (!o.startTime) return false
+              const [oh, om] = o.startTime.split(':').map(Number)
               const oMin = oh * 60 + om
-              return slotMin < oMin + durMin && endMin > oMin
+              return min < oMin + o.durMin && slotEnd > oMin
             })
             if (!conflito) slots.push(slot)
           }
         }
         setHorariosDisp(slots)
         if (slots.length > 0 && !slots.includes(novoHorario)) setNovoHorario(slots[0])
+        else if (slots.length === 0) setNovoHorario('')
       })
       .catch(() => {})
       .finally(() => setLoadingHorarios(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProfId, novaData, selectedServId, servicos])
+  }, [selectedProfId, novaData, selectedServId, servicos, profissionais])
 
   useEffect(() => {
     if (!appointment) return
@@ -155,6 +183,13 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   const style = STATUS_STYLES[appointment.status]
   const prof = profissionais.find((p) => p.id === appointment.professionalId)
   const actions = ACTIONS[appointment.status] ?? []
+
+  const profFolga = (() => {
+    if (!reagendando || !selectedProfId || !novaData) return false
+    const pd = profissionais.find((p) => p.id === selectedProfId)
+    if (!pd?.workDays.length) return false
+    return !pd.workDays.includes(new Date(novaData + 'T12:00:00').getDay())
+  })()
   const servicoSelecionado = servicos.find((s) => s.id === selectedServId)
 
   function handleAction(label: string) {
@@ -326,6 +361,11 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                   onChange={(e) => setNovaData(e.target.value)}
                   className={SELECT_CLS}
                 />
+                {profFolga && (
+                  <p className="mt-1 text-[12px] text-[#DC2626]">
+                    Este profissional não trabalha neste dia.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -334,13 +374,20 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                   value={novoHorario}
                   onChange={(e) => setNovoHorario(e.target.value)}
                   className={SELECT_CLS}
-                  disabled={loadingHorarios}
+                  disabled={loadingHorarios || profFolga}
                 >
-                  <option value="">Selecionar horário…</option>
-                  {loadingHorarios
-                    ? <option disabled>Carregando…</option>
-                    : horariosDisponiveis.map((h) => <option key={h} value={h}>{h}</option>)
-                  }
+                  <option value="">
+                    {loadingHorarios
+                      ? 'Carregando…'
+                      : profFolga
+                        ? 'Dia de folga'
+                        : horariosDisponiveis.length === 0
+                          ? 'Nenhum horário disponível'
+                          : 'Selecionar horário…'}
+                  </option>
+                  {!loadingHorarios && !profFolga && horariosDisponiveis.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
                 </select>
               </div>
 

@@ -16,21 +16,56 @@ const INPUT = cn(
 interface FormState {
   clientName: string
   clientPhone: string
-  serviceId: string
   professionalId: string
+  serviceId: string
   date: string
   time: string
   notes: string
+}
+
+interface ApptSlot { professionalId: string; startTime: string; durationMinutes: number }
+interface ProfSched { id: string; workDays: number[]; workStart: string; workEnd: string }
+
+function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: number): string[] {
+  const dayOfWeek = new Date(date + 'T12:00:00').getDay()
+  if (prof.workDays.length > 0 && !prof.workDays.includes(dayOfWeek)) return []
+
+  const [startH = 8, startM = 0] = prof.workStart.split(':').map(Number)
+  const [endH = 18, endM = 0]    = prof.workEnd.split(':').map(Number)
+  const startMin = startH * 60 + startM
+  const endMin   = endH   * 60 + endM
+
+  const slots: string[] = []
+  for (let min = startMin; min + durMin <= endMin; min += 30) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0')
+    const m = (min % 60).toString().padStart(2, '0')
+    slots.push(`${h}:${m}`)
+  }
+
+  const ocupados = appts
+    .filter((a) => a.professionalId === prof.id)
+    .map((a) => ({ start: a.startTime, durMin: a.durationMinutes }))
+
+  return slots.filter((slot) => {
+    const [sh, sm] = slot.split(':').map(Number)
+    const slotMin = sh * 60 + sm
+    return !ocupados.some((o) => {
+      if (!o.start) return false
+      const [oh, om] = o.start.split(':').map(Number)
+      const oMin = oh * 60 + om
+      return slotMin < oMin + o.durMin && slotMin + durMin > oMin
+    })
+  })
 }
 
 function emptyForm(defaultDate: string, initialTime?: string, initialProfessionalId?: string): FormState {
   return {
     clientName: '',
     clientPhone: '',
-    serviceId: '',
     professionalId: initialProfessionalId ?? '',
+    serviceId: '',
     date: defaultDate,
-    time: initialTime ?? '09:00',
+    time: initialTime ?? '',
     notes: '',
   }
 }
@@ -52,11 +87,13 @@ export default function NovoAgendamentoModal({
   initialProfessionalId,
   initialTime,
 }: NovoAgendamentoModalProps) {
-  const [form, setForm] = useState<FormState>(() => emptyForm(defaultDate, initialTime, initialProfessionalId))
-  const [saving, setSaving] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [form, setForm]           = useState<FormState>(() => emptyForm(defaultDate, initialTime, initialProfessionalId))
+  const [saving, setSaving]       = useState(false)
+  const [submitError, setSubmitError]   = useState<string | null>(null)
+  const [horariosDisponiveis, setHorarios]  = useState<string[]>([])
+  const [loadingHorarios, setLoadingHorarios] = useState(false)
 
-  const { data: servicos } = useServicos()
+  const { data: servicos }      = useServicos()
   const { data: profissionais } = useProfissionais()
 
   const activeServices = servicos
@@ -67,12 +104,23 @@ export default function NovoAgendamentoModal({
     .filter((p) => p.status === 'active')
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
-  const selectedService = activeServices.find((s) => s.id === form.serviceId)
+  const profSelecionado = profissionais.find((p) => p.id === form.professionalId)
+
+  const enabledServices = profSelecionado?.enabledServices ?? []
+  const servicosFiltrados = enabledServices.length
+    ? activeServices.filter((s) => enabledServices.includes(s.id))
+    : activeServices
+
+  const selectedService = servicosFiltrados.find((s) => s.id === form.serviceId)
+
+  const dayOfWeek = form.date ? new Date(form.date + 'T12:00:00').getDay() : -1
+  const profFolga = !!(profSelecionado && profSelecionado.workDays.length > 0 && !profSelecionado.workDays.includes(dayOfWeek))
 
   useEffect(() => {
     if (open) {
       setForm(emptyForm(defaultDate, initialTime, initialProfessionalId))
       setSubmitError(null)
+      setHorarios([])
     }
   }, [open, defaultDate, initialTime, initialProfessionalId])
 
@@ -82,6 +130,41 @@ export default function NovoAgendamentoModal({
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [open, onClose])
+
+  useEffect(() => {
+    if (!form.professionalId || !form.date) { setHorarios([]); return }
+
+    const prof = profissionais.find((p) => p.id === form.professionalId)
+    if (!prof) { setHorarios([]); return }
+
+    const servico = servicos.find((s) => s.id === form.serviceId)
+    const durMin = servico?.duration ?? 60
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    setLoadingHorarios(true)
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/appointments?professionalId=${form.professionalId}&from=${form.date}&to=${form.date}`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    )
+      .then((r) => r.json())
+      .then((r) => {
+        const agendsDia: ApptSlot[] = (r.data ?? []).map(
+          (a: { professionalId: string; startAt?: string; durationMin?: number }) => ({
+            professionalId: a.professionalId,
+            startTime: a.startAt?.slice(11, 16) ?? '',
+            durationMinutes: a.durationMin ?? 60,
+          }),
+        )
+        const slots = getSlotsDia(prof, form.date, agendsDia, durMin)
+        setHorarios(slots)
+        setForm((f) => ({
+          ...f,
+          time: slots.includes(f.time) ? f.time : (slots[0] ?? ''),
+        }))
+      })
+      .catch(() => setHorarios([]))
+      .finally(() => setLoadingHorarios(false))
+  }, [form.professionalId, form.date, form.serviceId, profissionais, servicos])
 
   if (!open) return null
 
@@ -96,14 +179,14 @@ export default function NovoAgendamentoModal({
     setSubmitError(null)
     try {
       await agendaApi.create({
-        clientName: form.clientName,
-        clientPhone: form.clientPhone || undefined,
-        serviceId: form.serviceId,
+        clientName:     form.clientName,
+        clientPhone:    form.clientPhone || undefined,
+        serviceId:      form.serviceId,
         professionalId: form.professionalId,
-        date: form.date,
-        startTime: form.time,
-        durationMin: selectedService?.duration,
-        notes: form.notes || undefined,
+        date:           form.date,
+        startTime:      form.time,
+        durationMin:    selectedService?.duration,
+        notes:          form.notes || undefined,
       })
       onCreated?.()
       onClose()
@@ -177,14 +260,37 @@ export default function NovoAgendamentoModal({
               </div>
             </div>
 
+            {/* Profissional */}
+            <div className="space-y-1.5">
+              <label htmlFor="na-prof" className={LABEL}>Profissional *</label>
+              <select
+                id="na-prof" required value={form.professionalId}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, professionalId: e.target.value, serviceId: '', time: '' }))
+                }
+                className={INPUT}
+              >
+                <option value="">
+                  {activeProfessionals.length === 0 ? 'Nenhum profissional cadastrado' : 'Selecionar profissional…'}
+                </option>
+                {activeProfessionals.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Serviço */}
             <div className="space-y-1.5">
               <label htmlFor="na-service" className={LABEL}>Serviço *</label>
-              <select id="na-service" required value={form.serviceId} onChange={setField('serviceId')} className={INPUT}>
+              <select
+                id="na-service" required value={form.serviceId}
+                onChange={(e) => setForm((f) => ({ ...f, serviceId: e.target.value, time: '' }))}
+                className={INPUT}
+              >
                 <option value="">
-                  {activeServices.length === 0 ? 'Nenhum serviço cadastrado' : 'Selecionar serviço…'}
+                  {servicosFiltrados.length === 0 ? 'Nenhum serviço disponível' : 'Selecionar serviço…'}
                 </option>
-                {activeServices.map((s) => (
+                {servicosFiltrados.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name} — {s.duration}min
                   </option>
@@ -197,19 +303,6 @@ export default function NovoAgendamentoModal({
               )}
             </div>
 
-            {/* Profissional */}
-            <div className="space-y-1.5">
-              <label htmlFor="na-prof" className={LABEL}>Profissional *</label>
-              <select id="na-prof" required value={form.professionalId} onChange={setField('professionalId')} className={INPUT}>
-                <option value="">
-                  {activeProfessionals.length === 0 ? 'Nenhum profissional cadastrado' : 'Selecionar profissional…'}
-                </option>
-                {activeProfessionals.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
             {/* Data + Horário */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -219,15 +312,34 @@ export default function NovoAgendamentoModal({
                   value={form.date} onChange={setField('date')}
                   className={INPUT}
                 />
+                {profFolga && (
+                  <p className="text-[12px] text-[#DC2626]">
+                    Este profissional não trabalha neste dia.
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="na-time" className={LABEL}>Horário *</label>
-                <input
-                  id="na-time" type="time" required
-                  value={form.time} onChange={setField('time')}
-                  min="09:00" max="19:00" step="900"
-                  className={INPUT}
-                />
+                <select
+                  id="na-time" required
+                  value={form.time}
+                  onChange={setField('time')}
+                  disabled={loadingHorarios || profFolga}
+                  className={cn(INPUT, (loadingHorarios || profFolga) && 'cursor-not-allowed opacity-50')}
+                >
+                  <option value="">
+                    {loadingHorarios
+                      ? 'Carregando…'
+                      : profFolga
+                        ? 'Dia de folga'
+                        : horariosDisponiveis.length === 0 && form.professionalId && form.date
+                          ? 'Nenhum horário disponível'
+                          : 'Selecionar horário…'}
+                  </option>
+                  {horariosDisponiveis.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -262,7 +374,7 @@ export default function NovoAgendamentoModal({
           <button
             type="submit"
             form="novo-agenda-form"
-            disabled={saving}
+            disabled={saving || profFolga}
             className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
           >
             <CalendarPlus size={13} aria-hidden="true" />

@@ -576,3 +576,12 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
   - Rodapé: grid-cols-2 com Especialidade (badges) + Comissão (ícone circular)
 - profissionais-mock.ts: formatDate e age agora aceitam string | undefined | null (guard para dados ausentes)
 **tsc --noEmit:** 0 erros ✅
+
+---
+
+### [2026-06-26] CLAUDE 2 — Edição inline: dados pessoais, especialidade e comissão
+**Status:** Concluído
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx
+**O que foi feito:** Adicionado edição inline em 3 blocos do TabPerfil: (1) Dados pessoais — botão Editar na col esquerda, inputs para nome/email/telefone + saveDados(); (2) Especialidade — botão Editar no card, input texto separado por vírgula + saveEspec(); (3) Comissão — botão Editar no card, input numérico 0-100 + saveComissao(). Extraído componente EditActions para reutilizar botões Cancelar/Salvar. SVG_ARROW_SM movido para escopo de módulo. useEffect resetado para todos os estados ao trocar de profissional.
+**Problemas encontrados:** Nenhum — tsc sem erros.
+**Próximo passo sugerido:** SQL migration para colunas workDays/workStart/workEnd no Railway (pendente do usuário).

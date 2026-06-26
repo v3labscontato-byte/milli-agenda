@@ -24,21 +24,46 @@ const TIMES = Array.from({ length: 32 }, (_, i) => {
   const m = (total % 60).toString().padStart(2, '0')
   return `${h}:${m}`
 })
-const SVG_ARROW = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
+const SVG_ARROW_SM = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
+
+function EditActions({ onCancel, onSave }: { onCancel: () => void; onSave: () => void }) {
+  return (
+    <div className="flex gap-2 justify-end mt-2">
+      <button type="button" onClick={onCancel}
+        className="px-2.5 py-1 text-[11px] text-[#475569] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]">
+        Cancelar
+      </button>
+      <button type="button" onClick={onSave}
+        className="px-2.5 py-1 text-[11px] text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8]">
+        Salvar
+      </button>
+    </div>
+  )
+}
 
 // ─── Tab: Perfil ──────────────────────────────────────────────────────────────
 
 function TabPerfil({ p }: { p: Profissional }) {
-  const [editingHorario, setEditingHorario] = useState(false)
-  const [editDays, setEditDays] = useState<number[]>(p.workDays ?? [])
-  const [editStart, setEditStart] = useState(p.workStart || '08:00')
-  const [editEnd, setEditEnd] = useState(p.workEnd || '18:00')
+  const [editingHorario,  setEditingHorario]  = useState(false)
+  const [editDays,        setEditDays]         = useState<number[]>(p.workDays ?? [])
+  const [editStart,       setEditStart]        = useState(p.workStart || '08:00')
+  const [editEnd,         setEditEnd]          = useState(p.workEnd   || '18:00')
+  const [editingDados,    setEditingDados]     = useState(false)
+  const [editName,        setEditName]         = useState(p.name)
+  const [editEmail,       setEditEmail]        = useState(p.email)
+  const [editPhone,       setEditPhone]        = useState(p.phone)
+  const [editingEspec,    setEditingEspec]     = useState(false)
+  const [editEspec,       setEditEspec]        = useState(p.specialties.join(', '))
+  const [editingComissao, setEditingComissao]  = useState(false)
+  const [editComissao,    setEditComissao]     = useState(String(p.commissionPct))
 
   useEffect(() => {
-    setEditDays(p.workDays ?? [])
-    setEditStart(p.workStart || '08:00')
-    setEditEnd(p.workEnd || '18:00')
+    setEditDays(p.workDays ?? []);  setEditStart(p.workStart || '08:00'); setEditEnd(p.workEnd || '18:00')
     setEditingHorario(false)
+    setEditName(p.name);            setEditEmail(p.email);                setEditPhone(p.phone)
+    setEditingDados(false)
+    setEditEspec(p.specialties.join(', '));                               setEditingEspec(false)
+    setEditComissao(String(p.commissionPct));                             setEditingComissao(false)
   }, [p.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function saveHorario() {
@@ -46,36 +71,75 @@ function TabPerfil({ p }: { p: Profissional }) {
     await profissionaisApi.update(p.id, { workDays: editDays, workStart: editStart, workEnd: editEnd })
     setEditingHorario(false)
   }
+  async function saveDados() {
+    if (!FEATURES.realProfissionais) { setEditingDados(false); return }
+    await profissionaisApi.update(p.id, { name: editName, email: editEmail, phone: editPhone })
+    setEditingDados(false)
+  }
+  async function saveEspec() {
+    if (!FEATURES.realProfissionais) { setEditingEspec(false); return }
+    const especialidades = editEspec.split(',').map(s => s.trim()).filter(Boolean)
+    await profissionaisApi.update(p.id, { specialty: especialidades[0] ?? '' })
+    setEditingEspec(false)
+  }
+  async function saveComissao() {
+    if (!FEATURES.realProfissionais) { setEditingComissao(false); return }
+    await profissionaisApi.update(p.id, { commissionPct: Number(editComissao) })
+    setEditingComissao(false)
+  }
 
-  const infoRows: [string, string][] = [
+  const viewRows: [string, string][] = [
     ['E-mail',          p.email || '—'],
     ['Telefone',        p.phone || '—'],
-    ['CPF',             p.cpf || '—'],
+    ['CPF',             p.cpf   || '—'],
     ['Nascimento',      p.birthDate ? `${formatDate(p.birthDate)} (${age(p.birthDate)} anos)` : '—'],
-    ['Contratação',     p.hireDate ? `${formatDate(p.hireDate)} · ${hireSince(p.hireDate)} no salão` : '—'],
+    ['Contratação',     p.hireDate  ? `${formatDate(p.hireDate)} · ${hireSince(p.hireDate)} no salão` : '—'],
     ['Tipo de vínculo', (p as unknown as { vinculo?: string }).vinculo ?? 'Não definido'],
   ]
 
-  const SVG_ARROW_SM = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
+  const dadosInputs = [
+    { label: 'Nome',     value: editName,  set: setEditName,  type: 'text'  },
+    { label: 'E-mail',   value: editEmail, set: setEditEmail, type: 'email' },
+    { label: 'Telefone', value: editPhone, set: setEditPhone, type: 'tel'   },
+  ]
 
   return (
     <div className="space-y-4">
-
-      {/* ZONA 1 — 2 colunas */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
         {/* Esquerda — Contato e dados */}
         <div>
-          <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Contato e dados</p>
-          <ul className="space-y-2.5">
-            {infoRows.map(([label, value]) => (
-              <li key={label} className="flex items-start gap-2">
-                <span className="mt-px min-w-[100px] shrink-0 text-[11px] text-[var(--color-text-tertiary)]">{label}</span>
-                <span className="text-[13px] font-medium text-[var(--color-text-primary)] break-words">{value}</span>
-              </li>
-            ))}
-          </ul>
-          {p.bio && (
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">Contato e dados</p>
+            {!editingDados && (
+              <button type="button" onClick={() => setEditingDados(true)}
+                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                Editar
+              </button>
+            )}
+          </div>
+          {!editingDados ? (
+            <ul className="space-y-2.5">
+              {viewRows.map(([label, value]) => (
+                <li key={label} className="flex items-start gap-2">
+                  <span className="mt-px min-w-[100px] shrink-0 text-[11px] text-[var(--color-text-tertiary)]">{label}</span>
+                  <span className="text-[13px] font-medium text-[var(--color-text-primary)] break-words">{value}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="space-y-2">
+              {dadosInputs.map(({ label, value, set, type }) => (
+                <div key={label}>
+                  <p className="text-[11px] text-[var(--color-text-tertiary)] mb-0.5">{label}</p>
+                  <input type={type} value={value} onChange={e => set(e.target.value)}
+                    className="w-full border border-[#E2E8F0] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[#2563EB]" />
+                </div>
+              ))}
+              <EditActions onCancel={() => setEditingDados(false)} onSave={() => void saveDados()} />
+            </div>
+          )}
+          {p.bio && !editingDados && (
             <div className="mt-4 rounded-lg bg-[#F8FAFC] px-3 py-2.5">
               <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{p.bio}</p>
             </div>
@@ -87,16 +151,12 @@ function TabPerfil({ p }: { p: Profissional }) {
           <div className="flex items-center justify-between mb-2">
             <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">Horário de trabalho</p>
             {!editingHorario && (
-              <button
-                type="button"
-                onClick={() => setEditingHorario(true)}
-                className="text-[11px] text-[var(--color-brand)] hover:underline focus-visible:outline-none"
-              >
+              <button type="button" onClick={() => setEditingHorario(true)}
+                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
                 Editar
               </button>
             )}
           </div>
-
           {!editingHorario ? (
             <table className="w-full text-[12px] mt-2">
               <thead>
@@ -115,9 +175,7 @@ function TabPerfil({ p }: { p: Profissional }) {
                       <td className="py-1.5 text-[var(--color-text-primary)]">
                         {ativo ? editStart : <span className="text-[var(--color-border-secondary)] text-[11px]">Folga</span>}
                       </td>
-                      <td className="py-1.5 text-[var(--color-text-primary)]">
-                        {ativo ? editEnd : ''}
-                      </td>
+                      <td className="py-1.5 text-[var(--color-text-primary)]">{ativo ? editEnd : ''}</td>
                     </tr>
                   )
                 })}
@@ -140,13 +198,9 @@ function TabPerfil({ p }: { p: Profissional }) {
                     return (
                       <tr key={i} className="border-b border-[#F8FAFC] last:border-0">
                         <td className="py-1.5">
-                          <input
-                            type="checkbox"
-                            checked={ativo}
+                          <input type="checkbox" checked={ativo}
                             onChange={() => setEditDays(prev =>
-                              prev.includes(i)
-                                ? prev.filter(x => x !== i)
-                                : [...prev, i].sort((a, b) => a - b)
+                              prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i].sort((a, b) => a - b)
                             )}
                             className="accent-[var(--color-brand)] w-3.5 h-3.5"
                           />
@@ -156,24 +210,18 @@ function TabPerfil({ p }: { p: Profissional }) {
                         </td>
                         <td className="py-1.5">
                           {ativo ? (
-                            <select
-                              value={editStart}
-                              onChange={e => setEditStart(e.target.value)}
+                            <select value={editStart} onChange={e => setEditStart(e.target.value)}
                               className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
-                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}
-                            >
+                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}>
                               {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                           ) : <span className="text-[var(--color-border-secondary)]">—</span>}
                         </td>
                         <td className="py-1.5">
                           {ativo ? (
-                            <select
-                              value={editEnd}
-                              onChange={e => setEditEnd(e.target.value)}
+                            <select value={editEnd} onChange={e => setEditEnd(e.target.value)}
                               className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
-                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}
-                            >
+                              style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}>
                               {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                           ) : <span className="text-[var(--color-border-secondary)]">—</span>}
@@ -184,18 +232,12 @@ function TabPerfil({ p }: { p: Profissional }) {
                 </tbody>
               </table>
               <div className="flex gap-2 justify-end mt-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingHorario(false)}
-                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]"
-                >
+                <button type="button" onClick={() => setEditingHorario(false)}
+                  className="px-3 py-1.5 text-[11px] text-[#475569] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]">
                   Cancelar
                 </button>
-                <button
-                  type="button"
-                  onClick={() => void saveHorario()}
-                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)]"
-                >
+                <button type="button" onClick={() => void saveHorario()}
+                  className="px-3 py-1.5 text-[11px] text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8]">
                   Salvar
                 </button>
               </div>
@@ -207,32 +249,68 @@ function TabPerfil({ p }: { p: Profissional }) {
       {/* ZONA 2 — Especialidades + Comissão */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
-          <p className="text-[11px] font-medium text-[var(--color-text-tertiary)] mb-2">Especialidade</p>
-          <div className="flex flex-wrap gap-1">
-            {p.specialties.length > 0
-              ? p.specialties.map(s => (
-                  <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">
-                    {s}
-                  </span>
-                ))
-              : <span className="text-[12px] text-[var(--color-text-tertiary)]">—</span>
-            }
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Especialidade</p>
+            {!editingEspec && (
+              <button type="button" onClick={() => setEditingEspec(true)}
+                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                Editar
+              </button>
+            )}
           </div>
+          {!editingEspec ? (
+            <div className="flex flex-wrap gap-1">
+              {p.specialties.length > 0
+                ? p.specialties.map(s => (
+                    <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">{s}</span>
+                  ))
+                : <span className="text-[12px] text-[var(--color-text-tertiary)]">—</span>
+              }
+            </div>
+          ) : (
+            <>
+              <input value={editEspec} onChange={e => setEditEspec(e.target.value)}
+                placeholder="Ex: Cabeleireiro, Colorista"
+                className="w-full border border-[#E2E8F0] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[#2563EB]" />
+              <p className="text-[10px] text-[#94A3B8] mt-1">Separe por vírgula</p>
+              <EditActions onCancel={() => setEditingEspec(false)} onSave={() => void saveEspec()} />
+            </>
+          )}
         </div>
 
         <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
-          <p className="text-[11px] font-medium text-[var(--color-text-tertiary)] mb-2">Comissão</p>
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-light)] text-[11px] font-bold text-[var(--color-brand)]">
-              {p.commissionPct}%
-            </span>
-            <div>
-              <p className="text-[13px] font-medium text-[var(--color-text-primary)]">{p.commissionPct}% sobre serviços</p>
-              <p className="text-[11px] text-[var(--color-text-tertiary)]">
-                Est. este mês: {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
-              </p>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Comissão</p>
+            {!editingComissao && (
+              <button type="button" onClick={() => setEditingComissao(true)}
+                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                Editar
+              </button>
+            )}
           </div>
+          {!editingComissao ? (
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-light)] text-[11px] font-bold text-[var(--color-brand)]">
+                {p.commissionPct}%
+              </span>
+              <div>
+                <p className="text-[13px] font-medium text-[var(--color-text-primary)]">{p.commissionPct}% sobre serviços</p>
+                <p className="text-[11px] text-[var(--color-text-tertiary)]">
+                  Est. este mês: {formatBRL((p.revenueThisMonth ?? 0) * Number(p.commissionPct ?? 0) / 100)}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mt-2">
+                <input type="number" min="0" max="100" value={editComissao}
+                  onChange={e => setEditComissao(e.target.value)}
+                  className="w-20 border border-[#E2E8F0] rounded-md px-2 py-1 text-[13px] text-center focus:outline-none focus:border-[#2563EB]" />
+                <span className="text-[13px] text-[#475569]">% sobre serviços</span>
+              </div>
+              <EditActions onCancel={() => setEditingComissao(false)} onSave={() => void saveComissao()} />
+            </>
+          )}
         </div>
       </div>
     </div>

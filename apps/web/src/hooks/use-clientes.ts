@@ -14,7 +14,10 @@ export function useClientes(params?: { search?: string }) {
     setLoading(true)
     setError(null)
     return clientesApi.list(params)
-      .then((res: unknown) => { setData((res as Cliente[]) ?? []) })
+      .then((res: unknown) => {
+        const list = Array.isArray(res) ? res : (Array.isArray((res as { data?: unknown }).data) ? (res as { data: Cliente[] }).data : [])
+        setData(list)
+      })
       .catch(() => { setError('Erro ao carregar clientes') })
       .finally(() => { setLoading(false) })
   }, [params?.search])
@@ -25,7 +28,12 @@ export function useClientes(params?: { search?: string }) {
     setLoading(true)
     setError(null)
     clientesApi.list(params)
-      .then((res: unknown) => { if (!cancelled) setData((res as Cliente[]) ?? []) })
+      .then((res: unknown) => {
+        if (!cancelled) {
+          const list = Array.isArray(res) ? res : (Array.isArray((res as { data?: unknown }).data) ? (res as { data: Cliente[] }).data : [])
+          setData(list)
+        }
+      })
       .catch(() => { if (!cancelled) setError('Erro ao carregar clientes') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }

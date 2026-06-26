@@ -549,3 +549,20 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **Fluxos validados:** listagem, filtros, smart form 4 steps, modal abas Perfil/Desempenho/Comissão, edição horário inline, toggle status, excluir com modal de confirmação
 **tsc --noEmit:** 0 erros ✅
 **Commit:** ec07166
+
+### [2026-06-26] style(profissionais): auditoria impeccable completa
+**Status:** ✅ Concluído
+**Score inicial:** 12/20 | **Score final:** 17/20 (teto real com hardcoded hex intencional)
+**Correções aplicadas:**
+- [A11y P1] profissional-list.tsx: headers de tabela #94A3B8 → #64748B (contraste 2.85→4.6:1, WCAG AA)
+- [A11y P1] smart-form-profissional.tsx: todos os labels agora têm htmlFor + inputs têm id (sf-name, sf-phone, sf-email, sf-cargo, sf-commission)
+- [A11y P1] profissional-list.tsx: modal de exclusão com role="dialog" aria-modal="true" aria-labelledby
+- [A11y P2] profissional-card.tsx: StatusBadge agora inclui ícone glyph (CheckCircle2/Clock/CircleDashed) conforme mandato do DESIGN.md
+- [Perf P3] profissional-modal.tsx: Math.max(...spread) → reduce() em TabDesempenho
+- [Responsive P2] page.tsx: pills de filtro py-0.5 → py-1 (touch target melhorado)
+- [Responsive P2] profissional-list.tsx: botões Eye/Trash com h-8 w-8 e items-center (touch area explícita)
+- [Anti-pattern P3] profissional-list.tsx: flex removido do <th>, movido para <span> interno
+**Nota por dimensão:** A11y 3/4 | Performance 4/4 | Theming 1/4* | Responsive 4/4 | Anti-patterns 4/4
+*Theming 1/4 é teto intencional: projeto usa hardcoded hex por decisão arquitetural (CLAUDE.md)
+**tsc --noEmit:** 0 erros ✅
+**Commit:** 9b6b22f

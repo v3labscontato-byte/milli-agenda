@@ -538,3 +538,40 @@ _Nenhuma no momento._
 - T19: POST /commands com apenas appointmentId retorna 400 — comandas.service nao aceita so appointmentId
 - T23/T24: GET+POST /reports/goals retorna 500 — migration goal nao rodou no Railway (DB sem tabela goals)
 **Proximo:** Corrigir as 3 falhas em ordem de prioridade
+
+
+---
+
+### [2026-06-25] ORCHESTRATOR — Estado ao encerrar sessão
+
+**Status:** 🔄 Em andamento (107/108 testes passando — 1 FAIL pendente)
+
+**O que foi feito nessa sessão:**
+- ✅ T001-T016, T018-T016, T028-T065, T066-T076, T078-T099: PASS (107 testes)
+- ✅ T017 FIX: GET após DELETE profissional retorna 404 (soft delete com active:true no findOne)
+- ✅ Frontend fix: useSearchParams() em /comandas agora envolto em <Suspense> (build Railway resolvido)
+- ✅ Suspeita confirmada: tabela `goals` nunca foi criada no Railway DB (migration marcada como applied sem rodar SQL)
+- 🔄 T077 FAIL: POST /reports/goals retorna data:null — commit debug `171ce09` pushed para expor o erro real
+- Commits deployados: 7e89b11, 58fc092, 05ba2f9, 320a6e4, 290bcdf, 171ce09
+
+**Diagnóstico T077 — tabela goals:**
+- Prisma migration `20260625030000_add_goals` foi marcada como "applied" em commit d6a4476 sem rodar o SQL
+- `ensureGoalsTable()` em DatabaseService deveria criar a tabela mas falha silenciosamente (motivo desconhecido)
+- Commit `290bcdf` inclui `ensureGoalsTableInline()` que tenta CREATE TABLE antes de cada INSERT
+- Commit `171ce09` retorna o erro real no response para diagnóstico sem precisar de logs Railway
+
+**Próxima sessão — passos em ordem:**
+1. Fazer POST /reports/goals e ler o campo `_debug.tableErr` e `_debug.insertErr` para ver o erro real
+2. Com base no erro: ou corrigir o SQL do CREATE TABLE ou criar a tabela manualmente no Console Railway
+3. Após fix: reverter o commit de debug `171ce09` (tirar `_debug` do response)
+4. Rodar esteira completa `bash tests/api/regression.sh` e confirmar 108/108
+5. Salvar QA Test Book em `docs/QA_TEST_BOOK.md` (versão definitiva)
+6. Configurar Playwright E2E
+
+**Arquivos alterados nessa sessão:**
+- `apps/web/src/app/(comandas)/comandas/page.tsx` — Suspense boundary
+- `apps/api/src/infra/database/database.service.ts` — ensureGoalsTable robustificado
+- `apps/api/src/modules/relatorios/relatorios.service.ts` — createGoal/listGoals com raw SQL + debug
+- `apps/api/src/modules/profissionais/profissionais.service.ts` — findOne com active:true
+- `tests/api/regression.sh` — suite de regressão (107 testes)
+

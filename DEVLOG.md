@@ -511,3 +511,14 @@ Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
 - Backend: soft delete verifica agendamentos futuros; lança 409 ConflictException se houver
 - Frontend: handleDelete detecta status 409 via duck-typing e exibe mensagem específica
 **tsc --noEmit:** 0 erros ✅ (frontend + backend)
+
+### [2026-06-26] fix(profissionais): remover aba Agenda + horário no Perfil
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx
+**Fixes:**
+- Aba "Agenda" removida: type Tab, TABS array, TabAgenda function, render line
+- Imports limpos: Calendar e CreditCard removidos (não usados)
+- Aba Perfil já possuía seção "Horário de trabalho" com workDaysLabel — mantida
+- Abas Perfil | Desempenho | Comissão preservadas
+**tsc --noEmit:** 0 erros ✅
+**Commit:** d0a7ad5

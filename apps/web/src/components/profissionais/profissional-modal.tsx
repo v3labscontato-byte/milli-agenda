@@ -44,7 +44,7 @@ function EditActions({ onCancel, onSave }: { onCancel: () => void; onSave: () =>
 
 // ─── Tab: Perfil ──────────────────────────────────────────────────────────────
 
-function TabPerfil({ p }: { p: Profissional }) {
+function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) {
   const [editingHorario,  setEditingHorario]  = useState(false)
   const [editDays,        setEditDays]         = useState<number[]>(p.workDays ?? [])
   const [editStart,       setEditStart]        = useState(p.workStart || '08:00')
@@ -87,6 +87,7 @@ function TabPerfil({ p }: { p: Profissional }) {
     if (!FEATURES.realProfissionais) { setEditingHorario(false); return }
     await profissionaisApi.update(p.id, { workDays: editDays, workStart: editStart, workEnd: editEnd })
     setEditingHorario(false)
+    onUpdate?.()
   }
   async function saveDados() {
     if (!FEATURES.realProfissionais) { setEditingDados(false); return }
@@ -95,16 +96,19 @@ function TabPerfil({ p }: { p: Profissional }) {
       cpf: editCpf, birthDate: editBirth || null, vinculo: editVinculo || null,
     })
     setEditingDados(false)
+    onUpdate?.()
   }
   async function saveEspec() {
     if (!FEATURES.realProfissionais) { setEditingEspec(false); return }
     await profissionaisApi.update(p.id, { specialty: editEspec })
     setEditingEspec(false)
+    onUpdate?.()
   }
   async function saveComissao() {
     if (!FEATURES.realProfissionais) { setEditingComissao(false); return }
     await profissionaisApi.update(p.id, { commissionPct: Number(editComissao) })
     setEditingComissao(false)
+    onUpdate?.()
   }
 
   const viewRows: [string, string][] = [
@@ -477,9 +481,10 @@ function TabComissao({ p }: { p: Profissional }) {
 interface ProfissionalModalProps {
   profissional: Profissional | null
   onClose: () => void
+  onUpdate?: () => void
 }
 
-export default function ProfissionalModal({ profissional, onClose }: ProfissionalModalProps) {
+export default function ProfissionalModal({ profissional, onClose, onUpdate }: ProfissionalModalProps) {
   const [tab, setTab] = useState<Tab>('perfil')
 
   useEffect(() => {
@@ -563,7 +568,7 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-          {tab === 'perfil'     && <TabPerfil      p={p} />}
+          {tab === 'perfil'     && <TabPerfil      p={p} onUpdate={onUpdate} />}
           {tab === 'desempenho' && <TabDesempenho  p={p} />}
           {tab === 'comissao'   && <TabComissao    p={p} />}
         </div>

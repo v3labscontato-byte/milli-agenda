@@ -239,7 +239,9 @@ export class RelatoriosService {
           dataFim: new Date(dto.dataFim),
         },
       })
-    } catch {
+    } catch (err: unknown) {
+      const e = err as { message?: string; code?: string; meta?: unknown }
+      console.error('GOAL_CREATE_ERR', JSON.stringify({ msg: e?.message, code: e?.code, meta: e?.meta }))
       return null
     }
   }

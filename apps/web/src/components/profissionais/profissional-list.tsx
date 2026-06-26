@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo, useState } from 'react'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL } from '@/lib/profissionais-mock'
@@ -25,11 +25,14 @@ interface Props {
   isFiltered?: boolean
   onView: (p: Profissional) => void
   onNovo?: () => void
+  onToggleStatus?: (id: string, active: boolean) => Promise<void>
+  onDelete?: (id: string) => Promise<void>
 }
 
-function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }: Props) {
+function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, onToggleStatus, onDelete }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   function handleSort(k: SortKey) {
     if (k === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -92,7 +95,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
               <SortIcon col="name" active={sortKey} dir={sortDir} />
             </th>
             <th scope="col" className={TH}>Status</th>
-            <th scope="col" className={cn(TH, 'text-right')}>Hoje</th>
+            <th scope="col" className={TH}>Especialidade</th>
             <th
               scope="col"
               className={cn(TH_SORT, 'text-right')}
@@ -123,7 +126,7 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
                 Avaliação <SortIcon col="rating" active={sortKey} dir={sortDir} />
               </span>
             </th>
-            <th scope="col" className={cn(TH, 'w-16')}>Detalhes</th>
+            <th scope="col" className={cn(TH, 'whitespace-nowrap')}>Detalhes</th>
           </tr>
         </thead>
 
@@ -146,18 +149,25 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
 
               {/* Status */}
               <td className="px-4 py-3">
-                <StatusBadge status={p.status} />
+                {onToggleStatus ? (
+                  <button
+                    type="button"
+                    onClick={() => void onToggleStatus(p.id, p.status !== 'active')}
+                    aria-label={`Alternar status de ${p.name}`}
+                    className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded-full"
+                  >
+                    <StatusBadge status={p.status} />
+                  </button>
+                ) : (
+                  <StatusBadge status={p.status} />
+                )}
               </td>
 
-              {/* Hoje */}
-              <td className="px-4 py-3 text-right font-tabular font-medium text-[#0F172A]">
-                {p.appointmentsToday > 0 ? (
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#EFF6FF] text-[11px] font-semibold text-[#2563EB]">
-                    {p.appointmentsToday}
-                  </span>
-                ) : (
-                  <span className="text-[#CBD5E1]">—</span>
-                )}
+              {/* Especialidade */}
+              <td className="px-4 py-3">
+                <span className="text-[13px] text-[#475569]">
+                  {p.role || '—'}
+                </span>
               </td>
 
               {/* Agendamentos mês */}
@@ -180,15 +190,47 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo }:
               </td>
 
               {/* Detalhes */}
-              <td className="px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => onView(p)}
-                  aria-label={`Ver perfil de ${p.name}`}
-                  className="text-[#94A3B8] hover:text-[#2563EB] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
-                >
-                  <Eye size={16} aria-hidden="true" />
-                </button>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onView(p)}
+                    aria-label={`Ver perfil de ${p.name}`}
+                    className="text-[#94A3B8] hover:text-[#2563EB] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                  >
+                    <Eye size={16} aria-hidden="true" />
+                  </button>
+                  {onDelete && (
+                    confirmDelete === p.id ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-[#DC2626]">Excluir?</span>
+                        <button
+                          type="button"
+                          onClick={() => { void onDelete(p.id); setConfirmDelete(null) }}
+                          className="text-[11px] text-[#DC2626] font-medium hover:underline focus-visible:outline-none"
+                        >
+                          Sim
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(null)}
+                          className="text-[11px] text-[#64748B] hover:underline focus-visible:outline-none"
+                        >
+                          Não
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(p.id)}
+                        aria-label={`Excluir ${p.name}`}
+                        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                      >
+                        <Trash2 size={14} className="text-[#94A3B8] hover:text-[#DC2626] transition-colors" />
+                      </button>
+                    )
+                  )}
+                </div>
               </td>
             </tr>
           ))}

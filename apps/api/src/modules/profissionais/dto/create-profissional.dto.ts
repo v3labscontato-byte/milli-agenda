@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, Min, Max } from 'class-validator'
+import { IsString, IsOptional, IsNumber, IsBoolean, Min, Max } from 'class-validator'
 
 export class CreateProfissionalDto {
   @IsString()
@@ -21,4 +21,8 @@ export class CreateProfissionalDto {
   @Min(0)
   @Max(100)
   commissionPct?: number
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean
 }

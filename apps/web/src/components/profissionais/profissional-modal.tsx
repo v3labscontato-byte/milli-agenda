@@ -55,7 +55,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
   const [editPhone,       setEditPhone]        = useState(p.phone)
   const [editCpf,         setEditCpf]          = useState(p.cpf ?? '')
   const [editBirth,       setEditBirth]        = useState(p.birthDate ?? '')
-  const [editVinculo,     setEditVinculo]      = useState((p as unknown as { vinculo?: string }).vinculo ?? '')
+  const [editVinculo,     setEditVinculo]      = useState(p.vinculo ?? '')
   const [editingEspec,    setEditingEspec]     = useState(false)
   const [editEspec,       setEditEspec]        = useState(p.specialties.join(', '))
   const [editingComissao, setEditingComissao]  = useState(false)
@@ -77,7 +77,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
     setEditingHorario(false)
     setEditName(p.name);            setEditEmail(p.email);                setEditPhone(p.phone)
     setEditCpf(p.cpf ?? '');       setEditBirth(p.birthDate ?? '')
-    setEditVinculo((p as unknown as { vinculo?: string }).vinculo ?? '')
+    setEditVinculo(p.vinculo ?? '')
     setEditingDados(false)
     setEditEspec(p.specialties.join(', '));                               setEditingEspec(false)
     setEditComissao(String(p.commissionPct));                             setEditingComissao(false)
@@ -117,7 +117,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
     ['CPF',             p.cpf   || '—'],
     ['Nascimento',      p.birthDate ? `${formatDate(p.birthDate)} (${age(p.birthDate)} anos)` : '—'],
     ['Contratação',     p.hireDate  ? `${formatDate(p.hireDate)} · ${hireSince(p.hireDate)} no salão` : '—'],
-    ['Tipo de vínculo', (p as unknown as { vinculo?: string }).vinculo ?? 'Não definido'],
+    ['Tipo de vínculo', p.vinculo || 'Não definido'],
   ]
 
   const dadosInputs = [

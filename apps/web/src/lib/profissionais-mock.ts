@@ -31,6 +31,7 @@ export interface Profissional {
   phone: string
   cpf: string
   birthDate: string   // YYYY-MM-DD
+  vinculo?: string
   hireDate: string    // YYYY-MM-DD
   status: ProfissionalStatus
   bio: string

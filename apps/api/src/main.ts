@@ -8,17 +8,36 @@ import { join } from 'path'
 process.on('uncaughtException', (err) => { console.error('UNCAUGHT EXCEPTION:', err); process.exit(1) })
 process.on('unhandledRejection', (err) => { console.error('UNHANDLED REJECTION:', err); process.exit(1) })
 
+const MIGRATIONS = [
+  '20260625000000_init',
+  '20260625010000_add_password_reset_token',
+  '20260625020000_add_onboarding_models',
+  '20260625030000_add_goals',
+]
+
 function runMigrations(): Promise<void> {
-  return new Promise((resolve) => {
-    const schemaPath = join(__dirname, '..', '..', '..', 'packages', 'database', 'prisma', 'schema.prisma')
-    const prismaBin = join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'prisma')
-    execFile(prismaBin, ['migrate', 'deploy', '--schema', schemaPath], { timeout: 30_000 }, (err, stdout, stderr) => {
-      if (err) console.warn('Migration skipped or failed (app continues):', err.message)
-      else console.log('Migrations applied:', stdout || 'OK')
-      if (stderr) console.warn('Migration stderr:', stderr)
-      resolve()
-    })
+  const schemaPath = join(__dirname, '..', '..', '..', 'packages', 'database', 'prisma', 'schema.prisma')
+  const prismaBin = join(__dirname, '..', '..', '..', 'node_modules', '.bin', 'prisma')
+
+  const resolve_applied = (name: string) => new Promise<void>((res) => {
+    execFile(prismaBin, ['migrate', 'resolve', '--applied', name, '--schema', schemaPath],
+      { timeout: 15_000 }, () => res())
   })
+
+  const deploy = () => new Promise<void>((res) => {
+    execFile(prismaBin, ['migrate', 'deploy', '--schema', schemaPath],
+      { timeout: 30_000 }, (err, stdout, stderr) => {
+        if (err) console.warn('migrate deploy:', err.message.slice(0, 200))
+        else console.log('Migrations:', stdout?.trim() || 'up to date')
+        if (stderr) console.warn(stderr.slice(0, 200))
+        res()
+      })
+  })
+
+  return (async () => {
+    for (const m of MIGRATIONS) await resolve_applied(m)
+    await deploy()
+  })()
 }
 
 async function bootstrap() {

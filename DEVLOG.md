@@ -566,3 +566,13 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 *Theming 1/4 é teto intencional: projeto usa hardcoded hex por decisão arquitetural (CLAUDE.md)
 **tsc --noEmit:** 0 erros ✅
 **Commit:** 9b6b22f
+
+### [2026-06-26] feat(profissionais): tabela horários no perfil + fix birthDate
+**Status:** ✅ Concluído
+**Alterações:**
+- profissional-modal.tsx: TabPerfil reescrita com novo layout 2 colunas
+  - Esquerda: Contato e dados (email, telefone, CPF, nascimento, contratação, tipo de vínculo)
+  - Direita: Tabela de horários por dia (Seg–Dom) com coluna Folga/horário, modo edição com checkboxes e selects
+  - Rodapé: grid-cols-2 com Especialidade (badges) + Comissão (ícone circular)
+- profissionais-mock.ts: formatDate e age agora aceitam string | undefined | null (guard para dados ausentes)
+**tsc --noEmit:** 0 erros ✅

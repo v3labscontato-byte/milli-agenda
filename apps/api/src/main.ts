@@ -8,11 +8,13 @@ import { join } from 'path'
 process.on('uncaughtException', (err) => { console.error('UNCAUGHT EXCEPTION:', err); process.exit(1) })
 process.on('unhandledRejection', (err) => { console.error('UNHANDLED REJECTION:', err); process.exit(1) })
 
-const MIGRATIONS = [
+// Migrations that were already applied via prisma db push (not via migrate).
+// We mark them as --applied so Prisma doesn't try to re-run them,
+// then migrate deploy only runs NEW pending migrations (e.g. add_goals).
+const ALREADY_APPLIED_MIGRATIONS = [
   '20260625000000_init',
   '20260625010000_add_password_reset_token',
   '20260625020000_add_onboarding_models',
-  '20260625030000_add_goals',
 ]
 
 function runMigrations(): Promise<void> {
@@ -35,7 +37,7 @@ function runMigrations(): Promise<void> {
   })
 
   return (async () => {
-    for (const m of MIGRATIONS) await resolve_applied(m)
+    for (const m of ALREADY_APPLIED_MIGRATIONS) await resolve_applied(m)
     await deploy()
   })()
 }

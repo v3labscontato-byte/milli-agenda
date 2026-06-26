@@ -56,8 +56,8 @@ ProfessionalRole, ServiceCategory, Goal
 2. SEMPRE criar migration manual (SQL puro) para mudanças de schema
 3. SEMPRE npx tsc --noEmit → 0 erros
 4. SEMPRE >> DEVLOG.md
-5. SEMPRE git push origin main
+5. SEMPRE git checkout homolog && git merge main && git push origin homolog && git checkout main
 
 ## PASSO FINAL OBRIGATÓRIO
 npx tsc --noEmit → 0 erros (ou npx tsc -p apps/api/tsconfig.json --noEmit)
-git add [arquivos] DEVLOG.md && git commit -m "tipo(infra): desc" && git push origin main
+git add [arquivos] DEVLOG.md && git commit -m "tipo(infra): desc" && git checkout homolog && git merge main && git push origin homolog && git checkout main

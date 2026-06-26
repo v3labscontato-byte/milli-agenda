@@ -53,7 +53,7 @@ Base: process.env.NEXT_PUBLIC_API_URL + /api/v1
 1. NUNCA editar arquivos fora do meu escopo
 2. SEMPRE npx tsc --noEmit → 0 erros antes de commitar
 3. SEMPRE atualizar DEVLOG.md com >> após concluir
-4. SEMPRE git push origin main após commitar
+4. SEMPRE git checkout homolog && git merge main && git push origin homolog && git checkout main após commitar
 
 ## PASSO FINAL OBRIGATÓRIO
 Após concluir qualquer tarefa:
@@ -61,4 +61,4 @@ Após concluir qualquer tarefa:
 2. Append ao DEVLOG com >> (nunca sobrescrever)
 3. git add [arquivos editados] DEVLOG.md
 4. git commit -m "tipo(auth): descrição"
-5. git push origin main
+5. git checkout homolog && git merge main && git push origin homolog && git checkout main

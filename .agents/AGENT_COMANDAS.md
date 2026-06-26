@@ -47,8 +47,8 @@ cat DEVLOG.md | tail -100
 1. NUNCA editar fora do escopo
 2. SEMPRE npx tsc --noEmit → 0 erros
 3. SEMPRE >> DEVLOG.md
-4. SEMPRE git push origin main
+4. SEMPRE git checkout homolog && git merge main && git push origin homolog && git checkout main
 
 ## PASSO FINAL OBRIGATÓRIO
 npx tsc --noEmit → 0 erros
-git add [arquivos] DEVLOG.md && git commit -m "tipo(comandas): desc" && git push origin main
+git add [arquivos] DEVLOG.md && git commit -m "tipo(comandas): desc" && git checkout homolog && git merge main && git push origin homolog && git checkout main

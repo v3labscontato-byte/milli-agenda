@@ -9,9 +9,19 @@ Monorepo Turborepo com Next.js 14 (frontend) + NestJS (backend).
 1. SEMPRE ler DEVLOG.md antes de qualquer tarefa
 2. SEMPRE atualizar DEVLOG.md após concluir qualquer tarefa
 3. SEMPRE rodar npx tsc --noEmit antes de commitar
-4. SEMPRE fazer push para main (único ambiente = produção)
-5. NUNCA editar arquivos fora do escopo do agente ativo
-6. NUNCA adicionar Co-Authored-By em commits
+4. DEPLOY: commitar em main local, depois `git checkout homolog && git merge main && git push origin homolog && git checkout main`
+5. NUNCA fazer push direto para main sem aprovação explícita do usuário
+6. NUNCA editar arquivos fora do escopo do agente ativo
+7. NUNCA adicionar Co-Authored-By em commits
+
+## FLUXO DE DEPLOY
+- **Homolog** (staging): recebe todo código novo via merge de main
+- **Main** (produção): push só com aprovação explícita ("pode subir em produção")
+- Fluxo padrão ao final de cada tarefa:
+  ```
+  git add <arquivos> && git commit -m "..."
+  git checkout homolog && git merge main && git push origin homolog && git checkout main
+  ```
 
 ## PRODUTO
 SaaS multi-tenant de gestão de salões de beleza.

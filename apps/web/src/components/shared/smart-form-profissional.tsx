@@ -164,8 +164,9 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 <p className="mt-0.5 text-[13px] text-[#64748B]">Informações básicas do profissional</p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Nome completo *</label>
+                <label htmlFor="sf-name" className="text-[12px] font-medium text-[#475569]">Nome completo *</label>
                 <input
+                  id="sf-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -175,8 +176,9 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Telefone / WhatsApp</label>
+                <label htmlFor="sf-phone" className="text-[12px] font-medium text-[#475569]">Telefone / WhatsApp</label>
                 <input
+                  id="sf-phone"
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -185,8 +187,9 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">E-mail</label>
+                <label htmlFor="sf-email" className="text-[12px] font-medium text-[#475569]">E-mail</label>
                 <input
+                  id="sf-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -205,9 +208,10 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 <p className="mt-0.5 text-[13px] text-[#64748B]">Defina o cargo e os dias de atendimento</p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Cargo *</label>
+                <label htmlFor="sf-cargo" className="text-[12px] font-medium text-[#475569]">Cargo *</label>
                 {roles.length > 0 ? (
                   <select
+                    id="sf-cargo"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
                     className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
@@ -217,6 +221,7 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                   </select>
                 ) : (
                   <input
+                    id="sf-cargo"
                     type="text"
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
@@ -355,9 +360,10 @@ export default function SmartFormProfissional({ open, onClose, onCreated }: Smar
                 <p className="mt-0.5 text-[13px] text-[#64748B]">Como este profissional será remunerado?</p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-[#475569]">Percentual de comissão</label>
+                <label htmlFor="sf-commission" className="text-[12px] font-medium text-[#475569]">Percentual de comissão</label>
                 <div className="flex items-center gap-2">
                   <input
+                    id="sf-commission"
                     type="number"
                     min="0"
                     max="100"

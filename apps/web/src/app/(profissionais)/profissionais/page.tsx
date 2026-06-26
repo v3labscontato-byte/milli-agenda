@@ -216,7 +216,7 @@ export default function ProfissionaisPage() {
               <button key={label} type="button" onClick={() => setRoleFilter(value === roleFilter ? null : value)}
                 aria-pressed={roleFilter === value}
                 className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
+                  'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                   roleFilter === value
                     ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
@@ -233,7 +233,7 @@ export default function ProfissionaisPage() {
               <button key={label} type="button" onClick={() => setStatusFilter(statusFilter === value ? null : value)}
                 aria-pressed={statusFilter === value}
                 className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
+                  'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                   statusFilter === value
                     ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ProfissionalRole, ProfissionalStatus } from '@/lib/profissionais-mock'
+import { CheckCircle2, Clock, CircleDashed } from 'lucide-react'
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
 
@@ -116,6 +117,12 @@ export function SpecialtyBadge({ specialty }: { specialty: string | null | undef
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
+const STATUS_ICONS: Record<ProfissionalStatus, typeof CheckCircle2> = {
+  active:   CheckCircle2,
+  vacation: Clock,
+  inactive: CircleDashed,
+}
+
 export const STATUS_STYLES: Record<ProfissionalStatus, { bg: string; text: string; label: string }> = {
   active:   { bg: '#F0FDF4', text: '#166534', label: 'Ativo'    },
   vacation: { bg: '#FEF3C7', text: '#B45309', label: 'Férias'   },
@@ -124,11 +131,13 @@ export const STATUS_STYLES: Record<ProfissionalStatus, { bg: string; text: strin
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {
   const s = STATUS_STYLES[status as ProfissionalStatus] ?? { bg: '#F1F5F9', text: '#64748B', label: status ?? 'Inativo' }
+  const Icon = STATUS_ICONS[status as ProfissionalStatus] ?? CircleDashed
   return (
     <span
-      className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
       style={{ backgroundColor: s.bg, color: s.text }}
     >
+      <Icon size={10} aria-hidden="true" />
       {s.label}
     </span>
   )

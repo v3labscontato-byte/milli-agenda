@@ -212,7 +212,7 @@ function TabPerfil({ p }: { p: Profissional }) {
 // ─── Tab: Desempenho ──────────────────────────────────────────────────────────
 
 function TabDesempenho({ p }: { p: Profissional }) {
-  const maxRev = Math.max(...p.monthlyData.map((m) => m.revenue), 1)
+  const maxRev = p.monthlyData.reduce((max, m) => Math.max(max, m.revenue), 1)
   const kpis = [
     { label: 'Total de visitas',   value: p.appointmentsTotal.toString() },
     { label: 'Faturamento total',  value: formatBRL(p.revenueTotal) },

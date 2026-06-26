@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, type MouseEvent } from 'react'
 import { addDays, format, isToday as dfIsToday, getDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { CALENDAR_PROFESSIONALS, type CalendarAppointment, type CalendarProfessional } from '@/lib/calendar-utils'
 import { FEATURES } from '@/lib/features'
 
-// ─── Work schedule (0=Sun … 6=Sat) ──────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const WORK_DAYS: Record<string, ReadonlySet<number>> = {
   lisa: new Set([1, 2, 3, 4, 5]),
@@ -20,7 +20,9 @@ const CAPACITY: Record<string, number> = {
   lisa: 10, joao: 12, ana: 10, lena: 8,
 }
 
-// ─── Mock availability (deterministic by prof + date) ────────────────────────
+const TOOLTIP_HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']
+
+// ─── Availability ────────────────────────────────────────────────────────────
 
 type DayState = 'folga' | 'esgotado' | 'disponivel'
 
@@ -38,7 +40,6 @@ function getMockAvailability(profId: string, date: Date): DayAvailability {
     return { state: 'folga', booked: 0, total }
   }
 
-  // Deterministic: prof initial code × date fields → 0-9
   const seed = ((date.getDate() * 7 + dow) * ((profId.charCodeAt(0) % 5) + 1)) % 10
 
   if (seed < 3) return { state: 'esgotado', booked: total, total }
@@ -66,9 +67,11 @@ interface DayCellProps {
   avail: DayAvailability
   onClick?: () => void
   isPast?: boolean
+  onMouseEnter?: (e: MouseEvent<HTMLTableCellElement>) => void
+  onMouseLeave?: (e: MouseEvent<HTMLTableCellElement>) => void
 }
 
-function DayCell({ avail, onClick, isPast }: DayCellProps) {
+function DayCell({ avail, onClick, isPast, onMouseEnter, onMouseLeave }: DayCellProps) {
   const { state, booked, total } = avail
   const pct = total > 0 ? Math.round((booked / total) * 100) : 0
 
@@ -77,8 +80,7 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
       <td
         className="relative border-b border-r border-[#F1F5F9] px-3 py-3 text-center align-middle"
         style={{
-          background:
-            'repeating-linear-gradient(-45deg,#F8FAFC,#F8FAFC 4px,#F1F5F9 4px,#F1F5F9 8px)',
+          background: 'repeating-linear-gradient(-45deg,#F8FAFC,#F8FAFC 4px,#F1F5F9 4px,#F1F5F9 8px)',
           cursor: 'not-allowed',
         }}
         aria-label="Folga"
@@ -90,7 +92,11 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
 
   if (state === 'esgotado') {
     return (
-      <td className="relative border-b border-r border-[#FEE2E2] bg-[#FEF2F2] align-top">
+      <td
+        className="relative border-b border-r border-[#FEE2E2] bg-[#FEF2F2] align-top"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
         <button
           type="button"
           onClick={onClick}
@@ -105,13 +111,16 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
     )
   }
 
-  // disponivel
   const free = total - booked
   const color = occupancyColor(pct)
 
   if (isPast) {
     return (
-      <td className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top transition-colors hover:bg-[#F1F5F9]">
+      <td
+        className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top transition-colors hover:bg-[#F1F5F9]"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
         <button
           type="button"
           onClick={onClick}
@@ -129,7 +138,11 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
   }
 
   return (
-    <td className="relative border-b border-r border-[#F1F5F9] bg-white align-top transition-colors hover:bg-[#EFF6FF]">
+    <td
+      className="relative border-b border-r border-[#F1F5F9] bg-white align-top transition-colors hover:bg-[#EFF6FF]"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <button
         type="button"
         onClick={onClick}
@@ -156,6 +169,61 @@ function DayCell({ avail, onClick, isPast }: DayCellProps) {
   )
 }
 
+// ─── Tooltip ──────────────────────────────────────────────────────────────────
+
+interface TooltipState {
+  profName: string
+  date: string
+  appts: CalendarAppointment[]
+  x: number
+  y: number
+}
+
+function formatTooltipDate(dateStr: string): string {
+  const [, m, d] = dateStr.split('-')
+  return `${d}/${m}`
+}
+
+function DayTooltip({ tooltip, onMouseLeave }: { tooltip: TooltipState; onMouseLeave: () => void }) {
+  return (
+    <div
+      className="fixed z-50 min-w-[280px] rounded-xl border border-[#E2E8F0] bg-white p-3 shadow-xl"
+      style={{ left: tooltip.x, top: tooltip.y + 6 }}
+      onMouseLeave={onMouseLeave}
+    >
+      <p className="mb-2 text-[12px] font-semibold text-[#0F172A]">
+        {tooltip.profName} · {formatTooltipDate(tooltip.date)}
+      </p>
+      <table className="w-full text-[11px]">
+        <thead>
+          <tr className="border-b border-[#F1F5F9]">
+            <th className="w-12 pb-1 text-left font-medium text-[#94A3B8]">Hora</th>
+            <th className="pb-1 text-left font-medium text-[#94A3B8]">Cliente</th>
+            <th className="pb-1 text-left font-medium text-[#94A3B8]">Serviço</th>
+          </tr>
+        </thead>
+        <tbody>
+          {TOOLTIP_HOURS.map((hour) => {
+            const appt = tooltip.appts.find((a) => a.startTime.startsWith(hour.slice(0, 2)))
+            return (
+              <tr key={hour} className="border-b border-[#F8FAFC] last:border-0">
+                <td className="py-0.5 font-tabular text-[#94A3B8]">{hour}</td>
+                <td className="py-0.5">
+                  {appt
+                    ? <span className="font-medium text-[#0F172A]">{appt.client}</span>
+                    : <span className="text-[#CBD5E1]">Livre</span>
+                  }
+                </td>
+                <td className="py-0.5 text-[#475569]">{appt?.service ?? ''}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export interface WeeklyOverviewProps {
@@ -167,6 +235,8 @@ export interface WeeklyOverviewProps {
 
 export default function WeeklyOverview({ weekStart, onDaySelect, professionals, appointments }: WeeklyOverviewProps) {
   const [selectedProfs, setSelectedProfs] = useState<Set<string>>(new Set())
+  const [tooltip, setTooltip]             = useState<TooltipState | null>(null)
+
   const allProfs = FEATURES.realAgenda ? professionals : CALENDAR_PROFESSIONALS
 
   const weekDays = useMemo(
@@ -237,11 +307,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                 active ? 'border-transparent text-white' : 'border-[#E2E8F0] hover:border-current',
               )}
-              style={
-                active
-                  ? { backgroundColor: prof.color, borderColor: prof.color }
-                  : { color: prof.color }
-              }
+              style={active ? { backgroundColor: prof.color, borderColor: prof.color } : { color: prof.color }}
             >
               <span
                 className="h-2 w-2 rounded-full"
@@ -268,7 +334,6 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
         >
           <thead className="sticky top-0 z-20">
             <tr>
-              {/* Corner */}
               <th
                 scope="col"
                 className="sticky left-0 z-30 w-[180px] border-b border-r border-[#E2E8F0] bg-white px-4 py-3 text-left font-normal"
@@ -290,20 +355,10 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                       isT ? 'bg-[#EFF6FF]' : wknd ? 'bg-[#F8FAFC]' : 'bg-white',
                     )}
                   >
-                    <p
-                      className={cn(
-                        'text-[11px] uppercase tracking-[0.06em]',
-                        isT ? 'font-semibold text-[#2563EB]' : 'text-[#475569]',
-                      )}
-                    >
+                    <p className={cn('text-[11px] uppercase tracking-[0.06em]', isT ? 'font-semibold text-[#2563EB]' : 'text-[#475569]')}>
                       {format(day, 'EEE', { locale: ptBR })}
                     </p>
-                    <p
-                      className={cn(
-                        'font-tabular text-[13px]',
-                        isT ? 'font-bold text-[#2563EB]' : 'font-medium text-[#0F172A]',
-                      )}
-                    >
+                    <p className={cn('font-tabular text-[13px]', isT ? 'font-bold text-[#2563EB]' : 'font-medium text-[#0F172A]')}>
                       {format(day, 'dd/MM')}
                     </p>
                   </th>
@@ -315,7 +370,6 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
           <tbody>
             {visibleProfs.map((prof) => (
               <tr key={prof.id}>
-                {/* Professional sticky cell */}
                 <td className="sticky left-0 z-10 w-[180px] border-b border-r border-[#E2E8F0] bg-white px-4 py-3">
                   <div className="flex items-center gap-2.5">
                     <span
@@ -333,14 +387,28 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                 </td>
 
                 {weekDays.map((day) => {
+                  const dateStr = format(day, 'yyyy-MM-dd')
                   const avail = FEATURES.realAgenda
                     ? getRealAvailability(prof.id, day, appointments)
                     : getMockAvailability(prof.id, day)
+                  const dayAppts = appointments.filter(
+                    (a) => a.professionalId === prof.id && a.date === dateStr,
+                  )
+
+                  const handleMouseEnter = avail.state !== 'folga'
+                    ? (e: MouseEvent<HTMLTableCellElement>) => {
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setTooltip({ profName: prof.name, date: dateStr, appts: dayAppts, x: rect.left, y: rect.bottom })
+                      }
+                    : undefined
+
                   return (
                     <DayCell
                       key={day.toISOString()}
                       avail={avail}
                       isPast={day < todayStart}
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={avail.state !== 'folga' ? () => setTooltip(null) : undefined}
                       onClick={
                         avail.state !== 'folga'
                           ? () => onDaySelect(prof.id, day)
@@ -354,6 +422,11 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
           </tbody>
         </table>
       </div>
+
+      {/* ── Tooltip ── */}
+      {tooltip && (
+        <DayTooltip tooltip={tooltip} onMouseLeave={() => setTooltip(null)} />
+      )}
     </div>
   )
 }

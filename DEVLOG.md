@@ -719,3 +719,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Fix celulas semana: contador nao cards
 **Status:** Concluido
 **Fix:** celulas mostram X agend. / Y livres em vez de cards detalhados; removido DayCellCards e WEEKLY_STATUS_COLORS
+
+### [2026-06-26] AGENT_AGENDA — Celulas clicaveis + comanda visivel
+**Status:** Concluido
+**Fixes:** dias passados clicaveis (button + sem restricao de data), coluna comanda mostra botao Abrir Comanda para SCHEDULED/CONFIRMED

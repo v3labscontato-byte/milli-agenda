@@ -1,11 +1,11 @@
-import { IsString, IsEmail, IsOptional, IsNumber, Min, Max } from 'class-validator'
+import { IsString, IsOptional, IsNumber, Min, Max } from 'class-validator'
 
 export class CreateProfissionalDto {
   @IsString()
   name: string
 
   @IsOptional()
-  @IsEmail()
+  @IsString()
   email?: string
 
   @IsOptional()

@@ -585,3 +585,12 @@ ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:
 **O que foi feito:** Adicionado edição inline em 3 blocos do TabPerfil: (1) Dados pessoais — botão Editar na col esquerda, inputs para nome/email/telefone + saveDados(); (2) Especialidade — botão Editar no card, input texto separado por vírgula + saveEspec(); (3) Comissão — botão Editar no card, input numérico 0-100 + saveComissao(). Extraído componente EditActions para reutilizar botões Cancelar/Salvar. SVG_ARROW_SM movido para escopo de módulo. useEffect resetado para todos os estados ao trocar de profissional.
 **Problemas encontrados:** Nenhum — tsc sem erros.
 **Próximo passo sugerido:** SQL migration para colunas workDays/workStart/workEnd no Railway (pendente do usuário).
+
+---
+
+### [2026-06-26] CLAUDE 2 — FIX 1: CPF, Nascimento e Tipo de Vínculo editáveis no modal
+**Status:** Concluído
+**Arquivos alterados:** apps/web/src/components/profissionais/profissional-modal.tsx
+**O que foi feito:** Adicionados editCpf, editBirth, editVinculo ao modo de edição de dados pessoais. dadosInputs agora inclui CPF (text) e Nascimento (date input). Select de Tipo de vínculo com opções Funcionário/Comissionado/Parceiro/Autônomo. saveDados() envia todos os campos. useEffect reseta os 3 novos estados ao trocar de profissional.
+**Problemas encontrados:** Nenhum — tsc sem erros.
+**Próximo passo sugerido:** FIX 2 e FIX 3 (pendentes — mensagem foi truncada).

@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
 import { FEATURES } from '@/lib/features'
 import { agendaApi } from '@/lib/api/agenda'
 import { MOCK_CALENDAR_APPOINTMENTS, type CalendarAppointment } from '@/lib/calendar-utils'
@@ -22,11 +21,12 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
   const service = (r.service as any) ?? {}
   const status = (r.status as AppointmentStatus) ?? 'SCHEDULED'
 
+  const pad = (n: number) => String(n).padStart(2, '0')
   return {
     id: r.id as string,
-    date: format(startAt, 'yyyy-MM-dd'),
-    startTime: format(startAt, 'HH:mm'),
-    endTime: format(endAt, 'HH:mm'),
+    date: (r.startAt as string).slice(0, 10),
+    startTime: `${pad(startAt.getUTCHours())}:${pad(startAt.getUTCMinutes())}`,
+    endTime: `${pad(endAt.getUTCHours())}:${pad(endAt.getUTCMinutes())}`,
     durationMinutes: Math.round((endAt.getTime() - startAt.getTime()) / 60000),
     client: client.name as string,
     service: service.name as string,

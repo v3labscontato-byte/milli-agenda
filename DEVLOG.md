@@ -711,3 +711,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Fix criar agendamento 400
 **Status:** Concluido
 **Fix:** DTO atualizado (clientName/clientPhone/date/startTime) + find-or-create cliente + startAt/endAt calculados
+
+### [2026-06-26] AGENT_AGENDA — Fix agendamento nao aparece apos criar
+**Status:** Concluido
+**Fixes:** timezone na query (to=T23:59:59.999Z), mapeamento startAt→UTC date/startTime no frontend

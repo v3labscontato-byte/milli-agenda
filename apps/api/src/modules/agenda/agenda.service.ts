@@ -20,8 +20,8 @@ export class AgendaService {
 
     if (filters.from || filters.to) {
       where.startAt = {
-        ...(filters.from ? { gte: new Date(filters.from) } : {}),
-        ...(filters.to   ? { lte: new Date(filters.to)   } : {}),
+        ...(filters.from ? { gte: new Date(`${filters.from}T00:00:00.000Z`) } : {}),
+        ...(filters.to   ? { lte: new Date(`${filters.to}T23:59:59.999Z`)   } : {}),
       }
     }
 

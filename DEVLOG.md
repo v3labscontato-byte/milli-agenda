@@ -522,3 +522,19 @@ Orquestrador lê CLAUDE.md (macro). Agentes leem só seu .agents/*.md (micro).
 - Abas Perfil | Desempenho | Comissão preservadas
 **tsc --noEmit:** 0 erros ✅
 **Commit:** d0a7ad5
+
+### [2026-06-26] feat(profissionais): horário de trabalho com visualização e edição inline
+**Status:** ✅ Concluído
+**Arquivos alterados:** profissional-modal.tsx, use-profissionais.ts, create-profissional.dto.ts, schema.prisma
+**Fixes:**
+- schema.prisma: workDays Int[] @default([]), workStart String? @default("08:00"), workEnd String? @default("18:00") adicionados ao model Professional
+- DTO: @IsArray() workDays?, @IsString() workStart?, @IsString() workEnd? adicionados
+- Hook toFrontend(): mapeia workDays/workStart/workEnd da API com defaults ([], '08:00', '18:00')
+- Modal TabPerfil: stateful com editingHorario, editDays, editStart, editEnd; botão Editar abre UI inline com pills de dias + selects de horário; Salvar chama profissionaisApi.update(); useEffect reseta estado ao trocar profissional
+- IMPORTANTE: rodar SQL no Railway Console para adicionar colunas na produção
+**SQL para Railway Console:**
+ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workDays" INTEGER[] DEFAULT '{}';
+ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workStart" TEXT DEFAULT '08:00';
+ALTER TABLE "professionals" ADD COLUMN IF NOT EXISTS "workEnd" TEXT DEFAULT '18:00';
+**tsc --noEmit:** 0 erros ✅ (frontend + backend)
+**Commit:** 236a04e

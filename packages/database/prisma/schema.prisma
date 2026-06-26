@@ -184,6 +184,9 @@ model Professional {
   avatarUrl     String?
   commissionPct Decimal? @db.Decimal(5, 2)
   active        Boolean  @default(true)
+  workDays      Int[]    @default([])
+  workStart     String?  @default("08:00")
+  workEnd       String?  @default("18:00")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

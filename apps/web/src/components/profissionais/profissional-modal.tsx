@@ -25,6 +25,7 @@ const TIMES = Array.from({ length: 32 }, (_, i) => {
   return `${h}:${m}`
 })
 const SVG_ARROW_SM = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")"
+const VINCULOS = ['Funcionário', 'Comissionado', 'Parceiro', 'Autônomo']
 
 function EditActions({ onCancel, onSave }: { onCancel: () => void; onSave: () => void }) {
   return (
@@ -52,6 +53,9 @@ function TabPerfil({ p }: { p: Profissional }) {
   const [editName,        setEditName]         = useState(p.name)
   const [editEmail,       setEditEmail]        = useState(p.email)
   const [editPhone,       setEditPhone]        = useState(p.phone)
+  const [editCpf,         setEditCpf]          = useState(p.cpf ?? '')
+  const [editBirth,       setEditBirth]        = useState(p.birthDate ?? '')
+  const [editVinculo,     setEditVinculo]      = useState((p as unknown as { vinculo?: string }).vinculo ?? '')
   const [editingEspec,    setEditingEspec]     = useState(false)
   const [editEspec,       setEditEspec]        = useState(p.specialties.join(', '))
   const [editingComissao, setEditingComissao]  = useState(false)
@@ -61,6 +65,8 @@ function TabPerfil({ p }: { p: Profissional }) {
     setEditDays(p.workDays ?? []);  setEditStart(p.workStart || '08:00'); setEditEnd(p.workEnd || '18:00')
     setEditingHorario(false)
     setEditName(p.name);            setEditEmail(p.email);                setEditPhone(p.phone)
+    setEditCpf(p.cpf ?? '');       setEditBirth(p.birthDate ?? '')
+    setEditVinculo((p as unknown as { vinculo?: string }).vinculo ?? '')
     setEditingDados(false)
     setEditEspec(p.specialties.join(', '));                               setEditingEspec(false)
     setEditComissao(String(p.commissionPct));                             setEditingComissao(false)
@@ -73,7 +79,10 @@ function TabPerfil({ p }: { p: Profissional }) {
   }
   async function saveDados() {
     if (!FEATURES.realProfissionais) { setEditingDados(false); return }
-    await profissionaisApi.update(p.id, { name: editName, email: editEmail, phone: editPhone })
+    await profissionaisApi.update(p.id, {
+      name: editName, email: editEmail, phone: editPhone,
+      cpf: editCpf, birthDate: editBirth || null, vinculo: editVinculo || null,
+    })
     setEditingDados(false)
   }
   async function saveEspec() {
@@ -98,9 +107,11 @@ function TabPerfil({ p }: { p: Profissional }) {
   ]
 
   const dadosInputs = [
-    { label: 'Nome',     value: editName,  set: setEditName,  type: 'text'  },
-    { label: 'E-mail',   value: editEmail, set: setEditEmail, type: 'email' },
-    { label: 'Telefone', value: editPhone, set: setEditPhone, type: 'tel'   },
+    { label: 'Nome',       value: editName,  set: setEditName,  type: 'text'  },
+    { label: 'E-mail',     value: editEmail, set: setEditEmail, type: 'email' },
+    { label: 'Telefone',   value: editPhone, set: setEditPhone, type: 'tel'   },
+    { label: 'CPF',        value: editCpf,   set: setEditCpf,   type: 'text'  },
+    { label: 'Nascimento', value: editBirth, set: setEditBirth, type: 'date'  },
   ]
 
   return (
@@ -136,6 +147,14 @@ function TabPerfil({ p }: { p: Profissional }) {
                     className="w-full border border-[#E2E8F0] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               ))}
+              <div>
+                <p className="text-[11px] text-[#94A3B8] mb-0.5">Tipo de vínculo</p>
+                <select value={editVinculo} onChange={e => setEditVinculo(e.target.value)}
+                  className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none focus:outline-none focus:border-[#2563EB]">
+                  <option value="">Selecionar...</option>
+                  {VINCULOS.map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+              </div>
               <EditActions onCancel={() => setEditingDados(false)} onSave={() => void saveDados()} />
             </div>
           )}

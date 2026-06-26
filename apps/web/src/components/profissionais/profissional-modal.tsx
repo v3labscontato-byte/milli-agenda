@@ -31,11 +31,11 @@ function EditActions({ onCancel, onSave }: { onCancel: () => void; onSave: () =>
   return (
     <div className="flex gap-2 justify-end mt-2">
       <button type="button" onClick={onCancel}
-        className="px-2.5 py-1 text-[11px] text-[#475569] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]">
+        className="px-2.5 py-1 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-md hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
         Cancelar
       </button>
       <button type="button" onClick={onSave}
-        className="px-2.5 py-1 text-[11px] text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8]">
+        className="px-2.5 py-1 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
         Salvar
       </button>
     </div>
@@ -117,11 +117,11 @@ function TabPerfil({ p }: { p: Profissional }) {
   ]
 
   const dadosInputs = [
-    { label: 'Nome',       value: editName,  set: setEditName,  type: 'text'  },
-    { label: 'E-mail',     value: editEmail, set: setEditEmail, type: 'email' },
-    { label: 'Telefone',   value: editPhone, set: setEditPhone, type: 'tel'   },
-    { label: 'CPF',        value: editCpf,   set: setEditCpf,   type: 'text'  },
-    { label: 'Nascimento', value: editBirth, set: setEditBirth, type: 'date'  },
+    { label: 'Nome',       id: 'edit-nome',  value: editName,  set: setEditName,  type: 'text'  },
+    { label: 'E-mail',     id: 'edit-mail',  value: editEmail, set: setEditEmail, type: 'email' },
+    { label: 'Telefone',   id: 'edit-fone',  value: editPhone, set: setEditPhone, type: 'tel'   },
+    { label: 'CPF',        id: 'edit-cpf',   value: editCpf,   set: setEditCpf,   type: 'text'  },
+    { label: 'Nascimento', id: 'edit-nasc',  value: editBirth, set: setEditBirth, type: 'date'  },
   ]
 
   return (
@@ -134,7 +134,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">Contato e dados</p>
             {!editingDados && (
               <button type="button" onClick={() => setEditingDados(true)}
-                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                className="text-[11px] text-[var(--color-brand)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] rounded">
                 Editar
               </button>
             )}
@@ -150,17 +150,17 @@ function TabPerfil({ p }: { p: Profissional }) {
             </ul>
           ) : (
             <div className="space-y-2">
-              {dadosInputs.map(({ label, value, set, type }) => (
+              {dadosInputs.map(({ label, id, value, set, type }) => (
                 <div key={label}>
-                  <p className="text-[11px] text-[var(--color-text-tertiary)] mb-0.5">{label}</p>
-                  <input type={type} value={value} onChange={e => set(e.target.value)}
-                    className="w-full border border-[#E2E8F0] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[#2563EB]" />
+                  <label htmlFor={id} className="block text-[11px] text-[var(--color-text-tertiary)] mb-0.5">{label}</label>
+                  <input id={id} type={type} value={value} onChange={e => set(e.target.value)}
+                    className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[var(--color-brand)]" />
                 </div>
               ))}
               <div>
-                <p className="text-[11px] text-[#94A3B8] mb-0.5">Tipo de vínculo</p>
-                <select value={editVinculo} onChange={e => setEditVinculo(e.target.value)}
-                  className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none focus:outline-none focus:border-[#2563EB]">
+                <label htmlFor="edit-vinculo" className="block text-[11px] text-[var(--color-text-tertiary)] mb-0.5">Tipo de vínculo</label>
+                <select id="edit-vinculo" value={editVinculo} onChange={e => setEditVinculo(e.target.value)}
+                  className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none focus:outline-none focus:border-[var(--color-brand)]">
                   <option value="">Selecionar...</option>
                   {VINCULOS.map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
@@ -169,7 +169,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             </div>
           )}
           {p.bio && !editingDados && (
-            <div className="mt-4 rounded-lg bg-[#F8FAFC] px-3 py-2.5">
+            <div className="mt-4 rounded-lg bg-[var(--color-surface-secondary)] px-3 py-2.5">
               <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{p.bio}</p>
             </div>
           )}
@@ -181,7 +181,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             <p className="text-[12px] font-medium text-[var(--color-text-secondary)]">Horário de trabalho</p>
             {!editingHorario && (
               <button type="button" onClick={() => setEditingHorario(true)}
-                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                className="text-[11px] text-[var(--color-brand)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] rounded">
                 Editar
               </button>
             )}
@@ -189,7 +189,7 @@ function TabPerfil({ p }: { p: Profissional }) {
           {!editingHorario ? (
             <table className="w-full text-[12px] mt-2">
               <thead>
-                <tr className="border-b border-[#F1F5F9]">
+                <tr className="border-b border-[var(--color-surface-tertiary)]">
                   <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)] w-10">Dia</th>
                   <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Entrada</th>
                   <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Saída</th>
@@ -199,7 +199,7 @@ function TabPerfil({ p }: { p: Profissional }) {
                 {DAYS.map((day, i) => {
                   const ativo = (editDays ?? []).includes(i)
                   return (
-                    <tr key={i} className="border-b border-[#F8FAFC] last:border-0">
+                    <tr key={i} className="border-b border-[var(--color-surface-secondary)] last:border-0">
                       <td className="py-1.5 font-medium text-[var(--color-text-secondary)]">{day}</td>
                       <td className="py-1.5 text-[var(--color-text-primary)]">
                         {ativo ? editStart : <span className="text-[var(--color-border-secondary)] text-[11px]">Folga</span>}
@@ -214,7 +214,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             <>
               <table className="w-full text-[12px] mt-2">
                 <thead>
-                  <tr className="border-b border-[#F1F5F9]">
+                  <tr className="border-b border-[var(--color-surface-tertiary)]">
                     <th className="pb-1.5 w-5"></th>
                     <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)] w-10">Dia</th>
                     <th className="pb-1.5 text-left text-[11px] font-medium text-[var(--color-text-tertiary)]">Entrada</th>
@@ -225,9 +225,10 @@ function TabPerfil({ p }: { p: Profissional }) {
                   {DAYS.map((day, i) => {
                     const ativo = editDays.includes(i)
                     return (
-                      <tr key={i} className="border-b border-[#F8FAFC] last:border-0">
+                      <tr key={i} className="border-b border-[var(--color-surface-secondary)] last:border-0">
                         <td className="py-1.5">
                           <input type="checkbox" checked={ativo}
+                            aria-label={`${day} — ${ativo ? 'ativo' : 'folga'}`}
                             onChange={() => setEditDays(prev =>
                               prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i].sort((a, b) => a - b)
                             )}
@@ -240,7 +241,7 @@ function TabPerfil({ p }: { p: Profissional }) {
                         <td className="py-1.5">
                           {ativo ? (
                             <select value={editStart} onChange={e => setEditStart(e.target.value)}
-                              className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
+                              className="border border-[var(--color-border-primary)] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
                               style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}>
                               {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
@@ -249,7 +250,7 @@ function TabPerfil({ p }: { p: Profissional }) {
                         <td className="py-1.5">
                           {ativo ? (
                             <select value={editEnd} onChange={e => setEditEnd(e.target.value)}
-                              className="border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
+                              className="border border-[var(--color-border-primary)] rounded px-1.5 py-0.5 text-[11px] bg-white appearance-none pr-5 focus:outline-none focus:border-[var(--color-brand)]"
                               style={{ backgroundImage: SVG_ARROW_SM, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center' }}>
                               {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
@@ -262,11 +263,11 @@ function TabPerfil({ p }: { p: Profissional }) {
               </table>
               <div className="flex gap-2 justify-end mt-3">
                 <button type="button" onClick={() => setEditingHorario(false)}
-                  className="px-3 py-1.5 text-[11px] text-[#475569] border border-[#E2E8F0] rounded-md hover:bg-[#F8FAFC]">
+                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-md hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                   Cancelar
                 </button>
                 <button type="button" onClick={() => void saveHorario()}
-                  className="px-3 py-1.5 text-[11px] text-white bg-[#2563EB] rounded-md hover:bg-[#1D4ED8]">
+                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                   Salvar
                 </button>
               </div>
@@ -276,13 +277,13 @@ function TabPerfil({ p }: { p: Profissional }) {
       </div>
 
       {/* ZONA 2 — Especialidades + Comissão */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Especialidade</p>
             {!editingEspec && (
               <button type="button" onClick={() => setEditingEspec(true)}
-                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                className="text-[11px] text-[var(--color-brand)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] rounded">
                 Editar
               </button>
             )}
@@ -291,7 +292,7 @@ function TabPerfil({ p }: { p: Profissional }) {
             <div className="flex flex-wrap gap-1">
               {p.specialties.length > 0
                 ? p.specialties.map(s => (
-                    <span key={s} className="rounded-full border border-[#E2E8F0] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">{s}</span>
+                    <span key={s} className="rounded-full border border-[var(--color-border-primary)] px-2.5 py-0.5 text-[11px] text-[var(--color-text-secondary)]">{s}</span>
                   ))
                 : <span className="text-[12px] text-[var(--color-text-tertiary)]">—</span>
               }
@@ -300,14 +301,14 @@ function TabPerfil({ p }: { p: Profissional }) {
             <div className="space-y-2">
               {roles.length > 0 ? (
                 <select value={editEspec} onChange={e => setEditEspec(e.target.value)}
-                  className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]">
+                  className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[var(--color-brand)]">
                   <option value="">Selecionar especialidade...</option>
                   {roles.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               ) : (
-                <p className="text-[12px] text-[#94A3B8]">
+                <p className="text-[12px] text-[var(--color-text-tertiary)]">
                   Nenhum cargo cadastrado.
-                  <a href="/configuracoes" className="text-[#2563EB] hover:underline ml-1">Cadastrar agora</a>
+                  <a href="/configuracoes" className="text-[var(--color-brand)] hover:underline ml-1">Cadastrar agora</a>
                 </p>
               )}
               <EditActions onCancel={() => setEditingEspec(false)} onSave={() => void saveEspec()} />
@@ -315,12 +316,12 @@ function TabPerfil({ p }: { p: Profissional }) {
           )}
         </div>
 
-        <div className="rounded-lg border border-[#E2E8F0] px-3 py-2.5">
+        <div className="rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Comissão</p>
             {!editingComissao && (
               <button type="button" onClick={() => setEditingComissao(true)}
-                className="text-[11px] text-[#2563EB] hover:underline focus-visible:outline-none">
+                className="text-[11px] text-[var(--color-brand)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] rounded">
                 Editar
               </button>
             )}
@@ -342,8 +343,8 @@ function TabPerfil({ p }: { p: Profissional }) {
               <div className="flex items-center gap-2 mt-2">
                 <input type="number" min="0" max="100" value={editComissao}
                   onChange={e => setEditComissao(e.target.value)}
-                  className="w-20 border border-[#E2E8F0] rounded-md px-2 py-1 text-[13px] text-center focus:outline-none focus:border-[#2563EB]" />
-                <span className="text-[13px] text-[#475569]">% sobre serviços</span>
+                  className="w-20 border border-[var(--color-border-primary)] rounded-md px-2 py-1 text-[13px] text-center focus:outline-none focus:border-[var(--color-brand)]" />
+                <span className="text-[13px] text-[var(--color-text-secondary)]">% sobre serviços</span>
               </div>
               <EditActions onCancel={() => setEditingComissao(false)} onSave={() => void saveComissao()} />
             </>
@@ -368,7 +369,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
       {/* KPI chips */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {kpis.map(({ label, value }) => (
-          <div key={label} className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+          <div key={label} className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
             <p className="text-[11px] text-[var(--color-text-tertiary)]">{label}</p>
             <p className="mt-1 font-tabular text-[16px] font-bold text-[var(--color-text-primary)]">{value}</p>
           </div>
@@ -376,7 +377,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
       </div>
 
       {/* Rating */}
-      <div className="flex items-center gap-3 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+      <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
         <Star size={16} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
         <div>
           <p className="text-[11px] text-[var(--color-text-tertiary)]">Avaliação dos clientes</p>
@@ -410,9 +411,9 @@ function TabDesempenho({ p }: { p: Profissional }) {
       </div>
 
       {/* Trend */}
-      <div className="flex items-center gap-2 rounded-lg bg-[#F0FDF4] px-3 py-2.5">
-        <TrendingUp size={14} className="text-[#16A34A]" aria-hidden="true" />
-        <p className="text-[12px] text-[#166534]">
+      <div className="flex items-center gap-2 rounded-lg bg-[var(--color-success-light)] px-3 py-2.5">
+        <TrendingUp size={14} className="text-[var(--color-success)]" aria-hidden="true" />
+        <p className="text-[12px] text-[var(--color-success)]">
           Média mensal: <span className="font-semibold">{formatBRL(p.revenueTotal / Math.max(p.monthlyData.filter(m => m.revenue > 0).length, 1))}</span>
         </p>
       </div>
@@ -425,7 +426,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
 function TabComissao({ p }: { p: Profissional }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-5 py-4">
+      <div className="flex items-center justify-between rounded-xl border border-[var(--color-border-primary)] bg-white px-5 py-4">
         <div>
           <p className="text-[12px] text-[var(--color-text-tertiary)]">Comissão este mês</p>
           <p className="mt-1 font-tabular text-[22px] font-bold text-[var(--color-text-primary)]">
@@ -442,10 +443,10 @@ function TabComissao({ p }: { p: Profissional }) {
 
       <div>
         <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Histórico por mês</p>
-        <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
+        <div className="overflow-hidden rounded-lg border border-[var(--color-border-primary)]">
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+              <tr className="border-b border-[var(--color-border-primary)] bg-[#F8FAFC]">
                 <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">Mês</th>
                 <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">Fat.</th>
                 <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">Comissão</th>
@@ -453,7 +454,7 @@ function TabComissao({ p }: { p: Profissional }) {
             </thead>
             <tbody className="divide-y divide-[#F1F5F9] bg-white">
               {[...p.monthlyData].reverse().map((m) => (
-                <tr key={m.month} className="hover:bg-[#F8FAFC]">
+                <tr key={m.month} className="hover:bg-[var(--color-surface-secondary)]">
                   <td className="px-4 py-2.5 font-medium text-[var(--color-text-primary)]">{m.month} 2026</td>
                   <td className="px-4 py-2.5 text-right font-tabular text-[var(--color-text-secondary)]">
                     {m.revenue > 0 ? formatBRL(m.revenue) : <span className="text-[var(--color-border-secondary)]">—</span>}
@@ -503,7 +504,7 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
       aria-label={`Perfil: ${p.name}`}
     >
       <div
-        className="absolute inset-0 bg-[var(--color-text-primary)]/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[var(--color-text-primary)]/40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -513,7 +514,7 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center gap-4 border-b border-[#F1F5F9] px-6 py-4">
+        <div className="flex shrink-0 items-center gap-4 border-b border-[var(--color-surface-tertiary)] px-6 py-4">
           <ProfissionalAvatar name={p.name} size={44} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -538,10 +539,11 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
         </div>
 
         {/* Tabs */}
-        <div className="flex shrink-0 border-b border-[#F1F5F9]" role="tablist">
+        <div className="flex shrink-0 border-b border-[var(--color-surface-tertiary)]" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.id}
+              id={`tab-${t.id}`}
               role="tab"
               aria-selected={tab === t.id}
               type="button"
@@ -560,7 +562,7 @@ export default function ProfissionalModal({ profissional, onClose }: Profissiona
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5" role="tabpanel" aria-labelledby={`tab-${tab}`}>
           {tab === 'perfil'     && <TabPerfil      p={p} />}
           {tab === 'desempenho' && <TabDesempenho  p={p} />}
           {tab === 'comissao'   && <TabComissao    p={p} />}

@@ -738,3 +738,8 @@ d48f169 â€” style(servicos): impeccable 20/20
 - Nova coluna "Pagamento" no thead (oculta em < xl), com badge colorida: Pago (verde), Pendente (âmbar), Atrasado (vermelho)
 - `ComandaCell` refatorado: usa `COMANDA_STYLES` por status de pagamento — Ver Comanda (verde), Abrir Comanda (âmbar), Cobrar (vermelho)
 - colSpan atualizado 8?9 no estado vazio
+
+---
+### [2026-06-26] AGENT_AGENDA — Fix tabela + tooltip semana
+**Status:** Concluido
+**Fixes:** colunas corretas (status pagamento visivel, removido status agendamento e valor), tooltip hover com posicao inteligente e horarios livres em verde

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Calendar, ClipboardList, CreditCard, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { StatusBadge } from '@/components/status-badge'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
 import PaymentModal from '@/components/shared/payment-modal'
 import NewAppointmentModal from '@/components/agenda/new-appointment-modal'
@@ -355,9 +354,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                   <th scope="col" className={TH}>Cliente</th>
                   <th scope="col" className={cn(TH, 'hidden md:table-cell')}>Serviço</th>
                   <th scope="col" className={cn(TH, 'hidden lg:table-cell')}>Profissional</th>
-                  <th scope="col" className={cn(TH, 'hidden text-right xl:table-cell')}>Valor</th>
                   <th scope="col" className={TH}>Status</th>
-                  <th scope="col" className={cn(TH, 'hidden xl:table-cell')}>Pagamento</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Agenda</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Comanda</th>
                 </tr>
@@ -366,7 +363,7 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center">
+                    <td colSpan={7} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
                         Nenhum atendimento encontrado para o período.
                       </p>
@@ -400,16 +397,6 @@ export default function AgendaTable({ appointments, isLoading = false }: AgendaT
                         <span className="text-[14px] text-[#475569]">
                           {appt.professional.split(' ')[0]}
                         </span>
-                      </td>
-
-                      <td className="hidden px-4 py-3 text-right xl:table-cell">
-                        <span className="font-tabular text-[14px] font-medium text-[#0F172A]">
-                          R$ {appt.amount}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <StatusBadge status={appt.status} />
                       </td>
 
                       <PaymentStatusCell appt={appt} />

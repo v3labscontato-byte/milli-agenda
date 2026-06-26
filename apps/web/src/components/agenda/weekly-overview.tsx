@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, type MouseEvent } from 'react'
-import { addDays, format, isToday as dfIsToday, getDay } from 'date-fns'
+import { addDays, format, parseISO, isToday as dfIsToday, getDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { CALENDAR_PROFESSIONALS, type CalendarAppointment, type CalendarProfessional } from '@/lib/calendar-utils'
@@ -187,19 +187,19 @@ function formatTooltipDate(dateStr: string): string {
 function DayTooltip({ tooltip, onMouseLeave }: { tooltip: TooltipState; onMouseLeave: () => void }) {
   return (
     <div
-      className="fixed z-50 min-w-[280px] rounded-xl border border-[#E2E8F0] bg-white p-3 shadow-xl"
-      style={{ left: tooltip.x, top: tooltip.y + 6 }}
+      className="fixed z-50 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
+      style={{ left: tooltip.x, top: tooltip.y, width: 300 }}
       onMouseLeave={onMouseLeave}
     >
       <p className="mb-2 text-[12px] font-semibold text-[#0F172A]">
-        {tooltip.profName} · {formatTooltipDate(tooltip.date)}
+        {tooltip.profName} · {format(parseISO(tooltip.date), "d 'de' MMM", { locale: ptBR })}
       </p>
       <table className="w-full text-[11px]">
         <thead>
-          <tr className="border-b border-[#F1F5F9]">
-            <th className="w-12 pb-1 text-left font-medium text-[#94A3B8]">Hora</th>
-            <th className="pb-1 text-left font-medium text-[#94A3B8]">Cliente</th>
-            <th className="pb-1 text-left font-medium text-[#94A3B8]">Serviço</th>
+          <tr className="border-b border-[#E2E8F0]">
+            <th className="w-12 pb-1.5 text-left font-medium text-[#94A3B8]">Hora</th>
+            <th className="pb-1.5 text-left font-medium text-[#94A3B8]">Cliente</th>
+            <th className="pb-1.5 text-left font-medium text-[#94A3B8]">Serviço</th>
           </tr>
         </thead>
         <tbody>
@@ -207,14 +207,18 @@ function DayTooltip({ tooltip, onMouseLeave }: { tooltip: TooltipState; onMouseL
             const appt = tooltip.appts.find((a) => a.startTime.startsWith(hour.slice(0, 2)))
             return (
               <tr key={hour} className="border-b border-[#F8FAFC] last:border-0">
-                <td className="py-0.5 font-tabular text-[#94A3B8]">{hour}</td>
-                <td className="py-0.5">
-                  {appt
-                    ? <span className="font-medium text-[#0F172A]">{appt.client}</span>
-                    : <span className="text-[#CBD5E1]">Livre</span>
-                  }
+                <td className="py-1 font-tabular text-[#94A3B8]">{hour}</td>
+                <td className="py-1">
+                  {appt ? (
+                    <span className="font-medium text-[#0F172A]">{appt.client}</span>
+                  ) : (
+                    <span className="flex items-center gap-1 font-medium text-[#15803D]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" aria-hidden="true" />
+                      Livre
+                    </span>
+                  )}
                 </td>
-                <td className="py-0.5 text-[#475569]">{appt?.service ?? ''}</td>
+                <td className="py-1 text-[#475569]">{appt?.service ?? ''}</td>
               </tr>
             )
           })}
@@ -398,7 +402,14 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                   const handleMouseEnter = avail.state !== 'folga'
                     ? (e: MouseEvent<HTMLTableCellElement>) => {
                         const rect = e.currentTarget.getBoundingClientRect()
-                        setTooltip({ profName: prof.name, date: dateStr, appts: dayAppts, x: rect.left, y: rect.bottom })
+                        const TOOLTIP_W = 300
+                        const TOOLTIP_H = 340
+                        let x = rect.left
+                        let y = rect.bottom + 8
+                        if (x + TOOLTIP_W > window.innerWidth - 16) x = Math.max(16, rect.right - TOOLTIP_W)
+                        if (y + TOOLTIP_H > window.innerHeight - 16) y = rect.top - TOOLTIP_H - 8
+                        if (y < 16) y = 16
+                        setTooltip({ profName: prof.name, date: dateStr, appts: dayAppts, x, y })
                       }
                     : undefined
 

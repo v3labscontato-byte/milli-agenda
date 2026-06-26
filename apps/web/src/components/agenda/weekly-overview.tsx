@@ -60,29 +60,15 @@ function occupancyColor(pct: number): string {
   return '#10B981'
 }
 
-// ─── Status colours for weekly cards ─────────────────────────────────────────
-
-const WEEKLY_STATUS_COLORS: Record<string, string> = {
-  SCHEDULED:        'bg-[#EFF6FF] border-l-4 border-[#2563EB] text-[#1D4ED8]',
-  CONFIRMED:        'bg-[#EFF6FF] border-l-4 border-[#2563EB] text-[#1D4ED8]',
-  CHECKED_IN:       'bg-[#F3E8FF] border-l-4 border-[#7C3AED] text-[#6D28D9]',
-  IN_SERVICE:       'bg-[#D1FAE5] border-l-4 border-[#10B981] text-[#065F46]',
-  AWAITING_PAYMENT: 'bg-[#FEF3C7] border-l-4 border-[#F59E0B] text-[#B45309]',
-  COMPLETED:        'bg-[#F0FDF4] border-l-4 border-[#22C55E] text-[#15803D]',
-  NO_SHOW:          'bg-[#F1F5F9] border-l-4 border-[#94A3B8] text-[#64748B]',
-  CANCELLED:        'bg-[#FEF2F2] border-l-4 border-[#EF4444] text-[#DC2626]',
-}
-
 // ─── Day cell ─────────────────────────────────────────────────────────────────
 
 interface DayCellProps {
   avail: DayAvailability
   onClick?: () => void
   isPast?: boolean
-  dayAppts?: CalendarAppointment[]
 }
 
-function DayCell({ avail, onClick, isPast, dayAppts }: DayCellProps) {
+function DayCell({ avail, onClick, isPast }: DayCellProps) {
   const { state, booked, total } = avail
   const pct = total > 0 ? Math.round((booked / total) * 100) : 0
 
@@ -111,14 +97,8 @@ function DayCell({ avail, onClick, isPast, dayAppts }: DayCellProps) {
           className="flex h-full w-full flex-col items-start px-3 py-3 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           aria-label={`Esgotado — ${booked} agendamentos`}
         >
-          {dayAppts && dayAppts.length > 0 ? (
-            <DayCellCards appts={dayAppts} />
-          ) : (
-            <>
-              <span className="text-[12px] font-semibold text-[#991B1B]">Esgotado</span>
-              <span className="mt-0.5 text-[11px] text-[#475569]">{booked} agendamentos</span>
-            </>
-          )}
+          <span className="text-[12px] font-semibold text-[#991B1B]">Esgotado</span>
+          <span className="mt-0.5 text-[11px] text-[#475569]">{booked} agendamentos</span>
         </button>
         <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-b bg-[#EF4444]" aria-hidden="true" />
       </td>
@@ -133,17 +113,11 @@ function DayCell({ avail, onClick, isPast, dayAppts }: DayCellProps) {
     return (
       <td className="relative border-b border-r border-[#F1F5F9] bg-[#F8FAFC] align-top">
         <div className="flex h-full w-full flex-col items-start px-3 py-3">
-          {dayAppts && dayAppts.length > 0 ? (
-            <DayCellCards appts={dayAppts} />
-          ) : (
-            <>
-              <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
-              <span className="mt-0.5 flex items-center gap-1 text-[11px] text-[#94A3B8]">
-                {free} livres
-                <span className="h-1.5 w-1.5 rounded-full bg-[#94A3B8]" aria-hidden="true" />
-              </span>
-            </>
-          )}
+          <span className="text-[12px] text-[#94A3B8]">{booked} agend.</span>
+          <span className="mt-0.5 flex items-center gap-1 text-[11px] text-[#94A3B8]">
+            {free} livres
+            <span className="h-1.5 w-1.5 rounded-full bg-[#94A3B8]" aria-hidden="true" />
+          </span>
         </div>
       </td>
     )
@@ -157,43 +131,23 @@ function DayCell({ avail, onClick, isPast, dayAppts }: DayCellProps) {
         className="flex h-full w-full flex-col items-start px-3 py-3 focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
         aria-label={`${booked} agendados, ${free} livres`}
       >
-        {dayAppts && dayAppts.length > 0 ? (
-          <DayCellCards appts={dayAppts} />
-        ) : (
-          <>
-            <span className="text-[12px] font-medium text-[#0F172A]">{booked} agend.</span>
-            <span className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-[#059669]">
-              {free} livres
-              <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]" aria-hidden="true" />
-            </span>
-          </>
-        )}
+        <span className="text-[12px] font-medium text-[#0F172A]">{booked} agend.</span>
+        <span
+          className="mt-0.5 flex items-center gap-1 text-[11px] font-medium"
+          style={{ color: free <= 2 ? '#D97706' : '#059669' }}
+        >
+          {free} livres
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: free <= 2 ? '#D97706' : '#10B981' }}
+            aria-hidden="true"
+          />
+        </span>
       </button>
       <div className="absolute bottom-0 left-0 right-0 h-[3px] rounded-b bg-[#F1F5F9]" aria-hidden="true">
         <div className="h-full rounded-b" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
     </td>
-  )
-}
-
-function DayCellCards({ appts }: { appts: CalendarAppointment[] }) {
-  const visibleAppts = appts.slice(0, 3)
-  const overflow = appts.length - visibleAppts.length
-  return (
-    <div className="flex w-full flex-col gap-0.5 p-0">
-      {visibleAppts.map((appt) => {
-        const colorClass = WEEKLY_STATUS_COLORS[appt.status] ?? WEEKLY_STATUS_COLORS.SCHEDULED
-        return (
-          <div key={appt.id} className={cn('rounded px-1.5 py-0.5 text-[10px] truncate', colorClass)}>
-            <span className="font-medium">{appt.startTime}</span>
-            {' '}{appt.client}
-          </div>
-        )
-      })}
-      {overflow > 0 && (
-        <span className="pl-1 text-[10px] text-[#64748B]">+{overflow} mais</span>
-      )}
-    </div>
   )
 }
 
@@ -374,19 +328,14 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
                 </td>
 
                 {weekDays.map((day) => {
-                  const dateStr = format(day, 'yyyy-MM-dd')
                   const avail = FEATURES.realAgenda
                     ? getRealAvailability(prof.id, day, appointments)
                     : getMockAvailability(prof.id, day)
-                  const dayAppts = FEATURES.realAgenda
-                    ? appointments.filter((a) => a.professionalId === prof.id && a.date === dateStr)
-                    : undefined
                   return (
                     <DayCell
                       key={day.toISOString()}
                       avail={avail}
                       isPast={day < todayStart}
-                      dayAppts={dayAppts}
                       onClick={
                         avail.state !== 'folga' && day >= todayStart
                           ? () => onDaySelect(prof.id, day)
@@ -399,23 +348,6 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 border-t border-[#F1F5F9] bg-white px-6 py-3 text-[12px] text-[#64748B]">
-        {[
-          { color: '#2563EB', label: 'Agendado/Confirmado' },
-          { color: '#7C3AED', label: 'Check-in' },
-          { color: '#10B981', label: 'Em Atend.' },
-          { color: '#F59E0B', label: 'Aguard. Pagto' },
-          { color: '#22C55E', label: 'Concluído' },
-          { color: '#EF4444', label: 'Cancelado' },
-        ].map(({ color, label }) => (
-          <span key={label} className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 flex-shrink-0 rounded-sm" style={{ backgroundColor: color }} />
-            {label}
-          </span>
-        ))}
       </div>
     </div>
   )

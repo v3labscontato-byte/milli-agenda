@@ -35,22 +35,24 @@ export class DatabaseService
           CONSTRAINT "goals_pkey" PRIMARY KEY ("id")
         )
       `)
-      await this.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "goals_tenantId_idx" ON "goals"("tenantId")`)
-      await this.$executeRawUnsafe(`
-        DO $$ BEGIN
-          IF NOT EXISTS (
-            SELECT 1 FROM pg_constraint WHERE conname = 'goals_tenantId_fkey'
-          ) THEN
-            ALTER TABLE "goals" ADD CONSTRAINT "goals_tenantId_fkey"
-              FOREIGN KEY ("tenantId") REFERENCES "tenants"("id")
-              ON DELETE CASCADE ON UPDATE CASCADE;
-          END IF;
-        END $$
-      `)
-      this.logger.log('goals table ready')
+      this.logger.log('goals table: created or already exists')
     } catch (err) {
-      this.logger.warn(`ensureGoalsTable: ${err.message}`)
+      this.logger.warn(`ensureGoalsTable CREATE: ${err.message}`)
     }
+
+    try {
+      await this.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "goals_tenantId_idx" ON "goals"("tenantId")`)
+    } catch { /* index may already exist */ }
+
+    try {
+      await this.$executeRawUnsafe(`
+        ALTER TABLE "goals" ADD CONSTRAINT "goals_tenantId_fkey"
+          FOREIGN KEY ("tenantId") REFERENCES "tenants"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE
+      `)
+    } catch { /* constraint may already exist */ }
+
+    this.logger.log('goals table ready')
   }
 
   async onModuleDestroy() {

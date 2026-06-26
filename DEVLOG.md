@@ -758,3 +758,8 @@ d48f169 â€” style(servicos): impeccable 20/20
 ### [2026-06-26] AGENT_AGENDA — Reagendar dados reais + horarios disponiveis + info servico
 **Status:** Concluido
 **Fixes:** FEATURES gate removido de handleReagendar/handleCancelar; horarios disponiveis por disponibilidade (fetch slots, exclui conflitos por duracao do servico); card de info do servico (duracao + valor); panel com scroll para form longo
+
+---
+### [2026-06-26] fix(agenda): remover gate FEATURES.realAgenda — usar API real sempre
+**Status:** Concluido
+**Fix:** use-agenda.ts agora usa token check em vez de FEATURES.realAgenda; mock data removida; hook sempre busca da API real quando accessToken existe

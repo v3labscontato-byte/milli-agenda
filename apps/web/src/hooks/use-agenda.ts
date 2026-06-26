@@ -1,8 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FEATURES } from '@/lib/features'
 import { agendaApi } from '@/lib/api/agenda'
-import { MOCK_CALENDAR_APPOINTMENTS, type CalendarAppointment } from '@/lib/calendar-utils'
+import { type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
 
 function transformApiResponse(raw: unknown): CalendarAppointment {
@@ -38,12 +37,13 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
 }
 
 export function useAgenda(params?: { date?: string; professionalId?: string; _key?: number }) {
-  const [data, setData]       = useState<CalendarAppointment[]>(() => FEATURES.realAgenda ? [] : MOCK_CALENDAR_APPOINTMENTS)
-  const [loading, setLoading] = useState(FEATURES.realAgenda)
+  const [data, setData]       = useState<CalendarAppointment[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
 
   useEffect(() => {
-    if (!FEATURES.realAgenda) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
     setError(null)

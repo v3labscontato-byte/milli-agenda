@@ -768,3 +768,8 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** Concluido
 **Causa raiz:** CALENDAR_PROFESSIONALS mock hardcoded em 3 componentes (weekly-overview, appointment-modal, new-appointment-modal)
 **Fix:** professionals buscados da API em todos os componentes; removidos FEATURES gate, WORK_DAYS, CAPACITY, getMockAvailability
+
+### [2026-06-26] AGENT_AGENDA — Fix useEffect reset no modal de reagendamento
+**Status:** Concluido
+**Causa raiz:** useEffect([appointment?.id]) limpava selectedProfId/novaData DEPOIS do handleAction preenchê-los
+**Fix:** guard !reagendando no reset — só limpa campos quando não está em modo reagendamento

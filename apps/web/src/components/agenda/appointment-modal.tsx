@@ -70,18 +70,23 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   const paymentOpenRef = useRef(false)
   useEffect(() => { paymentOpenRef.current = paymentOpen }, [paymentOpen])
 
-  // Reset all transient state when appointment changes
+  // Reset transient state when appointment changes — but not while reagendando is active,
+  // because handleAction sets the form fields and this effect would otherwise overwrite them.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (!appointment) return
     setPaymentOpen(false)
-    setReagendando(false)
-    setCancelMode(false)
-    setMotivo('')
-    setNovaData('')
-    setNovoHorario('')
-    setSelectedProfId('')
-    setSelectedServId('')
-    setHorariosDisp([])
     setSaving(false)
+    if (!reagendando) {
+      setReagendando(false)
+      setCancelMode(false)
+      setMotivo('')
+      setNovaData('')
+      setNovoHorario('')
+      setSelectedProfId('')
+      setSelectedServId('')
+      setHorariosDisp([])
+    }
   }, [appointment?.id])
 
   // Fetch professionals + services — always when token exists

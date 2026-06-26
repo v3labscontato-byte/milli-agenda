@@ -196,6 +196,14 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     if (!appointment) return
     if (PAYMENT_ACTIONS.has(label)) { setPaymentOpen(true); return }
     if (label === 'Reagendar') {
+      console.log('[REAGENDAR] appointment:', JSON.stringify({
+        id:             appointment.id,
+        date:           appointment.date,
+        startTime:      appointment.startTime,
+        professionalId: appointment.professionalId,
+        serviceId:      appointment.serviceId,
+        client:         appointment.client,
+      }, null, 2))
       setNovaData(appointment.date)
       setNovoHorario(appointment.startTime)
       setSelectedProfId(appointment.professionalId)

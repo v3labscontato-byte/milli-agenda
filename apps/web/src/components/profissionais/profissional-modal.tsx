@@ -594,7 +594,7 @@ export default function ProfissionalModal({ profissional, onClose, onUpdate }: P
       openedIdRef.current = profissional.id
       setTab('perfil')
     }
-  }, [profissional])
+  }, [profissional?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!profissional) return

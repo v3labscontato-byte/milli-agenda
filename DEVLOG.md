@@ -811,3 +811,8 @@ d48f169 — style(servicos): impeccable 20/20
 **Arquivos alterados:** calendar-utils.ts, use-agenda.ts, appointment-modal.tsx, payment-modal.tsx
 **O que foi feito:** Exposto clientId em CalendarAppointment; handlePaymentConfirm usa fluxo correto (POST /payments por método, depois /commands/:id/close sem body); mapeamento pix→PIX dinheiro→CASH etc; desconto calculado em R\$; loading visual no botão
 **Problemas encontrados (FIX3):** backend close não aceitava body, open precisava clientId não appointmentId — corrigidos no frontend
+
+### [2026-06-28] AGENT_AGENDA — Fix: retornar clientId no GET appointments
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/api/src/modules/agenda/agenda.service.ts
+**O que foi feito:** findAll trocado de include para select explícito — expõe clientId do appointment no JSON. durationMin removido do select raiz (campo não existe no modelo Appointment, existe só em Service). findOne mantido com include (usado internamente em transition/update/remove)

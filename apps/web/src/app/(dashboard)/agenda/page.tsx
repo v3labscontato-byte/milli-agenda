@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { startOfWeek, addDays, format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import {
   getAppointmentsForDate,
@@ -134,10 +133,7 @@ export default function AgendaPage() {
 
   const tableDate = toDateString(selectedDate)
   const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
-  const isToday = tableDate === toDateString(new Date())
-  const tableTitle = isToday
-    ? 'Agenda de Hoje'
-    : format(selectedDate, "d 'de' MMMM", { locale: ptBR })
+  const tableTitle = `Agenda ${format(selectedDate, 'dd/MM')}`
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
@@ -225,7 +221,7 @@ export default function AgendaPage() {
             {tableAppointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
                 <p className="font-medium text-slate-600">
-                  {isToday ? 'Nenhum agendamento hoje.' : 'Nenhum agendamento neste dia.'}
+                  Nenhum agendamento neste dia.
                 </p>
                 <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
               </div>

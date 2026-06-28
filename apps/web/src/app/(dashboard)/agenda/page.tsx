@@ -208,24 +208,25 @@ export default function AgendaPage() {
             appointments={allAppointments}
           />
           <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-4">
-            <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">
-              Atendimentos da Semana
-            </h2>
-            {allAppointments.length === 0 ? (
+            {(() => {
+              const today = toDateString(new Date())
+              const todayAppointments = allAppointments.filter((a) => a.date === today)
+              return todayAppointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
-                <p className="font-medium text-slate-600">Nenhum agendamento nesta semana.</p>
+                <p className="font-medium text-slate-600">Nenhum agendamento hoje.</p>
                 <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
               </div>
             ) : (
               <AgendaTable
-                appointments={allAppointments.map((ca) => toAppointment(ca, calendarProfessionals))}
+                appointments={todayAppointments.map((ca) => toAppointment(ca, calendarProfessionals))}
                 onReschedule={(id) => {
                   const calAppt = allAppointments.find((a) => a.id === id)
                   if (calAppt) setSelectedAppt(calAppt)
                 }}
                 onSuccess={handleCreated}
               />
-            )}
+            )
+            })()}
           </div>
         </div>
       ) : (

@@ -841,3 +841,13 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_AGENDA — Filtro de profissionais real
 **Status:** ✅ Concluído
 **Fix:** Removido PROFESSIONALS mock; profissionais derivados dos agendamentos recebidos (useMemo + Map). Pills atualizadas para rounded-full com nomes completos.
+
+---
+
+### [2026-06-28] CLAUDE 2 — fix(agenda): tabela mostra apenas hoje + remove título Atendimentos da Semana
+**Status:** ✅ Concluído  
+**Arquivos alterados:** `apps/web/src/app/(dashboard)/agenda/page.tsx`  
+**O que foi feito:**  
+- FIX 1: Adicionado filtro `todayAppointments = allAppointments.filter(a => a.date === today)` usando IIFE inline; AgendaTable e empty state agora usam apenas agendamentos do dia atual  
+- FIX 2: Removido `<h2>Atendimentos da Semana</h2>`  
+- `npx tsc --noEmit` → 0 erros  

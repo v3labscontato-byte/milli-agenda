@@ -851,3 +851,14 @@ d48f169 — style(servicos): impeccable 20/20
 - FIX 1: Adicionado filtro `todayAppointments = allAppointments.filter(a => a.date === today)` usando IIFE inline; AgendaTable e empty state agora usam apenas agendamentos do dia atual  
 - FIX 2: Removido `<h2>Atendimentos da Semana</h2>`  
 - `npx tsc --noEmit` → 0 erros  
+
+---
+
+### [2026-06-28] AGENT_AGENDA — Fix tabela por dia selecionado
+**Status:** ✅ Concluído
+**Arquivos alterados:** `apps/web/src/app/(dashboard)/agenda/page.tsx`, `apps/web/src/hooks/use-agenda.ts`
+**Fixes:**
+- FIX 1: agendaParams passa `from`/`to` na vista semana (domingo ao sábado); useAgenda repassa esses params ao agendaApi.list
+- FIX 2: tabela filtra por `selectedDate` em vez de `new Date()` hardcoded
+- FIX 3: título dinâmico — "Agenda de Hoje" ou "d de MMMM" quando outro dia
+- `npx tsc --noEmit` → 0 erros

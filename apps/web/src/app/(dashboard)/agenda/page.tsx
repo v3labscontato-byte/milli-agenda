@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { startOfWeek } from 'date-fns'
+import { startOfWeek, addDays, format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import {
   getAppointmentsForDate,
@@ -99,22 +100,27 @@ export default function AgendaPage() {
     setNewModalOpen(true)
   }, [])
 
-  // Day view scopes the fetch to the selected date; week view fetches the broader
-  // set so the "Atendimentos da Semana" table has the full week available.
-  const agendaParams = useMemo(
-    () => ({
-      date: view === 'day' ? toDateString(selectedDate) : undefined,
-      professionalId: view === 'day' ? (filterProfId ?? undefined) : undefined,
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
+
+  const agendaParams = useMemo(() => {
+    if (view === 'day') {
+      return {
+        date: toDateString(selectedDate),
+        professionalId: filterProfId ?? undefined,
+        _key: refetchKey,
+      }
+    }
+    return {
+      from: toDateString(weekStart),
+      to: toDateString(addDays(weekStart, 6)),
       _key: refetchKey,
-    }),
-    [view, selectedDate, filterProfId, refetchKey],
-  )
+    }
+  }, [view, selectedDate, filterProfId, refetchKey, weekStart])
 
   const { data: allAppointments, loading, error } = useAgenda(agendaParams)
   const { data: profissionais } = useProfissionais()
   const calendarProfessionals = useMemo(() => profissionais.map(toCalendarProfessional), [profissionais])
 
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
 
   const filtered = dayAppointments.filter((a) => {
@@ -125,6 +131,13 @@ export default function AgendaPage() {
     const matchesProf = !filterProfId || a.professionalId === filterProfId
     return matchesSearch && matchesProf
   })
+
+  const tableDate = toDateString(selectedDate)
+  const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
+  const isToday = tableDate === toDateString(new Date())
+  const tableTitle = isToday
+    ? 'Agenda de Hoje'
+    : format(selectedDate, "d 'de' MMMM", { locale: ptBR })
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
@@ -208,25 +221,24 @@ export default function AgendaPage() {
             appointments={allAppointments}
           />
           <div className="border-t border-[#E2E8F0] px-6 pb-10 pt-4">
-            {(() => {
-              const today = toDateString(new Date())
-              const todayAppointments = allAppointments.filter((a) => a.date === today)
-              return todayAppointments.length === 0 ? (
+            <h2 className="mb-4 text-[16px] font-medium text-[#0F172A]">{tableTitle}</h2>
+            {tableAppointments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400">
-                <p className="font-medium text-slate-600">Nenhum agendamento hoje.</p>
+                <p className="font-medium text-slate-600">
+                  {isToday ? 'Nenhum agendamento hoje.' : 'Nenhum agendamento neste dia.'}
+                </p>
                 <p className="mt-1 text-sm">Clique em + Novo Agendamento para começar.</p>
               </div>
             ) : (
               <AgendaTable
-                appointments={todayAppointments.map((ca) => toAppointment(ca, calendarProfessionals))}
+                appointments={tableAppointments.map((ca) => toAppointment(ca, calendarProfessionals))}
                 onReschedule={(id) => {
                   const calAppt = allAppointments.find((a) => a.id === id)
                   if (calAppt) setSelectedAppt(calAppt)
                 }}
                 onSuccess={handleCreated}
               />
-            )
-            })()}
+            )}
           </div>
         </div>
       ) : (

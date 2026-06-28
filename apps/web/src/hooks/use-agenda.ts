@@ -38,7 +38,7 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
   }
 }
 
-export function useAgenda(params?: { date?: string; professionalId?: string; _key?: number }) {
+export function useAgenda(params?: { date?: string; from?: string; to?: string; professionalId?: string; _key?: number }) {
   const [data, setData]       = useState<CalendarAppointment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -49,7 +49,7 @@ export function useAgenda(params?: { date?: string; professionalId?: string; _ke
     let cancelled = false
     setLoading(true)
     setError(null)
-    agendaApi.list({ date: params?.date, professionalId: params?.professionalId })
+    agendaApi.list({ date: params?.date, from: params?.from, to: params?.to, professionalId: params?.professionalId })
       .then((res: unknown) => {
         if (!cancelled) {
           const arr = Array.isArray(res) ? res : []
@@ -64,7 +64,7 @@ export function useAgenda(params?: { date?: string; professionalId?: string; _ke
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [params?.date, params?.professionalId, params?._key])
+  }, [params?.date, params?.from, params?.to, params?.professionalId, params?._key])
 
   return { data, loading, error }
 }

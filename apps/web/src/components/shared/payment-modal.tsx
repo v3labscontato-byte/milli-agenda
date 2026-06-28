@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, CheckCircle2, Plus } from 'lucide-react'
+import { X, ChevronDown, CheckCircle2, Plus, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import AddItemModal from './add-item-modal'
 import {
@@ -54,6 +54,8 @@ export interface PaymentModalProps {
   items: PaymentItem[]
   deposit?: { amount: number; method: string; paidAt: string } | null
   initialDiscount?: { type: DiscountType; value: number } | null
+  isCompleted?: boolean
+  onReopen?: () => void
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -154,6 +156,7 @@ export default function PaymentModal({
   open, onClose, onConfirm,
   loading, commandId, clientName, serviceName, date, startTime, endTime,
   items, deposit, initialDiscount,
+  isCompleted, onReopen,
 }: PaymentModalProps) {
   const [visible, setVisible]             = useState(false)
   const [summaryOpen, setSummaryOpen]     = useState(true)
@@ -479,6 +482,16 @@ export default function PaymentModal({
 
         {/* ── Footer ── */}
         <div className="shrink-0 flex gap-3 border-t border-[#E2E8F0] bg-white px-5 py-4 rounded-b-2xl sm:rounded-b-xl">
+          {isCompleted && onReopen && (
+            <button
+              type="button"
+              onClick={onReopen}
+              className="flex items-center gap-1.5 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-3 py-2.5 text-[13px] font-medium text-[#92400E] transition-colors hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            >
+              <RefreshCw size={13} aria-hidden="true" />
+              Reabrir Comanda
+            </button>
+          )}
           <button type="button" onClick={onClose}
             className="flex-1 rounded-md border border-[#E2E8F0] py-2.5 text-[14px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] hover:text-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
             Cancelar

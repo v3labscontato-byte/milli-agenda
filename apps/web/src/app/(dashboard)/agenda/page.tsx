@@ -46,6 +46,7 @@ function toAppointment(ca: CalendarAppointment, profs: CalendarProfessional[]): 
     status: ca.status,
     amount: ca.amount,
     clientId: ca.clientId,
+    date: ca.date,
   }
 }
 
@@ -86,17 +87,6 @@ export default function AgendaPage() {
   }, [])
 
   const handleCreated = useCallback(() => setRefetchKey((k) => k + 1), [])
-
-  async function handleReopen(id: string) {
-    const token = localStorage.getItem('accessToken')
-    const base = process.env.NEXT_PUBLIC_API_URL
-    await fetch(`${base}/api/v1/appointments/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status: 'CONFIRMED' }),
-    })
-    handleCreated()
-  }
 
   const handleDaySelect = useCallback((professionalId: string, date: Date) => {
     setSelectedDate(date)
@@ -234,7 +224,6 @@ export default function AgendaPage() {
                   if (calAppt) setSelectedAppt(calAppt)
                 }}
                 onSuccess={handleCreated}
-                onReopen={handleReopen}
               />
             )}
           </div>

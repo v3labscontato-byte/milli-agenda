@@ -829,3 +829,11 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_AGENDA — ValorCell cancelados + Reabrir Comanda
 **Status:** ✅ Concluído
 **Fixes:** ValorCell mostra valor riscado em cancelados; ComandaCell mostra Ver Comanda cinza para cancelados; botão Reabrir aparece para COMPLETED; handleReopen no page.tsx faz PATCH status→CONFIRMED e refetch
+
+### [2026-06-28] AGENT_AGENDA — Coluna DATA + Reabrir dentro do PaymentModal
+**Status:** ✅ Concluído
+**Fixes:**
+- FIX 1: Removido botão Reabrir da tabela (ComandaCell, AgendaTableProps, handleReopen)
+- FIX 2: Adicionado botão "Reabrir Comanda" dentro do PaymentModal (isCompleted + onReopen), conectado em agenda-table.tsx e appointment-modal.tsx
+- FIX 3: Coluna DATA como primeira coluna da tabela (DataCell, date? em Appointment, date: ca.date em toAppointment)
+**tsc:** 0 erros

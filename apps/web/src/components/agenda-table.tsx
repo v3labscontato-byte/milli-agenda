@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, ClipboardList, CreditCard, RefreshCw } from 'lucide-react'
+import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
@@ -109,6 +109,18 @@ function TableSkeleton() {
   )
 }
 
+// ─── Data cell ────────────────────────────────────────────────────────────────
+
+function DataCell({ appt }: { appt: Appointment }) {
+  if (!appt.date) return <td className="px-4 py-3"><span className="text-[#CBD5E1]">—</span></td>
+  const [y, m, d] = appt.date.split('-')
+  return (
+    <td className="px-4 py-3">
+      <span className="font-tabular text-[13px] text-[#475569]">{d}/{m}/{y}</span>
+    </td>
+  )
+}
+
 // ─── Action cell renderers ─────────────────────────────────────────────────────
 
 function AgendaCell({ appt, onReschedule }: { appt: Appointment; onReschedule?: (id: string) => void }) {
@@ -138,7 +150,7 @@ const COMANDA_STYLES: Record<PaymentSt, { bg: string; text: string; border: stri
   atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cobrar',        icon: CreditCard   },
 }
 
-function ComandaCell({ appt, onOpen, onReopen }: { appt: Appointment; onOpen: () => void; onReopen?: (id: string) => void }) {
+function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {
   if (appt.status === 'NO_SHOW') return <Dash />
 
   if (appt.status === 'CANCELLED') {
@@ -163,33 +175,20 @@ function ComandaCell({ appt, onOpen, onReopen }: { appt: Appointment; onOpen: ()
 
   return (
     <td className="w-32 px-2 py-3 text-center">
-      <div className="inline-flex flex-wrap items-center gap-1">
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label={`${style.label}: ${appt.client}`}
-          className={cn(
-            'inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5',
-            'text-[11px] font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-          )}
-          style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
-        >
-          <Icon size={12} aria-hidden="true" />
-          {style.label}
-        </button>
-        {appt.status === 'COMPLETED' && (
-          <button
-            type="button"
-            onClick={() => onReopen?.(appt.id)}
-            aria-label={`Reabrir comanda: ${appt.client}`}
-            className="inline-flex items-center gap-1 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-2.5 py-1.5 text-[11px] font-medium text-[#92400E] transition-colors hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
-          >
-            <RefreshCw size={12} aria-hidden="true" />
-            Reabrir
-          </button>
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`${style.label}: ${appt.client}`}
+        className={cn(
+          'inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5',
+          'text-[11px] font-medium transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
         )}
-      </div>
+        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+      >
+        <Icon size={12} aria-hidden="true" />
+        {style.label}
+      </button>
     </td>
   )
 }
@@ -219,7 +218,6 @@ interface AgendaTableProps {
   isLoading?: boolean
   onReschedule?: (id: string) => void
   onSuccess?: () => void
-  onReopen?: (id: string) => void
 }
 
 const METHOD_MAP: Record<string, string> = {
@@ -227,7 +225,7 @@ const METHOD_MAP: Record<string, string> = {
   credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
 }
 
-export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess, onReopen }: AgendaTableProps) {
+export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess }: AgendaTableProps) {
   const [activeProf, setActiveProf]   = useState<Professional>('Todos')
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
@@ -332,6 +330,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
             <table className="w-full min-w-[800px] text-left">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                  <th scope="col" className={TH}>Data</th>
                   <th scope="col" className={TH}>Hora</th>
                   <th scope="col" className={TH}>Cliente</th>
                   <th scope="col" className={cn(TH, 'hidden md:table-cell')}>Serviço</th>
@@ -347,7 +346,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-12 text-center">
+                    <td colSpan={10} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
                         Nenhum atendimento encontrado para o período.
                       </p>
@@ -362,6 +361,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       key={appt.id}
                       className="border-b border-[#E2E8F0] bg-white transition-colors last:border-0 hover:bg-[#F8FAFC]"
                     >
+                      <DataCell appt={appt} />
                       <td className="px-4 py-3">
                         <span className="font-tabular text-[13px] font-semibold text-[#0F172A]">
                           {appt.time}
@@ -388,7 +388,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       <AtendimentoCell   appt={appt} />
 
                       <AgendaCell  appt={appt} onReschedule={onReschedule} />
-                      <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} onReopen={onReopen} />
+                      <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />
                     </tr>
                   ))
                 )}
@@ -413,6 +413,19 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
           date={paymentAppt.time}
           startTime={paymentAppt.time}
           endTime={paymentAppt.endTime ?? ''}
+          isCompleted={paymentAppt.status === 'COMPLETED'}
+          onReopen={async () => {
+            if (!paymentAppt) return
+            const token = localStorage.getItem('accessToken')
+            const base = process.env.NEXT_PUBLIC_API_URL
+            await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ status: 'CONFIRMED' }),
+            })
+            setPaymentAppt(null)
+            onSuccess?.()
+          }}
         />
       )}
 

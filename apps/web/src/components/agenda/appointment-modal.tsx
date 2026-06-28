@@ -570,6 +570,18 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         loading={paymentLoading}
         onClose={() => setPaymentOpen(false)}
         onConfirm={handlePaymentConfirm}
+        isCompleted={appointment.status === 'COMPLETED'}
+        onReopen={async () => {
+          const token = localStorage.getItem('accessToken')
+          const base = process.env.NEXT_PUBLIC_API_URL
+          await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ status: 'CONFIRMED' }),
+          })
+          setPaymentOpen(false)
+          onSuccess?.()
+        }}
       />
     </>
   )

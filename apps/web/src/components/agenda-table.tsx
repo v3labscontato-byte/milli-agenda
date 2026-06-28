@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
+import { Calendar, ClipboardList, CreditCard, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
@@ -138,9 +138,23 @@ const COMANDA_STYLES: Record<PaymentSt, { bg: string; text: string; border: stri
   atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cobrar',        icon: CreditCard   },
 }
 
-function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {
-  if (appt.status === 'CANCELLED' || appt.status === 'NO_SHOW') {
-    return <Dash />
+function ComandaCell({ appt, onOpen, onReopen }: { appt: Appointment; onOpen: () => void; onReopen?: (id: string) => void }) {
+  if (appt.status === 'NO_SHOW') return <Dash />
+
+  if (appt.status === 'CANCELLED') {
+    return (
+      <td className="w-32 px-2 py-3 text-center">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`Ver comanda: ${appt.client}`}
+          className="inline-flex items-center gap-1 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1.5 text-[11px] font-medium text-[#94A3B8] transition-colors hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+        >
+          <ClipboardList size={12} aria-hidden="true" />
+          Ver Comanda
+        </button>
+      </td>
+    )
   }
 
   const ps = getPaymentStatus(appt)
@@ -149,20 +163,33 @@ function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }
 
   return (
     <td className="w-32 px-2 py-3 text-center">
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`${style.label}: ${appt.client}`}
-        className={cn(
-          'inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5',
-          'text-[11px] font-medium transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+      <div className="inline-flex flex-wrap items-center gap-1">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`${style.label}: ${appt.client}`}
+          className={cn(
+            'inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5',
+            'text-[11px] font-medium transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+          )}
+          style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+        >
+          <Icon size={12} aria-hidden="true" />
+          {style.label}
+        </button>
+        {appt.status === 'COMPLETED' && (
+          <button
+            type="button"
+            onClick={() => onReopen?.(appt.id)}
+            aria-label={`Reabrir comanda: ${appt.client}`}
+            className="inline-flex items-center gap-1 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-2.5 py-1.5 text-[11px] font-medium text-[#92400E] transition-colors hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+          >
+            <RefreshCw size={12} aria-hidden="true" />
+            Reabrir
+          </button>
         )}
-        style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
-      >
-        <Icon size={12} aria-hidden="true" />
-        {style.label}
-      </button>
+      </div>
     </td>
   )
 }
@@ -170,15 +197,15 @@ function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }
 // ─── Valor cell ───────────────────────────────────────────────────────────────
 
 function ValorCell({ appt }: { appt: Appointment }) {
-  if (appt.status === 'CANCELLED') {
-    return <td className="px-4 py-3"><span className="text-[#CBD5E1]" aria-hidden="true">—</span></td>
-  }
   return (
     <td className="px-4 py-3">
-      <span className="font-tabular text-[13px] font-medium text-[#0F172A]">
+      <span className={cn(
+        'font-tabular text-[13px] font-medium',
+        appt.status === 'CANCELLED' ? 'text-[#94A3B8] line-through' : 'text-[#0F172A]',
+      )}>
         {appt.amount > 0
           ? `R$ ${Number(appt.amount).toFixed(2).replace('.', ',')}`
-          : <span className="text-[#94A3B8]">—</span>
+          : '—'
         }
       </span>
     </td>
@@ -192,6 +219,7 @@ interface AgendaTableProps {
   isLoading?: boolean
   onReschedule?: (id: string) => void
   onSuccess?: () => void
+  onReopen?: (id: string) => void
 }
 
 const METHOD_MAP: Record<string, string> = {
@@ -199,7 +227,7 @@ const METHOD_MAP: Record<string, string> = {
   credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
 }
 
-export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess }: AgendaTableProps) {
+export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess, onReopen }: AgendaTableProps) {
   const [activeProf, setActiveProf]   = useState<Professional>('Todos')
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
@@ -360,7 +388,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       <AtendimentoCell   appt={appt} />
 
                       <AgendaCell  appt={appt} onReschedule={onReschedule} />
-                      <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />
+                      <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} onReopen={onReopen} />
                     </tr>
                   ))
                 )}

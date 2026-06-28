@@ -825,3 +825,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_AGENDA — Coluna VALOR + botao Comanda conectado
 **Status:** ✅ Concluído
 **Fixes:** Coluna Valor adicionada entre Pagamento e Atendimento na agenda-table; FIX 2 (Comanda backend) já aplicado no commit anterior 50136db
+
+### [2026-06-28] AGENT_AGENDA — ValorCell cancelados + Reabrir Comanda
+**Status:** ✅ Concluído
+**Fixes:** ValorCell mostra valor riscado em cancelados; ComandaCell mostra Ver Comanda cinza para cancelados; botão Reabrir aparece para COMPLETED; handleReopen no page.tsx faz PATCH status→CONFIRMED e refetch

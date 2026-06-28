@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
+import { type Appointment } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -226,8 +226,14 @@ const METHOD_MAP: Record<string, string> = {
 }
 
 export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess }: AgendaTableProps) {
-  const [activeProf, setActiveProf]   = useState<Professional>('Todos')
+  const [activeProf, setActiveProf]   = useState<string>('Todos')
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
+
+  const profissionaisUnicos = useMemo(() => {
+    const map = new Map<string, string>()
+    appointments.forEach((a) => { if (a.professional) map.set(a.professional, a.professional) })
+    return Array.from(map.values()).sort()
+  }, [appointments])
   const [paymentLoading, setPaymentLoading] = useState(false)
 
   async function handlePaymentConfirm(result: PaymentResult) {
@@ -298,9 +304,8 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
 
       {/* Professional filter pills */}
       <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Filtrar por profissional">
-        {PROFESSIONALS.map((prof) => {
-          const isActive  = activeProf === prof
-          const shortName = prof === 'Todos' ? 'Todos' : prof.split(' ')[0]
+        {['Todos', ...profissionaisUnicos].map((prof) => {
+          const isActive = activeProf === prof
           return (
             <button
               key={prof}
@@ -308,14 +313,14 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
               onClick={() => setActiveProf(prof)}
               aria-pressed={isActive}
               className={cn(
-                'rounded-sm border px-3 py-1 text-[13px] font-medium',
-                'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                'rounded-full px-3 py-1 text-[12px] font-medium transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                 isActive
-                  ? 'border-[#2563EB] bg-[#2563EB] text-white'
-                  : 'border-[#E2E8F0] bg-white text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]',
+                  ? 'bg-[#2563EB] text-white'
+                  : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]',
               )}
             >
-              {shortName}
+              {prof}
             </button>
           )
         })}

@@ -837,3 +837,7 @@ d48f169 — style(servicos): impeccable 20/20
 - FIX 2: Adicionado botão "Reabrir Comanda" dentro do PaymentModal (isCompleted + onReopen), conectado em agenda-table.tsx e appointment-modal.tsx
 - FIX 3: Coluna DATA como primeira coluna da tabela (DataCell, date? em Appointment, date: ca.date em toAppointment)
 **tsc:** 0 erros
+
+### [2026-06-28] AGENT_AGENDA — Filtro de profissionais real
+**Status:** ✅ Concluído
+**Fix:** Removido PROFESSIONALS mock; profissionais derivados dos agendamentos recebidos (useMemo + Map). Pills atualizadas para rounded-full com nomes completos.

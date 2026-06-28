@@ -76,6 +76,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!appointment) return
+    if (paymentOpenRef.current) return
     setPaymentOpen(false)
     setSaving(false)
     if (!reagendando) {

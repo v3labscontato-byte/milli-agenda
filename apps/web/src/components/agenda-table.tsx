@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PROFESSIONALS, type Appointment, type Professional } from '@/lib/mock-data'
-import PaymentModal from '@/components/shared/payment-modal'
+import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -173,11 +173,64 @@ interface AgendaTableProps {
   appointments: Appointment[]
   isLoading?: boolean
   onReschedule?: (id: string) => void
+  onSuccess?: () => void
 }
 
-export default function AgendaTable({ appointments, isLoading = false, onReschedule }: AgendaTableProps) {
+const METHOD_MAP: Record<string, string> = {
+  pix: 'PIX', dinheiro: 'CASH', debito: 'DEBIT_CARD',
+  credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
+}
+
+export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess }: AgendaTableProps) {
   const [activeProf, setActiveProf]   = useState<Professional>('Todos')
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
+  async function handlePaymentConfirm(result: PaymentResult) {
+    if (!paymentAppt) return
+    setPaymentLoading(true)
+    try {
+      const token = localStorage.getItem('accessToken')
+      const base = process.env.NEXT_PUBLIC_API_URL
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+
+      const cmdRes = await fetch(`${base}/api/v1/commands`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ clientId: paymentAppt.clientId }),
+      })
+      const cmd = await cmdRes.json()
+      const commandId = cmd.data?.id
+      if (!commandId) throw new Error('Comanda não criada')
+
+      for (const m of result.methods ?? []) {
+        await fetch(`${base}/api/v1/payments`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            commandId,
+            method: METHOD_MAP[m.method] ?? m.method.toUpperCase(),
+            amount: m.amount,
+          }),
+        })
+      }
+
+      await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+
+      await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: 'COMPLETED' }),
+      })
+
+      onSuccess?.()
+    } catch (e) {
+      console.error('[comanda] erro:', e)
+    } finally {
+      setPaymentLoading(false)
+      setPaymentAppt(null)
+    }
+  }
 
   const filtered =
     activeProf === 'Todos'
@@ -303,7 +356,8 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
         <PaymentModal
           open={!!paymentAppt}
           onClose={() => setPaymentAppt(null)}
-          onConfirm={() => setPaymentAppt(null)}
+          onConfirm={handlePaymentConfirm}
+          loading={paymentLoading}
           clientName={paymentAppt.client}
           professionalName={paymentAppt.professional}
           serviceName={paymentAppt.service}

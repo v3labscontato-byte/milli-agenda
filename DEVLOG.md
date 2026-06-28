@@ -816,3 +816,8 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** ✅ Concluído
 **Arquivos alterados:** apps/api/src/modules/agenda/agenda.service.ts
 **O que foi feito:** findAll trocado de include para select explícito — expõe clientId do appointment no JSON. durationMin removido do select raiz (campo não existe no modelo Appointment, existe só em Service). findOne mantido com include (usado internamente em transition/update/remove)
+
+### [2026-06-28] AGENT_COMANDAS — Fix botão Comanda conectado ao backend
+**Status:** ✅ Concluído
+**Arquivos alterados:** agenda-table.tsx, mock-data.ts, agenda/page.tsx, appointment-modal.tsx
+**O que foi feito:** AgendaTable.onConfirm agora chama handlePaymentConfirm real (cria comanda, registra pagamentos, fecha comanda, atualiza status); clientId adicionado a Appointment interface e propagado via toAppointment; onSuccess={handleCreated} passado para AgendaTable; logs de debug removidos do appointment-modal

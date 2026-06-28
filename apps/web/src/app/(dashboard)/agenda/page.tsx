@@ -45,6 +45,7 @@ function toAppointment(ca: CalendarAppointment, profs: CalendarProfessional[]): 
     professional: prof?.name ?? ca.professionalId,
     status: ca.status,
     amount: ca.amount,
+    clientId: ca.clientId,
   }
 }
 
@@ -221,6 +222,7 @@ export default function AgendaPage() {
                   const calAppt = allAppointments.find((a) => a.id === id)
                   if (calAppt) setSelectedAppt(calAppt)
                 }}
+                onSuccess={handleCreated}
               />
             )}
           </div>

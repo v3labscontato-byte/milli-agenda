@@ -20,6 +20,7 @@ export interface Appointment {
   status: AppointmentStatus
   amount: number
   startedAt?: string
+  clientId?: string
 }
 
 export interface KpiData {

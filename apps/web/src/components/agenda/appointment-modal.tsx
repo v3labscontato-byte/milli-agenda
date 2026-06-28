@@ -260,7 +260,8 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   }
 
   async function handlePaymentConfirm(result: PaymentResult) {
-    if (!appointment) return
+    console.log('[payment] handlePaymentConfirm called', { appointment: !!appointment, result })
+    if (!appointment) { console.warn('[payment] appointment is null — abortando'); return }
     const METHOD_MAP: Record<string, string> = {
       pix: 'PIX', dinheiro: 'CASH', debito: 'DEBIT_CARD',
       credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
@@ -269,6 +270,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     try {
       const token = localStorage.getItem('accessToken')
       const base = process.env.NEXT_PUBLIC_API_URL
+      console.log('[payment] base URL:', base, '| clientId:', appointment.clientId, '| commandId:', appointment.commandId)
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
       let commandId = appointment.commandId

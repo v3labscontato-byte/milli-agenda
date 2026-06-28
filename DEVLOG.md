@@ -821,3 +821,7 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** ✅ Concluído
 **Arquivos alterados:** agenda-table.tsx, mock-data.ts, agenda/page.tsx, appointment-modal.tsx
 **O que foi feito:** AgendaTable.onConfirm agora chama handlePaymentConfirm real (cria comanda, registra pagamentos, fecha comanda, atualiza status); clientId adicionado a Appointment interface e propagado via toAppointment; onSuccess={handleCreated} passado para AgendaTable; logs de debug removidos do appointment-modal
+
+### [2026-06-28] AGENT_AGENDA — Coluna VALOR + botao Comanda conectado
+**Status:** ✅ Concluído
+**Fixes:** Coluna Valor adicionada entre Pagamento e Atendimento na agenda-table; FIX 2 (Comanda backend) já aplicado no commit anterior 50136db

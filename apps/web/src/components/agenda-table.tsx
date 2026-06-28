@@ -167,6 +167,24 @@ function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }
   )
 }
 
+// ─── Valor cell ───────────────────────────────────────────────────────────────
+
+function ValorCell({ appt }: { appt: Appointment }) {
+  if (appt.status === 'CANCELLED') {
+    return <td className="px-4 py-3"><span className="text-[#CBD5E1]" aria-hidden="true">—</span></td>
+  }
+  return (
+    <td className="px-4 py-3">
+      <span className="font-tabular text-[13px] font-medium text-[#0F172A]">
+        {appt.amount > 0
+          ? `R$ ${Number(appt.amount).toFixed(2).replace('.', ',')}`
+          : <span className="text-[#94A3B8]">—</span>
+        }
+      </span>
+    </td>
+  )
+}
+
 // ─── Main component ────────────────────────────────────────────────────────────
 
 interface AgendaTableProps {
@@ -291,6 +309,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                   <th scope="col" className={cn(TH, 'hidden md:table-cell')}>Serviço</th>
                   <th scope="col" className={cn(TH, 'hidden lg:table-cell')}>Profissional</th>
                   <th scope="col" className={TH}>Pagamento</th>
+                  <th scope="col" className={TH}>Valor</th>
                   <th scope="col" className={TH}>Atendimento</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Agenda</th>
                   <th scope="col" className={cn(TH, 'w-32 text-center')}>Comanda</th>
@@ -300,7 +319,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-12 text-center">
+                    <td colSpan={9} className="px-4 py-12 text-center">
                       <p className="text-[14px] font-medium text-[#475569]">
                         Nenhum atendimento encontrado para o período.
                       </p>
@@ -337,6 +356,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       </td>
 
                       <PaymentStatusCell  appt={appt} />
+                      <ValorCell         appt={appt} />
                       <AtendimentoCell   appt={appt} />
 
                       <AgendaCell  appt={appt} onReschedule={onReschedule} />

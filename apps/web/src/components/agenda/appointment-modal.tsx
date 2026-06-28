@@ -5,7 +5,7 @@ import { X, Clock, User, Scissors, CreditCard, CheckSquare, XCircle, CalendarClo
 import { cn } from '@/lib/utils'
 import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
-import PaymentModal from '@/components/shared/payment-modal'
+import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
 
 interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string }
@@ -257,9 +257,49 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     }
   }
 
-  function handlePaymentConfirm() {
-    setPaymentOpen(false)
-    onClose()
+  async function handlePaymentConfirm(result: PaymentResult) {
+    if (!appointment) return
+    try {
+      const token = localStorage.getItem('accessToken')
+      const base = process.env.NEXT_PUBLIC_API_URL
+
+      let commandId = appointment.commandId
+      if (!commandId) {
+        const cmdRes = await fetch(`${base}/api/v1/commands`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ appointmentId: appointment.id }),
+        })
+        const cmd = await cmdRes.json()
+        commandId = cmd.data?.id
+      }
+
+      if (!commandId) throw new Error('Comanda não criada')
+
+      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          paymentMethod: result.methods?.[0]?.method ?? 'PIX',
+          amount: result.total,
+          discount: result.discount ?? 0,
+          payments: result.methods,
+        }),
+      })
+
+      await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'COMPLETED' }),
+      })
+
+      onSuccess?.()
+    } catch (e) {
+      console.error('Erro ao confirmar pagamento:', e)
+    } finally {
+      setPaymentOpen(false)
+      onClose()
+    }
   }
 
   const showActions = !reagendando && !cancelMode && actions.length > 0

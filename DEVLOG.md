@@ -798,3 +798,10 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** Concluído
 **Entregues:** cards coloridos por status (appointment-block.tsx reescrito com CARD_STYLES inline); ícone de pagamento (PaymentDot — verde=pago, amarelo=pendente); bloqueio de agenda via Shift+clique com mini-form e card hachurado; legenda no rodapé da timeline; botão Finalizar adicionado ao status CONFIRMED (Receipt icon, variant success); commandId adicionado à CalendarAppointment e mapeado no transformApiResponse
 **Arquivos:** appointment-block.tsx, day-timeline.tsx, appointment-modal.tsx, calendar-utils.ts, use-agenda.ts
+
+### [2026-06-28] AGENT_COMANDAS — Conectar comanda ao backend
+**Status:** ✅ Concluído
+**Arquivos alterados:** apps/web/src/hooks/use-agenda.ts, apps/web/src/components/agenda/appointment-modal.tsx, apps/api/src/modules/agenda/agenda.service.ts
+**O que foi feito:** FIX1 — amount mapeado de service.price no transformApiResponse; FIX2 — handlePaymentConfirm agora async, cria comanda via POST /commands, fecha via /commands/:id/close, atualiza status para COMPLETED; FIX3 — PaymentResult verificado (usa result.methods); FIX4 — findAll/findOne no agenda.service.ts usam select com price no service
+**Problemas encontrados:** clientes.service.ts tem erro TS pré-existente (campo cpf fora do schema Prisma) — não relacionado
+**Próximo passo sugerido:** Testar fluxo completo Finalizar → PaymentModal → backend

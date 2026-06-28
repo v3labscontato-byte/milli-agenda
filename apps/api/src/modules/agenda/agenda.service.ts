@@ -31,7 +31,11 @@ export class AgendaService {
 
     return this.db.appointment.findMany({
       where,
-      include: { client: true, professional: true, service: true },
+      include: {
+        client: { select: { name: true, phone: true } },
+        service: { select: { name: true, durationMin: true, price: true } },
+        professional: { select: { name: true, specialty: true } },
+      },
       orderBy: { startAt: 'asc' },
     })
   }

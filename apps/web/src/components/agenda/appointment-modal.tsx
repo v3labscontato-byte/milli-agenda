@@ -68,6 +68,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
   const [horariosDisponiveis, setHorariosDisp]      = useState<string[]>([])
   const [loadingHorarios, setLoadingHorarios]       = useState(false)
   const [saving, setSaving]                         = useState(false)
+  const [paymentLoading, setPaymentLoading]         = useState(false)
   const paymentOpenRef = useRef(false)
   useEffect(() => { paymentOpenRef.current = paymentOpen }, [paymentOpen])
 
@@ -260,16 +261,22 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
   async function handlePaymentConfirm(result: PaymentResult) {
     if (!appointment) return
+    const METHOD_MAP: Record<string, string> = {
+      pix: 'PIX', dinheiro: 'CASH', debito: 'DEBIT_CARD',
+      credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
+    }
+    setPaymentLoading(true)
     try {
       const token = localStorage.getItem('accessToken')
       const base = process.env.NEXT_PUBLIC_API_URL
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
       let commandId = appointment.commandId
       if (!commandId) {
         const cmdRes = await fetch(`${base}/api/v1/commands`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ appointmentId: appointment.id }),
+          headers,
+          body: JSON.stringify({ clientId: appointment.clientId }),
         })
         const cmd = await cmdRes.json()
         commandId = cmd.data?.id
@@ -277,20 +284,37 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
       if (!commandId) throw new Error('Comanda não criada')
 
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          paymentMethod: result.methods?.[0]?.method ?? 'PIX',
-          amount: result.total,
-          discount: result.discount ?? 0,
-          payments: result.methods,
-        }),
-      })
+      const discountAmt = result.discount
+        ? result.discount.type === 'percent'
+          ? (result.total * result.discount.value) / 100
+          : result.discount.value
+        : 0
+
+      if (discountAmt > 0) {
+        await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ amount: discountAmt }),
+        })
+      }
+
+      for (const m of result.methods ?? []) {
+        await fetch(`${base}/api/v1/payments`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            commandId,
+            method: METHOD_MAP[m.method] ?? m.method.toUpperCase(),
+            amount: m.amount,
+          }),
+        })
+      }
+
+      await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
 
       await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers,
         body: JSON.stringify({ status: 'COMPLETED' }),
       })
 
@@ -298,6 +322,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
     } catch (e) {
       console.error('Erro ao confirmar pagamento:', e)
     } finally {
+      setPaymentLoading(false)
       setPaymentOpen(false)
       onClose()
     }
@@ -542,6 +567,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             : [{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]
         }
         deposit={appointment.deposit}
+        loading={paymentLoading}
         onClose={() => setPaymentOpen(false)}
         onConfirm={handlePaymentConfirm}
       />

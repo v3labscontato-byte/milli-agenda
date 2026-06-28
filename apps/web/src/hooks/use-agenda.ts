@@ -34,6 +34,7 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
     amount: Number(service.price ?? r.amount ?? 0),
     status,
     commandId: r.commandId as string | undefined,
+    clientId: r.clientId as string | undefined,
   }
 }
 

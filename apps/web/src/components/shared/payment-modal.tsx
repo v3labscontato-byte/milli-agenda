@@ -43,6 +43,7 @@ export interface PaymentModalProps {
   open: boolean
   onClose: () => void
   onConfirm: (result: PaymentResult) => void
+  loading?: boolean
   commandId?: string
   clientName: string
   professionalName: string
@@ -151,7 +152,7 @@ function PaymentEntryCard({ entry, entries, totalDue, canRemove, onUpdate, onRem
 
 export default function PaymentModal({
   open, onClose, onConfirm,
-  commandId, clientName, serviceName, date, startTime, endTime,
+  loading, commandId, clientName, serviceName, date, startTime, endTime,
   items, deposit, initialDiscount,
 }: PaymentModalProps) {
   const [visible, setVisible]             = useState(false)
@@ -482,18 +483,22 @@ export default function PaymentModal({
             className="flex-1 rounded-md border border-[#E2E8F0] py-2.5 text-[14px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] hover:text-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
             Cancelar
           </button>
-          <button type="button" onClick={handleConfirm} disabled={!canConfirm}
+          <button type="button" onClick={handleConfirm} disabled={!canConfirm || loading}
             className={cn(
               'flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-[14px] font-semibold transition-colors motion-reduce:transition-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
-              canConfirm ? 'bg-[#16A34A] text-white hover:bg-[#15803D]' : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]',
+              canConfirm && !loading ? 'bg-[#16A34A] text-white hover:bg-[#15803D]' : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]',
             )}>
-            {!canConfirm && totalPaid > 0 && (
-              <span className="rounded bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-semibold text-[#DC2626]">
-                Falta {formatBRL(totalDue - totalPaid)}
-              </span>
+            {loading ? 'Processando...' : (
+              <>
+                {!canConfirm && totalPaid > 0 && (
+                  <span className="rounded bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-semibold text-[#DC2626]">
+                    Falta {formatBRL(totalDue - totalPaid)}
+                  </span>
+                )}
+                ✓ Confirmar Pagamento
+              </>
             )}
-            ✓ Confirmar Pagamento
           </button>
         </div>
       </div>

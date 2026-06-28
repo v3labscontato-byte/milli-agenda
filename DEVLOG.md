@@ -805,3 +805,9 @@ d48f169 — style(servicos): impeccable 20/20
 **O que foi feito:** FIX1 — amount mapeado de service.price no transformApiResponse; FIX2 — handlePaymentConfirm agora async, cria comanda via POST /commands, fecha via /commands/:id/close, atualiza status para COMPLETED; FIX3 — PaymentResult verificado (usa result.methods); FIX4 — findAll/findOne no agenda.service.ts usam select com price no service
 **Problemas encontrados:** clientes.service.ts tem erro TS pré-existente (campo cpf fora do schema Prisma) — não relacionado
 **Próximo passo sugerido:** Testar fluxo completo Finalizar → PaymentModal → backend
+
+### [2026-06-28] AGENT_COMANDAS — Fix paymentMethod uppercase + discount calculado + loading visual
+**Status:** ✅ Concluído
+**Arquivos alterados:** calendar-utils.ts, use-agenda.ts, appointment-modal.tsx, payment-modal.tsx
+**O que foi feito:** Exposto clientId em CalendarAppointment; handlePaymentConfirm usa fluxo correto (POST /payments por método, depois /commands/:id/close sem body); mapeamento pix→PIX dinheiro→CASH etc; desconto calculado em R\$; loading visual no botão
+**Problemas encontrados (FIX3):** backend close não aceitava body, open precisava clientId não appointmentId — corrigidos no frontend

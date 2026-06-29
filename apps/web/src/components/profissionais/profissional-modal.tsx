@@ -475,7 +475,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
                 { label: 'Comissão',    key: 'commission',         color: '#7C3AED', isCurrency: true  },
               ] as { label: string; key: string; color: string; isCurrency: boolean }[]).map((row) => {
                 const vals = p.monthlyData.map((m) => {
-                  if (row.key === 'commission') return m.revenue * p.commissionPct / 100
+                  if (row.key === 'commission') return Number(m.commission ?? m.revenue * p.commissionPct / 100)
                   return Number((m as unknown as Record<string, unknown>)[row.key] ?? 0)
                 })
                 const total = vals.reduce((s, v) => s + v, 0)

@@ -48,10 +48,29 @@ export class ComandasService {
       data: { tenantId, clientId: dto.clientId, notes: dto.notes },
     })
     if (dto.appointmentId) {
-      await this.db.appointment.update({
-        where: { id: dto.appointmentId },
-        data: { commandId: command.id },
+      const appt = await this.db.appointment.findFirst({
+        where: { id: dto.appointmentId, tenantId },
+        include: { service: true },
       })
+      if (appt) {
+        await this.db.appointment.update({
+          where: { id: dto.appointmentId },
+          data: { commandId: command.id },
+        })
+        if (appt.serviceId && appt.service) {
+          await this.db.commandItem.create({
+            data: {
+              commandId: command.id,
+              serviceId: appt.serviceId,
+              quantity: 1,
+              unitPrice: Number(appt.service.price),
+              discount: 0,
+              total: Number(appt.service.price),
+            },
+          })
+          return this.recalculate(command.id)
+        }
+      }
     }
     return command
   }

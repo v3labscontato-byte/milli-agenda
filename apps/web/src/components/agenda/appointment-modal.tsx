@@ -575,11 +575,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         date={formatDateDisplay(appointment.date)}
         startTime={appointment.startTime}
         endTime={appointment.endTime}
-        items={
-          appointment.services?.length
-            ? appointment.services
-            : [{ serviceId: appointment.serviceId, name: appointment.service, quantity: 1, unitPrice: appointment.amount }]
-        }
+        items={[{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]}
         deposit={appointment.deposit}
         loading={paymentLoading}
         onClose={() => setPaymentOpen(false)}

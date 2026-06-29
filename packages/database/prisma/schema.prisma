@@ -95,6 +95,7 @@ model Tenant {
   apiKeys       ApiKey[]
   auditLogs     AuditLog[]
   goals         Goal[]
+  specialties   Specialty[]
 
   @@index([slug])
   @@map("tenants")
@@ -198,6 +199,7 @@ model Professional {
   user         User?         @relation(fields: [userId], references: [id])
   appointments Appointment[]
   schedules    Schedule[]
+  specialties  ProfessionalSpecialty[]
 
   @@index([tenantId])
   @@map("professionals")
@@ -528,4 +530,29 @@ model Goal {
 
   @@index([tenantId])
   @@map("goals")
+}
+
+model Specialty {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant        Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professionals ProfessionalSpecialty[]
+
+  @@index([tenantId])
+  @@map("specialties")
+}
+
+model ProfessionalSpecialty {
+  professionalId String
+  specialtyId    String
+
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  specialty    Specialty    @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+
+  @@id([professionalId, specialtyId])
+  @@map("professional_specialties")
 }

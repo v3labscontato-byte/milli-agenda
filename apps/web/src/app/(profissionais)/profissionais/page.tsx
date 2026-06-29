@@ -14,6 +14,7 @@ import ProfissionalList from '@/components/profissionais/profissional-list'
 import ProfissionalModal from '@/components/profissionais/profissional-modal'
 import NovoProfissionalModal from '@/components/profissionais/novo-profissional-modal'
 import SmartFormProfissional from '@/components/shared/smart-form-profissional'
+import NovaEspecialidadeModal from '@/components/profissionais/nova-especialidade-modal'
 
 // ─── KPI card ─────────────────────────────────────────────────────────────────
 
@@ -72,8 +73,9 @@ export default function ProfissionaisPage() {
   const [roleFilter, setRoleFilter]   = useState<RoleFilter>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(null)
   const [selected, setSelected]       = useState<Profissional | null>(null)
-  const [novoOpen, setNovoOpen]       = useState(false)
-  const [smartOpen, setSmartOpen]     = useState(false)
+  const [novoOpen, setNovoOpen]             = useState(false)
+  const [smartOpen, setSmartOpen]           = useState(false)
+  const [especialidadeOpen, setEspecialidadeOpen] = useState(false)
 
   const { data: profissionais, loading, error, create, toggleStatus, remove, refetch } = useProfissionais()
   const stats = useMemo(() => {
@@ -143,19 +145,34 @@ export default function ProfissionaisPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
             Visão geral
           </p>
-          <button
-            type="button"
-            onClick={() => setSmartOpen(true)}
-            aria-label="Novo profissional"
-            className={cn(
-              'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
-              'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
-            )}
-          >
-            <Plus size={13} aria-hidden="true" />
-            Novo Profissional
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setEspecialidadeOpen(true)}
+              aria-label="Gerenciar especialidades"
+              className={cn(
+                'flex items-center gap-1.5 rounded-md border border-[var(--color-border-primary)] bg-white px-3 py-1.5',
+                'text-[12px] font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-secondary)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+              )}
+            >
+              <Plus size={13} aria-hidden="true" />
+              Nova Especialidade
+            </button>
+            <button
+              type="button"
+              onClick={() => setSmartOpen(true)}
+              aria-label="Novo profissional"
+              className={cn(
+                'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
+                'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+              )}
+            >
+              <Plus size={13} aria-hidden="true" />
+              Novo Profissional
+            </button>
+          </div>
         </div>
 
         <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
@@ -287,6 +304,12 @@ export default function ProfissionaisPage() {
         open={smartOpen}
         onClose={() => setSmartOpen(false)}
         onCreated={create}
+      />
+      <NovaEspecialidadeModal
+        open={especialidadeOpen}
+        onClose={() => setEspecialidadeOpen(false)}
+        profissionais={profissionais}
+        onRefetch={refetch}
       />
     </div>
   )

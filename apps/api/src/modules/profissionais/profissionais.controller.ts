@@ -38,6 +38,33 @@ export class ProfissionaisController {
     return this.profissionaisService.deleteRole(tenantId, id)
   }
 
+  @Get('specialties')
+  getSpecialties(@TenantFromJwt() tenantId: string) {
+    return this.profissionaisService.getSpecialties(tenantId)
+  }
+
+  @Post('specialties')
+  createSpecialty(
+    @TenantFromJwt() tenantId: string,
+    @Body() body: { name: string; professionalIds?: string[] },
+  ) {
+    return this.profissionaisService.createSpecialty(tenantId, body.name, body.professionalIds ?? [])
+  }
+
+  @Patch('specialties/:id')
+  updateSpecialty(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() body: { name: string },
+  ) {
+    return this.profissionaisService.updateSpecialty(tenantId, id, body.name)
+  }
+
+  @Delete('specialties/:id')
+  deleteSpecialty(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.profissionaisService.deleteSpecialty(tenantId, id)
+  }
+
   @Get(':id')
   findOne(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
     return this.profissionaisService.findOne(tenantId, id)
@@ -65,6 +92,15 @@ export class ProfissionaisController {
   @Post()
   create(@TenantFromJwt() tenantId: string, @Body() dto: CreateProfissionalDto) {
     return this.profissionaisService.create(tenantId, dto)
+  }
+
+  @Patch(':id/specialties')
+  updateSpecialties(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() body: { specialtyIds: string[] },
+  ) {
+    return this.profissionaisService.updateSpecialties(tenantId, id, body.specialtyIds)
   }
 
   @Patch(':id')

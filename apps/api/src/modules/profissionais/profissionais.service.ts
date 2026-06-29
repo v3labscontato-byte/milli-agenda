@@ -220,4 +220,48 @@ export class ProfissionaisService {
     if (!role) throw new NotFoundException('Role not found')
     return this.db.professionalRole.update({ where: { id }, data: { status: false } })
   }
+
+  getSpecialties(tenantId: string) {
+    return this.db.specialty.findMany({
+      where: { tenantId },
+      orderBy: { name: 'asc' },
+      include: {
+        professionals: {
+          include: { professional: { select: { id: true, name: true } } },
+        },
+      },
+    })
+  }
+
+  async createSpecialty(tenantId: string, name: string, professionalIds: string[]) {
+    const specialty = await this.db.specialty.create({ data: { tenantId, name } })
+    if (professionalIds.length > 0) {
+      await this.db.professionalSpecialty.createMany({
+        data: professionalIds.map(professionalId => ({ professionalId, specialtyId: specialty.id })),
+      })
+    }
+    return specialty
+  }
+
+  async updateSpecialties(tenantId: string, professionalId: string, specialtyIds: string[]) {
+    await this.db.professionalSpecialty.deleteMany({ where: { professionalId } })
+    if (specialtyIds.length > 0) {
+      await this.db.professionalSpecialty.createMany({
+        data: specialtyIds.map(specialtyId => ({ professionalId, specialtyId })),
+      })
+    }
+    return this.findOne(tenantId, professionalId)
+  }
+
+  async updateSpecialty(tenantId: string, id: string, name: string) {
+    const sp = await this.db.specialty.findFirst({ where: { id, tenantId } })
+    if (!sp) throw new NotFoundException('Specialty not found')
+    return this.db.specialty.update({ where: { id }, data: { name } })
+  }
+
+  async deleteSpecialty(tenantId: string, id: string) {
+    const sp = await this.db.specialty.findFirst({ where: { id, tenantId } })
+    if (!sp) throw new NotFoundException('Specialty not found')
+    return this.db.specialty.delete({ where: { id } })
+  }
 }

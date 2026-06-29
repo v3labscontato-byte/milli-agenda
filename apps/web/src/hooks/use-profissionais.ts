@@ -53,6 +53,11 @@ function toFrontend(raw: Record<string, unknown>): Profissional {
     totalFinalizados: Number(metrics.totalFinalizados ?? 0),
     totalPendentes:   Number(metrics.totalPendentes ?? 0),
     totalCancelados:  Number(metrics.totalCancelados ?? 0),
+    specialtyIds: Array.isArray((raw.specialties as unknown[]))
+      ? (raw.specialties as Array<{ specialtyId?: string; specialty?: { id?: string } }>).map(
+          (s) => s.specialtyId ?? s.specialty?.id ?? ''
+        ).filter(Boolean)
+      : [],
   }
 }
 

@@ -1,11 +1,15 @@
 'use client'
 
-import { memo, useMemo, useState } from 'react'
-import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus, Trash2 } from 'lucide-react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Star, UserCheck, Plus, Trash2, Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL } from '@/lib/profissionais-mock'
+import { api } from '@/lib/api/client'
+import { FEATURES } from '@/lib/features'
 import { ProfissionalAvatar, StatusBadge } from './profissional-card'
+
+interface Specialty { id: string; name: string; professionals: { professional: { id: string } }[] }
 
 type SortKey = 'name' | 'appointmentsThisMonth' | 'revenueThisMonth' | 'rating'
 type SortDir = 'asc' | 'desc'
@@ -33,6 +37,59 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null)
+  const [specialties, setSpecialties] = useState<Specialty[]>([])
+  const [editingSpecProfId, setEditingSpecProfId] = useState<string | null>(null)
+  const [editingSpecIds, setEditingSpecIds] = useState<string[]>([])
+  const [savingSpec, setSavingSpec] = useState(false)
+  const specDropdownRef = useRef<HTMLDivElement>(null)
+
+  const fetchSpecialties = useCallback(async () => {
+    if (!FEATURES.realProfissionais) return
+    try {
+      const res = await api.get<Specialty[]>('/api/v1/professionals/specialties')
+      setSpecialties(Array.isArray(res) ? res : [])
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => { void fetchSpecialties() }, [fetchSpecialties])
+
+  useEffect(() => {
+    if (!editingSpecProfId) return
+    function handleClick(e: MouseEvent) {
+      if (specDropdownRef.current && !specDropdownRef.current.contains(e.target as Node)) {
+        setEditingSpecProfId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [editingSpecProfId])
+
+  function openSpecEdit(profId: string) {
+    const current = specialties
+      .filter((sp) => sp.professionals.some((r) => r.professional.id === profId))
+      .map((sp) => sp.id)
+    setEditingSpecIds(current)
+    setEditingSpecProfId(profId)
+  }
+
+  function toggleSpec(id: string) {
+    setEditingSpecIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  }
+
+  async function saveSpec(profId: string) {
+    setSavingSpec(true)
+    try {
+      await api.patch(`/api/v1/professionals/${profId}/specialties`, { specialtyIds: editingSpecIds })
+      await fetchSpecialties()
+      setEditingSpecProfId(null)
+    } catch { /* ignore */ } finally {
+      setSavingSpec(false)
+    }
+  }
+
+  function getSpecsForProf(profId: string): Specialty[] {
+    return specialties.filter((sp) => sp.professionals.some((r) => r.professional.id === profId))
+  }
 
   async function handleDelete(id: string) {
     try {
@@ -183,9 +240,82 @@ function ProfissionalList({ profissionais, isFiltered = false, onView, onNovo, o
 
               {/* Especialidade */}
               <td className="px-4 py-3">
-                <span className="text-[13px] text-[var(--color-text-secondary)]">
-                  {p.role || '—'}
-                </span>
+                {FEATURES.realProfissionais ? (
+                  <div className="relative" ref={editingSpecProfId === p.id ? specDropdownRef : undefined}>
+                    <button
+                      type="button"
+                      onClick={() => editingSpecProfId === p.id ? setEditingSpecProfId(null) : openSpecEdit(p.id)}
+                      className={cn(
+                        'flex flex-wrap items-center gap-1 rounded px-1 py-0.5 text-left transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]',
+                        'hover:bg-[var(--color-surface-secondary)]',
+                      )}
+                      aria-label={`Editar especialidades de ${p.name}`}
+                    >
+                      {getSpecsForProf(p.id).length > 0 ? (
+                        getSpecsForProf(p.id).map((sp) => (
+                          <span key={sp.id} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-medium text-[#2563EB]">
+                            {sp.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[12px] text-[var(--color-text-tertiary)]">—</span>
+                      )}
+                    </button>
+
+                    {editingSpecProfId === p.id && (
+                      <div className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-[#E2E8F0] bg-white shadow-lg">
+                        <div className="max-h-48 overflow-y-auto p-1">
+                          {specialties.length === 0 && (
+                            <p className="px-3 py-2 text-[12px] text-[#94A3B8]">Nenhuma especialidade</p>
+                          )}
+                          {specialties.map((sp) => {
+                            const checked = editingSpecIds.includes(sp.id)
+                            return (
+                              <button
+                                key={sp.id}
+                                type="button"
+                                onClick={() => toggleSpec(sp.id)}
+                                className="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-[12px] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                              >
+                                <div className={cn(
+                                  'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                                  checked ? 'border-[#2563EB] bg-[#2563EB]' : 'border-[#CBD5E1]',
+                                )}>
+                                  {checked && <Check size={10} className="text-white" aria-hidden="true" />}
+                                </div>
+                                <span className={checked ? 'text-[#0F172A]' : 'text-[#475569]'}>{sp.name}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 border-t border-[#F1F5F9] px-3 py-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditingSpecProfId(null)}
+                            className="flex h-6 w-6 items-center justify-center rounded text-[#94A3B8] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                            aria-label="Cancelar"
+                          >
+                            <X size={13} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingSpec}
+                            onClick={() => void saveSpec(p.id)}
+                            className="flex h-6 w-6 items-center justify-center rounded bg-[#2563EB] text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50"
+                            aria-label="Salvar"
+                          >
+                            <Check size={12} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-[13px] text-[var(--color-text-secondary)]">
+                    {p.role || '—'}
+                  </span>
+                )}
               </td>
 
               {/* Agendamentos mês */}

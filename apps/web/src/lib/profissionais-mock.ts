@@ -59,6 +59,7 @@ export interface Profissional {
   totalFinalizados?: number
   totalPendentes?: number
   totalCancelados?: number
+  specialtyIds?: string[]
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

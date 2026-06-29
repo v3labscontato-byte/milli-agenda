@@ -1020,3 +1020,12 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS � Historico mensal no modal de servico
 **Status:** Concluido
 **Fixes:** backend monthlyHistory 6 meses, frontend mapeia para MonthlyBooking, TabDesempenho substituida por tabela transposta (Agendados/Finalizados/Pendentes/Cancelados/Faturado x meses)
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Nova Especialidade: CRUD + associar profissionais + tabela editável
+**Status:** Concluído
+**Fixes:**
+- Schema: modelos Specialty + ProfessionalSpecialty adicionados ao Prisma
+- Backend: GET/POST/PATCH/DELETE /professionals/specialties + PATCH /:id/specialties
+- Frontend: modal 2 etapas (nome → selecionar profissionais) com listagem/edição/exclusão inline
+- Tabela: coluna Especialidade mostra chips clicáveis com dropdown multi-select por profissional
+- Profissional.specialtyIds adicionado ao tipo e mapeado no toFrontend()

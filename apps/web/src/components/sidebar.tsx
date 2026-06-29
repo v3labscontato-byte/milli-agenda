@@ -100,7 +100,7 @@ export default function Sidebar() {
               alt="Milii"
               width={100}
               height={100}
-              className="h-7 w-7 shrink-0 brightness-0 invert"
+              className="h-7 w-7 shrink-0"
             />
             <button
               onClick={() => setCollapsed((c) => !c)}
@@ -122,7 +122,7 @@ export default function Sidebar() {
               alt="Milii Agenda"
               width={400}
               height={220}
-              className="h-9 w-auto shrink-0 brightness-0 invert"
+              className="h-9 w-auto shrink-0"
             />
             <button
               onClick={() => setCollapsed((c) => !c)}

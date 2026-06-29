@@ -253,6 +253,28 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       const commandId = cmd.data?.id
       if (!commandId) throw new Error('Comanda não criada')
 
+      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
+      for (const item of extraItems) {
+        await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
+        })
+      }
+
+      const discountAmt = result.discount
+        ? result.discount.type === 'percent'
+          ? (result.total * result.discount.value) / 100
+          : result.discount.value
+        : 0
+      if (discountAmt > 0) {
+        await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ amount: discountAmt }),
+        })
+      }
+
       for (const m of result.methods ?? []) {
         await fetch(`${base}/api/v1/payments`, {
           method: 'POST',
@@ -267,7 +289,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
 
       await fetch(`${base}/api/v1/commands/${commandId}/close`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({}),
       })
 

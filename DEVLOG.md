@@ -931,3 +931,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_COMANDAS — Reescrever tela como histórico de agendamentos
 **Status:** âœ… Concluído
 **Fixes:** hook useHistoricoAgendamentos (GET /appointments últimos 90 dias), page.tsx reescrita com KPI strip, filtros, tabela sem coluna Agenda, PaymentModal integrado; professional? adicionado ao CalendarAppointment
+
+### [2026-06-29] AGENT_COMANDAS — KPI cards clicáveis como filtros
+**Status:** âœ… Concluído
+**Fix:** KPI cards clicáveis que ativam filtro de status

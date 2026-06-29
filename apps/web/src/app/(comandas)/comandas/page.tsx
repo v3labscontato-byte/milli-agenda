@@ -162,16 +162,28 @@ export default function ComandasPage() {
       {/* KPI strip */}
       <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[
-            { label: 'Atendimentos', value: String(kpis.total),      color: '#2563EB' },
-            { label: 'Pendentes',    value: String(kpis.pending),     color: '#D97706' },
-            { label: 'Recebido',     value: fmtBRL(kpis.received),    color: '#16A34A' },
-            { label: 'Cancelados',   value: String(kpis.cancelled),   color: '#DC2626' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_0_rgb(0_0_0/0.04)]">
+          {([
+            { label: 'Atendimentos', value: String(kpis.total),    color: '#2563EB', filterValue: 'ALL'       },
+            { label: 'Pendentes',    value: String(kpis.pending),   color: '#D97706', filterValue: 'PENDING'   },
+            { label: 'Recebido',     value: fmtBRL(kpis.received),  color: '#16A34A', filterValue: 'PAID'      },
+            { label: 'Cancelados',   value: String(kpis.cancelled), color: '#DC2626', filterValue: 'CANCELLED' },
+          ] as { label: string; value: string; color: string; filterValue: Filter }[]).map(({ label, value, color, filterValue }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setFilter(filterValue)}
+              aria-pressed={filter === filterValue}
+              className={cn(
+                'cursor-pointer rounded-xl border p-4 text-left transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                filter === filterValue
+                  ? 'border-[#2563EB] bg-[#EFF6FF] shadow-none'
+                  : 'border-[#E2E8F0] bg-white shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] hover:border-[#2563EB]',
+              )}
+            >
               <p className="text-[11px] font-medium uppercase tracking-wide text-[#94A3B8]">{label}</p>
               <p className="mt-1 text-[22px] font-semibold leading-none" style={{ color }}>{value}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>

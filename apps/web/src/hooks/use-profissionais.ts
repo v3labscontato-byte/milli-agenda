@@ -10,7 +10,16 @@ function toFrontend(raw: Record<string, unknown>): Profissional {
   const rawHistory = (metrics.monthlyHistory as unknown[]) ?? []
   const monthlyData: MonthlyData[] = rawHistory.map((item: unknown) => {
     const h = item as Record<string, unknown>
-    return { month: String(h.mes ?? ''), revenue: Number(h.faturamento ?? 0), appointments: 0 }
+    return {
+      month:             String(h.mes ?? ''),
+      revenue:           Number(h.faturamento ?? 0),
+      commission:        Number(h.comissao ?? 0),
+      appointments:      Number(h.totalAgendamentos ?? 0),
+      totalAgendamentos: Number(h.totalAgendamentos ?? 0),
+      finalizados:       Number(h.finalizados ?? 0),
+      pendentes:         Number(h.pendentes ?? 0),
+      cancelados:        Number(h.cancelados ?? 0),
+    }
   })
   return {
     id: String(raw.id ?? ''),

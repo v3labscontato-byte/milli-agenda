@@ -19,7 +19,12 @@ export interface ProfAgenda {
 export interface MonthlyData {
   month: string
   revenue: number
+  commission?: number
   appointments: number
+  totalAgendamentos?: number
+  finalizados?: number
+  pendentes?: number
+  cancelados?: number
 }
 
 export interface Profissional {

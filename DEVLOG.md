@@ -911,3 +911,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_COMANDAS — Fix tela Comandas: API real + transformação de dados
 **Status:** ✅ Concluído
 **Fixes:** remover FEATURES gate, transformar datas da API, guard para date undefined
+
+### [2026-06-28] AGENT_COMANDAS — Mapeamento de dados da API
+**Status:** ✅ Concluído
+**Fixes:** transformComanda com campos reais (client.name, appointment, items.service.name), include appointment no backend, mapStatus CLOSED→PAID

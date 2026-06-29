@@ -18,7 +18,18 @@ export class ComandasService {
         ...(filters.status   ? { status: filters.status as CommandStatus } : {}),
         ...(filters.clientId ? { clientId: filters.clientId }              : {}),
       },
-      include: { client: true, items: true },
+      include: {
+        client: true,
+        items: { include: { service: { select: { name: true } } } },
+        appointments: {
+          include: {
+            professional: { select: { name: true } },
+            service: { select: { name: true } },
+          },
+          take: 1,
+          orderBy: { startAt: 'desc' as const },
+        },
+      },
       orderBy: { openedAt: 'desc' },
     })
   }

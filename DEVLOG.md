@@ -1058,3 +1058,16 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
   - `onDrop`: PATCH `/api/v1/appointments/:id` com `{ startTime, date }` → chama `onSuccess()`
 - Suporte a agendamentos simultâneos (múltiplos cards no mesmo slot)
 - TypeScript: `npx tsc --noEmit` — zero erros
+
+---
+
+## 2026-06-29 — Logo milii atualizado na sidebar
+
+**Branch:** homolog  
+**Arquivo:** `apps/web/src/components/sidebar.tsx`
+
+### O que foi feito
+- Substituído logo texto "milii" (span Nunito laranja) pelo novo logo SVG com ícone + tipografia
+- Estado expandido: ícone 32px + wordmark "mil**ii**" (branco/laranja) + subtítulo "agenda"
+- Estado colapsado: apenas ícone SVG 28px (gradiente azul + elementos laranja/branco)
+- IDs de gradiente únicos por estado (`lgMilli` expandido, `lgMilliC` colapsado) para evitar conflito de SVG

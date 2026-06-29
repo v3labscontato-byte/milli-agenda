@@ -94,8 +94,19 @@ export default function Sidebar() {
       >
         {collapsed ? (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo-icon.svg" alt="Milii" className="h-7 w-7 shrink-0 object-contain" />
+            <svg width="28" height="28" viewBox="0 0 56 56" fill="none" aria-label="milii">
+              <defs>
+                <linearGradient id="lgMilliC" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#4D8FFF"/>
+                  <stop offset="100%" stopColor="#0D3BB2"/>
+                </linearGradient>
+              </defs>
+              <rect width="56" height="56" rx="13" fill="url(#lgMilliC)"/>
+              <circle cx="19.6" cy="15.7" r="6.2" fill="#FFFFFF"/>
+              <rect x="11.9" y="23.5" width="7.8" height="21.3" rx="3.9" fill="#FFFFFF"/>
+              <circle cx="36.4" cy="15.7" r="6.2" fill="#FF6B2B"/>
+              <rect x="32.3" y="23.5" width="7.8" height="21.3" rx="3.9" fill="#FF6B2B"/>
+            </svg>
             <button
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Expandir menu"
@@ -111,12 +122,28 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            <span
-              style={{ fontFamily: 'var(--font-nunito), Nunito, sans-serif', fontWeight: 900, color: '#FF6A00', fontSize: '38px', letterSpacing: '-1px', lineHeight: 1 }}
-              aria-label="milii"
-            >
-              milii
-            </span>
+            <div className="flex items-center gap-2">
+              <svg width="32" height="32" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="lgMilli" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#4D8FFF"/>
+                    <stop offset="100%" stopColor="#0D3BB2"/>
+                  </linearGradient>
+                </defs>
+                <rect width="56" height="56" rx="13" fill="url(#lgMilli)"/>
+                <circle cx="19.6" cy="15.7" r="6.2" fill="#FFFFFF"/>
+                <rect x="11.9" y="23.5" width="7.8" height="21.3" rx="3.9" fill="#FFFFFF"/>
+                <circle cx="36.4" cy="15.7" r="6.2" fill="#FF6B2B"/>
+                <rect x="32.3" y="23.5" width="7.8" height="21.3" rx="3.9" fill="#FF6B2B"/>
+              </svg>
+              <div>
+                <span className="text-[18px] font-black tracking-tight leading-none" aria-label="milii">
+                  <span className="text-white">mil</span>
+                  <span style={{ color: '#FF6B2B' }}>ii</span>
+                </span>
+                <p className="text-[9px] tracking-[0.3em] text-white/50 uppercase">agenda</p>
+              </div>
+            </div>
             <button
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Recolher menu"

@@ -1148,3 +1148,6 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 - `kpis()`: substituído `payment.aggregate` por `appointment.findMany(COMPLETED)` para `todayRevenue`
 - Agendamentos sem pagamentos registrados agora aparecem nos gráficos
 - TSC: 0 erros
+### [$(date +%Y-%m-%d)] AGENT_DASHBOARD — KPIs separados + saldo no gráfico
+**Status:** ✅ Concluído
+**Fixes:** Recebido/Pendente/Total do dia, linha saldo no fluxo de caixa, range correto

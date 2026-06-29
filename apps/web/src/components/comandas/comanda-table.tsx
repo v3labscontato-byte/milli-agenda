@@ -12,10 +12,13 @@ const STATUS_CFG: Record<ComandaStatus, { label: string; bg: string; text: strin
   CANCELLED:        { label: 'Cancelada',     bg: '#FEF2F2', text: '#DC2626' },
 }
 
-function formatDateLabel(date: Date, startTime: string): string {
+function formatDateLabel(date: Date | string | undefined, startTime?: string): string {
+  if (!date) return startTime ?? '—'
+  const d = date instanceof Date ? date : new Date(date)
+  if (isNaN(d.getTime())) return startTime ?? '—'
   const today = new Date()
-  if (date.toDateString() === today.toDateString()) return `Hoje ${startTime}`
-  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} ${startTime}`
+  if (d.toDateString() === today.toDateString()) return `Hoje ${startTime ?? ''}`
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${startTime ?? ''}`
 }
 
 interface ComandaTableProps {

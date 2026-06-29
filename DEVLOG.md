@@ -907,3 +907,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_AGENDA — Click COMPLETED na vista dia abre comanda
 **Status:** ✅ Concluído
 **Fix:** card COMPLETED abre PaymentModal com Reabrir, outros status abrem AppointmentModal
+
+### [2026-06-28] AGENT_COMANDAS — Fix tela Comandas: API real + transformação de dados
+**Status:** ✅ Concluído
+**Fixes:** remover FEATURES gate, transformar datas da API, guard para date undefined

@@ -45,7 +45,7 @@ export default function ComandasPage() {
 
   // In real-API mode the hook is the source of truth — mirror it (incl. after refetch).
   useEffect(() => {
-    if (FEATURES.realComandas) setComandas(initialComandas)
+    setComandas(initialComandas)
   }, [initialComandas])
 
   const openComanda = useMemo(

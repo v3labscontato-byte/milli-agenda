@@ -177,7 +177,7 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
                 {!novaCategoria && (
                   <button
                     type="button"
-                    onClick={() => setNovaCategoria(true)}
+                    onClick={(e) => { e.stopPropagation(); setNovaCategoria(true) }}
                     className="text-[12px] text-[#2563EB] hover:underline mt-1"
                   >
                     + Nova categoria

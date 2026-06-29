@@ -484,11 +484,15 @@ function TabDesempenho({ p }: { p: Profissional }) {
                     <td className="py-2 pr-4 font-medium" style={{ color: row.color }}>{row.label}</td>
                     {vals.map((val, i) => (
                       <td key={i} className="py-2 text-center font-tabular" style={{ color: row.color }}>
-                        {val > 0 ? `R$ ${val.toFixed(2).replace('.', ',')}` : <span className="text-[#CBD5E1]">—</span>}
+                        {val > 0
+                          ? row.isCurrency ? `R$ ${val.toFixed(2).replace('.', ',')}` : String(val)
+                          : <span className="text-[#CBD5E1]">—</span>}
                       </td>
                     ))}
                     <td className="py-2 text-center font-tabular font-semibold" style={{ color: row.color }}>
-                      {total > 0 ? `R$ ${total.toFixed(2).replace('.', ',')}` : <span className="font-normal text-[#CBD5E1]">—</span>}
+                      {total > 0
+                        ? row.isCurrency ? `R$ ${total.toFixed(2).replace('.', ',')}` : String(total)
+                        : <span className="font-normal text-[#CBD5E1]">—</span>}
                     </td>
                   </tr>
                 )

@@ -3,34 +3,40 @@ import { useState, useEffect, useCallback } from 'react'
 import { comandasApi } from '@/lib/api/comandas'
 import { type Comanda, type ComandaStatus, type ItemCategory } from '@/lib/comanda-mock'
 
-function mapStatus(s: string): ComandaStatus {
-  if (s === 'CLOSED') return 'PAID'
-  return (s as ComandaStatus) ?? 'OPEN'
-}
-
 function transformComanda(raw: Record<string, unknown>): Comanda {
   const client = (raw.client as Record<string, unknown>) ?? {}
   const items = (raw.items as unknown[]) ?? []
   const appointments = (raw.appointments as unknown[]) ?? []
   const appt = appointments[0] as Record<string, unknown> | undefined
-  const apptService = appt ? (appt.service as Record<string, unknown> | null) : null
-  const apptProf = appt ? (appt.professional as Record<string, unknown> | null) : null
+  const apptProf = (appt?.professional as Record<string, unknown>) ?? {}
+  const apptSvc = (appt?.service as Record<string, unknown>) ?? {}
+
+  const startAt = appt?.startAt ? new Date(appt.startAt as string) : null
+  const endAt = appt?.endAt ? new Date(appt.endAt as string) : null
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  const statusMap: Record<string, ComandaStatus> = {
+    OPEN: 'OPEN',
+    IN_PROGRESS: 'IN_PROGRESS',
+    CLOSED: 'PAID',
+    CANCELLED: 'CANCELLED',
+  }
 
   return {
     id: raw.id as string,
     number: (raw.id as string).slice(-6).toUpperCase(),
     clientName: (client.name as string) ?? '—',
-    service: (apptService?.name as string) ?? '—',
-    professional: (apptProf?.name as string) ?? '—',
+    service: (apptSvc.name as string) ?? '—',
+    professional: (apptProf.name as string) ?? '—',
     date: raw.openedAt ? new Date(raw.openedAt as string) : new Date(),
-    startTime: appt?.startAt ? new Date(appt.startAt as string).toISOString().slice(11, 16) : '',
-    endTime: appt?.endAt ? new Date(appt.endAt as string).toISOString().slice(11, 16) : '',
+    startTime: startAt ? `${pad(startAt.getUTCHours())}:${pad(startAt.getUTCMinutes())}` : '',
+    endTime: endAt ? `${pad(endAt.getUTCHours())}:${pad(endAt.getUTCMinutes())}` : '',
     items: items.map((item: unknown) => {
       const i = item as Record<string, unknown>
-      const svc = i.service as Record<string, unknown> | null
+      const svc = (i.service as Record<string, unknown>) ?? {}
       return {
         id: i.id as string,
-        name: (svc?.name as string) ?? (i.name as string) ?? '—',
+        name: (svc.name as string) ?? (i.name as string) ?? '—',
         category: 'service' as ItemCategory,
         quantity: Number(i.quantity ?? 1),
         unitPrice: Number(i.unitPrice ?? 0),
@@ -38,7 +44,7 @@ function transformComanda(raw: Record<string, unknown>): Comanda {
     }),
     discount: null,
     deposit: null,
-    status: mapStatus(raw.status as string),
+    status: statusMap[raw.status as string] ?? 'OPEN',
     openedAt: raw.openedAt ? new Date(raw.openedAt as string) : new Date(),
   }
 }

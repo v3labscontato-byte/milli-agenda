@@ -915,3 +915,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_COMANDAS — Mapeamento de dados da API
 **Status:** ✅ Concluído
 **Fixes:** transformComanda com campos reais (client.name, appointment, items.service.name), include appointment no backend, mapStatus CLOSED→PAID
+
+### [2026-06-28] AGENT_COMANDAS — Fix mapeamento completo da API
+**Status:** ✅ Concluído
+**Fixes:** serviço, profissional, data/hora do appointment, valor, status mapeados

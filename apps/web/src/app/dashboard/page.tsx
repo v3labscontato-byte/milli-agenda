@@ -44,12 +44,6 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 pb-10">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-[18px] font-semibold text-[#0F172A]">Dashboard</h1>
-        <p className="mt-0.5 text-[12px] text-[#475569]">Visão geral do seu negócio</p>
-      </div>
-
       {/* ① Visão Geral de Hoje — KPIs fixos (sem filtro) */}
       <div>
         <h2 className="mb-4 text-[15px] font-semibold text-[#0F172A]">Visão Geral de Hoje</h2>
@@ -70,7 +64,7 @@ export default function DashboardPage() {
             <h2 id="analytics-heading" className="text-[15px] font-semibold text-[#0F172A]">
               Histórico &amp; Analytics
             </h2>
-            <p className="mt-0.5 text-[12px] text-[#475569]">Desempenho e tendências do salão</p>
+            <p className="mt-0.5 text-[12px] text-[#475569]">Desempenho e tendências do seu negócio</p>
           </div>
 
           <div className="flex gap-1 rounded-lg bg-[#F1F5F9] p-1" role="group" aria-label="Período">

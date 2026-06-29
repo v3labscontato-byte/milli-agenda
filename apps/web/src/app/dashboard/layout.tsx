@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Right column: topbar pinned, main scrollable */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Topbar />
+        <Topbar title="Visão geral do seu negócio" />
 
         <main
           id="main-content"

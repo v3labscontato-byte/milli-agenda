@@ -1184,3 +1184,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_COMANDAS — Fix itens extras + desconto na comanda
 **Status:** Concluido
 **Fixes:** PaymentResult inclui items, serviceId no item inicial, itens extras enviados ao backend antes dos pagamentos (appointment-modal + agenda/page), close() com itens e desconto ja aplicado
+
+---
+### [2026-06-29] AGENT_DASHBOARD — Fix textos: header, duplicado, subtitulo
+**Status:** Concluido
+**Fixes:** Topbar recebe title="Visao geral do seu negocio" no layout; bloco h1/p duplicado removido do page.tsx; subtitulo Analytics "do salao" -> "do seu negocio"

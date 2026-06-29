@@ -7,7 +7,7 @@ export class RelatoriosService {
   constructor(private readonly db: DatabaseService) {}
 
   private defaultRange(from?: string, to?: string) {
-    const dateTo = to ? new Date(to) : new Date()
+    const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
     const dateFrom = from ? new Date(from) : new Date(dateTo.getFullYear(), dateTo.getMonth(), 1)
     return { dateFrom, dateTo }
   }

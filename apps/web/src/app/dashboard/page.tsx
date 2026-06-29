@@ -21,7 +21,9 @@ function periodoToRange(p: Periodo): { from: string; to: string } {
   const now = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
   const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  const to = fmt(now)
+  const toDate = new Date(now)
+  toDate.setHours(23, 59, 59, 999)
+  const to = fmt(toDate)
   const from = new Date(now)
   if (p === '7d')  from.setDate(from.getDate() - 7)
   if (p === '30d') from.setDate(from.getDate() - 30)

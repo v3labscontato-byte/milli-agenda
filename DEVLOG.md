@@ -1122,3 +1122,15 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 - Fix: verificação de `remaining` só ocorre quando `commandFinalAmount > 0`
 - Quando `commandFinalAmount=0` (comanda criada via agendamento sem itens), apenas valida `amount > 0`
 - TSC API: 0 erros
+
+---
+
+## 2026-06-29 — Fix range de datas nos relatórios
+
+**Branch:** homolog  
+**Arquivos:** `apps/web/src/app/dashboard/page.tsx`, `apps/api/src/modules/relatorios/relatorios.service.ts`
+
+### O que foi feito
+- Frontend: `periodoToRange` agora define `to` como 23:59:59 do dia atual (era 00:00:00)
+- Backend: `defaultRange()` converte `to` com sufixo `T23:59:59.999Z` para incluir pagamentos do dia inteiro
+- Garante que filtros de período não excluem eventos do último dia do range

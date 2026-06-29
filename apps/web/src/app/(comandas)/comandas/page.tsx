@@ -92,24 +92,32 @@ export default function ComandasPage() {
     setPaymentLoading(true)
     try {
       const token = localStorage.getItem('accessToken')
-      const tenantSlug = localStorage.getItem('tenantSlug') ?? ''
       const base = process.env.NEXT_PUBLIC_API_URL
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        'X-Tenant-Slug': tenantSlug,
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+
+      const cmdRes = await fetch(`${base}/api/v1/commands`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
+      })
+      const cmd = (await cmdRes.json()) as { data?: { id: string } }
+      const commandId = cmd.data?.id
+      if (!commandId) throw new Error('Comanda não criada')
+
+      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
+      for (const item of extraItems) {
+        await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
+        })
       }
 
-      let commandId = paymentAppt.commandId
-      if (!commandId) {
-        const cmdRes = await fetch(`${base}/api/v1/commands`, {
+      const discountAmt = result.discountAbsolute ?? 0
+      if (discountAmt > 0) {
+        await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
           method: 'POST', headers,
-          body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
+          body: JSON.stringify({ amount: discountAmt }),
         })
-        const cmd = (await cmdRes.json()) as { data?: { id: string } }
-        commandId = cmd.data?.id
       }
-      if (!commandId) throw new Error('Comanda não criada')
 
       for (const m of result.methods ?? []) {
         await fetch(`${base}/api/v1/payments`, {
@@ -122,14 +130,23 @@ export default function ComandasPage() {
         })
       }
 
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+      try {
+        await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+          method: 'POST', headers,
+          body: JSON.stringify({}),
+        })
+      } catch (e) {
+        console.error('[close] falhou:', e)
+      }
+
       await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
         method: 'PATCH', headers,
         body: JSON.stringify({ status: 'COMPLETED' }),
       })
+
       refetch()
     } catch (e) {
-      console.error('[historico] pagamento:', e)
+      console.error('[comandas] pagamento:', e)
     } finally {
       setPaymentLoading(false)
       setPaymentAppt(null)

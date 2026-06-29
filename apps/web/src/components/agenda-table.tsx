@@ -288,15 +288,8 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       : appointments.filter((a) => a.professional === activeProf)
 
   return (
-    <section aria-labelledby="agenda-heading">
-      {/* Section header */}
-      <div className="mb-3 flex items-center justify-between">
-        <h2
-          id="agenda-heading"
-          className="text-[16px] font-medium leading-[1.4] text-[#0F172A]"
-        >
-          Agenda de Hoje
-        </h2>
+    <section>
+      <div className="mb-3 flex justify-end">
         <p className="text-[12px] text-[#475569]" aria-live="polite" aria-atomic="true">
           {isLoading ? '…' : `${filtered.length} agendamento${filtered.length !== 1 ? 's' : ''}`}
         </p>

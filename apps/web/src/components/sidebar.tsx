@@ -88,8 +88,8 @@ export default function Sidebar() {
       {/* Logo + collapse toggle */}
       <div
         className={cn(
-          'flex h-14 shrink-0 items-center border-b border-[var(--color-sidebar-border)]',
-          collapsed ? 'flex-col justify-center gap-1 px-2 py-2' : 'justify-between px-3',
+          'relative flex h-14 shrink-0 items-center border-b border-[var(--color-sidebar-border)]',
+          collapsed ? 'flex-col justify-center gap-1 px-2 py-2' : 'justify-center px-3',
         )}
       >
         {collapsed ? (
@@ -112,7 +112,7 @@ export default function Sidebar() {
         ) : (
           <>
             <span
-              style={{ fontFamily: 'var(--font-nunito), Nunito, sans-serif', fontWeight: 900, color: '#FF6A00', fontSize: '28px', letterSpacing: '-0.5px', lineHeight: 1 }}
+              style={{ fontFamily: 'var(--font-nunito), Nunito, sans-serif', fontWeight: 900, color: '#FF6A00', fontSize: '38px', letterSpacing: '-1px', lineHeight: 1 }}
               aria-label="milii"
             >
               milii
@@ -122,7 +122,7 @@ export default function Sidebar() {
               aria-label="Recolher menu"
               aria-expanded={true}
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-md',
+                'absolute right-2 flex h-8 w-8 items-center justify-center rounded-md',
                 'text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
               )}

@@ -120,16 +120,6 @@ export default function AgendaPage() {
   const { data: profissionais } = useProfissionais()
   const calendarProfessionals = useMemo(() => profissionais.map(toCalendarProfessional), [profissionais])
 
-  if (typeof window !== 'undefined') {
-    console.log('[DIA] allAppointments:', allAppointments.length)
-    console.log('[DIA] dayAppointments:', getAppointmentsForDate(selectedDate, allAppointments).length)
-    console.log('[DIA] calendarProfessionals:', calendarProfessionals.length)
-    console.log('[DIA] selectedDate:', toDateString(selectedDate))
-    if (allAppointments.length > 0) {
-      console.log('[DIA] primeiro appt date:', allAppointments[0].date)
-    }
-  }
-
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
 
   const tableDate = toDateString(selectedDate)

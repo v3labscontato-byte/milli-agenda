@@ -1275,3 +1275,7 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 ### [2026-06-29] AGENT_COMANDAS — Fix: Ver Comanda busca dados reais
 **Status:** Concluido
 **Fix:** modal Ver Comanda busca GET /commands/:id para mostrar itens reais e desconto
+
+### [2026-06-29] AGENT_COMANDAS — Fix: Ver Comanda mostra itens reais, desconto e forma de pagamento
+**Status:** Concluido
+**Fix:** comandaData inclui deposit (payments[0]); modal recebe deposit prop; console.log para debug

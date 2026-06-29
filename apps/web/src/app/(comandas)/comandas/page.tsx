@@ -68,6 +68,7 @@ export default function ComandasPage() {
     items: Array<{ name: string; quantity: number; unitPrice: number }>
     discount: { type: 'amount'; value: number } | null
     finalAmount: number
+    deposit: { amount: number; method: string; paidAt: string } | null
   } | null>(null)
 
   const kpis = useMemo(() => ({
@@ -167,6 +168,7 @@ export default function ComandasPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       const cmd = await res.json()
+      console.log('[openPaymentModal] cmd.data:', JSON.stringify(cmd.data, null, 2))
       if (cmd.data) {
         const items = (cmd.data.items ?? []).map((i: any) => ({
           name: (i.service?.name as string) ?? (i.name as string) ?? '',
@@ -174,10 +176,17 @@ export default function ComandasPage() {
           unitPrice: Number(i.unitPrice),
         }))
         const discountAmount = Number(cmd.data.discountAmount ?? 0)
+        const payments: any[] = cmd.data.payments ?? []
+        const firstPayment = payments[0] ?? null
         setComandaData({
           items: items.length > 0 ? items : [{ name: appt.service, quantity: 1, unitPrice: appt.amount }],
           discount: discountAmount > 0 ? { type: 'amount', value: discountAmount } : null,
           finalAmount: Number(cmd.data.finalAmount),
+          deposit: firstPayment ? {
+            amount: Number(firstPayment.amount),
+            method: firstPayment.method as string,
+            paidAt: firstPayment.paidAt as string,
+          } : null,
         })
       }
     } else {
@@ -419,6 +428,7 @@ export default function ComandasPage() {
           endTime={paymentAppt.endTime}
           items={comandaData?.items ?? [{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
           initialDiscount={comandaData?.discount ?? null}
+          deposit={comandaData?.deposit ?? null}
           isCompleted={paymentAppt.status === 'COMPLETED'}
           onReopen={async () => {
             const token = localStorage.getItem('accessToken')

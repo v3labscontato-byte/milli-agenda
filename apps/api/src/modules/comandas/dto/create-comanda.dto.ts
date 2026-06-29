@@ -6,5 +6,9 @@ export class CreateComandaDto {
 
   @IsOptional()
   @IsString()
+  appointmentId?: string
+
+  @IsOptional()
+  @IsString()
   notes?: string
 }

@@ -247,7 +247,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       const cmdRes = await fetch(`${base}/api/v1/commands`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ clientId: paymentAppt.clientId }),
+        body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
       })
       const cmd = await cmdRes.json()
       const commandId = cmd.data?.id

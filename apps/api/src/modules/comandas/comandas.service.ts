@@ -43,10 +43,17 @@ export class ComandasService {
     return cmd
   }
 
-  open(tenantId: string, dto: CreateComandaDto) {
-    return this.db.command.create({
+  async open(tenantId: string, dto: CreateComandaDto) {
+    const command = await this.db.command.create({
       data: { tenantId, clientId: dto.clientId, notes: dto.notes },
     })
+    if (dto.appointmentId) {
+      await this.db.appointment.update({
+        where: { id: dto.appointmentId },
+        data: { commandId: command.id },
+      })
+    }
+    return command
   }
 
   async addItem(tenantId: string, id: string, dto: AddItemDto) {

@@ -276,7 +276,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         const cmdRes = await fetch(`${base}/api/v1/commands`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ clientId: appointment.clientId }),
+          body: JSON.stringify({ clientId: appointment.clientId, appointmentId: appointment.id }),
         })
         const cmd = await cmdRes.json()
         commandId = cmd.data?.id

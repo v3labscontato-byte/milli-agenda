@@ -919,3 +919,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_COMANDAS — Fix mapeamento completo da API
 **Status:** ✅ Concluído
 **Fixes:** serviço, profissional, data/hora do appointment, valor, status mapeados
+
+### [2026-06-29] AGENT_COMANDAS — Linkar comanda ao agendamento
+**Status:** ✅ Concluído
+**Fixes:** appointmentId no DTO, linkar appointment.commandId no service, enviar appointmentId do frontend (appointment-modal + agenda-table)

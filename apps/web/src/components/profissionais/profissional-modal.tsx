@@ -467,8 +467,12 @@ function TabDesempenho({ p }: { p: Profissional }) {
             </thead>
             <tbody>
               {([
-                { label: 'Faturado',  key: 'revenue',     color: '#0F172A', isCurrency: true  },
-                { label: 'Comissão',  key: 'commission',  color: '#7C3AED', isCurrency: true  },
+                { label: 'Agendados',   key: 'totalAgendamentos', color: '#0F172A', isCurrency: false },
+                { label: 'Finalizados', key: 'finalizados',        color: '#15803D', isCurrency: false },
+                { label: 'Pendentes',   key: 'pendentes',          color: '#92400E', isCurrency: false },
+                { label: 'Cancelados',  key: 'cancelados',         color: '#DC2626', isCurrency: false },
+                { label: 'Faturado',    key: 'revenue',            color: '#0F172A', isCurrency: true  },
+                { label: 'Comissão',    key: 'commission',         color: '#7C3AED', isCurrency: true  },
               ] as { label: string; key: string; color: string; isCurrency: boolean }[]).map((row) => {
                 const vals = p.monthlyData.map((m) => {
                   if (row.key === 'commission') return m.revenue * p.commissionPct / 100

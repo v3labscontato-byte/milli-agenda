@@ -78,16 +78,18 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
   }
 
   async function handleCriarCategoria() {
+    if (!nomeCategoria.trim()) return
     const token = localStorage.getItem('accessToken')
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services/categories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ name: nomeCategoria }),
+      body: JSON.stringify({ name: nomeCategoria.trim() }),
     })
     const data = await res.json()
-    if (data.data?.id) {
-      setCategorias(prev => [...prev, data.data])
-      setForm(f => ({ ...f, categoryId: data.data.id }))
+    const nova = data.data ?? data
+    if (nova?.id) {
+      setCategorias(prev => [...prev, nova])
+      setForm(f => ({ ...f, categoryId: nova.id }))
       setNovaCategoria(false)
       setNomeCategoria('')
     }

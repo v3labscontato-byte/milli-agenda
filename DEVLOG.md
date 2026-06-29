@@ -1108,3 +1108,17 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
   6. `setDayPaymentAppt(null)` + `handleCreated()`
 - `agenda-table.tsx` já tinha o fluxo correto (não alterado)
 - TSC: 0 erros
+
+---
+
+## 2026-06-29 — Fix validatePayment para comanda sem itens
+
+**Branch:** homolog  
+**Arquivo:** `packages/business-rules/src/payments/validations.ts`
+
+### O que foi feito
+- `validatePayment` bloqueava pagamentos em comandas com `finalAmount=0`
+- Condição `remaining <= 0` retornava erro "already fully paid" mesmo em comanda vazia
+- Fix: verificação de `remaining` só ocorre quando `commandFinalAmount > 0`
+- Quando `commandFinalAmount=0` (comanda criada via agendamento sem itens), apenas valida `amount > 0`
+- TSC API: 0 erros

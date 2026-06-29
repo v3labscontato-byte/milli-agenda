@@ -17,16 +17,20 @@ export function validatePayment(input: PaymentInput): ValidationResult {
     return { valid: false, error: 'Payment amount must be greater than zero' }
   }
 
-  const remaining = round2(input.commandFinalAmount - input.alreadyPaid)
+  // commandFinalAmount=0 significa comanda criada sem itens (fluxo direto do agendamento)
+  // Nesse caso só valida que amount > 0, sem checar remaining
+  if (input.commandFinalAmount > 0) {
+    const remaining = round2(input.commandFinalAmount - input.alreadyPaid)
 
-  if (remaining <= 0) {
-    return { valid: false, error: 'Command is already fully paid' }
-  }
+    if (remaining <= 0) {
+      return { valid: false, error: 'Command is already fully paid' }
+    }
 
-  if (input.amount > remaining) {
-    return {
-      valid: false,
-      error: `Amount exceeds remaining balance of ${remaining}`,
+    if (input.amount > remaining) {
+      return {
+        valid: false,
+        error: `Amount exceeds remaining balance of ${remaining}`,
+      }
     }
   }
 

@@ -122,15 +122,6 @@ export default function AgendaPage() {
 
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
 
-  const filtered = dayAppointments.filter((a) => {
-    const matchesSearch =
-      !searchQuery.trim() ||
-      a.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.service.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesProf = !filterProfId || a.professionalId === filterProfId
-    return matchesSearch && matchesProf
-  })
-
   const tableDate = toDateString(selectedDate)
   const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
   const tableTitle = `Agenda ${format(selectedDate, 'dd/MM')}`
@@ -178,7 +169,7 @@ export default function AgendaPage() {
               type="button"
               onClick={() => {
                 setView(v)
-                if (v === 'week') setFilterProfId(null)
+                setFilterProfId(null)
               }}
               aria-pressed={view === v}
               className={cn(
@@ -240,7 +231,7 @@ export default function AgendaPage() {
       ) : (
         <div className="flex-1 overflow-hidden">
           <DayTimeline
-            appointments={filtered}
+            appointments={dayAppointments}
             professionals={calendarProfessionals}
             date={selectedDate}
             onAppointmentClick={setSelectedAppt}

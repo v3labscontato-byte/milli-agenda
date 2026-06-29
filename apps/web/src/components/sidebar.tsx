@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -95,13 +94,8 @@ export default function Sidebar() {
       >
         {collapsed ? (
           <>
-            <Image
-              src="/images/logo-icon.png"
-              alt="Milii"
-              width={100}
-              height={100}
-              className="h-7 w-7 shrink-0"
-            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo-icon.svg" alt="Milii" className="h-7 w-7 shrink-0 object-contain" />
             <button
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Expandir menu"
@@ -117,13 +111,8 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            <Image
-              src="/images/logo-name.png"
-              alt="Milii Agenda"
-              width={400}
-              height={220}
-              className="h-9 w-auto shrink-0"
-            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo-name.svg" alt="Milii Agenda" className="h-9 w-auto shrink-0 object-contain" />
             <button
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Recolher menu"

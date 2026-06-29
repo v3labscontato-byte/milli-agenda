@@ -1033,3 +1033,7 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_PROFISSIONAIS — Toggle atendimento simultâneo
 **Status:** ✅ Concluído
 **Fixes:** campo allowSimultaneous, toggle na aba Perfil, lógica de slots respeitada
+
+### [2026-06-29] AGENT_AGENDA — Seletor de intervalo na vista dia
+**Status:** ✅ Concluído
+**Fixes:** seletor 15/20/30/60min, timeline dinâmica, horários de agendamento respeitam intervalo

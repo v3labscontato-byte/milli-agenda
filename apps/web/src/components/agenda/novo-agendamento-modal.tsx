@@ -34,7 +34,7 @@ interface FormState {
 interface ApptSlot { professionalId: string; startTime: string; durationMinutes: number }
 interface ProfSched { id: string; workDays: number[]; workStart: string; workEnd: string; allowSimultaneous?: boolean }
 
-function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: number): string[] {
+function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: number, intervalMin = 15): string[] {
   const dayOfWeek = new Date(date + 'T12:00:00').getDay()
   if (prof.workDays.length > 0 && !prof.workDays.includes(dayOfWeek)) return []
 
@@ -44,7 +44,7 @@ function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: n
   const endMin   = endH   * 60 + endM
 
   const slots: string[] = []
-  for (let min = startMin; min + durMin <= endMin; min += 30) {
+  for (let min = startMin; min + durMin <= endMin; min += intervalMin) {
     const h = Math.floor(min / 60).toString().padStart(2, '0')
     const m = (min % 60).toString().padStart(2, '0')
     slots.push(`${h}:${m}`)
@@ -86,6 +86,7 @@ interface NovoAgendamentoModalProps {
   onCreated?: () => void
   initialProfessionalId?: string
   initialTime?: string
+  interval?: 15 | 20 | 30 | 60
 }
 
 export default function NovoAgendamentoModal({
@@ -95,6 +96,7 @@ export default function NovoAgendamentoModal({
   onCreated,
   initialProfessionalId,
   initialTime,
+  interval = 15,
 }: NovoAgendamentoModalProps) {
   const [form, setForm]           = useState<FormState>(() => emptyForm(defaultDate, initialTime, initialProfessionalId))
   const [saving, setSaving]       = useState(false)
@@ -217,7 +219,7 @@ export default function NovoAgendamentoModal({
             startTime: a.startAt?.slice(11, 16) ?? '',
             durationMinutes: a.durationMin ?? 60,
           }))
-        const slots = getSlotsDia(prof, form.date, agendsDia, durMin)
+        const slots = getSlotsDia(prof, form.date, agendsDia, durMin, interval)
         setHorarios(slots)
         setForm((f) => ({
           ...f,

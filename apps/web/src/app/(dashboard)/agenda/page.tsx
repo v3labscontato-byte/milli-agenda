@@ -67,6 +67,7 @@ export default function AgendaPage() {
   const [view, setView]                   = useState<View>('week')
   const [selectedDate, setSelectedDate]   = useState<Date>(() => new Date())
   const [filterProfId, setFilterProfId]   = useState<string | null>(null)
+  const [interval, setInterval]           = useState<15 | 20 | 30 | 60>(15)
   const [selectedAppt, setSelectedAppt]   = useState<CalendarAppointment | null>(null)
   const [newModalOpen, setNewModalOpen]       = useState(false)
   const [newModalPrefill, setNewModalPrefill] = useState<NewModalPrefill>({})
@@ -196,6 +197,31 @@ export default function AgendaPage() {
           ))}
         </div>
 
+        {view === 'day' && (
+          <div className="flex items-center gap-2 ml-3" role="group" aria-label="Intervalo de horário">
+            <span className="text-[12px] text-[#94A3B8]">Intervalo</span>
+            <div className="flex overflow-hidden rounded-md border border-[#E2E8F0]">
+              {([15, 20, 30, 60] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setInterval(v)}
+                  aria-pressed={interval === v}
+                  className={cn(
+                    'px-2.5 py-1 text-[12px] font-medium transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                    interval === v
+                      ? 'bg-[#2563EB] text-white'
+                      : 'text-[#475569] hover:bg-[#F8FAFC]',
+                  )}
+                >
+                  {v}min
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {view === 'day' && filterProfId && (
           <button
             type="button"
@@ -245,6 +271,7 @@ export default function AgendaPage() {
             appointments={dayAppointments}
             professionals={calendarProfessionals}
             date={selectedDate}
+            interval={interval}
             onAppointmentClick={handleDayAppointmentClick}
             onSlotClick={handleSlotClick}
           />
@@ -255,6 +282,7 @@ export default function AgendaPage() {
         appointment={selectedAppt}
         onClose={closeAppt}
         onSuccess={handleCreated}
+        interval={interval}
       />
 
       {dayPaymentAppt && (() => {
@@ -296,6 +324,7 @@ export default function AgendaPage() {
         initialTime={newModalPrefill.time}
         onClose={closeNew}
         onCreated={handleCreated}
+        interval={interval}
       />
 
     </div>

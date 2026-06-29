@@ -3,15 +3,36 @@
 import { useRef, useEffect, useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import {
-  TIME_SLOTS,
-  SLOT_HEIGHT,
-  getSlotIndex,
-  getDurationSlots,
   isTodayUtil,
   toDateString,
   type CalendarAppointment,
   type CalendarProfessional,
 } from '@/lib/calendar-utils'
+
+const SLOT_HEIGHT_BASE = 52 // px per 30-min slot
+
+function generateTimeSlots(intervalMin: number): string[] {
+  const slots: string[] = []
+  const startMin = 8 * 60
+  const endMin   = 20 * 60
+  for (let min = startMin; min < endMin; min += intervalMin) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0')
+    const m = (min % 60).toString().padStart(2, '0')
+    slots.push(`${h}:${m}`)
+  }
+  return slots
+}
+
+function slotIndexFor(time: string, intervalMin: number, total: number): number {
+  const [h, m] = time.split(':').map(Number)
+  const minFromStart = (h - 8) * 60 + m
+  const idx = Math.floor(minFromStart / intervalMin)
+  return idx >= 0 && idx < total ? idx : -1
+}
+
+function durationSlotsFor(minutes: number, intervalMin: number): number {
+  return Math.max(1, Math.ceil(minutes / intervalMin))
+}
 import AppointmentBlock from './appointment-block'
 
 interface CalendarBlock {
@@ -25,16 +46,18 @@ interface CalendarBlock {
 
 function BlockForm({
   initialTime,
+  timeSlots,
   onAdd,
   onCancel,
 }: {
   initialTime: string
+  timeSlots: string[]
   onAdd: (start: string, end: string, reason: string) => void
   onCancel: () => void
 }) {
-  const si = TIME_SLOTS.indexOf(initialTime)
+  const si = timeSlots.indexOf(initialTime)
   const [start, setStart] = useState(initialTime)
-  const [end, setEnd]     = useState(si >= 0 && si + 1 < TIME_SLOTS.length ? TIME_SLOTS[si + 1] : initialTime)
+  const [end, setEnd]     = useState(si >= 0 && si + 1 < timeSlots.length ? timeSlots[si + 1] : initialTime)
   const [reason, setReason] = useState('')
 
   return (
@@ -55,7 +78,7 @@ function BlockForm({
                 onChange={(e) => setStart(e.target.value)}
                 className="w-full rounded-md border border-[#E2E8F0] px-2 py-1.5 text-[12px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
               >
-                {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
+                {timeSlots.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="flex-1">
@@ -65,7 +88,7 @@ function BlockForm({
                 onChange={(e) => setEnd(e.target.value)}
                 className="w-full rounded-md border border-[#E2E8F0] px-2 py-1.5 text-[12px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
               >
-                {TIME_SLOTS.filter((t) => t > start).map((t) => <option key={t} value={t}>{t}</option>)}
+                {timeSlots.filter((t) => t > start).map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
           </div>
@@ -106,6 +129,7 @@ interface DayTimelineProps {
   appointments: CalendarAppointment[]
   professionals: CalendarProfessional[]
   date: Date
+  interval?: 15 | 20 | 30 | 60
   onAppointmentClick?: (appt: CalendarAppointment) => void
   onSlotClick?: (professionalId: string, time: string, date: string) => void
 }
@@ -114,9 +138,14 @@ export default function DayTimeline({
   appointments,
   professionals,
   date,
+  interval = 15,
   onAppointmentClick,
   onSlotClick,
 }: DayTimelineProps) {
+  const intervalMin = interval
+  const slotHeight  = Math.round(SLOT_HEIGHT_BASE * (intervalMin / 30))
+  const timeSlots   = useMemo(() => generateTimeSlots(intervalMin), [intervalMin])
+
   const isToday = isTodayUtil(date)
   const dateStr = toDateString(date)
   const theadRef = useRef<HTMLTableSectionElement>(null)
@@ -133,8 +162,8 @@ export default function DayTimeline({
     const now = new Date()
     const relMin = now.getHours() * 60 + now.getMinutes() - 8 * 60
     if (relMin < 0 || relMin > 12 * 60) return null
-    return (relMin / 30) * SLOT_HEIGHT
-  }, [isToday])
+    return (relMin / intervalMin) * slotHeight
+  }, [isToday, intervalMin, slotHeight])
 
   const coveredSlots = useMemo(() => {
     const map: Record<string, Set<string>> = {}
@@ -143,33 +172,33 @@ export default function DayTimeline({
       const profAppts = appointments.filter((a) => a.professionalId === prof.id && a.status !== 'CANCELLED')
       const profApptStarts = new Set(profAppts.map((a) => a.startTime))
       for (const appt of profAppts) {
-        const si = getSlotIndex(appt.startTime)
+        const si = slotIndexFor(appt.startTime, intervalMin, timeSlots.length)
         if (si < 0) continue
-        const spans = getDurationSlots(appt.durationMinutes)
+        const spans = durationSlotsFor(appt.durationMinutes, intervalMin)
         for (let i = 1; i < spans; i++) {
           const ci = si + i
-          if (ci >= TIME_SLOTS.length) break
-          const s = TIME_SLOTS[ci] as string
-          if (profApptStarts.has(s)) break  // outro agendamento começa aqui — não cobrir
+          if (ci >= timeSlots.length) break
+          const s = timeSlots[ci] as string
+          if (profApptStarts.has(s)) break
           covered.add(s)
         }
       }
       for (const block of blocks.filter((b) => b.professionalId === prof.id && b.date === dateStr)) {
-        const si = getSlotIndex(block.startTime)
+        const si = slotIndexFor(block.startTime, intervalMin, timeSlots.length)
         if (si < 0) continue
         const [sh, sm] = block.startTime.split(':').map(Number)
         const [eh, em] = block.endTime.split(':').map(Number)
         const durMin = (eh * 60 + em) - (sh * 60 + sm)
-        const spans = getDurationSlots(Math.max(30, durMin))
+        const spans = durationSlotsFor(Math.max(intervalMin, durMin), intervalMin)
         for (let i = 1; i < spans; i++) {
           const ci = si + i
-          if (ci < TIME_SLOTS.length) covered.add(TIME_SLOTS[ci] as string)
+          if (ci < timeSlots.length) covered.add(timeSlots[ci] as string)
         }
       }
       map[prof.id] = covered
     }
     return map
-  }, [appointments, professionals, blocks, dateStr])
+  }, [appointments, professionals, blocks, dateStr, intervalMin, timeSlots])
 
   const tableMinWidth = 80 + Math.max(professionals.length, 1) * 180
   const hasProfs = professionals.length > 0
@@ -245,11 +274,11 @@ export default function DayTimeline({
 
             {/* ── Time slots × professional columns ── */}
             <tbody>
-              {TIME_SLOTS.map((slot) => (
+              {timeSlots.map((slot) => (
                 <tr key={slot}>
                   <td
                     className="sticky left-0 z-10 w-20 border-b border-r border-[#E2E8F0] bg-white align-top"
-                    style={{ height: `${SLOT_HEIGHT}px` }}
+                    style={{ height: `${slotHeight}px` }}
                   >
                     <span className="block select-none pr-3 pt-1 text-right font-tabular text-[11px] text-[#94A3B8]">
                       {slot}
@@ -262,7 +291,7 @@ export default function DayTimeline({
                         <td
                           key={prof.id}
                           style={{
-                            height: `${SLOT_HEIGHT}px`,
+                            height: `${slotHeight}px`,
                             background: 'repeating-linear-gradient(45deg, #F8FAFC, #F8FAFC 4px, #F1F5F9 4px, #F1F5F9 8px)',
                           }}
                           className="border-b border-r border-[#F1F5F9]"
@@ -285,13 +314,13 @@ export default function DayTimeline({
 
                     const apptRowSpan = (() => {
                       if (!activeAppt || activeAppts.length > 1) return 1
-                      const si = getSlotIndex(activeAppt.startTime)
-                      const maxSpans = getDurationSlots(activeAppt.durationMinutes)
+                      const si = slotIndexFor(activeAppt.startTime, intervalMin, timeSlots.length)
+                      const maxSpans = durationSlotsFor(activeAppt.durationMinutes, intervalMin)
                       for (let i = 1; i < maxSpans; i++) {
                         const ci = si + i
-                        if (ci >= TIME_SLOTS.length) return i
+                        if (ci >= timeSlots.length) return i
                         if (appointments.some(
-                          (a) => a.professionalId === prof.id && a.startTime === TIME_SLOTS[ci] && a.status !== 'CANCELLED'
+                          (a) => a.professionalId === prof.id && a.startTime === timeSlots[ci] && a.status !== 'CANCELLED'
                         )) return i
                       }
                       return maxSpans
@@ -299,10 +328,10 @@ export default function DayTimeline({
                     const blockRowSpan = activeBlock ? (() => {
                       const [sh, sm] = activeBlock.startTime.split(':').map(Number)
                       const [eh, em] = activeBlock.endTime.split(':').map(Number)
-                      return getDurationSlots(Math.max(30, (eh * 60 + em) - (sh * 60 + sm)))
+                      return durationSlotsFor(Math.max(intervalMin, (eh * 60 + em) - (sh * 60 + sm)), intervalMin)
                     })() : 1
                     const rowSpan = activeAppts.length > 0 ? apptRowSpan : activeBlock ? blockRowSpan : 1
-                    const cellH = rowSpan * SLOT_HEIGHT
+                    const cellH = rowSpan * slotHeight
 
                     return (
                       <td
@@ -363,7 +392,7 @@ export default function DayTimeline({
                                   <AppointmentBlock
                                     appointment={appt}
                                     onClick={() => onAppointmentClick?.(appt)}
-                                    heightPx={SLOT_HEIGHT - 4}
+                                    heightPx={slotHeight - 4}
                                   />
                                 </div>
                               ))
@@ -380,12 +409,12 @@ export default function DayTimeline({
                               <div
                                 key={ca.id}
                                 className={cn('min-w-0', activeAppt ? 'flex-1' : 'w-full')}
-                                style={{ height: `${SLOT_HEIGHT - 4}px` }}
+                                style={{ height: `${slotHeight - 4}px` }}
                               >
                                 <AppointmentBlock
                                   appointment={ca}
                                   onClick={() => onAppointmentClick?.(ca)}
-                                  heightPx={SLOT_HEIGHT - 4}
+                                  heightPx={slotHeight - 4}
                                 />
                               </div>
                             ))}
@@ -405,7 +434,7 @@ export default function DayTimeline({
                   }) : (
                     <td
                       className="border-b border-r border-[#F1F5F9] bg-white"
-                      style={{ height: `${SLOT_HEIGHT}px` }}
+                      style={{ height: `${slotHeight}px` }}
                     />
                   )}
                 </tr>
@@ -454,6 +483,7 @@ export default function DayTimeline({
       {addingBlock && (
         <BlockForm
           initialTime={addingBlock.time}
+          timeSlots={timeSlots}
           onAdd={(start, end, reason) => {
             setBlocks((prev) => [
               ...prev,

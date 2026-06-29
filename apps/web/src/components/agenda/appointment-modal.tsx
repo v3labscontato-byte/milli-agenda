@@ -47,6 +47,7 @@ interface AppointmentModalProps {
   onClose: () => void
   onSuccess?: () => void
   onReschedule?: (appt: CalendarAppointment) => void
+  interval?: 15 | 20 | 30 | 60
 }
 
 function formatDateDisplay(dateStr: string): string {
@@ -54,7 +55,7 @@ function formatDateDisplay(dateStr: string): string {
   return `${d}/${m}/${y}`
 }
 
-export default function AppointmentModal({ appointment, onClose, onSuccess, onReschedule: _onReschedule }: AppointmentModalProps) {
+export default function AppointmentModal({ appointment, onClose, onSuccess, onReschedule: _onReschedule, interval = 15 }: AppointmentModalProps) {
   const [paymentOpen, setPaymentOpen]               = useState(false)
   const [reagendando, setReagendando]               = useState(false)
   const [cancelMode, setCancelMode]                 = useState(false)
@@ -153,7 +154,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
         const slots: string[] = []
         if (!isFolga) {
-          for (let min = windowStart; min + durMin <= windowEnd; min += 30) {
+          for (let min = windowStart; min + durMin <= windowEnd; min += interval) {
             const h    = Math.floor(min / 60).toString().padStart(2, '0')
             const m    = (min % 60).toString().padStart(2, '0')
             const slot = `${h}:${m}`

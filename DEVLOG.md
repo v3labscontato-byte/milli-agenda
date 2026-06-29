@@ -1174,3 +1174,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_COMANDAS — Fix close(): itens + desconto
 **Status:** Concluído
 **Fix:** close() usa totalAmount dos itens e aplica desconto corretamente
+
+---
+### [2026-06-29] AGENT_DASHBOARD — Layout: KPIs de hoje separados do filtro
+**Status:** Concluido
+**Fixes:** secao "Visao Geral de Hoje" fixa + "Historico & Analytics" com filtro + periodo personalizado

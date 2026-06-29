@@ -274,6 +274,7 @@ export default function AgendaPage() {
             interval={interval}
             onAppointmentClick={handleDayAppointmentClick}
             onSlotClick={handleSlotClick}
+            onSuccess={handleCreated}
           />
         </div>
       )}

@@ -132,6 +132,7 @@ interface DayTimelineProps {
   interval?: 15 | 20 | 30 | 60
   onAppointmentClick?: (appt: CalendarAppointment) => void
   onSlotClick?: (professionalId: string, time: string, date: string) => void
+  onSuccess?: () => void
 }
 
 export default function DayTimeline({
@@ -141,6 +142,7 @@ export default function DayTimeline({
   interval = 15,
   onAppointmentClick,
   onSlotClick,
+  onSuccess,
 }: DayTimelineProps) {
   const intervalMin = interval
   const slotHeight  = Math.round(SLOT_HEIGHT_BASE * (intervalMin / 30))
@@ -152,6 +154,8 @@ export default function DayTimeline({
   const [theadH, setTheadH] = useState(56)
   const [blocks, setBlocks] = useState<CalendarBlock[]>([])
   const [addingBlock, setAddingBlock] = useState<{ profId: string; time: string } | null>(null)
+  const [dragging, setDragging] = useState<{ apptId: string; profId: string; origSlot: string } | null>(null)
+  const [dragOverSlot, setDragOverSlot] = useState<{ slot: string; profId: string } | null>(null)
 
   useEffect(() => {
     if (theadRef.current) setTheadH(theadRef.current.getBoundingClientRect().height)
@@ -339,11 +343,12 @@ export default function DayTimeline({
                     const rowSpan = activeAppts.length > 0 ? apptRowSpan : activeBlock ? blockRowSpan : 1
                     const cellH = rowSpan * slotHeight
 
+                    const isDragTarget = dragOverSlot?.slot === slot && dragOverSlot?.profId === prof.id
                     return (
                       <td
                         key={prof.id}
                         rowSpan={rowSpan}
-                        onClick={!hasAnything ? (e) => {
+                        onClick={!hasAnything && !dragging ? (e) => {
                           if (e.shiftKey) {
                             setAddingBlock({ profId: prof.id, time: slot })
                           } else {
@@ -351,7 +356,7 @@ export default function DayTimeline({
                           }
                         } : undefined}
                         onKeyDown={
-                          !hasAnything
+                          !hasAnything && !dragging
                             ? (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault()
@@ -360,15 +365,41 @@ export default function DayTimeline({
                               }
                             : undefined
                         }
-                        tabIndex={!hasAnything ? 0 : undefined}
+                        tabIndex={!hasAnything && !dragging ? 0 : undefined}
+                        onDragOver={(e) => {
+                          if (!dragging || dragging.profId !== prof.id) return
+                          e.preventDefault()
+                          e.dataTransfer.dropEffect = 'move'
+                          setDragOverSlot({ slot, profId: prof.id })
+                        }}
+                        onDragLeave={() => setDragOverSlot(null)}
+                        onDrop={async (e) => {
+                          e.preventDefault()
+                          if (!dragging || dragging.profId !== prof.id) return
+                          setDragOverSlot(null)
+                          if (slot === dragging.origSlot) { setDragging(null); return }
+                          const { apptId } = dragging
+                          setDragging(null)
+                          try {
+                            const token = localStorage.getItem('accessToken')
+                            const base = process.env.NEXT_PUBLIC_API_URL
+                            await fetch(`${base}/api/v1/appointments/${apptId}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                              body: JSON.stringify({ startTime: slot, date: dateStr }),
+                            })
+                            onSuccess?.()
+                          } catch { /* silent */ }
+                        }}
                         className={cn(
                           'border-b border-r border-[#F1F5F9] align-top group',
                           isToday ? 'bg-[#FAFCFF]' : 'bg-white',
-                          !hasAnything && 'cursor-pointer hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
+                          !hasAnything && !dragging && 'cursor-pointer hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
                           hasAnything && 'p-0.5',
+                          isDragTarget && 'bg-[#EFF6FF] ring-2 ring-inset ring-[#2563EB]',
                         )}
                         style={{ height: `${cellH}px` }}
-                        title={!hasAnything ? 'Clique para agendar · Shift+clique para bloquear' : undefined}
+                        title={!hasAnything && !dragging ? 'Clique para agendar · Shift+clique para bloquear' : undefined}
                       >
                         {activeBlock && !activeAppt && !cancelledAppts.length ? (
                           <div style={{ height: '100%' }}>
@@ -394,7 +425,17 @@ export default function DayTimeline({
                           <div className={cn('flex h-full gap-0.5 flex-row')}>
                             {activeAppts.length > 1 ? (
                               activeAppts.map((appt) => (
-                                <div key={appt.id} style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  key={appt.id}
+                                  style={{ flex: 1, minWidth: 0, ...(dragging?.apptId === appt.id ? { opacity: 0.5 } : {}) }}
+                                  draggable={['SCHEDULED', 'CONFIRMED'].includes(appt.status)}
+                                  onDragStart={(e) => {
+                                    if (!['SCHEDULED', 'CONFIRMED'].includes(appt.status)) { e.preventDefault(); return }
+                                    setDragging({ apptId: appt.id, profId: prof.id, origSlot: slot })
+                                    e.dataTransfer.effectAllowed = 'move'
+                                  }}
+                                  onDragEnd={() => setDragging(null)}
+                                >
                                   <AppointmentBlock
                                     appointment={appt}
                                     onClick={() => onAppointmentClick?.(appt)}
@@ -403,7 +444,17 @@ export default function DayTimeline({
                                 </div>
                               ))
                             ) : activeAppt ? (
-                              <div className={cn('min-w-0', cancelledAppts.length > 0 ? 'flex-1' : 'w-full h-full')}>
+                              <div
+                                className={cn('min-w-0', cancelledAppts.length > 0 ? 'flex-1' : 'w-full h-full')}
+                                draggable={['SCHEDULED', 'CONFIRMED'].includes(activeAppt.status)}
+                                onDragStart={(e) => {
+                                  if (!['SCHEDULED', 'CONFIRMED'].includes(activeAppt.status)) { e.preventDefault(); return }
+                                  setDragging({ apptId: activeAppt.id, profId: prof.id, origSlot: slot })
+                                  e.dataTransfer.effectAllowed = 'move'
+                                }}
+                                onDragEnd={() => setDragging(null)}
+                                style={dragging?.apptId === activeAppt.id ? { opacity: 0.5 } : undefined}
+                              >
                                 <AppointmentBlock
                                   appointment={activeAppt}
                                   onClick={() => onAppointmentClick?.(activeAppt)}

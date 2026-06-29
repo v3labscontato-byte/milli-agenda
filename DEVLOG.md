@@ -1005,3 +1005,6 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS � Include category no GET /services
 **Status:** Concluido
 **Fixes:** backend inclui category.name via include, frontend mapeia cat.name corretamente
+### [$(date +%Y-%m-%d)] AGENT_SERVICOS — Métricas mensais nos serviços
+**Status:** ✅ Concluído
+**Fixes:** backend calcula agendMes e fatMes, frontend mapeia e exibe na tabela

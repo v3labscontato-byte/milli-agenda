@@ -111,8 +111,12 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo-name.svg" alt="Milii Agenda" className="h-9 w-auto shrink-0 object-contain" />
+            <span
+              style={{ fontFamily: 'var(--font-nunito), Nunito, sans-serif', fontWeight: 900, color: '#FF6A00', fontSize: '28px', letterSpacing: '-0.5px', lineHeight: 1 }}
+              aria-label="milii"
+            >
+              milii
+            </span>
             <button
               onClick={() => setCollapsed((c) => !c)}
               aria-label="Recolher menu"

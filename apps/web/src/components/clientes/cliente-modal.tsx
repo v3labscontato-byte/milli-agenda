@@ -1,53 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Phone, Mail, CreditCard, Calendar, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { X, Phone, Mail, CreditCard, Calendar, Clock, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Cliente, VisitHistory, UpcomingAppt } from '@/lib/clientes-mock'
+import type { Cliente } from '@/lib/clientes-mock'
 import { formatDate, age, clienteSinceLabel } from '@/lib/clientes-mock'
 import { ClienteAvatar, ClienteTagBadge } from './cliente-card'
 
-type Tab = 'perfil' | 'historico' | 'agendamentos' | 'financeiro'
+type Tab = 'perfil' | 'historico' | 'financeiro'
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'perfil',        label: 'Perfil' },
-  { id: 'historico',     label: 'Histórico' },
-  { id: 'agendamentos',  label: 'Agendamentos' },
-  { id: 'financeiro',    label: 'Financeiro' },
+  { id: 'perfil',    label: 'Perfil'     },
+  { id: 'historico', label: 'Histórico'  },
+  { id: 'financeiro', label: 'Financeiro' },
 ]
-const PAGE_SIZE = 5
-
-function VisitStatusChip({ status }: { status: VisitHistory['status'] }) {
-  if (status === 'COMPLETED') return (
-    <span className="flex items-center gap-1 text-[11px] font-medium text-[#16A34A]">
-      <CheckCircle size={11} aria-hidden="true" /> Concluído
-    </span>
-  )
-  if (status === 'NO_SHOW') return (
-    <span className="flex items-center gap-1 text-[11px] font-medium text-[#DC2626]">
-      <XCircle size={11} aria-hidden="true" /> No-show
-    </span>
-  )
-  return (
-    <span className="flex items-center gap-1 text-[11px] font-medium text-[#94A3B8]">
-      <XCircle size={11} aria-hidden="true" /> Cancelado
-    </span>
-  )
-}
-
-function ApptStatusBadge({ status }: { status: UpcomingAppt['status'] }) {
-  const map: Record<UpcomingAppt['status'], { bg: string; text: string; label: string }> = {
-    SCHEDULED: { bg: '#F1F5F9', text: '#475569', label: 'Agendado' },
-    CONFIRMED: { bg: '#EFF6FF', text: '#2563EB', label: 'Confirmado' },
-    COMPLETED: { bg: '#F0FDF4', text: '#16A34A', label: 'Concluído' },
-    CANCELLED: { bg: '#FEF2F2', text: '#DC2626', label: 'Cancelado' },
-  }
-  const s = map[status]
-  return (
-    <span className="rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ backgroundColor: s.bg, color: s.text }}>
-      {s.label}
-    </span>
-  )
-}
 
 const inputCls = 'w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]'
 const btnSave = 'rounded-md bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
@@ -250,118 +215,91 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
 }
 
 function TabHistorico({ c }: { c: Cliente }) {
-  const [page, setPage] = useState(0)
-  const totalPages = Math.ceil(c.history.length / PAGE_SIZE)
-  const slice = c.history.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
-
-  if (c.history.length === 0) {
+  if (!c.history || c.history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-2">
+      <div className="flex flex-col items-center justify-center py-12">
         <p className="text-[13px] text-[#94A3B8]">Nenhum atendimento registrado ainda.</p>
       </div>
     )
   }
 
-  return (
-    <div className="space-y-3">
-      {slice.map((h) => (
-        <div key={h.id} className="flex items-start gap-3 rounded-lg border border-[#F1F5F9] bg-white p-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F8FAFC]">
-            <Calendar size={14} className="text-[#475569]" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-[13px] font-semibold text-[#0F172A]">{h.service}</p>
-                <p className="text-[12px] text-[#94A3B8]">{h.professional} · {formatDate(h.date)}</p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <span className="font-tabular text-[13px] font-semibold text-[#0F172A]">
-                  {h.status === 'COMPLETED' ? `R$ ${h.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
-                </span>
-                <VisitStatusChip status={h.status} />
-              </div>
-            </div>
-            {h.paymentMethod && (
-              <p className="mt-1 text-[11px] text-[#94A3B8]">{h.paymentMethod}</p>
-            )}
-          </div>
-        </div>
-      ))}
+  const TH = 'px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]'
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-1">
-          <p className="text-[12px] text-[#94A3B8]">
-            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, c.history.length)} de {c.history.length}
-          </p>
-          <div className="flex gap-1">
-            <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-              aria-label="Página anterior"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-              <ChevronLeft size={14} aria-hidden="true" />
-            </button>
-            <button type="button" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}
-              aria-label="Próxima página"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-              <ChevronRight size={14} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px]">
+        <thead>
+          <tr className="border-b border-[#F1F5F9]">
+            <th className={TH}>Data</th>
+            <th className={TH}>Hora</th>
+            <th className={TH}>Serviço</th>
+            <th className={TH}>Pagamento</th>
+            <th className={cn(TH, 'text-right')}>Valor</th>
+            <th className={TH}>Atendimento</th>
+          </tr>
+        </thead>
+        <tbody>
+          {c.history.map((h) => {
+            const date = new Date(h.date + 'T12:00:00')
+            const isPago      = h.status === 'COMPLETED'
+            const isCancelado = h.status === 'CANCELLED'
+            return (
+              <tr key={h.id} className="border-b border-[#F8FAFC] transition-colors hover:bg-[#FAFAFA]">
+                <td className="px-3 py-2 text-[#475569]">
+                  {date.toLocaleDateString('pt-BR')}
+                </td>
+                <td className="px-3 py-2 font-tabular text-[#475569]">—</td>
+                <td className="px-3 py-2 text-[#0F172A]">{h.service || '—'}</td>
+                <td className="px-3 py-2">
+                  {isCancelado ? (
+                    <span className="text-[#94A3B8]">—</span>
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                      style={isPago
+                        ? { backgroundColor: '#F0FDF4', color: '#15803D', borderColor: '#BBF7D0' }
+                        : { backgroundColor: '#FFFBEB', color: '#92400E', borderColor: '#FDE68A' }}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: isPago ? '#22C55E' : '#F59E0B' }}
+                      />
+                      {isPago ? 'Pago' : 'Pendente'}
+                    </span>
+                  )}
+                </td>
+                <td className="px-3 py-2 text-right font-medium">
+                  {isCancelado ? (
+                    <span className="text-[#94A3B8] line-through">
+                      R$ {h.amount.toFixed(2).replace('.', ',')}
+                    </span>
+                  ) : (
+                    <span className="text-[#0F172A]">
+                      R$ {h.amount.toFixed(2).replace('.', ',')}
+                    </span>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+                    style={isPago
+                      ? { backgroundColor: '#F0FDF4', color: '#16A34A' }
+                      : isCancelado
+                        ? { backgroundColor: '#FEF2F2', color: '#DC2626' }
+                        : { backgroundColor: '#EFF6FF', color: '#1D4ED8' }}
+                  >
+                    {isPago ? 'Realizado' : isCancelado ? 'Cancelado' : 'Pendente'}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
 
-function TabAgendamentos({ c }: { c: Cliente }) {
-  const upcoming = c.upcoming.filter((a) => a.status !== 'COMPLETED' && a.status !== 'CANCELLED')
-  const past = c.upcoming.filter((a) => a.status === 'COMPLETED' || a.status === 'CANCELLED').slice(0, 5)
-
-  if (c.upcoming.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 gap-2">
-        <p className="text-[13px] text-[#94A3B8]">Nenhum agendamento encontrado.</p>
-      </div>
-    )
-  }
-
-  function ApptRow({ a }: { a: UpcomingAppt }) {
-    return (
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-[#F1F5F9] bg-white px-3 py-2.5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F8FAFC]">
-            <Calendar size={14} className="text-[#475569]" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-[13px] font-semibold text-[#0F172A]">{a.service}</p>
-            <p className="text-[12px] text-[#94A3B8]">{a.professional} · {formatDate(a.date)} {a.time}</p>
-          </div>
-        </div>
-        <ApptStatusBadge status={a.status} />
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">Próximos ({upcoming.length})</p>
-        {upcoming.length > 0 ? (
-          <div className="space-y-2">{upcoming.map((a) => <ApptRow key={a.id} a={a} />)}</div>
-        ) : (
-          <p className="rounded-lg border border-dashed border-[#E2E8F0] py-6 text-center text-[12px] text-[#94A3B8]">
-            Nenhum agendamento futuro
-          </p>
-        )}
-      </div>
-      {past.length > 0 && (
-        <div>
-          <p className="mb-2.5 text-[12px] font-medium text-[#64748B]">Passados (últimos {past.length})</p>
-          <div className="space-y-2">{past.map((a) => <ApptRow key={a.id} a={a} />)}</div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 function TabFinanceiro({ c }: { c: Cliente }) {
   if (c.history.length === 0 && c.serviceFreq.length === 0) {
@@ -535,10 +473,9 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5" role="tabpanel">
-          {tab === 'perfil'       && <TabPerfil key={cliente.id} c={cliente} profissionais={profissionais} />}
-          {tab === 'historico'    && <TabHistorico    c={cliente} />}
-          {tab === 'agendamentos' && <TabAgendamentos c={cliente} />}
-          {tab === 'financeiro'   && <TabFinanceiro   c={cliente} />}
+          {tab === 'perfil'     && <TabPerfil key={cliente.id} c={cliente} profissionais={profissionais} />}
+          {tab === 'historico'  && <TabHistorico  c={cliente} />}
+          {tab === 'financeiro' && <TabFinanceiro c={cliente} />}
         </div>
       </div>
     </div>

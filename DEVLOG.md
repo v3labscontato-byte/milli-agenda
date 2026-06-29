@@ -962,3 +962,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_CLIENTES — Remover FEATURES gate
 **Status:** âœ… Concluído
 **Fix:** use-clientes.ts usa API real sempre, sem FEATURES.realClientes
+
+### [2026-06-29] AGENT_CLIENTES — Modal: remover aba Agendamentos + Histórico completo
+**Status:** âœ… Concluído
+**Fixes:** aba Agendamentos removida, Histórico com tabela (Data/Hora/Serviço/Pagamento/Valor/Atendimento)

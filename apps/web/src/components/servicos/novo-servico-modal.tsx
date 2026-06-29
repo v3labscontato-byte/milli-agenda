@@ -3,11 +3,9 @@
 import { useEffect, useState } from 'react'
 import { X, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { ServicoCategory, ServicoStatus } from '@/lib/servicos-mock'
+import type { ServicoStatus } from '@/lib/servicos-mock'
 import type { ServicoInput } from '@/hooks/use-servicos'
 import PhotoUpload from '@/components/shared/photo-upload'
-
-const CATEGORIES: ServicoCategory[] = ['Cabelo', 'Barba', 'Unhas', 'Estética', 'Sobrancelha']
 
 const LABEL = 'text-[12px] font-medium text-[#475569]'
 const INPUT = cn(
@@ -17,7 +15,7 @@ const INPUT = cn(
 
 interface FormState {
   nome: string
-  category: ServicoCategory | ''
+  categoryId: string
   duration: string
   price: string
   description: string
@@ -26,7 +24,7 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
-  nome: '', category: '', duration: '60', price: '', description: '',
+  nome: '', categoryId: '', duration: '60', price: '', description: '',
   status: 'active', photos: [],
 }
 
@@ -40,8 +38,30 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
   const [form, setForm] = useState<FormState>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [categorias, setCategorias] = useState<Array<{ id: string; name: string }>>([])
+  const [novaCategoria, setNovaCategoria] = useState(false)
+  const [nomeCategoria, setNomeCategoria] = useState('')
 
-  useEffect(() => { if (open) { setForm(EMPTY); setSaving(false); setSubmitError(null) } }, [open])
+  useEffect(() => {
+    if (open) {
+      setForm(EMPTY)
+      setSaving(false)
+      setSubmitError(null)
+      setNovaCategoria(false)
+      setNomeCategoria('')
+    }
+  }, [open])
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services/categories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(r => setCategorias(r.data ?? []))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -57,6 +77,22 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
       setForm((f) => ({ ...f, [key]: e.target.value }))
   }
 
+  async function handleCriarCategoria() {
+    const token = localStorage.getItem('accessToken')
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: nomeCategoria }),
+    })
+    const data = await res.json()
+    if (data.data?.id) {
+      setCategorias(prev => [...prev, data.data])
+      setForm(f => ({ ...f, categoryId: data.data.id }))
+      setNovaCategoria(false)
+      setNomeCategoria('')
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (saving) return
@@ -69,6 +105,7 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
         durationMin: Number(form.duration),
         price: Number(form.price),
         active: form.status === 'active',
+        categoryId: form.categoryId || null,
       })
       onClose()
     } catch {
@@ -128,11 +165,46 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="ns-category" className={LABEL}>Categoria *</label>
-                <select id="ns-category" required value={form.category} onChange={setField('category')} className={INPUT}>
-                  <option value="">Selecionar…</option>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                <label htmlFor="ns-category" className={LABEL}>Categoria</label>
+                <select id="ns-category" value={form.categoryId} onChange={setField('categoryId')} className={INPUT}>
+                  <option value="">Sem categoria</option>
+                  {categorias.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
                 </select>
+                {!novaCategoria && (
+                  <button
+                    type="button"
+                    onClick={() => setNovaCategoria(true)}
+                    className="text-[12px] text-[#2563EB] hover:underline mt-1"
+                  >
+                    + Nova categoria
+                  </button>
+                )}
+                {novaCategoria && (
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      value={nomeCategoria}
+                      onChange={e => setNomeCategoria(e.target.value)}
+                      placeholder="Nome da categoria"
+                      className={INPUT}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCriarCategoria}
+                      className="px-3 py-2 bg-[#2563EB] text-white text-[12px] rounded-md whitespace-nowrap"
+                    >
+                      Criar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNovaCategoria(false)}
+                      className="px-3 py-2 text-[12px] text-[#64748B] whitespace-nowrap"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

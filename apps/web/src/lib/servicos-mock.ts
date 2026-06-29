@@ -1,6 +1,6 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ServicoCategory = 'Cabelo' | 'Barba' | 'Unhas' | 'Estética' | 'Sobrancelha'
+export type ServicoCategory = string
 export type ServicoStatus = 'active' | 'inactive'
 
 export interface MonthlyBooking {

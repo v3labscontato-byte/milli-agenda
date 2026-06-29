@@ -18,7 +18,7 @@ function mapService(api: ApiService): Servico {
   return {
     id: api.id,
     name: api.name,
-    category: 'Cabelo',
+    category: '',
     description: api.description ?? '',
     duration: api.durationMin,
     price: Number(api.price),
@@ -39,6 +39,7 @@ export interface ServicoInput {
   durationMin: number
   price: number
   active?: boolean
+  categoryId?: string | null
 }
 
 export function useServicos() {

@@ -993,3 +993,7 @@ d48f169 â€” style(servicos): impeccable 20/20
 
 ### [2026-06-29] AGENT_PROFISSIONAIS — Aba Serviços: só ativos + toggle correto
 Filtro de serviços ativos adicionado em TabServicos: interface RawService agora inclui campo optional active?; const activeServices = allServices.filter(s => s.active !== false); JSX usa activeServices.map() em vez de allServices.map(). Sem mudanças no toggle — comportamento já correto.
+
+### [2026-06-29] AGENT_SERVICOS — Fix categoria + botão nova categoria
+**Status:** Concluído
+**Fixes:** category padrao vazia, ServicoCategory widened para string, categorias reais da API no modal, botao nova categoria inline, categoryId enviado no POST, DTO atualizado

@@ -15,4 +15,8 @@ export class CreateServicoDto {
   @IsNumber()
   @Min(0)
   price: number
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string | null
 }

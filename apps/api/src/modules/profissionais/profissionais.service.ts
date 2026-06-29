@@ -32,6 +32,7 @@ export class ProfissionaisService {
             status: { in: ['SCHEDULED', 'CONFIRMED', 'COMPLETED'] },
             startAt: { gte: startOfMonth, lte: endOfMonth },
           },
+          include: { service: { select: { name: true, price: true } } },
         })
 
         const completedMonth = monthAppts.filter((a) => a.status === 'COMPLETED')

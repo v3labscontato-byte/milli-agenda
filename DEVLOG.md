@@ -1169,3 +1169,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 
 ### TypeScript
 - `npx tsc --noEmit` passando sem erros em frontend e backend
+
+---
+### [2026-06-29] AGENT_COMANDAS — Fix close(): itens + desconto
+**Status:** Concluído
+**Fix:** close() usa totalAmount dos itens e aplica desconto corretamente

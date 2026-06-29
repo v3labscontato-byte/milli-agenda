@@ -10,6 +10,9 @@ export class ServicosService {
     return this.db.service.findMany({
       where: { tenantId },
       orderBy: { name: 'asc' },
+      include: {
+        category: { select: { id: true, name: true } },
+      },
     })
   }
 

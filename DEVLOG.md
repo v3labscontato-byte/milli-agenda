@@ -1001,3 +1001,7 @@ Filtro de serviços ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS — SmartFormServico: categorias reais + nova categoria
 **Status:** Concluido
 **Fixes:** categorias ja vinham da API; adicionados botao nova categoria com stopPropagation, form inline de criacao, e categoryId no handleSave
+
+### [2026-06-29] AGENT_SERVICOS — Include category no GET /services
+**Status:** Concluido
+**Fixes:** backend inclui category.name via include, frontend mapeia cat.name corretamente

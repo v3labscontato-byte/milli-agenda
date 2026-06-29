@@ -4,7 +4,7 @@ import { FEATURES } from '@/lib/features'
 import { servicosApi } from '@/lib/api/servicos'
 import { MOCK_SERVICOS, type Servico } from '@/lib/servicos-mock'
 
-// Backend Service shape (Prisma model `services`)
+// Backend Service shape (Prisma model `services` with included category)
 interface ApiService {
   id: string
   name: string
@@ -12,13 +12,16 @@ interface ApiService {
   durationMin: number
   price: number | string
   active: boolean
+  categoryId?: string | null
+  category?: { id: string; name: string } | null
 }
 
 function mapService(api: ApiService): Servico {
+  const cat = api.category ?? null
   return {
     id: api.id,
     name: api.name,
-    category: '',
+    category: cat?.name ?? '',
     description: api.description ?? '',
     duration: api.durationMin,
     price: Number(api.price),

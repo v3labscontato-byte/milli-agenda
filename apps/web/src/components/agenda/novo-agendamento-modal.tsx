@@ -372,6 +372,22 @@ export default function NovoAgendamentoModal({
                   )}
                 </div>
               )}
+
+              {/* Telefone para novo cliente */}
+              {!clientSelected && form.clientName.trim().length > 0 && (
+                <div className="space-y-1">
+                  <label htmlFor="na-phone" className={LABEL}>Telefone (opcional)</label>
+                  <input
+                    id="na-phone"
+                    type="tel"
+                    value={form.clientPhone}
+                    onChange={setField('clientPhone')}
+                    placeholder="(11) 99999-9999"
+                    autoComplete="tel"
+                    className={INPUT}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Profissional */}

@@ -71,7 +71,7 @@ export class AgendaService {
 
       if (!client) {
         client = await this.db.client.create({
-          data: { tenantId, name: dto.clientName, phone: dto.clientPhone ?? '' },
+          data: { tenantId, name: dto.clientName, phone: dto.clientPhone || null },
         })
       }
       clientId = client.id

@@ -946,3 +946,7 @@ d48f169 — style(servicos): impeccable 20/20
 **Fix 2:** clientNumber adicionado ao schema Prisma + prisma generate
 **Fix 3:** GET /clients/search endpoint (busca por nome ou telefone)
 **Fix 4:** typeahead de cliente no modal de novo agendamento
+
+### [2026-06-29] AGENT_AGENDA — Fix criar cliente sem telefone
+**Status:** âœ… Concluído
+**Fixes:** phone null em vez de string vazia (evita unique constraint), campo telefone no modal para novo cliente

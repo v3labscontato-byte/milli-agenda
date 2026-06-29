@@ -13,7 +13,7 @@ export const CATEGORY_STYLES: Record<ServicoCategory, { bg: string; text: string
 }
 
 export function CategoryBadge({ category }: { category: ServicoCategory }) {
-  const s = CATEGORY_STYLES[category]
+  const s = CATEGORY_STYLES[category] ?? { bg: '#F1F5F9', text: '#475569', dot: '#94A3B8' }
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"

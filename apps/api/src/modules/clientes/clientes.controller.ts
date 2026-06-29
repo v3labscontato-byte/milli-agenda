@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { ClientesService } from './clientes.service'
@@ -12,6 +12,11 @@ export class ClientesController {
   @Get()
   findAll(@TenantFromJwt() tenantId: string) {
     return this.clientesService.findAll(tenantId)
+  }
+
+  @Get('search')
+  search(@TenantFromJwt() tenantId: string, @Query('q') q: string) {
+    return this.clientesService.search(tenantId, q)
   }
 
   @Get(':id')

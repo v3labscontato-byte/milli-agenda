@@ -939,3 +939,10 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_AGENDA — Fix find-or-create cliente sem telefone
 **Status:** âœ… Concluído
 **Fix:** só busca cliente por telefone se dto.clientPhone for fornecido; sem telefone, sempre cria novo cliente
+
+### [2026-06-29] AGENT_CLIENTES — ID sequencial + busca de cliente no agendamento
+**Status:** âœ… Concluído
+**Fix 1 (SQL):** ALTER TABLE clients ADD COLUMN IF NOT EXISTS "clientNumber" SERIAL (executar no Railway Console)
+**Fix 2:** clientNumber adicionado ao schema Prisma + prisma generate
+**Fix 3:** GET /clients/search endpoint (busca por nome ou telefone)
+**Fix 4:** typeahead de cliente no modal de novo agendamento

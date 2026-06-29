@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { X, CalendarPlus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { X, CalendarPlus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useServicos } from '@/hooks/use-servicos'
 import { useProfissionais } from '@/hooks/use-profissionais'
@@ -13,7 +13,15 @@ const INPUT = cn(
   'placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
 
+interface ClientResult {
+  id: string
+  name: string
+  phone?: string | null
+  clientNumber?: number | null
+}
+
 interface FormState {
+  clientId?: string
   clientName: string
   clientPhone: string
   professionalId: string
@@ -93,6 +101,14 @@ export default function NovoAgendamentoModal({
   const [horariosDisponiveis, setHorarios]  = useState<string[]>([])
   const [loadingHorarios, setLoadingHorarios] = useState(false)
 
+  // Client search
+  const [clientSearch, setClientSearch]     = useState('')
+  const [clientResults, setClientResults]   = useState<ClientResult[]>([])
+  const [clientLoading, setClientLoading]   = useState(false)
+  const [showDropdown, setShowDropdown]     = useState(false)
+  const [clientSelected, setClientSelected] = useState<ClientResult | null>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
+
   const { data: servicos }      = useServicos()
   const { data: profissionais } = useProfissionais()
 
@@ -121,8 +137,51 @@ export default function NovoAgendamentoModal({
       setForm(emptyForm(defaultDate, initialTime, initialProfessionalId))
       setSubmitError(null)
       setHorarios([])
+      setClientSearch('')
+      setClientResults([])
+      setClientSelected(null)
+      setShowDropdown(false)
     }
   }, [open, defaultDate, initialTime, initialProfessionalId])
+
+  // Debounced client search
+  useEffect(() => {
+    if (clientSearch.trim().length < 2) {
+      setClientResults([])
+      setShowDropdown(false)
+      return
+    }
+    const t = setTimeout(async () => {
+      setClientLoading(true)
+      try {
+        const token = localStorage.getItem('accessToken')
+        const tenantSlug = localStorage.getItem('tenantSlug') ?? ''
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/clients/search?q=${encodeURIComponent(clientSearch)}`,
+          { headers: { Authorization: `Bearer ${token ?? ''}`, 'X-Tenant-Slug': tenantSlug } },
+        )
+        const json = (await res.json()) as { data?: ClientResult[] }
+        setClientResults(Array.isArray(json.data) ? json.data : [])
+        setShowDropdown(true)
+      } catch {
+        setClientResults([])
+      } finally {
+        setClientLoading(false)
+      }
+    }, 300)
+    return () => clearTimeout(t)
+  }, [clientSearch])
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -173,12 +232,25 @@ export default function NovoAgendamentoModal({
       setForm((f) => ({ ...f, [key]: e.target.value }))
   }
 
+  function selectClient(c: ClientResult) {
+    setClientSelected(c)
+    setClientSearch('')
+    setShowDropdown(false)
+    setForm((f) => ({ ...f, clientId: c.id, clientName: c.name, clientPhone: c.phone ?? '' }))
+  }
+
+  function clearClient() {
+    setClientSelected(null)
+    setForm((f) => ({ ...f, clientId: undefined, clientName: '', clientPhone: '' }))
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
     setSubmitError(null)
     try {
       await agendaApi.create({
+        clientId:       form.clientId,
         clientName:     form.clientName,
         clientPhone:    form.clientPhone || undefined,
         serviceId:      form.serviceId,
@@ -237,27 +309,69 @@ export default function NovoAgendamentoModal({
           <form id="novo-agenda-form" onSubmit={handleSubmit} className="space-y-5 px-5 py-5">
 
             {/* Cliente */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label htmlFor="na-client" className={LABEL}>Nome do cliente *</label>
-                <input
-                  id="na-client" type="text" required
-                  value={form.clientName} onChange={setField('clientName')}
-                  placeholder="Ex.: Camila Torres"
-                  autoComplete="name"
-                  className={INPUT}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="na-phone" className={LABEL}>Telefone</label>
-                <input
-                  id="na-phone" type="tel"
-                  value={form.clientPhone} onChange={setField('clientPhone')}
-                  placeholder="(11) 99999-9999"
-                  autoComplete="tel"
-                  className={INPUT}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label htmlFor="na-client" className={LABEL}>Cliente *</label>
+
+              {clientSelected ? (
+                <div className="flex items-center justify-between rounded-md border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-2.5">
+                  <div>
+                    <p className="text-[13px] font-medium text-[#0F172A]">{clientSelected.name}</p>
+                    {clientSelected.phone && (
+                      <p className="text-[11px] text-[#475569]">{clientSelected.phone}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearClient}
+                    aria-label="Trocar cliente"
+                    className="ml-2 shrink-0 rounded p-0.5 text-[#64748B] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              ) : (
+                <div ref={searchRef} className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                    <Search size={13} className="text-[#94A3B8]" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="na-client"
+                    type="text"
+                    required
+                    value={clientSearch || form.clientName}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setClientSearch(v)
+                      setForm((f) => ({ ...f, clientName: v, clientId: undefined }))
+                    }}
+                    onFocus={() => clientResults.length > 0 && setShowDropdown(true)}
+                    placeholder="Buscar ou digitar nome do cliente…"
+                    autoComplete="off"
+                    className={cn(INPUT, 'pl-8')}
+                  />
+                  {showDropdown && (
+                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-md border border-[#E2E8F0] bg-white shadow-lg">
+                      {clientLoading ? (
+                        <p className="px-3 py-2 text-[12px] text-[#94A3B8]">Buscando…</p>
+                      ) : clientResults.length === 0 ? (
+                        <p className="px-3 py-2 text-[12px] text-[#94A3B8]">Nenhum cliente encontrado — será criado novo</p>
+                      ) : (
+                        clientResults.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onMouseDown={() => selectClient(c)}
+                            className="flex w-full flex-col px-3 py-2 text-left transition-colors hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]"
+                          >
+                            <span className="text-[13px] font-medium text-[#0F172A]">{c.name}</span>
+                            {c.phone && <span className="text-[11px] text-[#64748B]">{c.phone}</span>}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Profissional */}

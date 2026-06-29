@@ -47,6 +47,22 @@ export class ClientesService {
     return this.db.client.update({ where: { id }, data: dto })
   }
 
+  search(tenantId: string, q: string) {
+    if (!q || q.trim().length < 2) return Promise.resolve([])
+    return this.db.client.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { phone: { contains: q } },
+        ],
+      },
+      select: { id: true, name: true, phone: true, clientNumber: true },
+      take: 10,
+      orderBy: { name: 'asc' },
+    })
+  }
+
   async remove(tenantId: string, id: string) {
     await this.findOne(tenantId, id)
     const linked = await this.db.appointment.count({ where: { tenantId, clientId: id } })

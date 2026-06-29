@@ -225,9 +225,10 @@ model Service {
 }
 
 model Client {
-  id        String    @id @default(cuid())
-  tenantId  String
-  name                   String
+  id           String    @id @default(cuid())
+  clientNumber Int?
+  tenantId     String
+  name         String
   email                  String?
   phone                  String?
   birthDate              DateTime?

@@ -935,3 +935,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_COMANDAS — KPI cards clicáveis como filtros
 **Status:** âœ… Concluído
 **Fix:** KPI cards clicáveis que ativam filtro de status
+
+### [2026-06-29] AGENT_AGENDA — Fix find-or-create cliente sem telefone
+**Status:** âœ… Concluído
+**Fix:** só busca cliente por telefone se dto.clientPhone for fornecido; sem telefone, sempre cria novo cliente

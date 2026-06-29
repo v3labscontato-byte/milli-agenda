@@ -61,9 +61,14 @@ export class AgendaService {
   async create(tenantId: string, dto: CreateAppointmentDto) {
     let clientId = dto.clientId
     if (!clientId) {
-      let client = await this.db.client.findFirst({
-        where: { tenantId, phone: dto.clientPhone ?? '' },
-      })
+      let client: { id: string } | null = null
+
+      if (dto.clientPhone) {
+        client = await this.db.client.findFirst({
+          where: { tenantId, phone: dto.clientPhone },
+        })
+      }
+
       if (!client) {
         client = await this.db.client.create({
           data: { tenantId, name: dto.clientName, phone: dto.clientPhone ?? '' },

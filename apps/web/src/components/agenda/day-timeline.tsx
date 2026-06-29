@@ -117,6 +117,8 @@ export default function DayTimeline({
   onAppointmentClick,
   onSlotClick,
 }: DayTimelineProps) {
+  console.log('[TIMELINE] professionals:', professionals.map(p => p.id + ':' + p.name))
+  console.log('[TIMELINE] appointments:', appointments.map(a => a.professionalId + ':' + a.startTime))
   const isToday = isTodayUtil(date)
   const dateStr = toDateString(date)
   const theadRef = useRef<HTMLTableSectionElement>(null)

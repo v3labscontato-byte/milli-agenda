@@ -326,7 +326,11 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         })
       }
 
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({}),
+      })
 
       await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
         method: 'PATCH',

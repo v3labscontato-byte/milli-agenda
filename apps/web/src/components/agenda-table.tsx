@@ -265,7 +265,11 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
         })
       }
 
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({}),
+      })
 
       await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
         method: 'PATCH',

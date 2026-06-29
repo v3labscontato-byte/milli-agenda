@@ -193,7 +193,11 @@ export default function AgendaPage() {
       })
     }
 
-    await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+    await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({}),
+    })
     await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
       method: 'PATCH', headers,
       body: JSON.stringify({ status: 'COMPLETED' }),

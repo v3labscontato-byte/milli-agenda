@@ -1194,3 +1194,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_COMANDAS — Fix definitivo fluxo pagamento
 **Status:** Concluido
 **Fixes:** FIX1+FIX2 ja estavam corretos; FIX3: close() ganhou try/catch com console.error para diagnostico do erro 500
+
+---
+### [2026-06-29] AGENT_COMANDAS — Fix close(): body vazio causa 500
+**Status:** Concluido
+**Fix:** POST /close agora envia body: JSON.stringify({}) em appointment-modal, agenda/page e agenda-table

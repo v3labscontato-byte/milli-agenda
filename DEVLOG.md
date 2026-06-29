@@ -997,3 +997,7 @@ Filtro de serviços ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS — Fix categoria + botão nova categoria
 **Status:** Concluído
 **Fixes:** category padrao vazia, ServicoCategory widened para string, categorias reais da API no modal, botao nova categoria inline, categoryId enviado no POST, DTO atualizado
+
+### [2026-06-29] AGENT_SERVICOS — SmartFormServico: categorias reais + nova categoria
+**Status:** Concluido
+**Fixes:** categorias ja vinham da API; adicionados botao nova categoria com stopPropagation, form inline de criacao, e categoryId no handleSave

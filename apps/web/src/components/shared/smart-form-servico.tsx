@@ -58,13 +58,15 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
   const [active, setActive] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [novaCategoria, setNovaCategoria] = useState(false)
+  const [nomeCategoria, setNomeCategoria] = useState('')
 
   useEffect(() => {
     if (open) {
       setStep(1)
       setName(''); setCategoryId(''); setHours(1); setMinutes(0)
       setPrice(''); setSelectedProfs(new Set()); setActive(true)
-      setSaving(false); setError('')
+      setSaving(false); setError(''); setNovaCategoria(false); setNomeCategoria('')
     }
   }, [open])
 
@@ -102,6 +104,7 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
         durationMin: durationMin || 30,
         price: priceNum,
         active,
+        categoryId: categoryId || null,
       })
       onClose()
     } catch {
@@ -175,11 +178,59 @@ export default function SmartFormServico({ open, onClose, onCreated }: SmartForm
                   <option value="">Sem categoria</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                {categories.length === 0 && (
-                  <p className="text-[12px] text-[var(--color-text-tertiary)]">
-                    Nenhuma categoria cadastrada. Configure em{' '}
-                    <span className="text-[var(--color-brand)]">Configurações → Categorias</span>.
-                  </p>
+                {!novaCategoria && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setNovaCategoria(true) }}
+                    className="text-[12px] text-[var(--color-brand)] hover:underline mt-1"
+                  >
+                    + Nova categoria
+                  </button>
+                )}
+                {novaCategoria && (
+                  <div className="flex gap-2 mt-2" onClick={e => e.stopPropagation()}>
+                    <input
+                      value={nomeCategoria}
+                      onChange={e => setNomeCategoria(e.target.value)}
+                      placeholder="Nome da categoria"
+                      onClick={e => e.stopPropagation()}
+                      className="flex-1 rounded-md border border-[var(--color-border-primary)] px-3 py-2 text-[13px] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-brand)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand-light)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (!nomeCategoria.trim()) return
+                        const token = localStorage.getItem('accessToken')
+                        const res = await fetch(
+                          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/services/categories`,
+                          {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ name: nomeCategoria.trim() }),
+                          }
+                        )
+                        const data = await res.json()
+                        const nova = data.data ?? data
+                        if (nova?.id) {
+                          setCategories(prev => [...prev, nova])
+                          setCategoryId(nova.id)
+                          setNovaCategoria(false)
+                          setNomeCategoria('')
+                        }
+                      }}
+                      className="px-3 py-2 bg-[var(--color-brand)] text-white text-[12px] rounded-md whitespace-nowrap"
+                    >
+                      Criar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setNovaCategoria(false); setNomeCategoria('') }}
+                      className="px-3 py-2 text-[12px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-md"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

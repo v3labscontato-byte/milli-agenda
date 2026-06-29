@@ -35,8 +35,13 @@ function Frame({ total, children }: { total: number | null; children: React.Reac
   )
 }
 
-export default function ServicesChart() {
-  const { data, loading, error } = useProfessionalsReport()
+interface ServicesChartProps {
+  from?: string
+  to?: string
+}
+
+export default function ServicesChart({ from, to }: ServicesChartProps) {
+  const { data, loading, error } = useProfessionalsReport(from, to)
   const [prefersReduced, setPrefersReduced] = useState(false)
   const [mounted, setMounted] = useState(false)
 

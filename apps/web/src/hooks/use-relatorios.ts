@@ -1,10 +1,8 @@
 'use client'
-// TODO Backlog: Metas financeiras → endpoint /reports/goals (tabela Goal no banco)
 // TODO Backlog: Despesas → endpoint /reports/expenses (tabela Expense no banco)
 import { useState, useEffect, useCallback } from 'react'
-import { FEATURES } from '@/lib/features'
 import { relatoriosApi } from '@/lib/api/relatorios'
-import { mockKpis, type KpiData } from '@/lib/mock-data'
+import type { KpiData } from '@/lib/mock-data'
 
 export interface KpiRawResponse {
   date?: string
@@ -127,14 +125,13 @@ function toKpiArray(raw: KpiRawResponse): KpiData[] {
   ]
 }
 
-export function useRelatorios() {
-  const [data, setData]       = useState<KpiData[]>(() => FEATURES.realRelatorios ? [] : mockKpis)
-  const [loading, setLoading] = useState(FEATURES.realRelatorios)
+export function useRelatorios(_from?: string, _to?: string) {
+  const [data, setData]       = useState<KpiData[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
 
-  // Raw KPI object (calculated financial fields from backend)
   const [kpis, setKpis]               = useState<KpiRawResponse | null>(null)
-  const [kpisLoading, setKpisLoading] = useState(FEATURES.realRelatorios)
+  const [kpisLoading, setKpisLoading] = useState(true)
   const [kpisError, setKpisError]     = useState<string | null>(null)
 
   const [commissions, setCommissions]               = useState<CommissionRow[]>([])
@@ -154,7 +151,8 @@ export function useRelatorios() {
   const [customTo, setCustomTo]     = useState('')
 
   useEffect(() => {
-    if (!FEATURES.realRelatorios) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) { setLoading(false); setKpisLoading(false); return }
     let cancelled = false
     setLoading(true); setKpisLoading(true)
     setError(null); setKpisError(null)
@@ -163,7 +161,6 @@ export function useRelatorios() {
         if (cancelled) return
         const raw = (res ?? {}) as KpiRawResponse
         setKpis(raw)
-        // Backend returns a flat object; transform to KpiData[]
         setData(Array.isArray(res) ? (res as KpiData[]) : toKpiArray(raw))
       })
       .catch(() => {
@@ -179,7 +176,8 @@ export function useRelatorios() {
   }, [])
 
   const fetchCommissions = useCallback((from?: string, to?: string) => {
-    if (!FEATURES.realRelatorios) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
     setCommissionsLoading(true)
     setCommissionsError(null)
     relatoriosApi.commissions({ from, to })
@@ -189,7 +187,8 @@ export function useRelatorios() {
   }, [])
 
   const fetchCashflow = useCallback((from?: string, to?: string) => {
-    if (!FEATURES.realRelatorios) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
     setCashflowLoading(true)
     setCashflowError(null)
     relatoriosApi.cashflow({ from, to })
@@ -199,7 +198,8 @@ export function useRelatorios() {
   }, [])
 
   const fetchOverdue = useCallback(() => {
-    if (!FEATURES.realRelatorios) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
     setOverdueLoading(true)
     setOverdueError(null)
     relatoriosApi.overdue()
@@ -229,35 +229,29 @@ interface AsyncState<T> {
 }
 
 function useReport<T>(
-  fetcher: () => Promise<unknown>,
+  fetcher: (params?: { from?: string; to?: string }) => Promise<unknown>,
   transform: (raw: unknown) => T,
   empty: T,
+  from?: string,
+  to?: string,
 ): AsyncState<T> {
   const [data, setData] = useState<T>(empty)
-  const [loading, setLoading] = useState(FEATURES.realRelatorios)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!FEATURES.realRelatorios) {
-      setLoading(false)
-      return
-    }
+    const token = localStorage.getItem('accessToken')
+    if (!token) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetcher()
-      .then((res) => {
-        if (!cancelled) setData(transform(res))
-      })
-      .catch(() => {
-        if (!cancelled) setError('Erro ao carregar')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    fetcher({ from, to })
+      .then((res) => { if (!cancelled) setData(transform(res)) })
+      .catch(() => { if (!cancelled) setError('Erro ao carregar') })
+      .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [from, to])
 
   return { data, loading, error }
 }
@@ -284,9 +278,9 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED:        'Cancelados',
 }
 
-export function useBookingsByStatus() {
+export function useBookingsByStatus(from?: string, to?: string) {
   return useReport<BookingStatusDatum[]>(
-    () => relatoriosApi.appointments(),
+    (params) => relatoriosApi.appointments(params),
     (raw) => {
       const r = (raw ?? {}) as AppointmentsRaw
       return (r.byStatus ?? [])
@@ -298,6 +292,8 @@ export function useBookingsByStatus() {
         }))
     },
     [],
+    from,
+    to,
   )
 }
 
@@ -308,9 +304,9 @@ export interface ProfessionalDatum {
   revenue: number
 }
 
-export function useProfessionalsReport() {
+export function useProfessionalsReport(from?: string, to?: string) {
   return useReport<ProfessionalDatum[]>(
-    () => relatoriosApi.professionals(),
+    (params) => relatoriosApi.professionals(params),
     (raw) => {
       const arr = Array.isArray(raw) ? raw : []
       return arr
@@ -326,6 +322,8 @@ export function useProfessionalsReport() {
         .filter((p) => p.completedAppts > 0)
     },
     [],
+    from,
+    to,
   )
 }
 
@@ -339,9 +337,9 @@ interface RevenueRaw {
   payments?: { amount?: number | string; paidAt?: string }[]
 }
 
-export function useRevenueReport() {
+export function useRevenueReport(from?: string, to?: string) {
   return useReport<RevenuePointDatum[]>(
-    () => relatoriosApi.revenue(),
+    (params) => relatoriosApi.revenue(params),
     (raw) => {
       const r = (raw ?? {}) as RevenueRaw
       const byDay: Record<string, number> = {}
@@ -354,10 +352,12 @@ export function useRevenueReport() {
         .sort((a, b) => a.localeCompare(b))
         .map((date) => {
           const [, m, d] = date.split('-')
-          return { label: `${d}/${m}`, total: byDay[date] }
+          return { label: `${d}/${m}`, total: byDay[date] ?? 0 }
         })
     },
     [],
+    from,
+    to,
   )
 }
 
@@ -371,9 +371,9 @@ interface CashflowRaw {
   entries?: { dateLabel?: string; entradas?: number; saldo?: number }[]
 }
 
-export function useCashflowReport() {
+export function useCashflowReport(from?: string, to?: string) {
   return useReport<CashflowDatum[]>(
-    () => relatoriosApi.cashflow(),
+    (params) => relatoriosApi.cashflow(params),
     (raw) => {
       const r = (raw ?? {}) as CashflowRaw
       return (r.entries ?? []).map((e) => ({
@@ -383,5 +383,7 @@ export function useCashflowReport() {
       }))
     },
     [],
+    from,
+    to,
   )
 }

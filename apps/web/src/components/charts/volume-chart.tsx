@@ -57,8 +57,13 @@ function Frame({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function VolumeChart() {
-  const { data, loading, error } = useCashflowReport()
+interface VolumeChartProps {
+  from?: string
+  to?: string
+}
+
+export default function VolumeChart({ from, to }: VolumeChartProps) {
+  const { data, loading, error } = useCashflowReport(from, to)
   const [prefersReduced, setPrefersReduced] = useState(false)
 
   useEffect(() => {

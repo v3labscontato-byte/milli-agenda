@@ -53,8 +53,13 @@ function Frame({ total, children }: { total: number | null; children: React.Reac
   )
 }
 
-export default function WeeklyChart() {
-  const { data, loading, error } = useRevenueReport()
+interface WeeklyChartProps {
+  from?: string
+  to?: string
+}
+
+export default function WeeklyChart({ from, to }: WeeklyChartProps) {
+  const { data, loading, error } = useRevenueReport(from, to)
   const [prefersReduced, setPrefersReduced] = useState(false)
 
   useEffect(() => {

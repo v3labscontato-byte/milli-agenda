@@ -64,8 +64,13 @@ function Frame({ total, children }: { total: number | null; children: React.Reac
   )
 }
 
-export default function BookingsChart() {
-  const { data, loading, error } = useBookingsByStatus()
+interface BookingsChartProps {
+  from?: string
+  to?: string
+}
+
+export default function BookingsChart({ from, to }: BookingsChartProps) {
+  const { data, loading, error } = useBookingsByStatus(from, to)
   const [prefersReduced, setPrefersReduced] = useState(false)
 
   useEffect(() => {

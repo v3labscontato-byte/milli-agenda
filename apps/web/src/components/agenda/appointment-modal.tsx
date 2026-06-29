@@ -276,22 +276,16 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       const base = process.env.NEXT_PUBLIC_API_URL
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-      let commandId = appointment.commandId
-      if (!commandId) {
-        const cmdRes = await fetch(`${base}/api/v1/commands`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ clientId: appointment.clientId, appointmentId: appointment.id }),
-        })
-        const cmd = await cmdRes.json()
-        commandId = cmd.data?.id
-      }
-
+      const cmdRes = await fetch(`${base}/api/v1/commands`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ clientId: appointment.clientId, appointmentId: appointment.id }),
+      })
+      const cmd = await cmdRes.json()
+      const commandId = cmd.data?.id
       if (!commandId) throw new Error('Comanda não criada')
 
-      const extraItems = (result.items ?? []).filter(
-        (i) => i.serviceId && i.serviceId !== appointment.serviceId,
-      )
+      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
       for (const item of extraItems) {
         await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST',

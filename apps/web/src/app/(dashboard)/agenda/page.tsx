@@ -149,20 +149,15 @@ export default function AgendaPage() {
     const base = process.env.NEXT_PUBLIC_API_URL
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-    let commandId = dayPaymentAppt.commandId
-    if (!commandId) {
-      const cmdRes = await fetch(`${base}/api/v1/commands`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ clientId: dayPaymentAppt.clientId, appointmentId: dayPaymentAppt.id }),
-      })
-      const cmd = await cmdRes.json() as { data?: { id?: string } }
-      commandId = cmd.data?.id
-    }
+    const cmdRes = await fetch(`${base}/api/v1/commands`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ clientId: dayPaymentAppt.clientId, appointmentId: dayPaymentAppt.id }),
+    })
+    const cmd = await cmdRes.json() as { data?: { id?: string } }
+    const commandId = cmd.data?.id
     if (!commandId) return
 
-    const extraItems = (result.items ?? []).filter(
-      (i) => i.serviceId && i.serviceId !== dayPaymentAppt.serviceId,
-    )
+    const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
     for (const item of extraItems) {
       await fetch(`${base}/api/v1/commands/${commandId}/items`, {
         method: 'POST', headers,

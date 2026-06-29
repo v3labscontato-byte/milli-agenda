@@ -176,20 +176,26 @@ export default function PaymentModal({
     else setVisible(false)
   }, [open])
 
-  // Reset state on open; initialize items + discount from props
+  // Reset state only when modal opens — intentionally excludes items/initialDiscount from deps to avoid
+  // mid-session reset when the parent re-renders (e.g. after agenda refetch triggered by onSuccess)
   useEffect(() => {
     if (!open) return
     setEntries([newEntry()])
     setLocalItems(items.map(withKey))  // eslint-disable-line react-hooks/exhaustive-deps
     setAddItemOpen(false)
-    const initDisc = initialDiscount ?? null
+    const initDisc = initialDiscount ?? null  // eslint-disable-line react-hooks/exhaustive-deps
     setApplied(initDisc)
     setDiscountType(initDisc?.type ?? 'amount')
     setDiscountInput(initDisc ? String(initDisc.value) : '')
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keyboard handler — separate effect so onClose ref changes don't retrigger the reset above
+  useEffect(() => {
+    if (!open) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose, initialDiscount]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, onClose])
 
   if (!open) return null
 

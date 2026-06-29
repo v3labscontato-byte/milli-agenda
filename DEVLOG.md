@@ -1189,3 +1189,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_DASHBOARD — Fix textos: header, duplicado, subtitulo
 **Status:** Concluido
 **Fixes:** Topbar recebe title="Visao geral do seu negocio" no layout; bloco h1/p duplicado removido do page.tsx; subtitulo Analytics "do salao" -> "do seu negocio"
+
+---
+### [2026-06-29] AGENT_COMANDAS — Fix definitivo fluxo pagamento
+**Status:** Concluido
+**Fixes:** FIX1+FIX2 ja estavam corretos; FIX3: close() ganhou try/catch com console.error para diagnostico do erro 500

@@ -1243,3 +1243,15 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 1. **Comanda já fechada**: `appointment.commandId` apontava para comanda CLOSED de tentativa anterior → discount/payments/close retornavam 400. Fix: sempre criar comanda nova.
 2. **Subtotal resetava R$300→R$150**: `onClose` inline no parent mudava a cada re-render → useEffect de PaymentModal re-rodava → `setLocalItems` resetava. Fix: separar effects.
 3. **Extra items ignorados**: filtro `i.serviceId !== appointment.serviceId` descartava serviço idêntico ao do agendamento. Fix: `!!i.serviceId` (envia todos).
+
+---
+
+### [2026-06-29] AGENT_COMANDAS — Fix handlePaymentConfirm em comandas/page.tsx
+**Status:** ✅ Concluído  
+**Arquivos alterados:** `apps/web/src/app/(comandas)/comandas/page.tsx`  
+**O que foi feito:** Reescrito handlePaymentConfirm com fluxo completo:
+- Sempre cria comanda nova (remove reuse de commandId fechado)
+- Envia extraItems com serviceId para POST /items
+- Usa discountAbsolute em vez de recalcular desconto
+- close() com body JSON.stringify({}) + try/catch (PATCH COMPLETED sempre roda)
+- Remove header X-Tenant-Slug (não necessário em rotas autenticadas)

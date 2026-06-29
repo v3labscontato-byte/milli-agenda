@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -88,31 +89,55 @@ export default function Sidebar() {
       {/* Logo + collapse toggle */}
       <div
         className={cn(
-          'flex h-14 shrink-0 items-center border-b border-[var(--color-sidebar-border)] px-3',
-          collapsed ? 'justify-center' : 'justify-between',
+          'flex h-14 shrink-0 items-center border-b border-[var(--color-sidebar-border)]',
+          collapsed ? 'flex-col justify-center gap-1 px-2 py-2' : 'justify-between px-3',
         )}
       >
-        {!collapsed && (
-          <span className="select-none text-[16px] font-semibold tracking-tight text-white">
-            Milli
-          </span>
+        {collapsed ? (
+          <>
+            <Image
+              src="/images/logo-icon.png"
+              alt="Milii"
+              width={100}
+              height={100}
+              className="h-7 w-7 shrink-0"
+            />
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              aria-label="Expandir menu"
+              aria-expanded={false}
+              className={cn(
+                'flex h-5 w-5 items-center justify-center rounded-md',
+                'text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
+              )}
+            >
+              <ChevronLeft size={12} className="rotate-180" aria-hidden="true" />
+            </button>
+          </>
+        ) : (
+          <>
+            <Image
+              src="/images/logo-name.png"
+              alt="Milii Agenda"
+              width={400}
+              height={220}
+              className="h-9 w-auto shrink-0"
+            />
+            <button
+              onClick={() => setCollapsed((c) => !c)}
+              aria-label="Recolher menu"
+              aria-expanded={true}
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-md',
+                'text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
+              )}
+            >
+              <ChevronLeft size={15} aria-hidden="true" />
+            </button>
+          </>
         )}
-        <button
-          onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          aria-expanded={!collapsed}
-          className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-md',
-            'text-[var(--color-sidebar-text)] transition-colors hover:bg-[var(--color-sidebar-hover)] hover:text-[var(--color-sidebar-text-hover)]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-light)]',
-          )}
-        >
-          <ChevronLeft
-            size={15}
-            className={cn('transition-transform duration-200', collapsed && 'rotate-180')}
-            aria-hidden="true"
-          />
-        </button>
       </div>
 
       {/* Primary nav */}

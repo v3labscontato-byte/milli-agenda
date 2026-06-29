@@ -23,12 +23,12 @@ import AgendaTable from '@/components/agenda-table'
 
 const PROF_PALETTE = ['#7C3AED', '#2563EB', '#DB2777', '#059669', '#D97706', '#0891B2', '#DC2626']
 
-function toCalendarProfessional(p: { id: string; name: string; role: string }, idx: number): CalendarProfessional {
+function toCalendarProfessional(p: { id: string; name: string; role: string; workDays?: number[] }, idx: number): CalendarProfessional {
   const words = p.name.trim().split(/\s+/)
   const initials = words.length >= 2
     ? ((words[0]?.[0] ?? '') + ((words[words.length - 1] ?? '')[0] ?? '')).toUpperCase()
     : p.name.slice(0, 2).toUpperCase()
-  return { id: p.id, name: p.name, role: p.role, initials, color: PROF_PALETTE[idx % PROF_PALETTE.length] ?? '#7C3AED' }
+  return { id: p.id, name: p.name, role: p.role, initials, color: PROF_PALETTE[idx % PROF_PALETTE.length] ?? '#7C3AED', workDays: p.workDays ?? [] }
 }
 
 function toAppointment(ca: CalendarAppointment, profs: CalendarProfessional[]): Appointment {

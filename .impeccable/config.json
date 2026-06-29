@@ -1,0 +1,9 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "apps/web/src/components/agenda/day-timeline.tsx"
+    ],
+    "ignoreValues": []
+  }
+}

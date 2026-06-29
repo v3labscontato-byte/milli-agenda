@@ -862,3 +862,15 @@ d48f169 — style(servicos): impeccable 20/20
 - FIX 2: tabela filtra por `selectedDate` em vez de `new Date()` hardcoded
 - FIX 3: título dinâmico — "Agenda de Hoje" ou "d de MMMM" quando outro dia
 - `npx tsc --noEmit` → 0 erros
+
+---
+
+### [2026-06-28] AGENT_AGENDA — workDays + folga semana/dia + título tabela
+**Status:** ✅ Concluído
+**Arquivos alterados:** `calendar-utils.ts`, `page.tsx`, `weekly-overview.tsx`, `day-timeline.tsx`
+**Fixes:**
+- FIX 1: `workDays?: number[]` adicionado a `CalendarProfessional`
+- FIX 2: `toCalendarProfessional` mapeia `workDays` do profissional
+- FIX 3: `getRealAvailability` retorna `folga` quando dia não está em `workDays`
+- FIX 4: `day-timeline` mostra badge "Folga" no header e cells hachuradas para profs de folga
+- FIX 5: sem duplicata — `tableTitle` dinâmico já era o único título

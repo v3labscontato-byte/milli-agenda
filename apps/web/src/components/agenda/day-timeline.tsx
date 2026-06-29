@@ -169,6 +169,15 @@ export default function DayTimeline({
   const tableMinWidth = 80 + Math.max(professionals.length, 1) * 180
   const hasProfs = professionals.length > 0
 
+  const folgaProfIds = useMemo(() => {
+    const dow = date.getDay()
+    return new Set(
+      professionals
+        .filter((p) => p.workDays && p.workDays.length > 0 && !p.workDays.includes(dow))
+        .map((p) => p.id),
+    )
+  }, [professionals, date])
+
   const LEGEND = [
     { color: '#2563EB', bg: '#EFF6FF', label: 'Agendado' },
     { color: '#16A34A', bg: '#F0FDF4', label: 'Confirmado' },
@@ -212,6 +221,9 @@ export default function DayTimeline({
                       <div className="min-w-0">
                         <p className="truncate text-[13px] font-semibold text-[#0F172A]">{prof.name}</p>
                         <p className="truncate text-[11px] text-[#475569]">{prof.role}</p>
+                        {folgaProfIds.has(prof.id) && (
+                          <span className="mt-0.5 inline-block rounded-full bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] text-[#94A3B8]">Folga</span>
+                        )}
                       </div>
                     </div>
                   </th>
@@ -240,6 +252,18 @@ export default function DayTimeline({
                   </td>
 
                   {hasProfs ? professionals.map((prof) => {
+                    if (folgaProfIds.has(prof.id)) {
+                      return (
+                        <td
+                          key={prof.id}
+                          style={{
+                            height: `${SLOT_HEIGHT}px`,
+                            background: 'repeating-linear-gradient(45deg, #F8FAFC, #F8FAFC 4px, #F1F5F9 4px, #F1F5F9 8px)',
+                          }}
+                          className="border-b border-r border-[#F1F5F9]"
+                        />
+                      )
+                    }
                     if (coveredSlots[prof.id]?.has(slot)) return null
 
                     const activeAppt = appointments.find(

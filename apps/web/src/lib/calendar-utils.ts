@@ -61,6 +61,7 @@ export interface CalendarProfessional {
   role: string
   initials: string
   color: string
+  workDays?: number[]  // 0=Dom, 1=Seg, ..., 6=Sáb
 }
 
 export const CALENDAR_PROFESSIONALS: CalendarProfessional[] = [

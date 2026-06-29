@@ -18,7 +18,11 @@ interface DayAvailability {
   total: number
 }
 
-function getRealAvailability(profId: string, date: Date, appointments: CalendarAppointment[]): DayAvailability {
+function getRealAvailability(profId: string, date: Date, appointments: CalendarAppointment[], workDays?: number[]): DayAvailability {
+  const dayOfWeek = date.getDay()
+  if (workDays && workDays.length > 0 && !workDays.includes(dayOfWeek)) {
+    return { state: 'folga', booked: 0, total: 0 }
+  }
   const dateStr = format(date, 'yyyy-MM-dd')
   const booked = appointments.filter((a) => a.professionalId === profId && a.date === dateStr).length
   const total = Math.max(booked, 10)
@@ -362,7 +366,7 @@ export default function WeeklyOverview({ weekStart, onDaySelect, professionals, 
 
                 {weekDays.map((day) => {
                   const dateStr = format(day, 'yyyy-MM-dd')
-                  const avail = getRealAvailability(prof.id, day, appointments)
+                  const avail = getRealAvailability(prof.id, day, appointments, prof.workDays)
                   const dayAppts = appointments.filter(
                     (a) => a.professionalId === prof.id && a.date === dateStr,
                   )

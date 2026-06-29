@@ -86,9 +86,28 @@ export default function AppointmentBlock({ appointment, onClick, heightPx }: App
         </p>
       )}
       {paymentLabel && (
-        <p style={{ fontSize: 9, margin: '2px 0 0', color: paymentLabel === 'Pago' ? '#15803D' : '#92400E', fontWeight: 500 }}>
+        <span style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 3,
+          marginTop: 3,
+          padding: '1px 5px',
+          borderRadius: 20,
+          fontSize: 9,
+          fontWeight: 500,
+          background: paymentLabel === 'Pago' ? '#F0FDF4' : '#FFFBEB',
+          color: paymentLabel === 'Pago' ? '#15803D' : '#92400E',
+          border: `0.5px solid ${paymentLabel === 'Pago' ? '#BBF7D0' : '#FDE68A'}`,
+        }}>
+          <span style={{
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            background: paymentLabel === 'Pago' ? '#22C55E' : '#F59E0B',
+            display: 'inline-block',
+          }} />
           {paymentLabel}
-        </p>
+        </span>
       )}
     </button>
   )

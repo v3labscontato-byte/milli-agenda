@@ -1,8 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
-import { FEATURES } from '@/lib/features'
 import { clientesApi } from '@/lib/api/clientes'
-import { MOCK_CLIENTES, type Cliente, type ClientTag, type VisitHistory } from '@/lib/clientes-mock'
+import { type Cliente, type ClientTag, type VisitHistory } from '@/lib/clientes-mock'
 
 function toFrontend(raw: Record<string, unknown>): Cliente {
   const metrics = (raw.metrics as Record<string, unknown>) ?? {}
@@ -60,22 +59,24 @@ function parseList(res: unknown): Record<string, unknown>[] {
 }
 
 export function useClientes(params?: { search?: string }) {
-  const [data, setData]       = useState<Cliente[]>(() => FEATURES.realClientes ? [] : MOCK_CLIENTES)
-  const [loading, setLoading] = useState(FEATURES.realClientes)
+  const [data, setData]       = useState<Cliente[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
 
   const fetchData = useCallback(() => {
-    if (!FEATURES.realClientes) return Promise.resolve()
+    const token = localStorage.getItem('accessToken')
+    if (!token) { setLoading(false); return Promise.resolve() }
     setLoading(true)
     setError(null)
     return clientesApi.list(params)
       .then((res: unknown) => { setData(parseList(res).map(toFrontend)) })
       .catch(() => { setError('Erro ao carregar clientes') })
       .finally(() => { setLoading(false) })
-  }, [params?.search])
+  }, [params?.search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!FEATURES.realClientes) return
+    const token = localStorage.getItem('accessToken')
+    if (!token) { setLoading(false); return }
     let cancelled = false
     setLoading(true)
     setError(null)
@@ -84,22 +85,19 @@ export function useClientes(params?: { search?: string }) {
       .catch(() => { if (!cancelled) setError('Erro ao carregar clientes') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [params?.search])
+  }, [params?.search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const create = useCallback(async (payload: unknown) => {
-    if (!FEATURES.realClientes) return
     await clientesApi.create(payload)
     await fetchData()
   }, [fetchData])
 
   const update = useCallback(async (id: string, payload: unknown) => {
-    if (!FEATURES.realClientes) return
     await clientesApi.update(id, payload)
     await fetchData()
   }, [fetchData])
 
   const updateField = useCallback(async (id: string, field: string, value: string) => {
-    if (!FEATURES.realClientes) return
     setData((prev) => prev.map((c) => c.id === id ? { ...c, [field]: value } : c))
     try {
       await clientesApi.update(id, { [field]: value })
@@ -109,7 +107,6 @@ export function useClientes(params?: { search?: string }) {
   }, [fetchData])
 
   const remove = useCallback(async (id: string) => {
-    if (!FEATURES.realClientes) return
     await clientesApi.delete(id)
     await fetchData()
   }, [fetchData])

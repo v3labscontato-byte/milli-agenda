@@ -958,3 +958,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_CLIENTES — Métricas de clientes
 **Status:** âœ… Concluído
 **Fixes:** backend calcula visitas/ticket médio/histórico por cliente (Promise.all), toFrontend mapeia metrics para campos existentes da tabela e modal
+
+### [2026-06-29] AGENT_CLIENTES — Remover FEATURES gate
+**Status:** âœ… Concluído
+**Fix:** use-clientes.ts usa API real sempre, sem FEATURES.realClientes

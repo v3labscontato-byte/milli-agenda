@@ -966,3 +966,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_CLIENTES — Modal: remover aba Agendamentos + Histórico completo
 **Status:** âœ… Concluído
 **Fixes:** aba Agendamentos removida, Histórico com tabela (Data/Hora/Serviço/Pagamento/Valor/Atendimento)
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Métricas de profissionais
+**Status:** ✅ Concluído
+**Fixes:** backend calcula métricas, tabela, desempenho, comissão, histórico mensal

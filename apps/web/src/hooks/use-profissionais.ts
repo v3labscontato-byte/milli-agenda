@@ -2,10 +2,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { FEATURES } from '@/lib/features'
 import { profissionaisApi } from '@/lib/api/profissionais'
-import { MOCK_PROFISSIONAIS, type Profissional, type ProfissionalRole } from '@/lib/profissionais-mock'
+import { MOCK_PROFISSIONAIS, type MonthlyData, type Profissional, type ProfissionalRole } from '@/lib/profissionais-mock'
 
 function toFrontend(raw: Record<string, unknown>): Profissional {
   const specialty = raw.specialty as string | null | undefined
+  const metrics = (raw.metrics as Record<string, unknown>) ?? {}
+  const rawHistory = (metrics.monthlyHistory as unknown[]) ?? []
+  const monthlyData: MonthlyData[] = rawHistory.map((item: unknown) => {
+    const h = item as Record<string, unknown>
+    return { month: String(h.mes ?? ''), revenue: Number(h.faturamento ?? 0), appointments: 0 }
+  })
   return {
     id: String(raw.id ?? ''),
     name: String(raw.name ?? ''),
@@ -24,14 +30,14 @@ function toFrontend(raw: Record<string, unknown>): Profissional {
     workEnd: String(raw.workEnd ?? '18:00'),
     commissionPct: Number(raw.commissionPct ?? 0),
     appointmentsToday: 0,
-    appointmentsThisMonth: 0,
-    revenueThisMonth: 0,
-    appointmentsTotal: 0,
-    revenueTotal: 0,
-    avgTicket: 0,
+    appointmentsThisMonth: Number(metrics.agendMes ?? 0),
+    revenueThisMonth: Number(metrics.fatMes ?? 0),
+    appointmentsTotal: Number(metrics.totalVisits ?? 0),
+    revenueTotal: Number(metrics.totalFaturamento ?? 0),
+    avgTicket: Number(metrics.ticketMedio ?? 0),
     rating: 0,
     ratingCount: 0,
-    monthlyData: [],
+    monthlyData,
     upcoming: [],
     enabledServices: Array.isArray(raw.enabledServices) ? raw.enabledServices as string[] : [],
   }

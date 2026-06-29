@@ -7,11 +7,67 @@ import { CreateProfissionalDto } from './dto/create-profissional.dto'
 export class ProfissionaisService {
   constructor(private readonly db: DatabaseService) {}
 
-  findAll(tenantId: string) {
-    return this.db.professional.findMany({
+  async findAll(tenantId: string) {
+    const professionals = await this.db.professional.findMany({
       where: { tenantId },
       orderBy: { name: 'asc' },
     })
+
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+    return Promise.all(
+      professionals.map(async (prof) => {
+        const completed = await this.db.appointment.findMany({
+          where: { tenantId, professionalId: prof.id, status: 'COMPLETED' },
+          include: { service: { select: { name: true, price: true } } },
+          orderBy: { startAt: 'desc' },
+        })
+
+        const monthAppts = await this.db.appointment.findMany({
+          where: {
+            tenantId,
+            professionalId: prof.id,
+            status: { in: ['SCHEDULED', 'CONFIRMED', 'COMPLETED'] },
+            startAt: { gte: startOfMonth, lte: endOfMonth },
+          },
+        })
+
+        const completedMonth = monthAppts.filter((a) => a.status === 'COMPLETED')
+        const commissionPct = Number(prof.commissionPct ?? 0)
+
+        const totalVisits = completed.length
+        const totalFaturamento = completed.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
+        const ticketMedio = totalVisits > 0 ? totalFaturamento / totalVisits : 0
+
+        const agendMes = monthAppts.length
+        const fatMes = completedMonth.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
+        const commissionMes = (fatMes * commissionPct) / 100
+
+        const monthlyHistory: { mes: string; faturamento: number; comissao: number }[] = []
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+          const start = new Date(d.getFullYear(), d.getMonth(), 1)
+          const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+          const appts = completed.filter((a) => {
+            const at = new Date(a.startAt)
+            return at >= start && at <= end
+          })
+          const fat = appts.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
+          monthlyHistory.push({
+            mes: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+            faturamento: fat,
+            comissao: (fat * commissionPct) / 100,
+          })
+        }
+
+        return {
+          ...prof,
+          metrics: { totalVisits, totalFaturamento, ticketMedio, agendMes, fatMes, commissionMes, monthlyHistory },
+        }
+      }),
+    )
   }
 
   async findOne(tenantId: string, id: string) {

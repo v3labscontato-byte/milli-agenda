@@ -27,6 +27,7 @@ interface PaymentEntry {
 }
 
 export interface PaymentItem {
+  serviceId?: string
   name: string
   quantity: number
   unitPrice: number
@@ -37,6 +38,7 @@ export interface PaymentResult {
   discount: { type: DiscountType; value: number } | null
   total: number
   change: number
+  items: Array<{ serviceId: string; name: string; quantity: number; unitPrice: number }>
 }
 
 export interface PaymentModalProps {
@@ -223,6 +225,12 @@ export default function PaymentModal({
       discount: appliedDiscount,
       total: totalDue,
       change: totalChange,
+      items: localItems.map((i) => ({
+        serviceId: i.serviceId ?? '',
+        name: i.name,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      })),
     })
   }
 

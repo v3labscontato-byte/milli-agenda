@@ -1179,3 +1179,8 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_DASHBOARD — Layout: KPIs de hoje separados do filtro
 **Status:** Concluido
 **Fixes:** secao "Visao Geral de Hoje" fixa + "Historico & Analytics" com filtro + periodo personalizado
+
+---
+### [2026-06-29] AGENT_COMANDAS — Fix itens extras + desconto na comanda
+**Status:** Concluido
+**Fixes:** PaymentResult inclui items, serviceId no item inicial, itens extras enviados ao backend antes dos pagamentos (appointment-modal + agenda/page), close() com itens e desconto ja aplicado

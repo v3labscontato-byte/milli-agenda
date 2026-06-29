@@ -160,6 +160,16 @@ export default function AgendaPage() {
     }
     if (!commandId) return
 
+    const extraItems = (result.items ?? []).filter(
+      (i) => i.serviceId && i.serviceId !== dayPaymentAppt.serviceId,
+    )
+    for (const item of extraItems) {
+      await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
+      })
+    }
+
     const discountAmt = result.discount
       ? result.discount.type === 'percent'
         ? (result.total * result.discount.value) / 100

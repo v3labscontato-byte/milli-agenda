@@ -289,6 +289,17 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
       if (!commandId) throw new Error('Comanda não criada')
 
+      const extraItems = (result.items ?? []).filter(
+        (i) => i.serviceId && i.serviceId !== appointment.serviceId,
+      )
+      for (const item of extraItems) {
+        await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
+        })
+      }
+
       const discountAmt = result.discount
         ? result.discount.type === 'percent'
           ? (result.total * result.discount.value) / 100
@@ -569,7 +580,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         items={
           appointment.services?.length
             ? appointment.services
-            : [{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]
+            : [{ serviceId: appointment.serviceId, name: appointment.service, quantity: 1, unitPrice: appointment.amount }]
         }
         deposit={appointment.deposit}
         loading={paymentLoading}

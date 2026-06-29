@@ -381,6 +381,27 @@ function TabDesempenho({ p }: { p: Profissional }) {
         ))}
       </div>
 
+      {/* Resumo por status */}
+      <div className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3 space-y-2">
+        <p className="text-[12px] font-medium text-[#64748B] mb-3">Resumo de agendamentos</p>
+        <div className="flex justify-between text-[13px]">
+          <span className="text-[#64748B]">Total agendados</span>
+          <span className="font-medium text-[#0F172A]">{p.totalAgendados ?? 0}</span>
+        </div>
+        <div className="flex justify-between text-[13px]">
+          <span className="text-[#64748B]">Finalizados</span>
+          <span className="font-medium text-[#15803D]">{p.totalFinalizados ?? 0}</span>
+        </div>
+        <div className="flex justify-between text-[13px]">
+          <span className="text-[#64748B]">Pendentes</span>
+          <span className="font-medium text-[#92400E]">{p.totalPendentes ?? 0}</span>
+        </div>
+        <div className="flex justify-between text-[13px]">
+          <span className="text-[#64748B]">Cancelados</span>
+          <span className="font-medium text-[#DC2626]">{p.totalCancelados ?? 0}</span>
+        </div>
+      </div>
+
       {/* Rating */}
       <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
         <Star size={16} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />

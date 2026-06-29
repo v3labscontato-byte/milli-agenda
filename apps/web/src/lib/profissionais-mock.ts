@@ -50,6 +50,10 @@ export interface Profissional {
   monthlyData: MonthlyData[]
   upcoming: ProfAgenda[]
   enabledServices?: string[]
+  totalAgendados?: number
+  totalFinalizados?: number
+  totalPendentes?: number
+  totalCancelados?: number
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

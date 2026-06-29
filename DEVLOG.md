@@ -970,3 +970,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_PROFISSIONAIS — Métricas de profissionais
 **Status:** ✅ Concluído
 **Fixes:** backend calcula métricas, tabela, desempenho, comissão, histórico mensal
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Contadores por status no Desempenho
+**Status:** ✅ Concluído
+**Fixes:** backend conta por status, frontend mapeia e exibe no modal Desempenho

@@ -35,6 +35,16 @@ export class ProfissionaisService {
           include: { service: { select: { name: true, price: true } } },
         })
 
+        const allAppts = await this.db.appointment.findMany({
+          where: { tenantId, professionalId: prof.id },
+          select: { status: true },
+        })
+
+        const totalAgendados  = allAppts.length
+        const totalFinalizados = allAppts.filter((a) => a.status === 'COMPLETED').length
+        const totalPendentes  = allAppts.filter((a) => ['SCHEDULED', 'CONFIRMED'].includes(a.status)).length
+        const totalCancelados = allAppts.filter((a) => a.status === 'CANCELLED').length
+
         const completedMonth = monthAppts.filter((a) => a.status === 'COMPLETED')
         const commissionPct = Number(prof.commissionPct ?? 0)
 
@@ -65,7 +75,7 @@ export class ProfissionaisService {
 
         return {
           ...prof,
-          metrics: { totalVisits, totalFaturamento, ticketMedio, agendMes, fatMes, commissionMes, monthlyHistory },
+          metrics: { totalVisits, totalFaturamento, ticketMedio, agendMes, fatMes, commissionMes, monthlyHistory, totalAgendados, totalFinalizados, totalPendentes, totalCancelados },
         }
       }),
     )

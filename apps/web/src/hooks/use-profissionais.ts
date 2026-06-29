@@ -40,6 +40,10 @@ function toFrontend(raw: Record<string, unknown>): Profissional {
     monthlyData,
     upcoming: [],
     enabledServices: Array.isArray(raw.enabledServices) ? raw.enabledServices as string[] : [],
+    totalAgendados:   Number(metrics.totalAgendados ?? 0),
+    totalFinalizados: Number(metrics.totalFinalizados ?? 0),
+    totalPendentes:   Number(metrics.totalPendentes ?? 0),
+    totalCancelados:  Number(metrics.totalCancelados ?? 0),
   }
 }
 

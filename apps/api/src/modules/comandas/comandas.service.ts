@@ -100,28 +100,20 @@ export class ComandasService {
     console.log('[CLOSE] iniciando', { tenantId, id })
     try {
       const cmd = await this.findOne(tenantId, id)
-      console.log('[CLOSE] cmd encontrado', { status: cmd.status, discountAmount: cmd.discountAmount })
-
+      console.log('[CLOSE] cmd', { status: cmd.status, discountAmount: cmd.discountAmount })
       if (cmd.status !== CommandStatus.OPEN && cmd.status !== CommandStatus.IN_PROGRESS) {
         throw new BadRequestException('Command cannot be closed')
       }
-
       const items = await this.db.commandItem.findMany({ where: { commandId: id } })
-      console.log('[CLOSE] items', items.length)
-
       const itemsTotal = items.reduce((s, i) => s + Number(i.total), 0)
-      console.log('[CLOSE] itemsTotal', itemsTotal)
-
+      console.log('[CLOSE] items:', items.length, 'total:', itemsTotal)
       const payments = await this.db.payment.findMany({ where: { commandId: id } })
-      console.log('[CLOSE] payments', payments.length, payments.map((p) => p.amount))
-
       const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0)
+      console.log('[CLOSE] payments:', payments.length, 'totalPaid:', totalPaid)
       const totalAmount = itemsTotal > 0 ? itemsTotal : totalPaid
       const discountAmount = Number(cmd.discountAmount ?? 0)
       const finalAmount = Math.max(0, totalAmount - discountAmount)
-
-      console.log('[CLOSE] calculado', { totalAmount, discountAmount, finalAmount })
-
+      console.log('[CLOSE] calculado:', { totalAmount, discountAmount, finalAmount })
       const result = await this.db.command.update({
         where: { id },
         data: {
@@ -132,7 +124,7 @@ export class ComandasService {
           finalAmount,
         },
       })
-      console.log('[CLOSE] sucesso', result.id)
+      console.log('[CLOSE] sucesso:', result.id)
       return result
     } catch (error) {
       console.error('[CLOSE ERROR]', error)

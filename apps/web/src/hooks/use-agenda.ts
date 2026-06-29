@@ -31,7 +31,7 @@ function transformApiResponse(raw: unknown): CalendarAppointment {
     service: service.name as string,
     serviceId: r.serviceId as string,
     professionalId: r.professionalId as string,
-    amount: Number(service.price ?? r.amount ?? 0),
+    amount: Number((r.command as any)?.finalAmount ?? service.price ?? r.amount ?? 0),
     status,
     commandId: r.commandId as string | undefined,
     clientId: r.clientId as string | undefined,

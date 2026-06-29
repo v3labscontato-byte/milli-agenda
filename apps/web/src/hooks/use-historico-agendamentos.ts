@@ -20,7 +20,7 @@ function transformApiResponse(raw: Record<string, unknown>): CalendarAppointment
     serviceId: raw.serviceId as string | undefined,
     professionalId: (raw.professionalId as string) ?? '',
     professional: (prof.name as string) ?? undefined,
-    amount: Number(service.price ?? 0),
+    amount: Number((raw.command as any)?.finalAmount ?? service.price ?? 0),
     status: (raw.status as CalendarAppointment['status']) ?? 'SCHEDULED',
     commandId: raw.commandId as string | undefined,
     clientId: raw.clientId as string | undefined,

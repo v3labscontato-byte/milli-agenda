@@ -1267,3 +1267,7 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 **O que foi feito:**
 - Backend `open()`: após criar a comanda, busca o agendamento com `include: { service: true }`, cria commandItem e chama recalculate()
 - Frontend: itens iniciais passados como `[{ name, quantity, unitPrice }]` sem serviceId — extraItems só envia itens adicionados via AddItemModal
+
+### [2026-06-29] AGENT_COMANDAS � Fix: mostrar finalAmount na tabela
+**Status:** Concluido
+**Fix:** backend inclui command.finalAmount, frontend usa esse valor na tabela

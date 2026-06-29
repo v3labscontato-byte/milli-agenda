@@ -44,6 +44,7 @@ export class AgendaService {
         client: { select: { name: true, phone: true } },
         service: { select: { name: true, durationMin: true, price: true } },
         professional: { select: { name: true, specialty: true } },
+        command: { select: { finalAmount: true, status: true } },
       },
       orderBy: { startAt: 'asc' },
     })

@@ -56,18 +56,33 @@ export class ProfissionaisService {
         const fatMes = completedMonth.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
         const commissionMes = (fatMes * commissionPct) / 100
 
-        const monthlyHistory: { mes: string; faturamento: number; comissao: number }[] = []
+        const monthlyHistory: {
+          mes: string
+          totalAgendamentos: number
+          finalizados: number
+          pendentes: number
+          cancelados: number
+          faturamento: number
+          comissao: number
+        }[] = []
         for (let i = 5; i >= 0; i--) {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
           const start = new Date(d.getFullYear(), d.getMonth(), 1)
           const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
-          const appts = completed.filter((a) => {
-            const at = new Date(a.startAt)
-            return at >= start && at <= end
+          const allMonth = await this.db.appointment.findMany({
+            where: { tenantId, professionalId: prof.id, startAt: { gte: start, lte: end } },
+            include: { service: { select: { price: true } } },
           })
-          const fat = appts.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
+          const finalizados = allMonth.filter((a) => a.status === 'COMPLETED')
+          const pendentes = allMonth.filter((a) => ['SCHEDULED', 'CONFIRMED'].includes(a.status))
+          const cancelados = allMonth.filter((a) => a.status === 'CANCELLED')
+          const fat = finalizados.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
           monthlyHistory.push({
             mes: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+            totalAgendamentos: allMonth.length,
+            finalizados: finalizados.length,
+            pendentes: pendentes.length,
+            cancelados: cancelados.length,
             faturamento: fat,
             comissao: (fat * commissionPct) / 100,
           })

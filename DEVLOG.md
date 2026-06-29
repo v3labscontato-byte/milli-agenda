@@ -978,3 +978,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_PROFISSIONAIS — Modal agendamentos por mês
 **Status:** ✅ Concluído
 **Fixes:** endpoint /professionals/:id/appointments, modal agendamentos mensais clicável
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Fix include service + limpeza
+**Status:** ✅ Concluído
+**Fix:** include service no monthAppts já presente, limpeza de arquivos lixo

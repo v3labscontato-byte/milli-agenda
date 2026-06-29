@@ -313,14 +313,20 @@ export default function DayTimeline({
                     const hasAnything = activeAppts.length > 0 || cancelledAppts.length > 0 || !!activeBlock
 
                     const apptRowSpan = (() => {
-                      if (!activeAppt || activeAppts.length > 1) return 1
+                      if (!activeAppt) return 1
                       const si = slotIndexFor(activeAppt.startTime, intervalMin, timeSlots.length)
                       const maxSpans = durationSlotsFor(activeAppt.durationMinutes, intervalMin)
+                      if (activeAppts.length > 1) {
+                        return durationSlotsFor(activeAppt.durationMinutes, intervalMin)
+                      }
                       for (let i = 1; i < maxSpans; i++) {
                         const ci = si + i
                         if (ci >= timeSlots.length) return i
                         if (appointments.some(
-                          (a) => a.professionalId === prof.id && a.startTime === timeSlots[ci] && a.status !== 'CANCELLED'
+                          (a) => a.professionalId === prof.id &&
+                                 a.startTime === timeSlots[ci] &&
+                                 a.status !== 'CANCELLED' &&
+                                 !activeAppts.some(aa => aa.id === a.id)
                         )) return i
                       }
                       return maxSpans

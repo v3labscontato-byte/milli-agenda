@@ -39,6 +39,17 @@ export class RelatoriosService {
     const receitaBruta = todayAppts.reduce((s, a) => s + Number(a.service?.price ?? 0), 0)
     const ticketMedio = completedAppts > 0 ? receitaBruta / completedAppts : 0
 
+    const pendingAppts = await this.db.appointment.findMany({
+      where: {
+        tenantId,
+        status: { in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED] },
+        startAt: { gte: dayStart, lte: dayEnd },
+      },
+      include: { service: { select: { price: true } } },
+    })
+    const todayPending = pendingAppts.reduce((s, a) => s + Number(a.service?.price ?? 0), 0)
+    const todayTotal = receitaBruta + todayPending
+
     return {
       date: dayStart,
       totalAppointments: totalAppts,
@@ -46,6 +57,8 @@ export class RelatoriosService {
       cancelledAppointments: cancelledAppts,
       occupancyRate,
       todayRevenue: receitaBruta,
+      todayPending,
+      todayTotal,
       totalClients,
       receitaBruta,
       receitaLiquida: receitaBruta,
@@ -54,12 +67,12 @@ export class RelatoriosService {
       margem: receitaBruta > 0 ? 100 : 0,
       ticketMedio,
       recebido: receitaBruta,
-      aReceber: 0,
+      aReceber: todayPending,
     }
   }
 
   async receita(tenantId: string, from?: string, to?: string) {
-    const dateFrom = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const dateFrom = from ? new Date(from + 'T00:00:00.000Z') : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
 
     const appts = await this.db.appointment.findMany({
@@ -193,7 +206,7 @@ export class RelatoriosService {
   }
 
   async cashflow(tenantId: string, from?: string, to?: string) {
-    const dateFrom = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const dateFrom = from ? new Date(from + 'T00:00:00.000Z') : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
 
     const appts = await this.db.appointment.findMany({

@@ -54,13 +54,13 @@ export default function KpiStrip({ kpis, isLoading = false }: KpiStripProps) {
     // This avoids the "identical floating card grid" pattern while preserving separation
     <dl
       className={cn(
-        'grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] xl:grid-cols-4',
+        'grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] md:grid-cols-3 xl:grid-cols-6',
         'bg-[#E2E8F0] shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
       )}
       aria-label="Métricas do dia"
     >
       {isLoading
-        ? Array.from({ length: 4 }).map((_, i) => <KpiTileSkeleton key={i} />)
+        ? Array.from({ length: 6 }).map((_, i) => <KpiTileSkeleton key={i} />)
         : kpis.map((kpi) => <KpiTile key={kpi.label} kpi={kpi} />)}
     </dl>
   )

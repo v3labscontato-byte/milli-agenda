@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   AreaChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -128,6 +129,15 @@ export default function VolumeChart({ from, to }: VolumeChartProps) {
             fill="#BFDBFE"
             fillOpacity={0.6}
             strokeWidth={2}
+            isAnimationActive={!prefersReduced}
+          />
+          <Line
+            type="monotone"
+            dataKey="saldo"
+            name="Saldo acumulado"
+            stroke="#7C3AED"
+            strokeWidth={2}
+            dot={false}
             isAnimationActive={!prefersReduced}
           />
         </AreaChart>

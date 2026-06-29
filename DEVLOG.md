@@ -1151,3 +1151,21 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [$(date +%Y-%m-%d)] AGENT_DASHBOARD — KPIs separados + saldo no gráfico
 **Status:** ✅ Concluído
 **Fixes:** Recebido/Pendente/Total do dia, linha saldo no fluxo de caixa, range correto
+
+---
+## [2026-06-29] feat(dashboard): KPIs Recebido/Pendente/Total + saldo no fluxo de caixa
+
+### FIX 1 — Range de datas correto (from T00:00:00.000Z)
+- `relatorios.service.ts`: `receita()` e `cashflow()` agora usam `from + 'T00:00:00.000Z'` para cobrir o primeiro dia inteiro
+
+### FIX 2 — KPIs Recebido / Pendente Hoje / Total do Dia
+- Backend: `kpis()` adiciona query `pendingAppts` (SCHEDULED + CONFIRMED no dia), calcula `todayPending` e `todayTotal`
+- Frontend `KpiRawResponse`: adicionados campos `todayPending` e `todayTotal`
+- Frontend `toKpiArray()`: 4 → 6 cards (Agendamentos Hoje, Clientes Atendidos, Recebido Hoje, Pendente Hoje, Total do Dia, Ocupação)
+- `kpi-strip.tsx`: grid `xl:grid-cols-4` → `md:grid-cols-3 xl:grid-cols-6`; skeleton 4 → 6
+
+### FIX 3 — Linha de saldo acumulado no VolumeChart
+- `volume-chart.tsx`: importado `Line` do recharts; adicionado `<Line dataKey="saldo" stroke="#7C3AED" />` dentro do AreaChart
+
+### TypeScript
+- `npx tsc --noEmit` passando sem erros em frontend e backend

@@ -19,6 +19,8 @@ export interface KpiRawResponse {
   cancelledAppointments?: number
   occupancyRate?: number
   todayRevenue?: number
+  todayPending?: number
+  todayTotal?: number
   totalClients?: number
 }
 
@@ -111,8 +113,20 @@ function toKpiArray(raw: KpiRawResponse): KpiData[] {
       trendUp: null,
     },
     {
-      label:   'Receita do Dia',
+      label:   'Recebido Hoje',
       value:   brl(raw.todayRevenue),
+      trend:   '',
+      trendUp: null,
+    },
+    {
+      label:   'Pendente Hoje',
+      value:   brl(raw.todayPending),
+      trend:   '',
+      trendUp: null,
+    },
+    {
+      label:   'Total do Dia',
+      value:   brl(raw.todayTotal),
       trend:   '',
       trendUp: null,
     },

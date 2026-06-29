@@ -1229,3 +1229,17 @@ Close() ainda pode retornar 500 se migration não foi aplicada no banco Railway 
 
 **Próximo passo sugerido:**  
 Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma`
+
+---
+
+### [2026-06-29] AGENT_COMANDAS — Fix definitivo: 3 bugs no fluxo de pagamento
+**Status:** ✅ Concluído  
+**Arquivos alterados:**
+- `apps/web/src/components/shared/payment-modal.tsx` — useEffect dividido em 2: reset só quando `open` muda; handler de teclado separado. Elimina reset de localItems quando parent re-renderiza.
+- `apps/web/src/components/agenda/appointment-modal.tsx` — sempre cria comanda nova (remove reutilização de commandId fechado); filtro extraItems simplificado para `!!i.serviceId` (envia todos os serviços).
+- `apps/web/src/app/(dashboard)/agenda/page.tsx` — mesmos fixes do appointment-modal.
+
+**Bugs corrigidos:**
+1. **Comanda já fechada**: `appointment.commandId` apontava para comanda CLOSED de tentativa anterior → discount/payments/close retornavam 400. Fix: sempre criar comanda nova.
+2. **Subtotal resetava R$300→R$150**: `onClose` inline no parent mudava a cada re-render → useEffect de PaymentModal re-rodava → `setLocalItems` resetava. Fix: separar effects.
+3. **Extra items ignorados**: filtro `i.serviceId !== appointment.serviceId` descartava serviço idêntico ao do agendamento. Fix: `!!i.serviceId` (envia todos).

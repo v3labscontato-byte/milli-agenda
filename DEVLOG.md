@@ -1255,3 +1255,15 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 - Usa discountAbsolute em vez de recalcular desconto
 - close() com body JSON.stringify({}) + try/catch (PATCH COMPLETED sempre roda)
 - Remove header X-Tenant-Slug (não necessário em rotas autenticadas)
+
+---
+
+### [2026-06-29] AGENT_COMANDAS — Fix: serviço principal como commandItem
+**Status:** ✅ Concluído  
+**Arquivos alterados:**
+- `apps/api/src/modules/comandas/comandas.service.ts` — `open()` agora busca o agendamento (include service), cria commandItem com serviceId/unitPrice/total e chama `recalculate()` antes de retornar
+- `apps/web/src/components/agenda/appointment-modal.tsx` — itens iniciais do PaymentModal sem serviceId (previne duplicação: backend já adiciona o serviço principal)
+
+**O que foi feito:**
+- Backend `open()`: após criar a comanda, busca o agendamento com `include: { service: true }`, cria commandItem e chama recalculate()
+- Frontend: itens iniciais passados como `[{ name, quantity, unitPrice }]` sem serviceId — extraItems só envia itens adicionados via AddItemModal

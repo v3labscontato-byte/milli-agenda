@@ -123,8 +123,10 @@ export default function NovoAgendamentoModal({
   const profSelecionado = profissionais.find((p) => p.id === form.professionalId)
 
   const enabledServices = profSelecionado?.enabledServices ?? []
-  const servicosFiltrados = enabledServices.length
-    ? activeServices.filter((s) => enabledServices.includes(s.id))
+  const servicosFiltrados = profSelecionado
+    ? enabledServices.length
+      ? activeServices.filter((s) => enabledServices.includes(s.id))
+      : []
     : activeServices
 
   const selectedService = servicosFiltrados.find((s) => s.id === form.serviceId)
@@ -431,6 +433,12 @@ export default function NovoAgendamentoModal({
                   Duração: {selectedService.duration} min · Valor: R$ {selectedService.price.toFixed(2).replace('.', ',')}
                 </p>
               )}
+              {form.professionalId && profSelecionado && servicosFiltrados.length === 0 && (
+                <div className="rounded-md bg-[#FEF2F2] border border-[#FECACA] px-3 py-2 mt-1">
+                  <p className="text-[12px] text-[#DC2626] font-medium">Nenhum serviço habilitado para este profissional.</p>
+                  <p className="text-[11px] text-[#DC2626] mt-0.5">Acesse Profissionais → Detalhes → Serviços para habilitar.</p>
+                </div>
+              )}
             </div>
 
             {/* Data + Horário */}
@@ -504,7 +512,7 @@ export default function NovoAgendamentoModal({
           <button
             type="submit"
             form="novo-agenda-form"
-            disabled={saving || profFolga}
+            disabled={saving || profFolga || (!!form.professionalId && servicosFiltrados.length === 0)}
             className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
           >
             <CalendarPlus size={13} aria-hidden="true" />

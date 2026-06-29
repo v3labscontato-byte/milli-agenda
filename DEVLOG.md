@@ -986,3 +986,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_PROFISSIONAIS — Tabela transposta no modal Desempenho
 **Status:** ✅ Concluído
 **Fix:** gráfico de barras removido, substituído por tabela Faturado/Comissão com meses clicáveis
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Serviços habilitados + bloqueio agendamento
+**Status:** ✅ Concluído
+**Fixes:** enabledServices vazio bloqueia agendamento, aviso no modal, aba Serviços correta

@@ -954,3 +954,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_CLIENTES — Coluna ID sequencial na tabela
 **Status:** âœ… Concluído
 **Fix:** coluna # com clientNumber como primeira coluna da tabela de clientes
+
+### [2026-06-29] AGENT_CLIENTES — Métricas de clientes
+**Status:** âœ… Concluído
+**Fixes:** backend calcula visitas/ticket médio/histórico por cliente (Promise.all), toFrontend mapeia metrics para campos existentes da tabela e modal

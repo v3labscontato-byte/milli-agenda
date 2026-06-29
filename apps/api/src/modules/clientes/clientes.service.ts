@@ -6,11 +6,52 @@ import { CreateClienteDto } from './dto/create-cliente.dto'
 export class ClientesService {
   constructor(private readonly db: DatabaseService) {}
 
-  findAll(tenantId: string) {
-    return this.db.client.findMany({
+  async findAll(tenantId: string) {
+    const clients = await this.db.client.findMany({
       where: { tenantId },
-      orderBy: { name: 'asc' },
+      orderBy: { createdAt: 'desc' },
     })
+
+    return Promise.all(
+      clients.map(async (client) => {
+        const appointments = await this.db.appointment.findMany({
+          where: { tenantId, clientId: client.id },
+          include: { service: { select: { name: true, price: true } } },
+          orderBy: { startAt: 'desc' },
+        })
+
+        const completed = appointments.filter((a) => a.status === 'COMPLETED')
+        const upcoming = appointments
+          .filter((a) => ['SCHEDULED', 'CONFIRMED'].includes(a.status) && new Date(a.startAt) > new Date())
+          .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+
+        const totalSpent = completed.reduce((sum, a) => sum + Number(a.service?.price ?? 0), 0)
+        const visits = completed.length
+        const ticketMedio = visits > 0 ? totalSpent / visits : 0
+
+        const lastAppointment = completed[0] ?? null
+        const nextAppointment = upcoming[0] ?? null
+
+        return {
+          ...client,
+          metrics: {
+            visits,
+            totalSpent,
+            ticketMedio,
+            lastAppointmentAt: lastAppointment?.startAt ?? null,
+            nextAppointmentAt: nextAppointment?.startAt ?? null,
+            lastService: lastAppointment?.service?.name ?? null,
+            history: appointments.map((a) => ({
+              id: a.id,
+              startAt: a.startAt,
+              status: a.status,
+              serviceName: a.service?.name ?? '',
+              servicePrice: Number(a.service?.price ?? 0),
+            })),
+          },
+        }
+      }),
+    )
   }
 
   async findOne(tenantId: string, id: string) {

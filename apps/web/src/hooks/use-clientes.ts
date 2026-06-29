@@ -2,9 +2,28 @@
 import { useCallback, useEffect, useState } from 'react'
 import { FEATURES } from '@/lib/features'
 import { clientesApi } from '@/lib/api/clientes'
-import { MOCK_CLIENTES, type Cliente, type ClientTag } from '@/lib/clientes-mock'
+import { MOCK_CLIENTES, type Cliente, type ClientTag, type VisitHistory } from '@/lib/clientes-mock'
 
 function toFrontend(raw: Record<string, unknown>): Cliente {
+  const metrics = (raw.metrics as Record<string, unknown>) ?? {}
+  const rawHistory = (metrics.history as unknown[]) ?? []
+
+  const history: VisitHistory[] = rawHistory.map((item: unknown) => {
+    const h = item as Record<string, unknown>
+    const s = h.status as string
+    const status: VisitHistory['status'] =
+      s === 'COMPLETED' ? 'COMPLETED' : s === 'NO_SHOW' ? 'NO_SHOW' : 'CANCELLED'
+    return {
+      id: String(h.id ?? ''),
+      date: String(h.startAt ?? '').slice(0, 10),
+      service: String(h.serviceName ?? ''),
+      professional: '',
+      amount: Number(h.servicePrice ?? 0),
+      status,
+      paymentMethod: '',
+    }
+  })
+
   return {
     id: String(raw.id ?? ''),
     clientNumber: typeof raw.clientNumber === 'number' ? raw.clientNumber : null,
@@ -15,18 +34,18 @@ function toFrontend(raw: Record<string, unknown>): Cliente {
     birthDate: String(raw.birthDate ?? '').slice(0, 10) || '2000-01-01',
     clienteSince: String(raw.createdAt ?? '').slice(0, 10) || '2000-01-01',
     favoriteProfessional: String(raw.favoriteProfessionalId ?? ''),
-    visitCount: Number(raw.visitCount ?? 0),
-    lastVisit: raw.lastVisit ? String(raw.lastVisit).slice(0, 10) : null,
-    lastVisitService: String(raw.lastVisitService ?? ''),
+    visitCount: Number(metrics.visits ?? raw.visitCount ?? 0),
+    lastVisit: metrics.lastAppointmentAt ? String(metrics.lastAppointmentAt).slice(0, 10) : null,
+    lastVisitService: String(metrics.lastService ?? raw.lastVisitService ?? ''),
     lastVisitProfessional: String(raw.lastVisitProfessional ?? ''),
-    nextAppointment: raw.nextAppointment ? String(raw.nextAppointment).slice(0, 10) : null,
+    nextAppointment: metrics.nextAppointmentAt ? String(metrics.nextAppointmentAt).slice(0, 10) : null,
     nextAppointmentTime: String(raw.nextAppointmentTime ?? ''),
     nextAppointmentService: String(raw.nextAppointmentService ?? ''),
     nextAppointmentProfessional: String(raw.nextAppointmentProfessional ?? ''),
-    avgTicket: Number(raw.avgTicket ?? 0),
-    totalSpent: Number(raw.totalSpent ?? 0),
+    avgTicket: Number(metrics.ticketMedio ?? raw.avgTicket ?? 0),
+    totalSpent: Number(metrics.totalSpent ?? raw.totalSpent ?? 0),
     notes: String(raw.notes ?? ''),
-    history: [],
+    history,
     upcoming: [],
     serviceFreq: [],
     tags: [] as ClientTag[],

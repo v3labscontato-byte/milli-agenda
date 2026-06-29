@@ -1271,3 +1271,7 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 ### [2026-06-29] AGENT_COMANDAS — Fix: mostrar finalAmount na tabela
 **Status:** Concluido
 **Fix:** backend inclui command.finalAmount, frontend usa esse valor na tabela
+
+### [2026-06-29] AGENT_COMANDAS — Fix: Ver Comanda busca dados reais
+**Status:** Concluido
+**Fix:** modal Ver Comanda busca GET /commands/:id para mostrar itens reais e desconto

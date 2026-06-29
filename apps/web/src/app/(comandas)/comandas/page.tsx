@@ -64,6 +64,11 @@ export default function ComandasPage() {
   const [searchQuery, setSearchQuery]     = useState('')
   const [paymentAppt, setPaymentAppt]     = useState<CalendarAppointment | null>(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
+  const [comandaData, setComandaData]     = useState<{
+    items: Array<{ name: string; quantity: number; unitPrice: number }>
+    discount: { type: 'amount'; value: number } | null
+    finalAmount: number
+  } | null>(null)
 
   const kpis = useMemo(() => ({
     total:    data.length,
@@ -152,6 +157,33 @@ export default function ComandasPage() {
       setPaymentAppt(null)
     }
   }, [paymentAppt, refetch])
+
+  const openPaymentModal = useCallback(async (appt: CalendarAppointment) => {
+    setPaymentAppt(appt)
+    if (appt.status === 'COMPLETED' && appt.commandId) {
+      const token = localStorage.getItem('accessToken')
+      const base = process.env.NEXT_PUBLIC_API_URL
+      const res = await fetch(`${base}/api/v1/commands/${appt.commandId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const cmd = await res.json()
+      if (cmd.data) {
+        const items = (cmd.data.items ?? []).map((i: any) => ({
+          name: (i.service?.name as string) ?? (i.name as string) ?? '',
+          quantity: i.quantity as number,
+          unitPrice: Number(i.unitPrice),
+        }))
+        const discountAmount = Number(cmd.data.discountAmount ?? 0)
+        setComandaData({
+          items: items.length > 0 ? items : [{ name: appt.service, quantity: 1, unitPrice: appt.amount }],
+          discount: discountAmount > 0 ? { type: 'amount', value: discountAmount } : null,
+          finalAmount: Number(cmd.data.finalAmount),
+        })
+      }
+    } else {
+      setComandaData(null)
+    }
+  }, [])
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
   if (loading) return (
@@ -340,7 +372,7 @@ export default function ComandasPage() {
                     <td className="w-36 px-2 py-3 text-center">
                       <button
                         type="button"
-                        onClick={() => setPaymentAppt(appt)}
+                        onClick={() => { void openPaymentModal(appt) }}
                         aria-label={`${isPaid ? 'Ver comanda' : 'Abrir comanda'}: ${appt.client}`}
                         className={cn(
                           'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5',
@@ -373,7 +405,7 @@ export default function ComandasPage() {
       {paymentAppt && (
         <PaymentModal
           open
-          onClose={() => setPaymentAppt(null)}
+          onClose={() => { setPaymentAppt(null); setComandaData(null) }}
           onConfirm={handlePaymentConfirm}
           loading={paymentLoading}
           clientName={paymentAppt.client}
@@ -385,7 +417,8 @@ export default function ComandasPage() {
           })()}
           startTime={paymentAppt.startTime}
           endTime={paymentAppt.endTime}
-          items={[{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
+          items={comandaData?.items ?? [{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
+          initialDiscount={comandaData?.discount ?? null}
           isCompleted={paymentAppt.status === 'COMPLETED'}
           onReopen={async () => {
             const token = localStorage.getItem('accessToken')

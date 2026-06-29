@@ -1,3 +1,4 @@
+// build: 20260629120000
 import type { Metadata } from 'next'
 import { Inter, Nunito } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'

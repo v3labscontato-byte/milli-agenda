@@ -8,22 +8,9 @@ import type { ComandaItem, ItemCategory } from '@/lib/comanda-mock'
 
 type Tab = 'service' | 'product' | 'fee' | 'adjustment'
 
-interface CatalogEntry { name: string; unitPrice: number }
+interface CatalogEntry { serviceId?: string; name: string; unitPrice: number }
 
-const CATALOG: Record<Exclude<Tab, 'adjustment'>, CatalogEntry[]> = {
-  service: [
-    { name: 'Corte Feminino',         unitPrice: 65  },
-    { name: 'Corte Masculino',        unitPrice: 45  },
-    { name: 'Coloração',              unitPrice: 180 },
-    { name: 'Escova Progressiva',     unitPrice: 220 },
-    { name: 'Escova',                 unitPrice: 55  },
-    { name: 'Hidratação Capilar',     unitPrice: 90  },
-    { name: 'Manicure',               unitPrice: 40  },
-    { name: 'Pedicure',               unitPrice: 45  },
-    { name: 'Esmaltação Gel',         unitPrice: 25  },
-    { name: 'Barba',                  unitPrice: 35  },
-    { name: 'Design de Sobrancelha',  unitPrice: 30  },
-  ],
+const CATALOG: Record<'product' | 'fee', CatalogEntry[]> = {
   product: [
     { name: 'Shampoo Hidratante',  unitPrice: 35 },
     { name: 'Máscara Capilar',     unitPrice: 55 },
@@ -32,9 +19,9 @@ const CATALOG: Record<Exclude<Tab, 'adjustment'>, CatalogEntry[]> = {
     { name: 'Leave-in',            unitPrice: 32 },
   ],
   fee: [
-    { name: 'Gorjeta',     unitPrice: 10 },
-    { name: 'Taxa Cartão', unitPrice: 5  },
-    { name: 'Taxa Entrega', unitPrice: 8 },
+    { name: 'Gorjeta',      unitPrice: 10 },
+    { name: 'Taxa Cartão',  unitPrice: 5  },
+    { name: 'Taxa Entrega', unitPrice: 8  },
   ],
 }
 
@@ -50,17 +37,40 @@ const TABS: Tab[] = ['service', 'product', 'fee', 'adjustment']
 export interface AddItemModalProps {
   open: boolean
   onClose: () => void
-  onAdd: (item: Omit<ComandaItem, 'id'>) => void
+  onAdd: (item: Omit<ComandaItem, 'id'> & { serviceId?: string }) => void
 }
 
 export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps) {
-  const [tab, setTab]           = useState<Tab>('service')
-  const [search, setSearch]     = useState('')
-  const [selected, setSelected] = useState<CatalogEntry | null>(null)
-  const [quantity, setQuantity] = useState('1')
-  const [price, setPrice]       = useState('')
-  const [adjName, setAdjName]   = useState('')
-  const [adjPrice, setAdjPrice] = useState('')
+  const [tab, setTab]                         = useState<Tab>('service')
+  const [search, setSearch]                   = useState('')
+  const [selected, setSelected]               = useState<CatalogEntry | null>(null)
+  const [quantity, setQuantity]               = useState('1')
+  const [price, setPrice]                     = useState('')
+  const [adjName, setAdjName]                 = useState('')
+  const [adjPrice, setAdjPrice]               = useState('')
+  const [apiServices, setApiServices]         = useState<CatalogEntry[]>([])
+  const [loadingServices, setLoadingServices] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
+    if (!token) return
+    const base = process.env.NEXT_PUBLIC_API_URL
+    setLoadingServices(true)
+    fetch(`${base}/api/v1/services`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((res: { data?: { id?: string; name?: string; price?: number | string }[] }) => {
+        setApiServices(
+          (res.data ?? []).map((s) => ({
+            serviceId: String(s.id ?? ''),
+            name:      String(s.name ?? ''),
+            unitPrice: Number(s.price ?? 0),
+          }))
+        )
+      })
+      .catch(() => {})
+      .finally(() => setLoadingServices(false))
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -92,17 +102,20 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
       onAdd({ name: adjName.trim(), category: 'adjustment', quantity: 1, unitPrice: val })
     } else {
       if (!selected) return
-      const qty = Math.max(1, parseInt(quantity) || 1)
+      const qty  = Math.max(1, parseInt(quantity) || 1)
       const unit = parseFloat(price) || selected.unitPrice
-      onAdd({ name: selected.name, category: tab as ItemCategory, quantity: qty, unitPrice: unit })
+      onAdd({ serviceId: selected.serviceId, name: selected.name, category: tab as ItemCategory, quantity: qty, unitPrice: unit })
     }
     onClose()
   }
 
-  const catalog = tab !== 'adjustment' ? (CATALOG[tab as Exclude<Tab, 'adjustment'>] ?? []) : []
-  const q = search.trim().toLowerCase()
+  const catalog: CatalogEntry[] =
+    tab === 'service' ? apiServices :
+    tab !== 'adjustment' ? (CATALOG[tab as 'product' | 'fee'] ?? []) : []
+
+  const q       = search.trim().toLowerCase()
   const entries = q ? catalog.filter((e) => e.name.toLowerCase().includes(q)) : catalog
-  const canAdd = tab === 'adjustment'
+  const canAdd  = tab === 'adjustment'
     ? adjName.trim().length > 0 && !isNaN(parseFloat(adjPrice))
     : selected !== null
 
@@ -161,19 +174,30 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
                 </div>
               </div>
 
-              <ul className="divide-y divide-[#F1F5F9]">
-                {entries.map((entry) => {
-                  const isSel = selected?.name === entry.name
-                  return (
-                    <li key={entry.name}>
-                      <button type="button" onClick={() => handleSelectEntry(entry)} className={cn('flex w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]', isSel && 'bg-[#EFF6FF]')}>
-                        <span className={cn('text-[13px]', isSel ? 'font-semibold text-[#2563EB]' : 'text-[#0F172A]')}>{entry.name}</span>
-                        <span className="font-tabular text-[13px] text-[#475569]">{formatBRL(entry.unitPrice)}</span>
-                      </button>
+              {tab === 'service' && loadingServices ? (
+                <div className="flex items-center justify-center py-8 text-[13px] text-[#94A3B8]">
+                  Carregando serviços…
+                </div>
+              ) : (
+                <ul className="divide-y divide-[#F1F5F9]">
+                  {entries.length === 0 && (
+                    <li className="px-5 py-6 text-center text-[13px] text-[#94A3B8]">
+                      Nenhum item encontrado
                     </li>
-                  )
-                })}
-              </ul>
+                  )}
+                  {entries.map((entry) => {
+                    const isSel = selected?.name === entry.name
+                    return (
+                      <li key={entry.serviceId ?? entry.name}>
+                        <button type="button" onClick={() => handleSelectEntry(entry)} className={cn('flex w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]', isSel && 'bg-[#EFF6FF]')}>
+                          <span className={cn('text-[13px]', isSel ? 'font-semibold text-[#2563EB]' : 'text-[#0F172A]')}>{entry.name}</span>
+                          <span className="font-tabular text-[13px] text-[#475569]">{formatBRL(entry.unitPrice)}</span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
 
               {selected && (
                 <div className="flex gap-3 border-t border-[#F1F5F9] px-5 py-4">

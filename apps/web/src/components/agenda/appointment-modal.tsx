@@ -300,11 +300,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         })
       }
 
-      const discountAmt = result.discount
-        ? result.discount.type === 'percent'
-          ? (result.total * result.discount.value) / 100
-          : result.discount.value
-        : 0
+      const discountAmt = result.discountAbsolute ?? 0
 
       if (discountAmt > 0) {
         await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
@@ -326,11 +322,15 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         })
       }
 
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({}),
-      })
+      try {
+        await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({}),
+        })
+      } catch (e) {
+        console.error('[close] falhou:', e)
+      }
 
       await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
         method: 'PATCH',

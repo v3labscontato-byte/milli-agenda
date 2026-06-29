@@ -36,6 +36,7 @@ export interface PaymentItem {
 export interface PaymentResult {
   methods: Array<{ method: string; amount: number; installments: number }>
   discount: { type: DiscountType; value: number } | null
+  discountAbsolute: number
   total: number
   change: number
   items: Array<{ serviceId: string; name: string; quantity: number; unitPrice: number }>
@@ -223,6 +224,7 @@ export default function PaymentModal({
     onConfirm({
       methods: entries.map((e) => ({ method: e.method, amount: parseFloat(e.amount) || 0, installments: e.installments })),
       discount: appliedDiscount,
+      discountAbsolute: appliedDiscountAmt,
       total: totalDue,
       change: totalChange,
       items: localItems.map((i) => ({
@@ -529,7 +531,7 @@ export default function PaymentModal({
         open={addItemOpen}
         onClose={() => setAddItemOpen(false)}
         onAdd={(item) => {
-          setLocalItems((prev) => [...prev, withKey({ name: item.name, quantity: item.quantity, unitPrice: item.unitPrice })])
+          setLocalItems((prev) => [...prev, withKey({ serviceId: item.serviceId, name: item.name, quantity: item.quantity, unitPrice: item.unitPrice })])
           setAddItemOpen(false)
         }}
       />

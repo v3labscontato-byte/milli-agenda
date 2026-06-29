@@ -125,7 +125,7 @@ function toKpiArray(raw: KpiRawResponse): KpiData[] {
   ]
 }
 
-export function useRelatorios(_from?: string, _to?: string) {
+export function useRelatorios(from?: string, to?: string) {
   const [data, setData]       = useState<KpiData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -156,7 +156,7 @@ export function useRelatorios(_from?: string, _to?: string) {
     let cancelled = false
     setLoading(true); setKpisLoading(true)
     setError(null); setKpisError(null)
-    relatoriosApi.kpis()
+    relatoriosApi.kpis({ from, to })
       .then((res: unknown) => {
         if (cancelled) return
         const raw = (res ?? {}) as KpiRawResponse
@@ -173,7 +173,7 @@ export function useRelatorios(_from?: string, _to?: string) {
         setLoading(false); setKpisLoading(false)
       })
     return () => { cancelled = true }
-  }, [])
+  }, [from, to])
 
   const fetchCommissions = useCallback((from?: string, to?: string) => {
     const token = localStorage.getItem('accessToken')

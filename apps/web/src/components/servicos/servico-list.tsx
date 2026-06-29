@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { ChevronUp, ChevronDown, ChevronsUpDown, Eye, Pencil, Check, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Servico } from '@/lib/servicos-mock'
@@ -25,7 +25,7 @@ interface Props {
   servicos: Servico[]
   isFiltered?: boolean
   onView: (s: Servico) => void
-  onUpdate?: (id: string, data: { name?: string; durationMin?: number; price?: number }) => Promise<void>
+  onUpdate?: (id: string, data: { name?: string; durationMin?: number; price?: number; categoryId?: string | null }) => Promise<void>
   onToggleStatus?: (id: string, active: boolean) => Promise<void>
   onDelete?: (id: string) => Promise<void>
 }
@@ -33,6 +33,19 @@ interface Props {
 function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleStatus, onDelete }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [categorias, setCategorias] = useState<Array<{ id: string; name: string }>>([])
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/services/categories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(r => setCategorias(r.data ?? []))
+      .catch(() => {})
+  }, [])
 
   type EditingCell = { id: string; field: 'duration' | 'price' } | null
   const [editingCell, setEditingCell] = useState<EditingCell>(null)
@@ -179,7 +192,36 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
 
                 {/* Categoria */}
                 <td className="px-4 py-3">
-                  <CategoryBadge category={s.category} />
+                  {editingCategory === s.id ? (
+                    <select
+                      autoFocus
+                      value={s.categoryId ?? ''}
+                      onChange={async (e) => {
+                        const categoryId = e.target.value || null
+                        await onUpdate?.(s.id, { categoryId })
+                        setEditingCategory(null)
+                      }}
+                      onBlur={() => setEditingCategory(null)}
+                      className="rounded border border-[#E2E8F0] bg-white px-2 py-1 text-[12px] focus:border-[#2563EB] focus:outline-none"
+                    >
+                      <option value="">Sem categoria</option>
+                      {categorias.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory(s.id)}
+                      className="text-left transition-opacity hover:opacity-70"
+                      title="Clique para editar categoria"
+                    >
+                      {s.category
+                        ? <CategoryBadge category={s.category} />
+                        : <span className="text-[12px] italic text-[#94A3B8]">Sem categoria</span>
+                      }
+                    </button>
+                  )}
                 </td>
 
                 {/* Duração */}

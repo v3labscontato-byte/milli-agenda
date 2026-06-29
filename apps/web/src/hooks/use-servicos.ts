@@ -24,6 +24,7 @@ function mapService(api: ApiService): Servico {
     id: api.id,
     name: api.name,
     category: cat?.name ?? '',
+    categoryId: cat?.id ?? api.categoryId ?? null,
     description: api.description ?? '',
     duration: api.durationMin,
     price: Number(api.price),

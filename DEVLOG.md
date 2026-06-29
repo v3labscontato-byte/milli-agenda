@@ -1012,3 +1012,7 @@ Filtro de serviços ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS — Metricas mensais nos servicos
 **Status:** Concluido
 **Fixes:** backend calcula agendMes e fatMes por servico no mes atual, frontend mapeia para bookingsThisMonth e revenueThisMonth (ja usados na tabela)
+
+### [2026-06-29] AGENT_SERVICOS — Edicao de categoria inline
+**Status:** Concluido
+**Fix:** select de categoria clicavel na tabela; Servico.categoryId adicionado; mapService mapeia categoryId; onUpdate Props aceita categoryId

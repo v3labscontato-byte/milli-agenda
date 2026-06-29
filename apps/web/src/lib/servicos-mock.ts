@@ -13,6 +13,7 @@ export interface Servico {
   id: string
   name: string
   category: ServicoCategory
+  categoryId?: string | null
   description: string
   duration: number          // minutos
   price: number             // R$

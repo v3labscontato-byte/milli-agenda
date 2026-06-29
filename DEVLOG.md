@@ -982,3 +982,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_PROFISSIONAIS — Fix include service + limpeza
 **Status:** ✅ Concluído
 **Fix:** include service no monthAppts já presente, limpeza de arquivos lixo
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Tabela transposta no modal Desempenho
+**Status:** ✅ Concluído
+**Fix:** gráfico de barras removido, substituído por tabela Faturado/Comissão com meses clicáveis

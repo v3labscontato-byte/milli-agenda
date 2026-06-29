@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X, Mail, Phone, Star, TrendingUp } from 'lucide-react'
+import { X, Mail, Phone, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Profissional } from '@/lib/profissionais-mock'
 import { formatBRL, formatDate, age, hireSince } from '@/lib/profissionais-mock'
@@ -363,7 +363,6 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
 // ─── Tab: Desempenho ──────────────────────────────────────────────────────────
 
 function TabDesempenho({ p }: { p: Profissional }) {
-  const maxRev = p.monthlyData.reduce((max, m) => Math.max(max, m.revenue), 1)
   const [monthModal, setMonthModal] = useState<{ month: string; label: string } | null>(null)
   const [monthAppts, setMonthAppts] = useState<Record<string, unknown>[]>([])
   const [loadingAppts, setLoadingAppts] = useState(false)
@@ -447,40 +446,51 @@ function TabDesempenho({ p }: { p: Profissional }) {
           </div>
         </div>
 
-        {/* Monthly bar chart — clicável */}
-        <div>
-          <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Faturamento — últimos 6 meses</p>
-          <div className="flex h-28 items-end gap-2" role="img" aria-label="Gráfico de faturamento mensal">
-            {p.monthlyData.map((m) => {
-              const pct = maxRev > 0 ? (m.revenue / maxRev) * 100 : 0
-              return (
-                <button
-                  key={m.month}
-                  type="button"
-                  onClick={() => void handleMonthClick(deriveMonthKey(m.month), m.month)}
-                  className="group/bar flex flex-1 flex-col items-center gap-1 focus-visible:outline-none"
-                  title={`Ver agendamentos de ${m.month}`}
-                >
-                  <span className="text-[10px] font-tabular text-[var(--color-text-tertiary)]">
-                    {m.revenue > 0 ? `${Math.round(m.revenue / 1000)}k` : ''}
-                  </span>
-                  <div
-                    className="w-full rounded-t-sm bg-[var(--color-brand)] transition-all duration-300 group-hover/bar:opacity-75"
-                    style={{ height: `${Math.max(pct, m.revenue > 0 ? 4 : 0)}%`, opacity: m.revenue > 0 ? 1 : 0.15 }}
-                  />
-                  <span className="text-[10px] text-[var(--color-brand)] underline-offset-2 group-hover/bar:underline">{m.month}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Trend */}
-        <div className="flex items-center gap-2 rounded-lg bg-[var(--color-success-light)] px-3 py-2.5">
-          <TrendingUp size={14} className="text-[var(--color-success)]" aria-hidden="true" />
-          <p className="text-[12px] text-[var(--color-success)]">
-            Média mensal: <span className="font-semibold">{formatBRL(p.revenueTotal / Math.max(p.monthlyData.filter(m => m.revenue > 0).length, 1))}</span>
-          </p>
+        {/* Tabela transposta — histórico mensal */}
+        <div className="mt-4 overflow-x-auto">
+          <p className="text-[13px] font-medium text-[#0F172A] mb-3">Histórico — últimos 6 meses</p>
+          <table className="w-full text-[12px]" style={{ minWidth: 520 }}>
+            <thead>
+              <tr className="border-b border-[#E2E8F0]">
+                <th className="py-2 pr-4 text-left font-medium text-[#94A3B8] w-28"></th>
+                {p.monthlyData.map((m, i) => (
+                  <th
+                    key={i}
+                    onClick={() => void handleMonthClick(deriveMonthKey(m.month), m.month)}
+                    className="py-2 text-center font-medium text-[#2563EB] capitalize cursor-pointer hover:underline"
+                  >
+                    {m.month}
+                  </th>
+                ))}
+                <th className="py-2 text-center font-semibold text-[#0F172A]">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {([
+                { label: 'Faturado',  key: 'revenue',     color: '#0F172A', isCurrency: true  },
+                { label: 'Comissão',  key: 'commission',  color: '#7C3AED', isCurrency: true  },
+              ] as { label: string; key: string; color: string; isCurrency: boolean }[]).map((row) => {
+                const vals = p.monthlyData.map((m) => {
+                  if (row.key === 'commission') return m.revenue * p.commissionPct / 100
+                  return Number((m as unknown as Record<string, unknown>)[row.key] ?? 0)
+                })
+                const total = vals.reduce((s, v) => s + v, 0)
+                return (
+                  <tr key={row.key} className="border-b border-[#F8FAFC] hover:bg-[#FAFAFA]">
+                    <td className="py-2 pr-4 font-medium" style={{ color: row.color }}>{row.label}</td>
+                    {vals.map((val, i) => (
+                      <td key={i} className="py-2 text-center font-tabular" style={{ color: row.color }}>
+                        {val > 0 ? `R$ ${val.toFixed(2).replace('.', ',')}` : <span className="text-[#CBD5E1]">—</span>}
+                      </td>
+                    ))}
+                    <td className="py-2 text-center font-tabular font-semibold" style={{ color: row.color }}>
+                      {total > 0 ? `R$ ${total.toFixed(2).replace('.', ',')}` : <span className="font-normal text-[#CBD5E1]">—</span>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 

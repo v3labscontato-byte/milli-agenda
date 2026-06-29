@@ -7,6 +7,7 @@ import { MOCK_CLIENTES, type Cliente, type ClientTag } from '@/lib/clientes-mock
 function toFrontend(raw: Record<string, unknown>): Cliente {
   return {
     id: String(raw.id ?? ''),
+    clientNumber: typeof raw.clientNumber === 'number' ? raw.clientNumber : null,
     name: String(raw.name ?? ''),
     email: String(raw.email ?? ''),
     phone: String(raw.phone ?? ''),

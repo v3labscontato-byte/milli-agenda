@@ -31,6 +31,7 @@ export interface ServiceFreq {
 
 export interface Cliente {
   id: string
+  clientNumber?: number | null
   name: string
   email: string
   phone: string

@@ -950,3 +950,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_AGENDA — Fix criar cliente sem telefone
 **Status:** âœ… Concluído
 **Fixes:** phone null em vez de string vazia (evita unique constraint), campo telefone no modal para novo cliente
+
+### [2026-06-29] AGENT_CLIENTES — Coluna ID sequencial na tabela
+**Status:** âœ… Concluído
+**Fix:** coluna # com clientNumber como primeira coluna da tabela de clientes

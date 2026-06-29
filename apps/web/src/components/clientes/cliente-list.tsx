@@ -53,7 +53,7 @@ const INLINE_INPUT = 'rounded border border-[#2563EB] bg-white px-2 py-0.5 text-
 function SkeletonRow() {
   return (
     <tr aria-hidden="true">
-      {[40, 120, 100, 80, 80, 80, 48, 72, 56].map((w, i) => (
+      {[32, 40, 120, 100, 80, 80, 80, 48, 72, 56].map((w, i) => (
         <td key={i} className="px-4 py-3">
           <div
             className="h-4 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]"
@@ -70,7 +70,7 @@ function SkeletonRow() {
 function EmptyState({ filtered }: { filtered: boolean }) {
   return (
     <tr>
-      <td colSpan={9} className="py-16 text-center">
+      <td colSpan={10} className="py-16 text-center">
         <p className="text-[14px] font-medium text-[#475569]">
           {filtered ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
         </p>
@@ -144,6 +144,7 @@ function ClienteList({
       >
         <thead className="sticky top-0 z-10 bg-white">
           <tr className="border-b border-[#E2E8F0]">
+            <th scope="col" className="w-10 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">#</th>
             <th scope="col" className="w-10 px-4 py-3" aria-label="Avatar" />
             <Th label="Cliente"         col="name"            sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
             <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Email</th>
@@ -167,6 +168,13 @@ function ClienteList({
                 key={c.id}
                 className="group bg-white transition-colors hover:bg-[#F8FAFC]"
               >
+                {/* # */}
+                <td className="px-4 py-3">
+                  <span className="text-[12px] font-medium text-[#94A3B8]">
+                    {c.clientNumber ? `#${c.clientNumber}` : '—'}
+                  </span>
+                </td>
+
                 {/* Avatar */}
                 <td className="px-4 py-3">
                   <ClienteAvatar name={c.name} />

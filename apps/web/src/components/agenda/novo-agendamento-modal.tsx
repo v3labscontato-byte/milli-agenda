@@ -32,7 +32,7 @@ interface FormState {
 }
 
 interface ApptSlot { professionalId: string; startTime: string; durationMinutes: number }
-interface ProfSched { id: string; workDays: number[]; workStart: string; workEnd: string }
+interface ProfSched { id: string; workDays: number[]; workStart: string; workEnd: string; allowSimultaneous?: boolean }
 
 function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: number): string[] {
   const dayOfWeek = new Date(date + 'T12:00:00').getDay()
@@ -50,19 +50,20 @@ function getSlotsDia(prof: ProfSched, date: string, appts: ApptSlot[], durMin: n
     slots.push(`${h}:${m}`)
   }
 
-  const ocupados = appts
-    .filter((a) => a.professionalId === prof.id)
-    .map((a) => ({ start: a.startTime, durMin: a.durationMinutes }))
+  const maxSimultaneous = prof.allowSimultaneous ? 2 : 1
+  const profAppts = appts.filter((a) => a.professionalId === prof.id)
 
   return slots.filter((slot) => {
     const [sh, sm] = slot.split(':').map(Number)
     const slotMin = sh * 60 + sm
-    return !ocupados.some((o) => {
-      if (!o.start) return false
-      const [oh, om] = o.start.split(':').map(Number)
+    let count = 0
+    for (const o of profAppts) {
+      if (!o.startTime) continue
+      const [oh, om] = o.startTime.split(':').map(Number)
       const oMin = oh * 60 + om
-      return slotMin < oMin + o.durMin && slotMin + durMin > oMin
-    })
+      if (slotMin < oMin + o.durationMinutes && slotMin + durMin > oMin) count++
+    }
+    return count < maxSimultaneous
   })
 }
 

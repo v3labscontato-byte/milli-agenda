@@ -1029,3 +1029,7 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 - Frontend: modal 2 etapas (nome → selecionar profissionais) com listagem/edição/exclusão inline
 - Tabela: coluna Especialidade mostra chips clicáveis com dropdown multi-select por profissional
 - Profissional.specialtyIds adicionado ao tipo e mapeado no toFrontend()
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Toggle atendimento simultâneo
+**Status:** ✅ Concluído
+**Fixes:** campo allowSimultaneous, toggle na aba Perfil, lógica de slots respeitada

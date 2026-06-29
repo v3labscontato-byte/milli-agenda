@@ -60,6 +60,7 @@ export interface Profissional {
   totalPendentes?: number
   totalCancelados?: number
   specialtyIds?: string[]
+  allowSimultaneous?: boolean
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
 
-interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string }
+interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string; allowSimultaneous?: boolean }
 interface ServItem { id: string; name: string; durationMin?: number; price?: number }
 
 interface Action {
@@ -104,12 +104,13 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       .then(([profs, svcs]) => {
         setProfissionais(
           (profs.data ?? []).map((p: Record<string, unknown>) => ({
-            id:        String(p.id ?? ''),
-            name:      String(p.name ?? ''),
-            specialty: p.specialty as string | undefined,
-            workDays:  Array.isArray(p.workDays) ? (p.workDays as number[]) : [],
-            workStart: String(p.workStart ?? '08:00'),
-            workEnd:   String(p.workEnd   ?? '18:00'),
+            id:               String(p.id ?? ''),
+            name:             String(p.name ?? ''),
+            specialty:        p.specialty as string | undefined,
+            workDays:         Array.isArray(p.workDays) ? (p.workDays as number[]) : [],
+            workStart:        String(p.workStart ?? '08:00'),
+            workEnd:          String(p.workEnd   ?? '18:00'),
+            allowSimultaneous: Boolean(p.allowSimultaneous ?? false),
           }))
         )
         setServicos(svcs.data ?? [])
@@ -148,6 +149,8 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             durMin:    a.durationMin ?? 60,
           }))
 
+        const maxSimultaneous = profData?.allowSimultaneous ? 2 : 1
+
         const slots: string[] = []
         if (!isFolga) {
           for (let min = windowStart; min + durMin <= windowEnd; min += 30) {
@@ -155,13 +158,14 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             const m    = (min % 60).toString().padStart(2, '0')
             const slot = `${h}:${m}`
             const slotEnd = min + durMin
-            const conflito = ocupados.some((o) => {
-              if (!o.startTime) return false
+            let count = 0
+            for (const o of ocupados) {
+              if (!o.startTime) continue
               const [oh, om] = o.startTime.split(':').map(Number)
               const oMin = oh * 60 + om
-              return min < oMin + o.durMin && slotEnd > oMin
-            })
-            if (!conflito) slots.push(slot)
+              if (min < oMin + o.durMin && slotEnd > oMin) count++
+            }
+            if (count < maxSimultaneous) slots.push(slot)
           }
         }
         setHorariosDisp(slots)

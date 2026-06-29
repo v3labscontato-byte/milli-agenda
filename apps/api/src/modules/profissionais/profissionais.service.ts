@@ -168,7 +168,8 @@ export class ProfissionaisService {
         ...(dto.cpf           !== undefined && { cpf: dto.cpf }),
         ...(dto.birthDate     !== undefined && { birthDate: dto.birthDate }),
         ...(dto.vinculo          !== undefined && { vinculo: dto.vinculo }),
-        ...(dto.enabledServices  !== undefined && { enabledServices: dto.enabledServices }),
+        ...(dto.enabledServices       !== undefined && { enabledServices: dto.enabledServices }),
+        ...(dto.allowSimultaneous     !== undefined && { allowSimultaneous: dto.allowSimultaneous }),
       },
     })
   }

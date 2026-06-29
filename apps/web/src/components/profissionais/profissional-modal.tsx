@@ -281,6 +281,38 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
         </div>
       </div>
 
+      {/* Toggle atendimento simultâneo */}
+      <div className="flex items-center justify-between rounded-lg border border-[var(--color-border-primary)] px-4 py-3">
+        <div>
+          <p className="text-[13px] font-medium text-[var(--color-text-primary)]">Atendimento simultâneo</p>
+          <p className="text-[11px] text-[var(--color-text-tertiary)]">
+            {p.allowSimultaneous
+              ? 'Permite até 2 agendamentos no mesmo horário'
+              : 'Apenas 1 agendamento por horário'}
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-pressed={p.allowSimultaneous ?? false}
+          aria-label="Alternar atendimento simultâneo"
+          onClick={async () => {
+            if (!FEATURES.realProfissionais) return
+            await profissionaisApi.update(p.id, { allowSimultaneous: !(p.allowSimultaneous ?? false) })
+            onUpdate?.()
+          }}
+          className={cn(
+            'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+            p.allowSimultaneous ? 'bg-[#2563EB]' : 'bg-[#E2E8F0]',
+          )}
+        >
+          <span className={cn(
+            'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
+            p.allowSimultaneous ? 'translate-x-6' : 'translate-x-1',
+          )} />
+        </button>
+      </div>
+
       {/* ZONA 2 — Especialidades + Comissão */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5">

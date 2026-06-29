@@ -54,4 +54,8 @@ export class CreateProfissionalDto {
   @IsArray()
   @IsString({ each: true })
   enabledServices?: string[]
+
+  @IsOptional()
+  @IsBoolean()
+  allowSimultaneous?: boolean
 }

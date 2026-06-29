@@ -81,6 +81,33 @@ export class ProfissionaisService {
     )
   }
 
+  async getAppointmentsByMonth(tenantId: string, professionalId: string, month: string) {
+    const [year, m] = month.split('-').map(Number)
+    const start = new Date(year, m - 1, 1)
+    const end = new Date(year, m, 0, 23, 59, 59)
+    const appts = await this.db.appointment.findMany({
+      where: { tenantId, professionalId, startAt: { gte: start, lte: end } },
+      include: {
+        client: { select: { name: true } },
+        service: { select: { name: true, price: true } },
+      },
+      orderBy: { startAt: 'asc' },
+    })
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return appts.map((a) => {
+      const startAt = new Date(a.startAt)
+      return {
+        id: a.id,
+        date: a.startAt.toISOString().slice(0, 10),
+        startTime: `${pad(startAt.getUTCHours())}:${pad(startAt.getUTCMinutes())}`,
+        client: a.client?.name ?? '—',
+        service: a.service?.name ?? '—',
+        value: Number(a.service?.price ?? 0),
+        status: a.status,
+      }
+    })
+  }
+
   async findOne(tenantId: string, id: string) {
     const prof = await this.db.professional.findFirst({ where: { id, tenantId } })
     if (!prof) throw new NotFoundException('Professional not found')

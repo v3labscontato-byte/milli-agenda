@@ -53,6 +53,15 @@ export class ProfissionaisController {
     return this.profissionaisService.disponibilidade(tenantId, id, date, Number(durationMin))
   }
 
+  @Get(':id/appointments')
+  getAppointments(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Query('month') month: string,
+  ) {
+    return this.profissionaisService.getAppointmentsByMonth(tenantId, id, month)
+  }
+
   @Post()
   create(@TenantFromJwt() tenantId: string, @Body() dto: CreateProfissionalDto) {
     return this.profissionaisService.create(tenantId, dto)

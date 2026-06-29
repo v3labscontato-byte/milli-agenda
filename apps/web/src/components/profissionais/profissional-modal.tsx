@@ -364,86 +364,211 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
 
 function TabDesempenho({ p }: { p: Profissional }) {
   const maxRev = p.monthlyData.reduce((max, m) => Math.max(max, m.revenue), 1)
+  const [monthModal, setMonthModal] = useState<{ month: string; label: string } | null>(null)
+  const [monthAppts, setMonthAppts] = useState<Record<string, unknown>[]>([])
+  const [loadingAppts, setLoadingAppts] = useState(false)
+
+  function deriveMonthKey(label: string): string {
+    const months: Record<string, string> = {
+      jan: '01', fev: '02', mar: '03', abr: '04',
+      mai: '05', jun: '06', jul: '07', ago: '08',
+      set: '09', out: '10', nov: '11', dez: '12',
+    }
+    const parts = label.split(/[\s./]+/).filter(Boolean)
+    const mon = (parts[0] ?? '').toLowerCase().replace('.', '').slice(0, 3)
+    const yr = parts[parts.length - 1] ?? ''
+    return `20${yr}-${months[mon] ?? '01'}`
+  }
+
+  async function handleMonthClick(monthKey: string, label: string) {
+    setMonthModal({ month: monthKey, label })
+    setLoadingAppts(true)
+    try {
+      const token = localStorage.getItem('accessToken') ?? ''
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/professionals/${p.id}/appointments?month=${monthKey}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      const json = (await res.json()) as { data?: unknown }
+      const arr = Array.isArray(json.data) ? json.data : Array.isArray(json) ? (json as unknown[]) : []
+      setMonthAppts(arr as Record<string, unknown>[])
+    } catch { setMonthAppts([]) }
+    finally { setLoadingAppts(false) }
+  }
+
   const kpis = [
     { label: 'Total de visitas',   value: p.appointmentsTotal.toString() },
     { label: 'Faturamento total',  value: formatBRL(p.revenueTotal) },
     { label: 'Ticket médio',       value: formatBRL(p.avgTicket) },
   ]
+
   return (
-    <div className="space-y-5">
-      {/* KPI chips */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {kpis.map(({ label, value }) => (
-          <div key={label} className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
-            <p className="text-[11px] text-[var(--color-text-tertiary)]">{label}</p>
-            <p className="mt-1 font-tabular text-[16px] font-bold text-[var(--color-text-primary)]">{value}</p>
+    <>
+      <div className="space-y-5">
+        {/* KPI chips */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {kpis.map(({ label, value }) => (
+            <div key={label} className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
+              <p className="text-[11px] text-[var(--color-text-tertiary)]">{label}</p>
+              <p className="mt-1 font-tabular text-[16px] font-bold text-[var(--color-text-primary)]">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Resumo por status */}
+        <div className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3 space-y-2">
+          <p className="text-[12px] font-medium text-[#64748B] mb-3">Resumo de agendamentos</p>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[#64748B]">Total agendados</span>
+            <span className="font-medium text-[#0F172A]">{p.totalAgendados ?? 0}</span>
           </div>
-        ))}
-      </div>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[#64748B]">Finalizados</span>
+            <span className="font-medium text-[#15803D]">{p.totalFinalizados ?? 0}</span>
+          </div>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[#64748B]">Pendentes</span>
+            <span className="font-medium text-[#92400E]">{p.totalPendentes ?? 0}</span>
+          </div>
+          <div className="flex justify-between text-[13px]">
+            <span className="text-[#64748B]">Cancelados</span>
+            <span className="font-medium text-[#DC2626]">{p.totalCancelados ?? 0}</span>
+          </div>
+        </div>
 
-      {/* Resumo por status */}
-      <div className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3 space-y-2">
-        <p className="text-[12px] font-medium text-[#64748B] mb-3">Resumo de agendamentos</p>
-        <div className="flex justify-between text-[13px]">
-          <span className="text-[#64748B]">Total agendados</span>
-          <span className="font-medium text-[#0F172A]">{p.totalAgendados ?? 0}</span>
+        {/* Rating */}
+        <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
+          <Star size={16} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
+          <div>
+            <p className="text-[11px] text-[var(--color-text-tertiary)]">Avaliação dos clientes</p>
+            <p className="font-tabular text-[15px] font-bold text-[var(--color-text-primary)]">
+              {Number(p.rating ?? 0).toFixed(1)} <span className="text-[12px] font-normal text-[var(--color-text-tertiary)]">/ 5.0 · {p.ratingCount ?? 0} avaliações</span>
+            </p>
+          </div>
         </div>
-        <div className="flex justify-between text-[13px]">
-          <span className="text-[#64748B]">Finalizados</span>
-          <span className="font-medium text-[#15803D]">{p.totalFinalizados ?? 0}</span>
-        </div>
-        <div className="flex justify-between text-[13px]">
-          <span className="text-[#64748B]">Pendentes</span>
-          <span className="font-medium text-[#92400E]">{p.totalPendentes ?? 0}</span>
-        </div>
-        <div className="flex justify-between text-[13px]">
-          <span className="text-[#64748B]">Cancelados</span>
-          <span className="font-medium text-[#DC2626]">{p.totalCancelados ?? 0}</span>
-        </div>
-      </div>
 
-      {/* Rating */}
-      <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
-        <Star size={16} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
+        {/* Monthly bar chart — clicável */}
         <div>
-          <p className="text-[11px] text-[var(--color-text-tertiary)]">Avaliação dos clientes</p>
-          <p className="font-tabular text-[15px] font-bold text-[var(--color-text-primary)]">
-            {Number(p.rating ?? 0).toFixed(1)} <span className="text-[12px] font-normal text-[var(--color-text-tertiary)]">/ 5.0 · {p.ratingCount ?? 0} avaliações</span>
+          <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Faturamento — últimos 6 meses</p>
+          <div className="flex h-28 items-end gap-2" role="img" aria-label="Gráfico de faturamento mensal">
+            {p.monthlyData.map((m) => {
+              const pct = maxRev > 0 ? (m.revenue / maxRev) * 100 : 0
+              return (
+                <button
+                  key={m.month}
+                  type="button"
+                  onClick={() => void handleMonthClick(deriveMonthKey(m.month), m.month)}
+                  className="group/bar flex flex-1 flex-col items-center gap-1 focus-visible:outline-none"
+                  title={`Ver agendamentos de ${m.month}`}
+                >
+                  <span className="text-[10px] font-tabular text-[var(--color-text-tertiary)]">
+                    {m.revenue > 0 ? `${Math.round(m.revenue / 1000)}k` : ''}
+                  </span>
+                  <div
+                    className="w-full rounded-t-sm bg-[var(--color-brand)] transition-all duration-300 group-hover/bar:opacity-75"
+                    style={{ height: `${Math.max(pct, m.revenue > 0 ? 4 : 0)}%`, opacity: m.revenue > 0 ? 1 : 0.15 }}
+                  />
+                  <span className="text-[10px] text-[var(--color-brand)] underline-offset-2 group-hover/bar:underline">{m.month}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Trend */}
+        <div className="flex items-center gap-2 rounded-lg bg-[var(--color-success-light)] px-3 py-2.5">
+          <TrendingUp size={14} className="text-[var(--color-success)]" aria-hidden="true" />
+          <p className="text-[12px] text-[var(--color-success)]">
+            Média mensal: <span className="font-semibold">{formatBRL(p.revenueTotal / Math.max(p.monthlyData.filter(m => m.revenue > 0).length, 1))}</span>
           </p>
         </div>
       </div>
 
-      {/* Monthly bar chart */}
-      <div>
-        <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Faturamento — últimos 6 meses</p>
-        <div className="flex h-28 items-end gap-2" role="img" aria-label="Gráfico de faturamento mensal">
-          {p.monthlyData.map((m) => {
-            const pct = maxRev > 0 ? (m.revenue / maxRev) * 100 : 0
-            return (
-              <div key={m.month} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[10px] font-tabular text-[var(--color-text-tertiary)]">
-                  {m.revenue > 0 ? `${Math.round(m.revenue / 1000)}k` : ''}
-                </span>
-                <div
-                  className="w-full rounded-t-sm bg-[var(--color-brand)] transition-all duration-300"
-                  style={{ height: `${Math.max(pct, m.revenue > 0 ? 4 : 0)}%`, opacity: m.revenue > 0 ? 1 : 0.15 }}
-                  title={`${m.month}: ${formatBRL(m.revenue)}`}
-                />
-                <span className="text-[10px] text-[var(--color-text-tertiary)]">{m.month}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      {/* Sub-modal: agendamentos do mês selecionado */}
+      {monthModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-[#0F172A]/50" onClick={() => setMonthModal(null)} aria-hidden="true" />
+          <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-white rounded-xl shadow-xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#E2E8F0]">
+              <h3 className="text-[15px] font-semibold text-[#0F172A]">
+                Agendamentos — {monthModal.label} · {p.name}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMonthModal(null)}
+                className="text-[#94A3B8] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+              >✕</button>
+            </div>
 
-      {/* Trend */}
-      <div className="flex items-center gap-2 rounded-lg bg-[var(--color-success-light)] px-3 py-2.5">
-        <TrendingUp size={14} className="text-[var(--color-success)]" aria-hidden="true" />
-        <p className="text-[12px] text-[var(--color-success)]">
-          Média mensal: <span className="font-semibold">{formatBRL(p.revenueTotal / Math.max(p.monthlyData.filter(m => m.revenue > 0).length, 1))}</span>
-        </p>
-      </div>
-    </div>
+            {loadingAppts ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-[13px] text-[#94A3B8]">Carregando...</p>
+              </div>
+            ) : monthAppts.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-[13px] text-[#94A3B8]">Nenhum agendamento neste mês.</p>
+              </div>
+            ) : (
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-[#F1F5F9] bg-[#F8FAFC]">
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Data</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Hora</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Cliente</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Serviço</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Pagamento</th>
+                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Valor</th>
+                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">Atendimento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthAppts.map((a) => {
+                    const status = String(a.status ?? '')
+                    const isPago = status === 'COMPLETED'
+                    const isCancelado = status === 'CANCELLED'
+                    const value = Number(a.value ?? 0)
+                    return (
+                      <tr key={String(a.id)} className="border-b border-[#F8FAFC] hover:bg-[#FAFAFA]">
+                        <td className="px-4 py-3 text-[#475569]">
+                          {new Date(String(a.date) + 'T12:00:00').toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="px-4 py-3 text-[#475569] font-tabular">{String(a.startTime ?? '—')}</td>
+                        <td className="px-4 py-3 text-[#0F172A] font-medium">{String(a.client ?? '—')}</td>
+                        <td className="px-4 py-3 text-[#475569]">{String(a.service ?? '—')}</td>
+                        <td className="px-4 py-3">
+                          {isCancelado ? <span className="text-[#94A3B8]">—</span> : (
+                            <span className={cn(
+                              'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                              isPago ? 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]' : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                            )}>
+                              <span className={cn('h-1.5 w-1.5 rounded-full', isPago ? 'bg-[#22C55E]' : 'bg-[#F59E0B]')} />
+                              {isPago ? 'Pago' : 'Pendente'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-[#0F172A]">
+                          R$ {value.toFixed(2).replace('.', ',')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn(
+                            'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+                            isPago ? 'bg-[#F5F3FF] text-[#7C3AED]' :
+                            isCancelado ? 'bg-[#FEF2F2] text-[#DC2626]' :
+                            'bg-[#EFF6FF] text-[#1D4ED8]'
+                          )}>
+                            {isPago ? 'Realizado' : isCancelado ? 'Cancelado' : 'Pendente'}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Clock, Users, TrendingUp } from 'lucide-react'
+import { X, Clock, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Servico } from '@/lib/servicos-mock'
 import { formatBRL, formatDuration } from '@/lib/servicos-mock'
@@ -72,91 +72,72 @@ function TabDetalhes({ s }: { s: Servico }) {
 
 // ─── Tab: Desempenho ──────────────────────────────────────────────────────────
 
+const DESEMPENHO_ROWS = [
+  { label: 'Agendados',   getValue: (m: ReturnType<typeof getMonth>) => m.totalAgendamentos, color: '#0F172A', isCurrency: false },
+  { label: 'Finalizados', getValue: (m: ReturnType<typeof getMonth>) => m.finalizados,        color: '#15803D', isCurrency: false },
+  { label: 'Pendentes',   getValue: (m: ReturnType<typeof getMonth>) => m.pendentes,          color: '#92400E', isCurrency: false },
+  { label: 'Cancelados',  getValue: (m: ReturnType<typeof getMonth>) => m.cancelados,         color: '#DC2626', isCurrency: false },
+  { label: 'Faturado',    getValue: (m: ReturnType<typeof getMonth>) => m.revenue,            color: '#0F172A', isCurrency: true  },
+] as const
+
+function getMonth(m: Servico['monthlyData'][number]) {
+  return {
+    totalAgendamentos: m.totalAgendamentos ?? m.bookings,
+    finalizados: m.finalizados ?? 0,
+    pendentes: m.pendentes ?? 0,
+    cancelados: m.cancelados ?? 0,
+    revenue: m.revenue,
+  }
+}
+
 function TabDesempenho({ s }: { s: Servico }) {
-  const maxRev = Math.max(...s.monthlyData.map((m) => m.revenue), 1)
-  const avgTicket = s.bookingsTotal > 0 ? s.revenueTotal / s.bookingsTotal : s.price
-
-  const kpis = [
-    { label: 'Total de agendamentos', value: s.bookingsTotal.toString() },
-    { label: 'Faturamento total',     value: formatBRL(s.revenueTotal) },
-    { label: 'Ticket médio',          value: formatBRL(avgTicket) },
-  ]
-
-  const activeMths = s.monthlyData.filter((m) => m.revenue > 0)
-  const avgMonthly = activeMths.length > 0
-    ? activeMths.reduce((acc, m) => acc + m.revenue, 0) / activeMths.length
-    : 0
+  if (!s.monthlyData.length) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-[#E2E8F0]">
+        <p className="text-[13px] text-[#94A3B8]">Sem histórico disponível</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-5">
-      {/* KPI chips */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {kpis.map(({ label, value }) => (
-          <div key={label} className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
-            <p className="text-[11px] text-[#94A3B8]">{label}</p>
-            <p className="mt-1 font-tabular text-[16px] font-bold text-[#0F172A]">{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Monthly bar chart */}
-      <div>
-        <p className="mb-3 text-[12px] font-medium text-[#64748B]">Faturamento — últimos 6 meses</p>
-        <div className="flex h-28 items-end gap-2" role="img" aria-label="Gráfico de faturamento mensal">
-          {s.monthlyData.map((m) => {
-            const pct = maxRev > 0 ? (m.revenue / maxRev) * 100 : 0
+    <div className="mt-1 overflow-x-auto">
+      <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Histórico — últimos 6 meses</p>
+      <table className="w-full text-[12px]" style={{ minWidth: 480 }}>
+        <thead>
+          <tr className="border-b border-[#E2E8F0]">
+            <th className="w-28 py-2 pr-4 text-left font-medium text-[#94A3B8]" />
+            {s.monthlyData.map((m, i) => (
+              <th key={i} className="py-2 text-center font-medium capitalize text-[#475569]">
+                {m.month}
+              </th>
+            ))}
+            <th className="py-2 text-center font-semibold text-[#0F172A]">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {DESEMPENHO_ROWS.map((row) => {
+            const total = s.monthlyData.reduce((acc, m) => acc + row.getValue(getMonth(m)), 0)
             return (
-              <div key={m.month} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[10px] font-tabular text-[#94A3B8]">
-                  {m.revenue > 0 ? `${Math.round(m.revenue / 1000)}k` : ''}
-                </span>
-                <div
-                  className="w-full rounded-t-sm bg-[#2563EB] transition-all duration-300"
-                  style={{ height: `${Math.max(pct, m.revenue > 0 ? 4 : 0)}%`, opacity: m.revenue > 0 ? 1 : 0.15 }}
-                  title={`${m.month}: ${formatBRL(m.revenue)}`}
-                />
-                <span className="text-[10px] text-[#94A3B8]">{m.month}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Monthly booking table */}
-      <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
-        <table className="w-full text-[13px]">
-          <thead>
-            <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-              <th scope="col" className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Mês</th>
-              <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Agend.</th>
-              <th scope="col" className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Faturamento</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#F1F5F9] bg-white">
-            {[...s.monthlyData].reverse().map((m) => (
-              <tr key={m.month} className="hover:bg-[#F8FAFC]">
-                <td className="px-4 py-2.5 font-medium text-[#0F172A]">{m.month} 2026</td>
-                <td className="px-4 py-2.5 text-right font-tabular text-[#475569]">
-                  {m.bookings > 0 ? m.bookings : <span className="text-[#CBD5E1]">—</span>}
-                </td>
-                <td className="px-4 py-2.5 text-right font-tabular font-semibold text-[#0F172A]">
-                  {m.revenue > 0 ? formatBRL(m.revenue) : <span className="font-normal text-[#CBD5E1]">—</span>}
+              <tr key={row.label} className="border-b border-[#F8FAFC] hover:bg-[#FAFAFA]">
+                <td className="py-2 pr-4 font-medium" style={{ color: row.color }}>{row.label}</td>
+                {s.monthlyData.map((m, i) => {
+                  const val = row.getValue(getMonth(m))
+                  return (
+                    <td key={i} className="py-2 text-center" style={{ color: row.color }}>
+                      {val > 0
+                        ? row.isCurrency ? `R$ ${val.toFixed(2).replace('.', ',')}` : val
+                        : <span className="text-[#CBD5E1]">—</span>}
+                    </td>
+                  )
+                })}
+                <td className="py-2 text-center font-semibold" style={{ color: row.color }}>
+                  {row.isCurrency ? `R$ ${total.toFixed(2).replace('.', ',')}` : total}
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Trend */}
-      {avgMonthly > 0 && (
-        <div className="flex items-center gap-2 rounded-lg bg-[#F0FDF4] px-3 py-2.5">
-          <TrendingUp size={14} className="text-[#16A34A]" aria-hidden="true" />
-          <p className="text-[12px] text-[#166534]">
-            Média mensal: <span className="font-semibold">{formatBRL(avgMonthly)}</span>
-          </p>
-        </div>
-      )}
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }

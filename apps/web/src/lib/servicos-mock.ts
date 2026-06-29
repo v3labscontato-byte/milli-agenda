@@ -7,6 +7,10 @@ export interface MonthlyBooking {
   month: string
   bookings: number
   revenue: number
+  totalAgendamentos?: number
+  finalizados?: number
+  pendentes?: number
+  cancelados?: number
 }
 
 export interface Servico {

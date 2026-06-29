@@ -1016,3 +1016,7 @@ Filtro de serviços ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_SERVICOS — Edicao de categoria inline
 **Status:** Concluido
 **Fix:** select de categoria clicavel na tabela; Servico.categoryId adicionado; mapService mapeia categoryId; onUpdate Props aceita categoryId
+
+### [2026-06-29] AGENT_SERVICOS — Historico mensal no modal de servico
+**Status:** Concluido
+**Fixes:** backend monthlyHistory 6 meses, frontend mapeia para MonthlyBooking, TabDesempenho substituida por tabela transposta (Agendados/Finalizados/Pendentes/Cancelados/Faturado x meses)

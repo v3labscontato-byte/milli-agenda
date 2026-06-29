@@ -28,11 +28,42 @@ export class ServicosService {
           },
         })
         const completedMonth = monthAppts.filter(a => a.status === 'COMPLETED')
+
+        const monthlyHistory: {
+          mes: string
+          totalAgendamentos: number
+          finalizados: number
+          pendentes: number
+          cancelados: number
+          faturamento: number
+        }[] = []
+
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+          const start = new Date(d.getFullYear(), d.getMonth(), 1)
+          const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+          const allMonth = await this.db.appointment.findMany({
+            where: { tenantId, serviceId: service.id, startAt: { gte: start, lte: end } },
+          })
+          const fin = allMonth.filter(a => a.status === 'COMPLETED')
+          const pen = allMonth.filter(a => ['SCHEDULED', 'CONFIRMED'].includes(a.status))
+          const can = allMonth.filter(a => a.status === 'CANCELLED')
+          monthlyHistory.push({
+            mes: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+            totalAgendamentos: allMonth.length,
+            finalizados: fin.length,
+            pendentes: pen.length,
+            cancelados: can.length,
+            faturamento: fin.length * Number(service.price),
+          })
+        }
+
         return {
           ...service,
           metrics: {
             agendMes: monthAppts.length,
             fatMes: completedMonth.length * Number(service.price),
+            monthlyHistory,
           },
         }
       })

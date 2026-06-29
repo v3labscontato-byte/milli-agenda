@@ -1134,3 +1134,17 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 - Frontend: `periodoToRange` agora define `to` como 23:59:59 do dia atual (era 00:00:00)
 - Backend: `defaultRange()` converte `to` com sufixo `T23:59:59.999Z` para incluir pagamentos do dia inteiro
 - Garante que filtros de período não excluem eventos do último dia do range
+
+---
+
+## 2026-06-29 — Fix receita: agendamentos COMPLETED como fonte de verdade
+
+**Branch:** homolog  
+**Arquivo:** `apps/api/src/modules/relatorios/relatorios.service.ts`
+
+### O que foi feito
+- `receita()`: substituído `payment.findMany` por `appointment.findMany(COMPLETED)` — agrega `service.price` por dia
+- `cashflow()`: mesma substituição — fluxo de caixa baseado em atendimentos concluídos
+- `kpis()`: substituído `payment.aggregate` por `appointment.findMany(COMPLETED)` para `todayRevenue`
+- Agendamentos sem pagamentos registrados agora aparecem nos gráficos
+- TSC: 0 erros

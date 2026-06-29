@@ -17,7 +17,7 @@ export class RelatoriosService {
     const dayStart = new Date(date.setHours(0, 0, 0, 0))
     const dayEnd = new Date(date.setHours(23, 59, 59, 999))
 
-    const [totalAppts, completedAppts, cancelledAppts, todayRevenue, totalClients] =
+    const [totalAppts, completedAppts, cancelledAppts, todayAppts, totalClients] =
       await Promise.all([
         this.db.appointment.count({
           where: { tenantId, startAt: { gte: dayStart, lte: dayEnd } },
@@ -28,15 +28,15 @@ export class RelatoriosService {
         this.db.appointment.count({
           where: { tenantId, status: AppointmentStatus.CANCELLED, startAt: { gte: dayStart, lte: dayEnd } },
         }),
-        this.db.payment.aggregate({
-          where: { tenantId, status: PaymentStatus.PAID, paidAt: { gte: dayStart, lte: dayEnd } },
-          _sum: { amount: true },
+        this.db.appointment.findMany({
+          where: { tenantId, status: AppointmentStatus.COMPLETED, startAt: { gte: dayStart, lte: dayEnd } },
+          include: { service: { select: { price: true } } },
         }),
         this.db.client.count({ where: { tenantId } }),
       ])
 
     const occupancyRate = totalAppts > 0 ? Math.round((completedAppts / totalAppts) * 100) : 0
-    const receitaBruta = Number(todayRevenue._sum.amount ?? 0)
+    const receitaBruta = todayAppts.reduce((s, a) => s + Number(a.service?.price ?? 0), 0)
     const ticketMedio = completedAppts > 0 ? receitaBruta / completedAppts : 0
 
     return {
@@ -59,18 +59,35 @@ export class RelatoriosService {
   }
 
   async receita(tenantId: string, from?: string, to?: string) {
-    const { dateFrom, dateTo } = this.defaultRange(from, to)
-    const payments = await this.db.payment.findMany({
+    const dateFrom = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
+
+    const appts = await this.db.appointment.findMany({
       where: {
         tenantId,
-        status: PaymentStatus.PAID,
-        paidAt: { gte: dateFrom, lte: dateTo },
+        status: AppointmentStatus.COMPLETED,
+        startAt: { gte: dateFrom, lte: dateTo },
       },
-      select: { amount: true, method: true, paidAt: true },
-      orderBy: { paidAt: 'asc' },
+      include: { service: { select: { price: true } } },
+      orderBy: { startAt: 'asc' },
     })
 
-    const total = payments.reduce((s, p) => s + Number(p.amount), 0)
+    const total = appts.reduce((s, a) => s + Number(a.service?.price ?? 0), 0)
+
+    const byDay: Record<string, number> = {}
+    for (const a of appts) {
+      const day = a.startAt.toISOString().slice(0, 10)
+      byDay[day] = (byDay[day] ?? 0) + Number(a.service?.price ?? 0)
+    }
+
+    const payments = Object.entries(byDay)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, amount]) => ({
+        amount: String(amount),
+        method: 'MIXED',
+        paidAt: new Date(date + 'T12:00:00.000Z'),
+      }))
+
     return { from: dateFrom, to: dateTo, total, payments }
   }
 
@@ -176,19 +193,23 @@ export class RelatoriosService {
   }
 
   async cashflow(tenantId: string, from?: string, to?: string) {
-    const { dateFrom, dateTo } = this.defaultRange(from, to)
+    const dateFrom = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
 
-    const payments = await this.db.payment.findMany({
-      where: { tenantId, status: PaymentStatus.PAID, paidAt: { gte: dateFrom, lte: dateTo } },
-      select: { amount: true, paidAt: true },
-      orderBy: { paidAt: 'asc' },
+    const appts = await this.db.appointment.findMany({
+      where: {
+        tenantId,
+        status: AppointmentStatus.COMPLETED,
+        startAt: { gte: dateFrom, lte: dateTo },
+      },
+      include: { service: { select: { price: true } } },
+      orderBy: { startAt: 'asc' },
     })
 
     const byDay = new Map<string, number>()
-    for (const p of payments) {
-      if (!p.paidAt) continue
-      const key = p.paidAt.toISOString().slice(0, 10)
-      byDay.set(key, (byDay.get(key) ?? 0) + Number(p.amount))
+    for (const a of appts) {
+      const key = a.startAt.toISOString().slice(0, 10)
+      byDay.set(key, (byDay.get(key) ?? 0) + Number(a.service?.price ?? 0))
     }
 
     const result: { date: string; dateLabel: string; entradas: number; saidas: number; saldo: number }[] = []

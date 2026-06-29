@@ -881,3 +881,7 @@ d48f169 — style(servicos): impeccable 20/20
 **Status:** ✅ Concluído
 **Arquivos alterados:** `apps/web/src/components/agenda/appointment-block.tsx`
 **Fixes:** nome do procedimento já existia; adicionado label "Pago" / "Pgto pendente" em texto no card (visível apenas em cards não-compact)
+
+### [2026-06-28] AGENT_AGENDA — Fix agendamentos sobrepostos na vista dia
+**Status:** ✅ Concluído
+**Fix:** coveredSlots para de marcar quando outro agendamento começa no slot; activeAppts usa filter em vez de find; agendamentos sobrepostos renderizam lado a lado com flex; rowspan limitado pelo próximo agendamento do mesmo profissional

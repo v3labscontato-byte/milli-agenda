@@ -117,8 +117,6 @@ export default function DayTimeline({
   onAppointmentClick,
   onSlotClick,
 }: DayTimelineProps) {
-  console.log('[TIMELINE] professionals:', professionals.map(p => p.id + ':' + p.name))
-  console.log('[TIMELINE] appointments:', appointments.map(a => a.professionalId + ':' + a.startTime))
   const isToday = isTodayUtil(date)
   const dateStr = toDateString(date)
   const theadRef = useRef<HTMLTableSectionElement>(null)
@@ -142,13 +140,18 @@ export default function DayTimeline({
     const map: Record<string, Set<string>> = {}
     for (const prof of professionals) {
       const covered = new Set<string>()
-      for (const appt of appointments.filter((a) => a.professionalId === prof.id && a.status !== 'CANCELLED')) {
+      const profAppts = appointments.filter((a) => a.professionalId === prof.id && a.status !== 'CANCELLED')
+      const profApptStarts = new Set(profAppts.map((a) => a.startTime))
+      for (const appt of profAppts) {
         const si = getSlotIndex(appt.startTime)
         if (si < 0) continue
         const spans = getDurationSlots(appt.durationMinutes)
         for (let i = 1; i < spans; i++) {
           const ci = si + i
-          if (ci < TIME_SLOTS.length) covered.add(TIME_SLOTS[ci])
+          if (ci >= TIME_SLOTS.length) break
+          const s = TIME_SLOTS[ci] as string
+          if (profApptStarts.has(s)) break  // outro agendamento começa aqui — não cobrir
+          covered.add(s)
         }
       }
       for (const block of blocks.filter((b) => b.professionalId === prof.id && b.date === dateStr)) {
@@ -160,7 +163,7 @@ export default function DayTimeline({
         const spans = getDurationSlots(Math.max(30, durMin))
         for (let i = 1; i < spans; i++) {
           const ci = si + i
-          if (ci < TIME_SLOTS.length) covered.add(TIME_SLOTS[ci])
+          if (ci < TIME_SLOTS.length) covered.add(TIME_SLOTS[ci] as string)
         }
       }
       map[prof.id] = covered
@@ -268,24 +271,37 @@ export default function DayTimeline({
                     }
                     if (coveredSlots[prof.id]?.has(slot)) return null
 
-                    const activeAppt = appointments.find(
+                    const activeAppts = appointments.filter(
                       (a) => a.professionalId === prof.id && a.startTime === slot && a.status !== 'CANCELLED',
                     )
+                    const activeAppt = activeAppts[0] ?? null
                     const cancelledAppts = appointments.filter(
                       (a) => a.professionalId === prof.id && a.startTime === slot && a.status === 'CANCELLED',
                     )
                     const activeBlock = blocks.find(
                       (b) => b.professionalId === prof.id && b.startTime === slot && b.date === dateStr,
                     )
-                    const hasAnything = activeAppt || cancelledAppts.length > 0 || !!activeBlock
+                    const hasAnything = activeAppts.length > 0 || cancelledAppts.length > 0 || !!activeBlock
 
-                    const apptRowSpan = activeAppt ? getDurationSlots(activeAppt.durationMinutes) : 1
+                    const apptRowSpan = (() => {
+                      if (!activeAppt || activeAppts.length > 1) return 1
+                      const si = getSlotIndex(activeAppt.startTime)
+                      const maxSpans = getDurationSlots(activeAppt.durationMinutes)
+                      for (let i = 1; i < maxSpans; i++) {
+                        const ci = si + i
+                        if (ci >= TIME_SLOTS.length) return i
+                        if (appointments.some(
+                          (a) => a.professionalId === prof.id && a.startTime === TIME_SLOTS[ci] && a.status !== 'CANCELLED'
+                        )) return i
+                      }
+                      return maxSpans
+                    })()
                     const blockRowSpan = activeBlock ? (() => {
                       const [sh, sm] = activeBlock.startTime.split(':').map(Number)
                       const [eh, em] = activeBlock.endTime.split(':').map(Number)
                       return getDurationSlots(Math.max(30, (eh * 60 + em) - (sh * 60 + sm)))
                     })() : 1
-                    const rowSpan = activeAppt ? apptRowSpan : activeBlock ? blockRowSpan : 1
+                    const rowSpan = activeAppts.length > 0 ? apptRowSpan : activeBlock ? blockRowSpan : 1
                     const cellH = rowSpan * SLOT_HEIGHT
 
                     return (
@@ -340,8 +356,18 @@ export default function DayTimeline({
                             </div>
                           </div>
                         ) : hasAnything ? (
-                          <div className={cn('flex h-full gap-0.5', activeAppt && cancelledAppts.length > 0 && 'flex-row')}>
-                            {activeAppt && (
+                          <div className={cn('flex h-full gap-0.5 flex-row')}>
+                            {activeAppts.length > 1 ? (
+                              activeAppts.map((appt) => (
+                                <div key={appt.id} style={{ flex: 1, minWidth: 0 }}>
+                                  <AppointmentBlock
+                                    appointment={appt}
+                                    onClick={() => onAppointmentClick?.(appt)}
+                                    heightPx={SLOT_HEIGHT - 4}
+                                  />
+                                </div>
+                              ))
+                            ) : activeAppt ? (
                               <div className={cn('min-w-0', cancelledAppts.length > 0 ? 'flex-1' : 'w-full h-full')}>
                                 <AppointmentBlock
                                   appointment={activeAppt}
@@ -349,8 +375,8 @@ export default function DayTimeline({
                                   heightPx={cellH - 4}
                                 />
                               </div>
-                            )}
-                            {cancelledAppts.map((ca) => (
+                            ) : null}
+                            {activeAppts.length <= 1 && cancelledAppts.map((ca) => (
                               <div
                                 key={ca.id}
                                 className={cn('min-w-0', activeAppt ? 'flex-1' : 'w-full')}

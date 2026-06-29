@@ -990,3 +990,6 @@ d48f169 â€” style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_PROFISSIONAIS â€” ServiÃ§os habilitados + bloqueio agendamento
 **Status:** âœ… ConcluÃ­do
 **Fixes:** enabledServices vazio bloqueia agendamento, aviso no modal, aba ServiÃ§os correta
+
+### [2026-06-29] AGENT_PROFISSIONAIS — Aba Serviços: só ativos + toggle correto
+Filtro de serviços ativos adicionado em TabServicos: interface RawService agora inclui campo optional active?; const activeServices = allServices.filter(s => s.active !== false); JSX usa activeServices.map() em vez de allServices.map(). Sem mudanças no toggle — comportamento já correto.

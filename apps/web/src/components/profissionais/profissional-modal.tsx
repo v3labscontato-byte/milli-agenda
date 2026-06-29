@@ -643,7 +643,7 @@ function TabComissao({ p }: { p: Profissional }) {
 
 // ─── Tab: Serviços ───────────────────────────────────────────────────────────
 
-interface RawService { id: string; name: string }
+interface RawService { id: string; name: string; active?: boolean }
 
 function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) {
   const [allServices, setAllServices] = useState<RawService[]>([])
@@ -705,9 +705,11 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
     )
   }
 
+  const activeServices = allServices.filter((s) => s.active !== false)
+
   return (
     <div className="space-y-1.5">
-      {allServices.map((s) => {
+      {activeServices.map((s) => {
         const habilitado = enabled.includes(s.id)
         return (
           <button

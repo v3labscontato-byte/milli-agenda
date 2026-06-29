@@ -903,3 +903,7 @@ d48f169 — style(servicos): impeccable 20/20
 - novo-agendamento-modal.tsx, agenda-table.tsx
 - use-agenda.ts, calendar-utils.ts, api/agenda.ts
 - agenda/page.tsx
+
+### [2026-06-28] AGENT_AGENDA — Click COMPLETED na vista dia abre comanda
+**Status:** ✅ Concluído
+**Fix:** card COMPLETED abre PaymentModal com Reabrir, outros status abrem AppointmentModal

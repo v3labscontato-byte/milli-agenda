@@ -20,6 +20,8 @@ import WeeklyOverview from '@/components/agenda/weekly-overview'
 import AppointmentModal from '@/components/agenda/appointment-modal'
 import NovoAgendamentoModal from '@/components/agenda/novo-agendamento-modal'
 import AgendaTable from '@/components/agenda-table'
+import PaymentModal from '@/components/shared/payment-modal'
+import type { PaymentResult } from '@/components/shared/payment-modal'
 
 const PROF_PALETTE = ['#7C3AED', '#2563EB', '#DB2777', '#059669', '#D97706', '#0891B2', '#DC2626']
 
@@ -70,6 +72,7 @@ export default function AgendaPage() {
   const [newModalPrefill, setNewModalPrefill] = useState<NewModalPrefill>({})
   const [searchQuery, setSearchQuery]     = useState('')
   const [refetchKey, setRefetchKey]       = useState(0)
+  const [dayPaymentAppt, setDayPaymentAppt] = useState<CalendarAppointment | null>(null)
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
   const goToPrev  = useCallback(() => setSelectedDate((d) => prevDay(d)), [])
@@ -97,6 +100,14 @@ export default function AgendaPage() {
   const handleSlotClick = useCallback((professionalId: string, time: string, date: string) => {
     setNewModalPrefill({ profId: professionalId, date, time })
     setNewModalOpen(true)
+  }, [])
+
+  const handleDayAppointmentClick = useCallback((appt: CalendarAppointment) => {
+    if (appt.status === 'COMPLETED') {
+      setDayPaymentAppt(appt)
+    } else {
+      setSelectedAppt(appt)
+    }
   }, [])
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
@@ -234,7 +245,7 @@ export default function AgendaPage() {
             appointments={dayAppointments}
             professionals={calendarProfessionals}
             date={selectedDate}
-            onAppointmentClick={setSelectedAppt}
+            onAppointmentClick={handleDayAppointmentClick}
             onSlotClick={handleSlotClick}
           />
         </div>
@@ -245,6 +256,37 @@ export default function AgendaPage() {
         onClose={closeAppt}
         onSuccess={handleCreated}
       />
+
+      {dayPaymentAppt && (() => {
+        const prof = calendarProfessionals.find((p) => p.id === dayPaymentAppt.professionalId)
+        return (
+          <PaymentModal
+            open
+            clientName={dayPaymentAppt.client}
+            professionalName={prof?.name ?? ''}
+            serviceName={dayPaymentAppt.service}
+            date={dayPaymentAppt.date}
+            startTime={dayPaymentAppt.startTime}
+            endTime={dayPaymentAppt.endTime}
+            items={[{ name: dayPaymentAppt.service, quantity: 1, unitPrice: dayPaymentAppt.amount }]}
+            loading={false}
+            isCompleted
+            onClose={() => setDayPaymentAppt(null)}
+            onConfirm={(_result: PaymentResult) => setDayPaymentAppt(null)}
+            onReopen={async () => {
+              const token = localStorage.getItem('accessToken')
+              const base = process.env.NEXT_PUBLIC_API_URL
+              await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status: 'CONFIRMED' }),
+              })
+              setDayPaymentAppt(null)
+              handleCreated()
+            }}
+          />
+        )
+      })()}
 
       {/* New appointment — real API (services/professionals from hooks, agendaApi.create) */}
       <NovoAgendamentoModal

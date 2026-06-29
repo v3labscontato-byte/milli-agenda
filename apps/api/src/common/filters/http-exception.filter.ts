@@ -11,6 +11,9 @@ import type { ApiResponse } from '@milli/shared-types'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
+    if (!(exception instanceof HttpException)) {
+      console.error('[UNHANDLED ERROR]', exception)
+    }
     const ctx = host.switchToHttp()
     const reply = ctx.getResponse<FastifyReply>()
 

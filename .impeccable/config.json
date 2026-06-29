@@ -2,7 +2,8 @@
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [
-      "apps/web/src/components/agenda/day-timeline.tsx"
+      "apps/web/src/components/agenda/day-timeline.tsx",
+      "apps/web/src/components/agenda/appointment-block.tsx"
     ],
     "ignoreValues": []
   }

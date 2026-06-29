@@ -13,6 +13,12 @@ const CARD_STYLES: Record<string, { bg: string; border: string; accent: string; 
 
 const DEFAULT_STYLE = { bg: '#F8FAFC', border: '#E2E8F0', accent: '#94A3B8', text: '#475569', subtext: '#94A3B8' }
 
+function getPaymentLabel(appt: CalendarAppointment): string | null {
+  if (appt.status === 'CANCELLED') return null
+  if (appt.status === 'COMPLETED' && appt.commandId) return 'Pago'
+  return 'Pgto pendente'
+}
+
 function PaymentDot({ appt }: { appt: CalendarAppointment }) {
   if (appt.status === 'CANCELLED') return null
   const paid = appt.status === 'COMPLETED' && !!appt.commandId
@@ -34,6 +40,7 @@ export default function AppointmentBlock({ appointment, onClick, heightPx }: App
   const style = CARD_STYLES[appointment.status] ?? DEFAULT_STYLE
   const compact = heightPx < 56
   const cancelled = appointment.status === 'CANCELLED'
+  const paymentLabel = !compact ? getPaymentLabel(appointment) : null
 
   return (
     <button
@@ -76,6 +83,11 @@ export default function AppointmentBlock({ appointment, onClick, heightPx }: App
       {!compact && (
         <p style={{ fontSize: 10, color: style.subtext, margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {appointment.service}{appointment.amount > 0 ? ` · R$ ${appointment.amount}` : ''}
+        </p>
+      )}
+      {paymentLabel && (
+        <p style={{ fontSize: 9, margin: '2px 0 0', color: paymentLabel === 'Pago' ? '#15803D' : '#92400E', fontWeight: 500 }}>
+          {paymentLabel}
         </p>
       )}
     </button>

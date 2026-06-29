@@ -874,3 +874,10 @@ d48f169 — style(servicos): impeccable 20/20
 - FIX 3: `getRealAvailability` retorna `folga` quando dia não está em `workDays`
 - FIX 4: `day-timeline` mostra badge "Folga" no header e cells hachuradas para profs de folga
 - FIX 5: sem duplicata — `tableTitle` dinâmico já era o único título
+
+---
+
+### [2026-06-28] AGENT_AGENDA — Cards vista dia: procedimento + pagamento
+**Status:** ✅ Concluído
+**Arquivos alterados:** `apps/web/src/components/agenda/appointment-block.tsx`
+**Fixes:** nome do procedimento já existia; adicionado label "Pago" / "Pgto pendente" em texto no card (visível apenas em cards não-compact)

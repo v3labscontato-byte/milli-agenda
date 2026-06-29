@@ -885,3 +885,21 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-28] AGENT_AGENDA — Fix agendamentos sobrepostos na vista dia
 **Status:** ✅ Concluído
 **Fix:** coveredSlots para de marcar quando outro agendamento começa no slot; activeAppts usa filter em vez de find; agendamentos sobrepostos renderizam lado a lado com flex; rowspan limitado pelo próximo agendamento do mesmo profissional
+
+---
+## MÓDULO AGENDA — CONCLUÍDO [2026-06-28]
+
+### Funcionalidades entregues
+- Vista Semana: grade profissional × dia, disponibilidade, folga, tooltip hover
+- Vista Dia: timeline por profissional, cards coloridos, simultâneos lado a lado
+- Criar/Reagendar/Confirmar/Cancelar/Finalizar agendamentos
+- Comanda integrada ao backend (PaymentModal completo)
+- Tabela Agenda de Hoje com filtros e ações
+- Bloqueio de agenda por profissional
+- Legenda de status e pagamento
+
+### Arquivos principais modificados
+- weekly-overview.tsx, day-timeline.tsx, appointment-modal.tsx
+- novo-agendamento-modal.tsx, agenda-table.tsx
+- use-agenda.ts, calendar-utils.ts, api/agenda.ts
+- agenda/page.tsx

@@ -1204,3 +1204,28 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [2026-06-29] AGENT_COMANDAS — Fix Content-Type + itens extras na agenda-table
 **Status:** Concluido
 **Fixes:** Content-Type adicionado no close() de agenda-table e appointment-modal; itens extras e desconto adicionados ao fluxo de pagamento da agenda-table
+
+---
+
+### [2026-06-29] AGENT_COMANDAS — Fixes definitivos fluxo de comanda
+**Status:** ✅ Concluído  
+**Arquivos alterados:**
+- `apps/api/Dockerfile` — CMD agora roda `prisma migrate deploy` antes de `node dist/main`
+- `apps/web/src/components/shared/add-item-modal.tsx` — reescrito: aba Serviços busca `GET /services` real (inclui `serviceId` em cada item)
+- `apps/web/src/components/shared/payment-modal.tsx` — `PaymentResult` ganha `discountAbsolute: number` (valor absoluto calculado no modal); `onAdd` passa `serviceId`
+- `apps/web/src/components/agenda/appointment-modal.tsx` — usa `result.discountAbsolute`; close() em try/catch (PATCH COMPLETED sempre roda)
+- `apps/web/src/app/(dashboard)/agenda/page.tsx` — mesmas correções do appointment-modal
+- `apps/web/src/components/agenda-table.tsx` — mesmas correções do appointment-modal
+- `apps/web/src/app/layout.tsx` — comentário de build forçando rebuild Next.js
+
+**O que foi feito:**
+1. Dockerfile: auto-migra banco no boot do container Railway
+2. AddItemModal: catálogo de serviços agora vem da API real (serviceId correto para POST /items)
+3. PaymentResult.discountAbsolute: elimina bug do desconto percentual (antes usava `result.total` já descontado)
+4. close() resiliente: try/catch garante que PATCH COMPLETED roda mesmo se close() falhar
+
+**Problemas encontrados:**  
+Close() ainda pode retornar 500 se migration não foi aplicada no banco Railway — corrida com Frente 2 (rodar `prisma migrate deploy` com DATABASE_URL do Railway manualmente)
+
+**Próximo passo sugerido:**  
+Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma`

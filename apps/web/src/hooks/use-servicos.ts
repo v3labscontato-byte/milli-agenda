@@ -4,7 +4,7 @@ import { FEATURES } from '@/lib/features'
 import { servicosApi } from '@/lib/api/servicos'
 import { MOCK_SERVICOS, type Servico } from '@/lib/servicos-mock'
 
-// Backend Service shape (Prisma model `services` with included category)
+// Backend Service shape (Prisma model `services` with included category + metrics)
 interface ApiService {
   id: string
   name: string
@@ -14,10 +14,12 @@ interface ApiService {
   active: boolean
   categoryId?: string | null
   category?: { id: string; name: string } | null
+  metrics?: { agendMes: number; fatMes: number }
 }
 
 function mapService(api: ApiService): Servico {
   const cat = api.category ?? null
+  const m = api.metrics ?? { agendMes: 0, fatMes: 0 }
   return {
     id: api.id,
     name: api.name,
@@ -28,9 +30,9 @@ function mapService(api: ApiService): Servico {
     status: api.active ? 'active' : 'inactive',
     professionals: [],
     photos: [],
-    bookingsThisMonth: 0,
+    bookingsThisMonth: m.agendMes,
     bookingsTotal: 0,
-    revenueThisMonth: 0,
+    revenueThisMonth: m.fatMes,
     revenueTotal: 0,
     monthlyData: [],
   }

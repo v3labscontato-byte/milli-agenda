@@ -1008,3 +1008,7 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 ### [$(date +%Y-%m-%d)] AGENT_SERVICOS — Métricas mensais nos serviços
 **Status:** ✅ Concluído
 **Fixes:** backend calcula agendMes e fatMes, frontend mapeia e exibe na tabela
+
+### [2026-06-29] AGENT_SERVICOS � Metricas mensais nos servicos
+**Status:** Concluido
+**Fixes:** backend calcula agendMes e fatMes por servico no mes atual, frontend mapeia para bookingsThisMonth e revenueThisMonth (ja usados na tabela)

@@ -6,14 +6,37 @@ import { CreateServicoDto } from './dto/create-servico.dto'
 export class ServicosService {
   constructor(private readonly db: DatabaseService) {}
 
-  findAll(tenantId: string) {
-    return this.db.service.findMany({
+  async findAll(tenantId: string) {
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+    const services = await this.db.service.findMany({
       where: { tenantId },
       orderBy: { name: 'asc' },
-      include: {
-        category: { select: { id: true, name: true } },
-      },
+      include: { category: { select: { id: true, name: true } } },
     })
+
+    return Promise.all(
+      services.map(async (service) => {
+        const monthAppts = await this.db.appointment.findMany({
+          where: {
+            tenantId,
+            serviceId: service.id,
+            status: { in: ['SCHEDULED', 'CONFIRMED', 'COMPLETED'] },
+            startAt: { gte: startOfMonth, lte: endOfMonth },
+          },
+        })
+        const completedMonth = monthAppts.filter(a => a.status === 'COMPLETED')
+        return {
+          ...service,
+          metrics: {
+            agendMes: monthAppts.length,
+            fatMes: completedMonth.length * Number(service.price),
+          },
+        }
+      })
+    )
   }
 
   async findOne(tenantId: string, id: string) {

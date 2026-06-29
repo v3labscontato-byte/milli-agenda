@@ -923,3 +923,7 @@ d48f169 — style(servicos): impeccable 20/20
 ### [2026-06-29] AGENT_COMANDAS — Linkar comanda ao agendamento
 **Status:** ✅ Concluído
 **Fixes:** appointmentId no DTO, linkar appointment.commandId no service, enviar appointmentId do frontend (appointment-modal + agenda-table)
+
+### [2026-06-29] AGENT_COMANDAS — Fix valor + status + refetch
+**Status:** ✅ Concluído
+**Fixes:** totalAmount calculado dos pagamentos em close(), refetch já funcionava (tick/setTick OK)

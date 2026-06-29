@@ -101,9 +101,16 @@ export class ComandasService {
     if (cmd.status !== CommandStatus.OPEN && cmd.status !== CommandStatus.IN_PROGRESS) {
       throw new BadRequestException('Command cannot be closed')
     }
+    const payments = await this.db.payment.findMany({ where: { commandId: id } })
+    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0)
     return this.db.command.update({
       where: { id },
-      data: { status: CommandStatus.CLOSED, closedAt: new Date() },
+      data: {
+        status: CommandStatus.CLOSED,
+        closedAt: new Date(),
+        totalAmount: totalPaid,
+        finalAmount: totalPaid,
+      },
     })
   }
 

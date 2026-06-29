@@ -1088,3 +1088,23 @@ Filtro de servi�os ativos adicionado em TabServicos: interface RawService agora 
 - 4 chart components recebem `{ from?, to? }` props e repassam aos hooks
 - `dashboard/page.tsx`: seletor 7d/30d/90d/Mês — `periodoToRange()` calcula range → passa para todos os gráficos
 - TSC: 0 erros
+
+---
+
+## 2026-06-29 — Fix fluxo de pagamento na vista dia
+
+**Branch:** homolog  
+**Arquivo:** `apps/web/src/app/(dashboard)/agenda/page.tsx`
+
+### O que foi feito
+- `onConfirm` do `PaymentModal` na vista dia executava apenas `setDayPaymentAppt(null)` (stub)
+- Adicionado `METHOD_MAP` (mapeamento de método de pagamento → enum do backend)
+- Adicionado `handleDayPaymentConfirm` com fluxo completo:
+  1. POST `/commands` se não houver `commandId`
+  2. POST `/commands/:id/discount` se houver desconto
+  3. POST `/payments` para cada método
+  4. POST `/commands/:id/close`
+  5. PATCH `/appointments/:id` → `{ status: 'COMPLETED' }`
+  6. `setDayPaymentAppt(null)` + `handleCreated()`
+- `agenda-table.tsx` já tinha o fluxo correto (não alterado)
+- TSC: 0 erros

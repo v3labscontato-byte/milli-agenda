@@ -25,6 +25,11 @@ import type { PaymentResult } from '@/components/shared/payment-modal'
 
 const PROF_PALETTE = ['#7C3AED', '#2563EB', '#DB2777', '#059669', '#D97706', '#0891B2', '#DC2626']
 
+const METHOD_MAP: Record<string, string> = {
+  pix: 'PIX', dinheiro: 'CASH', debito: 'DEBIT_CARD',
+  credito: 'CREDIT_CARD', voucher: 'VOUCHER', transferencia: 'BANK_TRANSFER',
+}
+
 function toCalendarProfessional(p: { id: string; name: string; role: string; workDays?: number[] }, idx: number): CalendarProfessional {
   const words = p.name.trim().split(/\s+/)
   const initials = words.length >= 2
@@ -137,6 +142,56 @@ export default function AgendaPage() {
   const tableDate = toDateString(selectedDate)
   const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
   const tableTitle = `Agenda ${format(selectedDate, 'dd/MM')}`
+
+  async function handleDayPaymentConfirm(result: PaymentResult) {
+    if (!dayPaymentAppt) return
+    const token = localStorage.getItem('accessToken')
+    const base = process.env.NEXT_PUBLIC_API_URL
+    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+
+    let commandId = dayPaymentAppt.commandId
+    if (!commandId) {
+      const cmdRes = await fetch(`${base}/api/v1/commands`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ clientId: dayPaymentAppt.clientId, appointmentId: dayPaymentAppt.id }),
+      })
+      const cmd = await cmdRes.json() as { data?: { id?: string } }
+      commandId = cmd.data?.id
+    }
+    if (!commandId) return
+
+    const discountAmt = result.discount
+      ? result.discount.type === 'percent'
+        ? (result.total * result.discount.value) / 100
+        : result.discount.value
+      : 0
+    if (discountAmt > 0) {
+      await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ amount: discountAmt }),
+      })
+    }
+
+    for (const m of result.methods ?? []) {
+      await fetch(`${base}/api/v1/payments`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          commandId,
+          method: METHOD_MAP[m.method] ?? m.method.toUpperCase(),
+          amount: m.amount,
+        }),
+      })
+    }
+
+    await fetch(`${base}/api/v1/commands/${commandId}/close`, { method: 'POST', headers })
+    await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ status: 'COMPLETED' }),
+    })
+
+    setDayPaymentAppt(null)
+    handleCreated()
+  }
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
@@ -301,7 +356,7 @@ export default function AgendaPage() {
             loading={false}
             isCompleted
             onClose={() => setDayPaymentAppt(null)}
-            onConfirm={(_result: PaymentResult) => setDayPaymentAppt(null)}
+            onConfirm={handleDayPaymentConfirm}
             onReopen={async () => {
               const token = localStorage.getItem('accessToken')
               const base = process.env.NEXT_PUBLIC_API_URL

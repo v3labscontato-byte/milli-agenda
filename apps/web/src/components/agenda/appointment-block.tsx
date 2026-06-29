@@ -15,7 +15,7 @@ const DEFAULT_STYLE = { bg: '#F8FAFC', border: '#E2E8F0', accent: '#94A3B8', tex
 
 function getPaymentLabel(appt: CalendarAppointment): string | null {
   if (appt.status === 'CANCELLED') return null
-  if (appt.status === 'COMPLETED' && appt.commandId) return 'Pago'
+  if (appt.status === 'COMPLETED') return 'Pago'
   return 'Pgto pendente'
 }
 

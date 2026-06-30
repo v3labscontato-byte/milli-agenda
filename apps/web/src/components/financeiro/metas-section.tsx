@@ -155,7 +155,7 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
               id="mm-diario"
               type="number"
               min="1"
-              step="50"
+              step="1"
               required
               autoFocus
               placeholder="Ex.: 1.000"

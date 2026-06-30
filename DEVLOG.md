@@ -1821,3 +1821,27 @@ for (const item of removedItems) {
 
 #### Pendente (fora do escopo desta sessão)
 - Plano de Contas → requer novo modelo Prisma (Expense/ChartOfAccount) + migration
+
+---
+
+## [30/06/2026] fix(metas): remove botão duplicado e redesenha criação de meta
+
+### Contexto
+Sessão anterior criou `apps/web/DEVLOG.md` por engano (cwd errado). Módulo de Metas tinha
+dois botões "Nova Meta" — um em `financeiro/page.tsx` (abria `SmartFormMeta`) e outro dentro
+de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica desconectada:
+`SmartFormMeta` salvava na API mas não recarregava a lista de metas.
+
+### Mudanças
+- `git rm apps/web/DEVLOG.md` — arquivo espúrio removido
+- `financeiro/page.tsx`: removido botão externo "+ Nova Meta", `metaOpen` state e import de
+  `SmartFormMeta`. Aba Metas agora renderiza apenas `<MetasSection />`.
+- `metas-section.tsx`: `MetaModal` redesenhado — usuário informa apenas **meta diária (R$)**
+  + **mês de referência**. O modal calcula e exibe prévia de semanal (×7) e mensal (×dias do
+  mês) em tempo real. Salva como `tipo='mensal'` com `valor = diária × dias do mês`.
+  Modo de edição faz reverse-calc: `diária = meta / dias`.
+
+### Resultado
+- `npx tsc --noEmit` → 0 erros
+- Botão duplicado eliminado
+- UX simplificada: 1 campo de entrada → 3 projeções automáticas com prévia

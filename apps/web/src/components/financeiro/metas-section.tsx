@@ -63,8 +63,7 @@ function StatusChip({ pct }: { pct: number }) {
 
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 
-type MetaTipo = 'diaria' | 'semanal' | 'mensal'
-const TIPO_LABELS: Record<MetaTipo, string> = { diaria: 'Diária', semanal: 'Semanal', mensal: 'Mensal' }
+type MetaTipo = 'mensal'
 
 interface ModalProps {
   open: boolean
@@ -74,29 +73,47 @@ interface ModalProps {
   onSave: (mesKey: string, valor: number, tipo: MetaTipo) => void
 }
 
+function diasDoMes(mesKey: string): number {
+  const [mes, ano] = mesKey.split('-')
+  const year = 2000 + Number(ano)
+  const month = MONTH_NUM[mes] ?? 0
+  return new Date(year, month + 1, 0).getDate()
+}
+
 function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
   const editing = editingKey ? (metas.find((m) => m.mesKey === editingKey) ?? null) : null
-  const [tipo, setTipo]     = useState<MetaTipo>('mensal')
-  const [mesKey, setMesKey] = useState<string>(CURRENT_MONTH)
-  const [valor, setValor]   = useState('')
+  const [mesKey, setMesKey]           = useState<string>(CURRENT_MONTH)
+  const [valorDiario, setValorDiario] = useState('')
+
+  const dias         = useMemo(() => diasDoMes(mesKey), [mesKey])
+  const vDiario      = Number(valorDiario) || 0
+  const vSemanal     = vDiario ? Math.round(vDiario * 7) : 0
+  const vMensal      = vDiario ? Math.round(vDiario * dias) : 0
+  const mesLabel     = MONTHS.find((m) => m.key === mesKey)?.label ?? mesKey
 
   useEffect(() => {
-    if (editing) { setTipo('mensal'); setMesKey(editing.mesKey); setValor(String(editing.meta)) }
-    else         { setTipo('mensal'); setMesKey(CURRENT_MONTH);  setValor('') }
+    if (editing) {
+      setMesKey(editing.mesKey)
+      setValorDiario(String(Math.round(editing.meta / diasDoMes(editing.mesKey))))
+    } else {
+      setMesKey(CURRENT_MONTH)
+      setValorDiario('')
+    }
   }, [open, editingKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!open) return null
 
   const title = editing ? `Editar Meta — ${editing.mes}` : 'Nova Meta'
-  const INPUT = cn('w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
-    'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE] placeholder:text-[#64748B]')
+  const INPUT = cn(
+    'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
+    'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE] placeholder:text-[#64748B]',
+  )
   const LABEL = 'block text-[12px] font-medium text-[#475569]'
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const v = Number(valor)
-    if (!v) return
-    onSave(mesKey, v, tipo)
+    if (!vMensal) return
+    onSave(mesKey, vMensal, 'mensal')
     onClose()
   }
 
@@ -104,6 +121,8 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
       <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
+
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
@@ -116,20 +135,10 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
             <X size={16} aria-hidden="true" />
           </button>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
-          <div className="space-y-2">
-            <span className={LABEL}>Tipo de meta</span>
-            <div className="flex gap-2" role="radiogroup" aria-label="Tipo">
-              {(['diaria','semanal','mensal'] as const).map((t) => (
-                <button key={t} type="button" role="radio" aria-checked={tipo === t} onClick={() => setTipo(t)}
-                  className={cn('flex-1 rounded-md border py-2 text-[12px] font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
-                    tipo === t ? 'border-[#2563EB] bg-[#2563EB] text-white' : 'border-[#E2E8F0] text-[#475569] hover:border-[#2563EB] hover:text-[#2563EB]')}>
-                  {TIPO_LABELS[t]}
-                </button>
-              ))}
-            </div>
-          </div>
+
+          {/* Mês */}
           <div className="space-y-1.5">
             <label htmlFor="mm-mes" className={LABEL}>Mês de referência</label>
             <select id="mm-mes" value={mesKey} onChange={(e) => setMesKey(e.target.value)}
@@ -138,18 +147,55 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
               {MONTHS.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
             </select>
           </div>
+
+          {/* Meta diária */}
           <div className="space-y-1.5">
-            <label htmlFor="mm-valor" className={LABEL}>Valor da meta (R$)</label>
-            <input id="mm-valor" type="number" min="1" step="100" required placeholder="Ex.: 15000"
-              value={valor} onChange={(e) => setValor(e.target.value)} className={INPUT} />
+            <label htmlFor="mm-diario" className={LABEL}>Meta diária (R$)</label>
+            <input
+              id="mm-diario"
+              type="number"
+              min="1"
+              step="50"
+              required
+              autoFocus
+              placeholder="Ex.: 1.000"
+              value={valorDiario}
+              onChange={(e) => setValorDiario(e.target.value)}
+              className={INPUT}
+            />
           </div>
+
+          {/* Preview */}
+          {vDiario > 0 && (
+            <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 space-y-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#64748B]">Prévia — {mesLabel}</p>
+              <div className="space-y-1.5">
+                {([
+                  { label: 'Diária',  value: vDiario,  note: 'base'                    },
+                  { label: 'Semanal', value: vSemanal,  note: '× 7 dias'               },
+                  { label: 'Mensal',  value: vMensal,   note: `× ${dias} dias`         },
+                ] as const).map(({ label, value, note }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-[12px] text-[#475569]">
+                      {label} <span className="text-[#94A3B8]">({note})</span>
+                    </span>
+                    <span className="font-tabular text-[13px] font-semibold text-[#0F172A]">
+                      {fmtBRL(value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
           <div className="flex gap-2.5 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 rounded-md border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
               Cancelar
             </button>
-            <button type="submit"
-              className="flex-1 rounded-md bg-[#2563EB] py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+            <button type="submit" disabled={!vMensal}
+              className="flex-1 rounded-md bg-[#2563EB] py-2 text-[13px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
               Salvar Meta ✓
             </button>
           </div>

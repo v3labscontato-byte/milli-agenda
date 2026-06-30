@@ -1845,3 +1845,20 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 - `npx tsc --noEmit` → 0 erros
 - Botão duplicado eliminado
 - UX simplificada: 1 campo de entrada → 3 projeções automáticas com prévia
+
+---
+
+## [30/06/2026] fix(metas): step=1 no input diário + validação Playwright completa
+
+### Fix
+- `step="50"` com `min="1"` bloqueava valores como 1000 (validação nativa do browser
+  aceita apenas 1, 51, 101, ..., 951, 1001). Corrigido para `step="1"`.
+
+### Validação Playwright (homolog)
+- PASSO 0 ✅ — `apps/web/DEVLOG.md` espúrio removido (git rm)
+- PASSO 2 ✅ — botão duplicado eliminado; apenas 1 "Nova Meta" no tab Metas
+- PASSO 3 ✅ — novo modal validado end-to-end:
+  - Criação: R$ 1.000/dia → prévia R$ 7.000/sem, R$ 30.000/mês → POST 201
+  - Tabela exibe Jun/26, R$ 30.000, 12% atingido, "Abaixo da meta"
+  - Edição: reverse-calc correto (30.000 ÷ 30 = 1.000), mês desabilitado
+  - Exclusão: confirmação inline → DELETE 200 → tabela vazia

@@ -145,7 +145,7 @@ export default function FinanceiroKpiStrip({ kpis }: FinanceiroKpiStripProps) {
           diasRestantes={daysToMonthEnd}
         />
         <KpiCard label="A Receber"        value={fmtBRL(kpis.aReceber)}       sub={`${kpis.pendingCount} pendentes`} />
-        <KpiCard label="Taxa Recebimento" value={`${kpis.taxaRecebimento}%`}  sub={`Meta: ${kpis.taxaMeta}%`} trend={`vs ${kpis.taxaMeta}% meta`} trendUp={kpis.taxaTrendUp} />
+        <KpiCard label="Taxa Recebimento" value={`${kpis.taxaRecebimento}%`}  sub={kpis.taxaMeta > 0 ? `Meta: ${kpis.taxaMeta}%` : 'recebido / total'} trend={kpis.taxaMeta > 0 ? `vs ${kpis.taxaMeta}% meta` : undefined} trendUp={kpis.taxaTrendUp} />
         <KpiCard label="Ticket Médio"     value={fmtBRL(kpis.ticketMedio)}    trend={kpis.ticketTrend} trendUp={kpis.ticketTrendUp} />
       </div>
     </div>

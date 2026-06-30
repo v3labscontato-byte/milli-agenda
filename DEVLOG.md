@@ -2072,3 +2072,6 @@ tsc: 0 erros (frontend e backend). Push: `homolog`.
 
 ### Status
 tsc: 0 erros. Push: `homolog`.
+
+**Fix adicional — Taxa Recebimento "Meta: 0%":**
+- `financeiro-kpi-strip.tsx`: card Taxa Recebimento renderizava `sub="Meta: 0%"` e `trend="vs 0% meta"` porque `taxaMeta` é sempre `0` quando não há meta configurada. Fix: quando `taxaMeta === 0`, `sub` mostra `"recebido / total"` e `trend` fica `undefined` (oculto pelo KpiCard).

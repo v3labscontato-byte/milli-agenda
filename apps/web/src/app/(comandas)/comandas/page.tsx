@@ -112,12 +112,19 @@ export default function ComandasPage() {
       }
       if (!commandId) throw new Error('Comanda não criada')
 
-      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
+      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
       for (const item of extraItems) {
-        await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+        const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST', headers,
-          body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
+          body: JSON.stringify({
+            ...(item.productId ? { productId: item.productId } : { serviceId: item.serviceId }),
+            quantity: item.quantity,
+          }),
         })
+        if (!itemRes.ok) {
+          const err = await itemRes.json() as { message?: string }
+          throw new Error(err.message ?? 'Erro ao adicionar item')
+        }
       }
 
       const discountAmt = result.discountAbsolute ?? 0
@@ -156,6 +163,7 @@ export default function ComandasPage() {
       refetch()
     } catch (e) {
       console.error('[comandas] pagamento:', e)
+      if (e instanceof Error) alert(e.message)
     } finally {
       setPaymentLoading(false)
       setPaymentAppt(null)

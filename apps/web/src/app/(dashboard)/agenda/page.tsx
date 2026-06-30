@@ -163,12 +163,24 @@ export default function AgendaPage() {
     const commandId = cmd.data?.id
     if (!commandId) return
 
-    const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
+    const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
     for (const item of extraItems) {
-      await fetch(`${base}/api/v1/commands/${commandId}/items`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ serviceId: item.serviceId, quantity: item.quantity }),
-      })
+      try {
+        const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
+          method: 'POST', headers,
+          body: JSON.stringify({
+            ...(item.productId ? { productId: item.productId } : { serviceId: item.serviceId }),
+            quantity: item.quantity,
+          }),
+        })
+        if (!itemRes.ok) {
+          const err = await itemRes.json() as { message?: string }
+          alert(err.message ?? 'Erro ao adicionar item')
+        }
+      } catch (e) {
+        console.error('[agenda] addItem:', e)
+        if (e instanceof Error) alert(e.message)
+      }
     }
 
     const discountAmt = result.discountAbsolute ?? 0

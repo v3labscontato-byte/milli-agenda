@@ -8,22 +8,19 @@ import type { ComandaItem, ItemCategory } from '@/lib/comanda-mock'
 
 type Tab = 'service' | 'product' | 'fee' | 'adjustment'
 
-interface CatalogEntry { serviceId?: string; name: string; unitPrice: number }
-
-const CATALOG: Record<'product' | 'fee', CatalogEntry[]> = {
-  product: [
-    { name: 'Shampoo Hidratante',  unitPrice: 35 },
-    { name: 'Máscara Capilar',     unitPrice: 55 },
-    { name: 'Óleo de Argan',       unitPrice: 45 },
-    { name: 'Creme de Pentear',    unitPrice: 28 },
-    { name: 'Leave-in',            unitPrice: 32 },
-  ],
-  fee: [
-    { name: 'Gorjeta',      unitPrice: 10 },
-    { name: 'Taxa Cartão',  unitPrice: 5  },
-    { name: 'Taxa Entrega', unitPrice: 8  },
-  ],
+interface CatalogEntry {
+  serviceId?: string
+  productId?: string
+  name: string
+  unitPrice: number
+  stock?: number
 }
+
+const FEE_CATALOG: CatalogEntry[] = [
+  { name: 'Gorjeta',      unitPrice: 10 },
+  { name: 'Taxa Cartão',  unitPrice: 5  },
+  { name: 'Taxa Entrega', unitPrice: 8  },
+]
 
 const TAB_LABELS: Record<Tab, string> = {
   service:    'Serviços',
@@ -37,7 +34,7 @@ const TABS: Tab[] = ['service', 'product', 'fee', 'adjustment']
 export interface AddItemModalProps {
   open: boolean
   onClose: () => void
-  onAdd: (item: Omit<ComandaItem, 'id'> & { serviceId?: string }) => void
+  onAdd: (item: Omit<ComandaItem, 'id'> & { serviceId?: string; productId?: string }) => void
 }
 
 export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps) {
@@ -49,15 +46,19 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
   const [adjName, setAdjName]                 = useState('')
   const [adjPrice, setAdjPrice]               = useState('')
   const [apiServices, setApiServices]         = useState<CatalogEntry[]>([])
+  const [apiProducts, setApiProducts]         = useState<CatalogEntry[]>([])
   const [loadingServices, setLoadingServices] = useState(false)
+  const [loadingProducts, setLoadingProducts] = useState(false)
 
   useEffect(() => {
     if (!open) return
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
     if (!token) return
     const base = process.env.NEXT_PUBLIC_API_URL
+    const headers = { Authorization: `Bearer ${token}` }
+
     setLoadingServices(true)
-    fetch(`${base}/api/v1/services`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${base}/api/v1/services`, { headers })
       .then((r) => r.json())
       .then((res: { data?: { id?: string; name?: string; price?: number | string }[] }) => {
         setApiServices(
@@ -70,6 +71,22 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
       })
       .catch(() => {})
       .finally(() => setLoadingServices(false))
+
+    setLoadingProducts(true)
+    fetch(`${base}/api/v1/products?onlyActive=true`, { headers })
+      .then((r) => r.json())
+      .then((res: { data?: { id?: string; name?: string; price?: number | string; stockQuantity?: number }[] }) => {
+        setApiProducts(
+          (res.data ?? []).map((p) => ({
+            productId: String(p.id ?? ''),
+            name:      String(p.name ?? ''),
+            unitPrice: Number(p.price ?? 0),
+            stock:     Number(p.stockQuantity ?? 0),
+          }))
+        )
+      })
+      .catch(() => {})
+      .finally(() => setLoadingProducts(false))
   }, [open])
 
   useEffect(() => {
@@ -91,6 +108,7 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
   if (!open) return null
 
   function handleSelectEntry(entry: CatalogEntry) {
+    if (tab === 'product' && (entry.stock ?? 1) === 0) return
     setSelected(entry)
     setPrice(String(entry.unitPrice))
   }
@@ -104,18 +122,28 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
       if (!selected) return
       const qty  = Math.max(1, parseInt(quantity) || 1)
       const unit = parseFloat(price) || selected.unitPrice
-      onAdd({ serviceId: selected.serviceId, name: selected.name, category: tab as ItemCategory, quantity: qty, unitPrice: unit })
+      onAdd({
+        serviceId: selected.serviceId,
+        productId: selected.productId,
+        name: selected.name,
+        category: tab as ItemCategory,
+        quantity: qty,
+        unitPrice: unit,
+      })
     }
     onClose()
   }
 
   const catalog: CatalogEntry[] =
-    tab === 'service' ? apiServices :
-    tab !== 'adjustment' ? (CATALOG[tab as 'product' | 'fee'] ?? []) : []
+    tab === 'service'    ? apiServices :
+    tab === 'product'    ? apiProducts :
+    tab === 'fee'        ? FEE_CATALOG :
+    []
 
-  const q       = search.trim().toLowerCase()
-  const entries = q ? catalog.filter((e) => e.name.toLowerCase().includes(q)) : catalog
-  const canAdd  = tab === 'adjustment'
+  const q        = search.trim().toLowerCase()
+  const entries  = q ? catalog.filter((e) => e.name.toLowerCase().includes(q)) : catalog
+  const loading  = (tab === 'service' && loadingServices) || (tab === 'product' && loadingProducts)
+  const canAdd   = tab === 'adjustment'
     ? adjName.trim().length > 0 && !isNaN(parseFloat(adjPrice))
     : selected !== null
 
@@ -174,9 +202,9 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
                 </div>
               </div>
 
-              {tab === 'service' && loadingServices ? (
+              {loading ? (
                 <div className="flex items-center justify-center py-8 text-[13px] text-[#94A3B8]">
-                  Carregando serviços…
+                  Carregando…
                 </div>
               ) : (
                 <ul className="divide-y divide-[#F1F5F9]">
@@ -186,11 +214,34 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
                     </li>
                   )}
                   {entries.map((entry) => {
-                    const isSel = selected?.name === entry.name
+                    const isSel     = selected?.name === entry.name
+                    const outOfStock = tab === 'product' && (entry.stock ?? 1) === 0
                     return (
-                      <li key={entry.serviceId ?? entry.name}>
-                        <button type="button" onClick={() => handleSelectEntry(entry)} className={cn('flex w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]', isSel && 'bg-[#EFF6FF]')}>
-                          <span className={cn('text-[13px]', isSel ? 'font-semibold text-[#2563EB]' : 'text-[#0F172A]')}>{entry.name}</span>
+                      <li key={entry.productId ?? entry.serviceId ?? entry.name}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectEntry(entry)}
+                          disabled={outOfStock}
+                          className={cn(
+                            'flex w-full items-center justify-between px-5 py-3 text-left transition-colors',
+                            'focus-visible:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
+                            outOfStock
+                              ? 'cursor-not-allowed opacity-40'
+                              : isSel
+                                ? 'bg-[#EFF6FF] hover:bg-[#EFF6FF]'
+                                : 'hover:bg-[#F8FAFC]',
+                          )}
+                        >
+                          <div className="flex flex-col">
+                            <span className={cn('text-[13px]', isSel ? 'font-semibold text-[#2563EB]' : 'text-[#0F172A]')}>
+                              {entry.name}
+                            </span>
+                            {tab === 'product' && (
+                              <span className={cn('text-[11px]', (entry.stock ?? 0) === 0 ? 'text-[#DC2626]' : 'text-[#64748B]')}>
+                                {(entry.stock ?? 0) === 0 ? 'Sem estoque' : `${entry.stock} em estoque`}
+                              </span>
+                            )}
+                          </div>
                           <span className="font-tabular text-[13px] text-[#475569]">{formatBRL(entry.unitPrice)}</span>
                         </button>
                       </li>

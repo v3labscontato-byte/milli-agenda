@@ -29,7 +29,7 @@ interface MethodConfig {
 
 interface PaymentEntry { id: string; method: PaymentMethodId; amount: string; installments: number }
 
-export interface PaymentItem { serviceId?: string; name: string; quantity: number; unitPrice: number }
+export interface PaymentItem { serviceId?: string; productId?: string; name: string; quantity: number; unitPrice: number }
 
 export interface PaymentResult {
   methods: Array<{ method: string; amount: number; installments: number }>
@@ -37,7 +37,7 @@ export interface PaymentResult {
   discountAbsolute: number
   total: number
   change: number
-  items: Array<{ serviceId: string; name: string; quantity: number; unitPrice: number }>
+  items: Array<{ serviceId?: string; productId?: string; name: string; quantity: number; unitPrice: number }>
 }
 
 export interface PaymentModalProps {
@@ -221,7 +221,7 @@ export default function PaymentModal({
       methods: entries.map((e) => ({ method: e.method, amount: parseFloat(e.amount) || 0, installments: e.installments })),
       discount: appliedDiscount, discountAbsolute: appliedDiscountAmt,
       total: totalDue, change: Math.max(0, totalPaid - totalDue),
-      items: localItems.map((i) => ({ serviceId: i.serviceId ?? '', name: i.name, quantity: i.quantity, unitPrice: i.unitPrice })),
+      items: localItems.map((i) => ({ serviceId: i.serviceId, productId: i.productId, name: i.name, quantity: i.quantity, unitPrice: i.unitPrice })),
     })
   }
 
@@ -586,7 +586,7 @@ export default function PaymentModal({
         open={addItemOpen}
         onClose={() => setAddItemOpen(false)}
         onAdd={(item) => {
-          setLocalItems((prev) => [...prev, withKey({ serviceId: item.serviceId, name: item.name, quantity: item.quantity, unitPrice: item.unitPrice })])
+          setLocalItems((prev) => [...prev, withKey({ serviceId: item.serviceId, productId: item.productId, name: item.name, quantity: item.quantity, unitPrice: item.unitPrice })])
           setAddItemOpen(false)
         }}
       />

@@ -35,3 +35,27 @@
   - Chips de classificação com shadow dupla no estado ativo
 - tsc --noEmit: 0 erros
 - Lógica de negócio, hooks, API e validações intocados
+
+## [2026-06-30] CLAUDE — feat(comandas): Onda E — integração Produto↔Comanda com baixa automática de estoque
+**Status:** Concluído
+**Fecha:** causa raiz do bug original (itens extras descartados por falta de productId real)
+
+**Backend alterado:**
+- apps/api/src/modules/comandas/dto/add-item.dto.ts: serviceId e productId opcionais com validação mutuamente exclusiva (ValidateIf)
+- apps/api/src/modules/comandas/comandas.module.ts: importa ProdutosModule
+- apps/api/src/modules/comandas/comandas.service.ts:
+  - Constructor injeta ProdutosService
+  - addItem(): aceita productId com validação de estoque + decremento via adjustStock(-qty)
+  - removeItem(): devolve estoque se item tiver productId (adjustStock(+qty))
+  - cancel(): devolve estoque de todos os items com productId
+  - findAll()/findOne(): include product:true nos items
+
+**Frontend alterado:**
+- apps/web/src/components/shared/add-item-modal.tsx: aba Produtos busca GET /products real, exibe estoque, desabilita sem estoque, catálogo hardcoded removido, productId propagado via onAdd
+- apps/web/src/components/shared/payment-modal.tsx: PaymentItem e PaymentResult incluem productId, localItems propaga productId
+- apps/web/src/app/(comandas)/comandas/page.tsx: filtro extraItems aceita !!productId, body envia productId quando aplicável, erro de estoque exibido via alert
+- apps/web/src/app/(dashboard)/agenda/page.tsx: idem
+- apps/web/src/components/agenda-table.tsx: idem
+- apps/web/src/components/agenda/appointment-modal.tsx: idem
+
+**tsc --noEmit: 0 erros (frontend e backend)**

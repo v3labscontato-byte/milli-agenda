@@ -1,8 +1,13 @@
-import { IsString, IsInt, IsNumber, IsOptional, Min } from 'class-validator'
+import { IsString, IsInt, IsNumber, IsOptional, Min, ValidateIf } from 'class-validator'
 
 export class AddItemDto {
+  @ValidateIf((o) => !o.productId)
   @IsString()
-  serviceId: string
+  serviceId?: string
+
+  @ValidateIf((o) => !o.serviceId)
+  @IsString()
+  productId?: string
 
   @IsInt()
   @Min(1)

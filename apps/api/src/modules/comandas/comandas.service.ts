@@ -4,12 +4,16 @@ import { calcCommandTotals } from '@milli/business-rules'
 import { CommandStatus } from '@milli/shared-types'
 import { CreateComandaDto } from './dto/create-comanda.dto'
 import { AddItemDto } from './dto/add-item.dto'
+import { ProdutosService } from '../produtos/produtos.service'
 
 type FindAllFilters = { status?: string; clientId?: string }
 
 @Injectable()
 export class ComandasService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly produtosService: ProdutosService,
+  ) {}
 
   findAll(tenantId: string, filters: FindAllFilters = {}) {
     return this.db.command.findMany({
@@ -20,7 +24,12 @@ export class ComandasService {
       },
       include: {
         client: true,
-        items: { include: { service: { select: { name: true } } } },
+        items: {
+          include: {
+            service: { select: { name: true } },
+            product: { select: { name: true } },
+          },
+        },
         appointments: {
           include: {
             professional: { select: { name: true } },
@@ -37,7 +46,11 @@ export class ComandasService {
   async findOne(tenantId: string, id: string) {
     const cmd = await this.db.command.findFirst({
       where: { id, tenantId },
-      include: { client: true, items: { include: { service: true } }, payments: true },
+      include: {
+        client: true,
+        items: { include: { service: true, product: true } },
+        payments: true,
+      },
     })
     if (!cmd) throw new NotFoundException('Command not found')
     return cmd
@@ -102,21 +115,46 @@ export class ComandasService {
   }
 
   async addItem(tenantId: string, id: string, dto: AddItemDto) {
+    if (!dto.serviceId && !dto.productId) {
+      throw new BadRequestException('Informe serviceId ou productId')
+    }
+    if (dto.serviceId && dto.productId) {
+      throw new BadRequestException('Informe apenas serviceId ou productId, não os dois')
+    }
+
     const cmd = await this.findOne(tenantId, id)
     if (cmd.status === CommandStatus.CLOSED || cmd.status === CommandStatus.CANCELLED) {
       throw new BadRequestException('Cannot add items to a closed/cancelled command')
     }
+
+    const discount = dto.discount ?? 0
+
+    if (dto.productId) {
+      const product = await this.db.product.findFirst({
+        where: { id: dto.productId, tenantId, active: true },
+      })
+      if (!product) throw new NotFoundException('Produto não encontrado ou inativo')
+      if (product.stockQuantity < dto.quantity) {
+        throw new BadRequestException(
+          `Estoque insuficiente para "${product.name}". Disponível: ${product.stockQuantity}`,
+        )
+      }
+      const unitPrice = Number(product.price)
+      const total = dto.quantity * unitPrice - discount
+      await this.db.commandItem.create({
+        data: { commandId: id, productId: dto.productId, quantity: dto.quantity, unitPrice, discount, total },
+      })
+      await this.produtosService.adjustStock(tenantId, dto.productId, -dto.quantity)
+      return this.recalculate(id)
+    }
+
     const service = await this.db.service.findFirst({ where: { id: dto.serviceId } })
     if (!service) throw new NotFoundException('Service not found')
-
     const unitPrice = Number(service.price)
-    const discount = dto.discount ?? 0
     const total = dto.quantity * unitPrice - discount
-
     await this.db.commandItem.create({
       data: { commandId: id, serviceId: dto.serviceId, quantity: dto.quantity, unitPrice, discount, total },
     })
-
     return this.recalculate(id)
   }
 
@@ -124,6 +162,11 @@ export class ComandasService {
     const cmd = await this.findOne(tenantId, commandId)
     if (cmd.status === CommandStatus.CLOSED || cmd.status === CommandStatus.CANCELLED) {
       throw new BadRequestException('Cannot remove items from a closed/cancelled command')
+    }
+    const item = cmd.items.find((i) => i.id === itemId)
+    if (!item) throw new NotFoundException('Item not found')
+    if (item.productId) {
+      await this.produtosService.adjustStock(tenantId, item.productId, item.quantity)
     }
     await this.db.commandItem.delete({ where: { id: itemId } })
     return this.recalculate(commandId)
@@ -178,7 +221,11 @@ export class ComandasService {
   }
 
   async cancel(tenantId: string, id: string) {
-    await this.findOne(tenantId, id)
+    const cmd = await this.findOne(tenantId, id)
+    const productItems = cmd.items.filter((i) => i.productId)
+    for (const item of productItems) {
+      await this.produtosService.adjustStock(tenantId, item.productId!, item.quantity)
+    }
     return this.db.command.update({
       where: { id },
       data: { status: CommandStatus.CANCELLED },

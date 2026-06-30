@@ -7,6 +7,7 @@ import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
+import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
 
 interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string; allowSimultaneous?: boolean }
 interface ServItem { id: string; name: string; durationMin?: number; price?: number }
@@ -57,6 +58,7 @@ function formatDateDisplay(dateStr: string): string {
 
 export default function AppointmentModal({ appointment, onClose, onSuccess, onReschedule: _onReschedule, interval = 15 }: AppointmentModalProps) {
   const [paymentOpen, setPaymentOpen]               = useState(false)
+  const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
   const [reagendando, setReagendando]               = useState(false)
   const [cancelMode, setCancelMode]                 = useState(false)
   const [motivo, setMotivo]                         = useState('')
@@ -207,7 +209,11 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
   async function handleAction(label: string) {
     if (!appointment) return
-    if (PAYMENT_ACTIONS.has(label)) { setPaymentOpen(true); return }
+    if (PAYMENT_ACTIONS.has(label)) {
+      void loadComandaDetalhe({ commandId: appointment.commandId, fallbackName: appointment.service, fallbackPrice: appointment.amount })
+      setPaymentOpen(true)
+      return
+    }
     if (label === 'Reagendar') {
       setNovaData(appointment.date)
       setNovoHorario(appointment.startTime)
@@ -583,10 +589,11 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         date={formatDateDisplay(appointment.date)}
         startTime={appointment.startTime}
         endTime={appointment.endTime}
-        items={[{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]}
-        deposit={appointment.deposit}
+        items={detalhe?.items ?? [{ name: appointment.service, quantity: 1, unitPrice: appointment.amount }]}
+        initialDiscount={detalhe?.discount ?? null}
+        deposit={detalhe?.deposit ?? appointment.deposit ?? null}
         loading={paymentLoading}
-        onClose={() => setPaymentOpen(false)}
+        onClose={() => { setPaymentOpen(false); clearDetalhe() }}
         onConfirm={handlePaymentConfirm}
         isCompleted={appointment.status === 'COMPLETED'}
         onReopen={async () => {
@@ -603,6 +610,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
             body: JSON.stringify({ status: 'CONFIRMED' }),
           })
           setPaymentOpen(false)
+          clearDetalhe()
           onSuccess?.()
         }}
       />

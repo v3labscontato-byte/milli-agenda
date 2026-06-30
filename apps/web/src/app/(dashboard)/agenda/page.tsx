@@ -14,6 +14,7 @@ import {
 } from '@/lib/calendar-utils'
 import { useAgenda } from '@/hooks/use-agenda'
 import { useProfissionais } from '@/hooks/use-profissionais'
+import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
 import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
 import DayTimeline from '@/components/agenda/day-timeline'
@@ -81,6 +82,7 @@ export default function AgendaPage() {
   const [searchQuery, setSearchQuery]     = useState('')
   const [refetchKey, setRefetchKey]       = useState(0)
   const [dayPaymentAppt, setDayPaymentAppt] = useState<CalendarAppointment | null>(null)
+  const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
   const goToPrev  = useCallback(() => setSelectedDate((d) => prevDay(d)), [])
@@ -113,10 +115,11 @@ export default function AgendaPage() {
   const handleDayAppointmentClick = useCallback((appt: CalendarAppointment) => {
     if (appt.status === 'COMPLETED') {
       setDayPaymentAppt(appt)
+      void loadComandaDetalhe({ commandId: appt.commandId, fallbackName: appt.service, fallbackPrice: appt.amount })
     } else {
       setSelectedAppt(appt)
     }
-  }, [])
+  }, [loadComandaDetalhe])
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 })
 
@@ -217,6 +220,7 @@ export default function AgendaPage() {
     })
 
     setDayPaymentAppt(null)
+    clearDetalhe()
     handleCreated()
   }
 
@@ -419,10 +423,12 @@ export default function AgendaPage() {
             date={dayPaymentAppt.date}
             startTime={dayPaymentAppt.startTime}
             endTime={dayPaymentAppt.endTime}
-            items={[{ name: dayPaymentAppt.service, quantity: 1, unitPrice: dayPaymentAppt.amount }]}
+            items={detalhe?.items ?? [{ name: dayPaymentAppt.service, quantity: 1, unitPrice: dayPaymentAppt.amount }]}
+            initialDiscount={detalhe?.discount ?? null}
+            deposit={detalhe?.deposit ?? null}
             loading={false}
             isCompleted
-            onClose={() => setDayPaymentAppt(null)}
+            onClose={() => { setDayPaymentAppt(null); clearDetalhe() }}
             onConfirm={handleDayPaymentConfirm}
             onReopen={async () => {
               const token = localStorage.getItem('accessToken')
@@ -438,6 +444,7 @@ export default function AgendaPage() {
                 body: JSON.stringify({ status: 'CONFIRMED' }),
               })
               setDayPaymentAppt(null)
+              clearDetalhe()
               handleCreated()
             }}
           />

@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { useHistoricoAgendamentos } from '@/hooks/use-historico-agendamentos'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { type CalendarAppointment } from '@/lib/calendar-utils'
+import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
 
 // ─── Types & config ───────────────────────────────────────────────────────────
 
@@ -64,12 +65,7 @@ export default function ComandasPage() {
   const [searchQuery, setSearchQuery]     = useState('')
   const [paymentAppt, setPaymentAppt]     = useState<CalendarAppointment | null>(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
-  const [comandaData, setComandaData]     = useState<{
-    items: Array<{ name: string; quantity: number; unitPrice: number }>
-    discount: { type: 'amount'; value: number } | null
-    finalAmount: number
-    deposit: { amount: number; method: string; paidAt: string } | null
-  } | null>(null)
+  const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
 
   const kpis = useMemo(() => ({
     total:    data.length,
@@ -172,41 +168,8 @@ export default function ComandasPage() {
 
   const openPaymentModal = useCallback(async (appt: CalendarAppointment) => {
     setPaymentAppt(appt)
-    if (appt.commandId) {
-      const token = localStorage.getItem('accessToken')
-      const base = process.env.NEXT_PUBLIC_API_URL
-      const res = await fetch(`${base}/api/v1/commands/${appt.commandId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const cmd = await res.json()
-      console.log('[openPaymentModal] cmd.data:', JSON.stringify(cmd.data, null, 2))
-      if (cmd.data) {
-        const items = (cmd.data.items ?? []).map((i: any) => ({
-          name: (i.service?.name ?? i.product?.name ?? '') as string,
-          quantity: i.quantity as number,
-          unitPrice: Number(i.unitPrice),
-        }))
-        const discountAmount = Number(cmd.data.discountAmount ?? 0)
-        const payments: any[] = cmd.data.payments ?? []
-        const firstPayment = payments[0] ?? null
-        setComandaData({
-          items: items.length > 0 ? items : [{ name: appt.service, quantity: 1, unitPrice: appt.amount }],
-          discount: discountAmount > 0 ? { type: 'amount', value: discountAmount } : null,
-          finalAmount: Number(cmd.data.finalAmount),
-          deposit: firstPayment ? {
-            amount: Number(firstPayment.amount),
-            method: firstPayment.method as string,
-            paidAt: (() => {
-              const raw = firstPayment.paidAt as string
-              return raw ? raw.slice(0, 10).split('-').reverse().join('/') : ''
-            })(),
-          } : null,
-        })
-      }
-    } else {
-      setComandaData(null)
-    }
-  }, [])
+    await loadComandaDetalhe({ commandId: appt.commandId, fallbackName: appt.service, fallbackPrice: appt.amount })
+  }, [loadComandaDetalhe])
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
   if (loading) return (
@@ -437,7 +400,7 @@ export default function ComandasPage() {
       {paymentAppt && (
         <PaymentModal
           open
-          onClose={() => { setPaymentAppt(null); setComandaData(null) }}
+          onClose={() => { setPaymentAppt(null); clearDetalhe() }}
           onConfirm={handlePaymentConfirm}
           loading={paymentLoading}
           clientName={paymentAppt.client}
@@ -449,9 +412,9 @@ export default function ComandasPage() {
           })()}
           startTime={paymentAppt.startTime}
           endTime={paymentAppt.endTime}
-          items={comandaData?.items ?? [{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
-          initialDiscount={comandaData?.discount ?? null}
-          deposit={comandaData?.deposit ?? null}
+          items={detalhe?.items ?? [{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
+          initialDiscount={detalhe?.discount ?? null}
+          deposit={detalhe?.deposit ?? null}
           isCompleted={paymentAppt.status === 'COMPLETED'}
           onReopen={async () => {
             const token = localStorage.getItem('accessToken')

@@ -5,6 +5,7 @@ import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type Appointment } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
+import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -228,6 +229,7 @@ const METHOD_MAP: Record<string, string> = {
 export default function AgendaTable({ appointments, isLoading = false, onReschedule, onSuccess }: AgendaTableProps) {
   const [activeProf, setActiveProf]   = useState<string>('Todos')
   const [paymentAppt, setPaymentAppt] = useState<Appointment | null>(null)
+  const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
 
   const profissionaisUnicos = useMemo(() => {
     const map = new Map<string, string>()
@@ -420,7 +422,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
                       <AtendimentoCell   appt={appt} />
 
                       <AgendaCell  appt={appt} onReschedule={onReschedule} />
-                      <ComandaCell appt={appt} onOpen={() => setPaymentAppt(appt)} />
+                      <ComandaCell appt={appt} onOpen={() => { setPaymentAppt(appt); void loadComandaDetalhe({ commandId: appt.commandId, fallbackName: appt.service, fallbackPrice: appt.amount }) }} />
                     </tr>
                   ))
                 )}
@@ -435,13 +437,15 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       {paymentAppt && (
         <PaymentModal
           open={!!paymentAppt}
-          onClose={() => setPaymentAppt(null)}
+          onClose={() => { setPaymentAppt(null); clearDetalhe() }}
           onConfirm={handlePaymentConfirm}
           loading={paymentLoading}
           clientName={paymentAppt.client}
           professionalName={paymentAppt.professional}
           serviceName={paymentAppt.service}
-          items={[{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
+          items={detalhe?.items ?? [{ name: paymentAppt.service, quantity: 1, unitPrice: paymentAppt.amount }]}
+          initialDiscount={detalhe?.discount ?? null}
+          deposit={detalhe?.deposit ?? null}
           date={paymentAppt.time}
           startTime={paymentAppt.time}
           endTime={paymentAppt.endTime ?? ''}
@@ -461,6 +465,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
               body: JSON.stringify({ status: 'CONFIRMED' }),
             })
             setPaymentAppt(null)
+            clearDetalhe()
             onSuccess?.()
           }}
         />

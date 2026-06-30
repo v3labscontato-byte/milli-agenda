@@ -75,3 +75,19 @@ Fix: i.service?.name ?? i.product?.name ?? ''
 **Bug 2 — input de quantidade sem max no AddItemModal:**
 Quantidade podia ser qualquer valor; validação só no backend.
 Fix: max={tab==='product' && selected?.stock != null ? selected.stock : undefined}
+
+## [2026-06-30] CLAUDE — Fix definitivo: hook compartilhado para busca de dados reais da comanda
+**Status:** Concluído
+**Arquivos alterados:**
+- apps/web/src/hooks/use-comanda-detalhe.ts (NOVO)
+- apps/web/src/components/agenda-table.tsx
+- apps/web/src/app/(dashboard)/agenda/page.tsx
+- apps/web/src/components/agenda/appointment-modal.tsx
+- apps/web/src/app/(comandas)/comandas/page.tsx
+
+**O que foi feito:**
+- Criado hook `useComandaDetalhe` que encapsula fetch de `GET /commands/:id` e mapeia itens reais (serviceId, productId, desconto, depósito)
+- 3 pontos de entrada que usavam itens estáticos da listagem agora buscam dados reais da API: agenda-table.tsx, agenda/page.tsx, appointment-modal.tsx
+- comandas/page.tsx refatorada: openPaymentModal virou wrapper fino do hook, eliminando ~30 linhas de lógica duplicada
+- clearDetalhe() chamado em todas as saídas (onClose, onReopen, confirm) para evitar estado stale
+- TypeScript: 0 erros

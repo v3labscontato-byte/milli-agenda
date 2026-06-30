@@ -8,6 +8,23 @@ export interface RelatorioParams {
   professionalId?: string
 }
 
+export interface GoalRaw {
+  id: string
+  tipo: string
+  periodo: string
+  valor: string | number
+  dataInicio: string
+  dataFim: string
+}
+
+export interface GoalCreateDto {
+  tipo: string
+  periodo: string
+  valor: number
+  dataInicio: string
+  dataFim: string
+}
+
 function qs(params?: RelatorioParams) {
   const clean = Object.fromEntries(
     Object.entries(params ?? {}).filter(([, v]) => v != null && v !== ''),
@@ -34,4 +51,8 @@ export const relatoriosApi = {
   cashflow: (params?: RelatorioParams) => api.get(`/api/v1/reports/cashflow${qs(params)}`),
 
   overdue: () => api.get('/api/v1/reports/overdue'),
+
+  goals: () => api.get('/api/v1/reports/goals'),
+  createGoal: (dto: GoalCreateDto) => api.post('/api/v1/reports/goals', dto),
+  deleteGoal: (id: string) => api.delete(`/api/v1/reports/goals/${id}`),
 }

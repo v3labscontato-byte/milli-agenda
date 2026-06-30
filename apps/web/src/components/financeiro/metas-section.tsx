@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ComposedChart, Bar, Line, LineChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer,
@@ -9,6 +9,22 @@ import { Plus, X, Pencil, Trash2, Target, TrendingUp, CheckCircle2, AlertCircle 
 import { cn } from '@/lib/utils'
 import { MOCK_METAS_HISTORICO, type MetaHistorico } from '@/lib/financeiro-historico'
 import MonthFilter, { CURRENT_MONTH, MONTHS } from './month-filter'
+import { FEATURES } from '@/lib/features'
+import { relatoriosApi, type GoalRaw, type GoalCreateDto } from '@/lib/api/relatorios'
+
+const MONTH_NUM: Record<string, number> = {
+  jan: 0, fev: 1, mar: 2, abr: 3, mai: 4, jun: 5,
+  jul: 6, ago: 7, set: 8, out: 9, nov: 10, dez: 11,
+}
+function mesKeyToRange(key: string): { dataInicio: string; dataFim: string } {
+  const [mes, ano] = key.split('-')
+  const year = 2000 + Number(ano)
+  const month = MONTH_NUM[mes] ?? 0
+  const from = new Date(year, month, 1)
+  const to   = new Date(year, month + 1, 0)
+  const fmt  = (d: Date) => d.toISOString().slice(0, 10)
+  return { dataInicio: fmt(from), dataFim: fmt(to) }
+}
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -55,7 +71,7 @@ interface ModalProps {
   editingKey: string | null
   metas: MetaHistorico[]
   onClose: () => void
-  onSave: (mesKey: string, valor: number) => void
+  onSave: (mesKey: string, valor: number, tipo: MetaTipo) => void
 }
 
 function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
@@ -80,7 +96,7 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
     e.preventDefault()
     const v = Number(valor)
     if (!v) return
-    onSave(mesKey, v)
+    onSave(mesKey, v, tipo)
     onClose()
   }
 
@@ -147,31 +163,86 @@ function MetaModal({ open, editingKey, metas, onClose, onSave }: ModalProps) {
 
 export default function MetasSection() {
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
-  const [mounted, setMounted] = useState(false)
-  const [metas, setMetas]     = useState<MetaHistorico[]>(MOCK_METAS_HISTORICO)
-  const [modal, setModal]     = useState<{ open: boolean; editingKey: string | null }>({ open: false, editingKey: null })
-  const [deleteKey, setDeleteKey] = useState<string | null>(null)
+  const [mounted, setMounted]             = useState(false)
+  const [metas, setMetas]                 = useState<MetaHistorico[]>(FEATURES.realRelatorios ? [] : MOCK_METAS_HISTORICO)
+  const [goalsLoading, setGoalsLoading]   = useState(FEATURES.realRelatorios)
+  const [goalIdMap, setGoalIdMap]         = useState<Map<string, string>>(new Map())
+  const [modal, setModal]                 = useState<{ open: boolean; editingKey: string | null }>({ open: false, editingKey: null })
+  const [deleteKey, setDeleteKey]         = useState<string | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
+
+  const loadRealMetas = useCallback(async () => {
+    setGoalsLoading(true)
+    try {
+      const rawGoals = (await relatoriosApi.goals()) as GoalRaw[]
+      const monthly  = rawGoals.filter((g) => g.tipo === 'mensal')
+      const cfResults = await Promise.all(
+        monthly.map((g) => {
+          const { dataInicio, dataFim } = mesKeyToRange(g.periodo)
+          return relatoriosApi.cashflow({ from: dataInicio, to: dataFim })
+            .then((res) => {
+              const entries = (res as { entries?: { entradas?: number }[] })?.entries ?? []
+              return { periodo: g.periodo, total: entries.reduce((s, e) => s + Number(e.entradas ?? 0), 0) }
+            })
+            .catch(() => ({ periodo: g.periodo, total: 0 }))
+        }),
+      )
+      const realizadoMap = new Map(cfResults.map((r) => [r.periodo, r.total]))
+      const newIdMap     = new Map<string, string>()
+      const order        = (k: string) => MONTHS.findIndex((m) => m.key === k)
+      const built: MetaHistorico[] = monthly
+        .map((g) => {
+          newIdMap.set(g.periodo, g.id)
+          const info     = MONTHS.find((m) => m.key === g.periodo)
+          const meta     = Number(g.valor)
+          const realizado = realizadoMap.get(g.periodo) ?? 0
+          return { mesKey: g.periodo, mes: info?.label ?? g.periodo, meta, realizado, pct: meta > 0 ? Math.round((realizado / meta) * 100) : 0 }
+        })
+        .sort((a, b) => order(a.mesKey) - order(b.mesKey))
+      setGoalIdMap(newIdMap)
+      setMetas(built)
+    } catch { /* noop */ }
+    finally { setGoalsLoading(false) }
+  }, [])
+
+  useEffect(() => { if (FEATURES.realRelatorios) loadRealMetas() }, [loadRealMetas])
 
   function openEdit(mesKey: string) { setModal({ open: true, editingKey: mesKey }) }
   function closeModal() { setModal({ open: false, editingKey: null }) }
 
-  function handleSave(mesKey: string, valor: number) {
+  async function handleSave(mesKey: string, valor: number, tipo: MetaTipo) {
+    if (FEATURES.realRelatorios) {
+      const existingId = goalIdMap.get(mesKey)
+      if (existingId) await relatoriosApi.deleteGoal(existingId).catch(() => null)
+      const { dataInicio, dataFim } = mesKeyToRange(mesKey)
+      const dto: GoalCreateDto = { tipo, periodo: mesKey, valor, dataInicio, dataFim }
+      await relatoriosApi.createGoal(dto).catch(() => null)
+      await loadRealMetas()
+      return
+    }
     setMetas((prev) => {
       const idx = prev.findIndex((m) => m.mesKey === mesKey)
       if (idx >= 0) {
         const m = prev[idx]
         return prev.map((x, i) => i === idx ? { ...m, meta: valor, pct: Math.round((m.realizado / valor) * 100) } : x)
       }
-      const info = MONTHS.find((m) => m.key === mesKey)!
+      const info  = MONTHS.find((m) => m.key === mesKey)!
       const order = (k: string) => MONTHS.findIndex((m) => m.key === k)
       return [...prev, { mesKey, mes: info.label, meta: valor, realizado: 0, pct: 0 }]
         .sort((a, b) => order(a.mesKey) - order(b.mesKey))
     })
   }
 
-  function handleDelete(mesKey: string) {
+  async function handleDelete(mesKey: string) {
+    if (FEATURES.realRelatorios) {
+      const id = goalIdMap.get(mesKey)
+      if (id) await relatoriosApi.deleteGoal(id).catch(() => null)
+      setDeleteKey(null)
+      if (selectedMonth === mesKey) setSelectedMonth(CURRENT_MONTH)
+      await loadRealMetas()
+      return
+    }
     setMetas((prev) => prev.filter((m) => m.mesKey !== mesKey))
     setDeleteKey(null)
     if (selectedMonth === mesKey) setSelectedMonth(CURRENT_MONTH)
@@ -181,7 +252,7 @@ export default function MetasSection() {
   const chartData = useMemo(() => metas.map((m) => ({ mes: m.mes, Realizado: m.realizado, Meta: m.meta })), [metas])
   const lineData  = useMemo(() => metas.map((m) => ({ mes: m.mes, pct: m.pct })), [metas])
 
-  if (!mounted) {
+  if (!mounted || (FEATURES.realRelatorios && goalsLoading)) {
     return (
       <div className="space-y-4" aria-hidden="true">
         <div className="h-8 w-72 animate-pulse rounded-md bg-[#F1F5F9]" />

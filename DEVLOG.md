@@ -1614,3 +1614,29 @@ Ambos os componentes foram escritos antes da convenção de chave `accessToken` 
 ### Verificação
 - `npx tsc --noEmit` ✅ sem erros
 - Tab Metas carrega dados reais; criar/editar/deletar meta persiste via API
+
+---
+
+## [2026-06-30] INCIDENTE — Comandas órfãs criadas em produção por engano
+**Status:** ⚠️ Parcialmente resolvido (CLAUDE.md corrigido; cleanup das comandas pendente)
+
+### O que aconteceu
+Durante investigação do bug `appointment.amount`, duas chamadas `POST /api/v1/commands` foram feitas contra o backend de **PRODUÇÃO** (`https://victorious-sparkle-production-adbc.up.railway.app`) em vez do backend de homolog. Isso criou 2 comandas OPEN sem itens, sem pagamentos e sem appointment vinculado no tenant `teste-salao-top`.
+
+**IDs parciais (últimos 8 chars dos CUIDs):** `v93ic9wu`, `2aa6q9en`
+
+### Causa raiz
+O `CLAUDE.md` listava apenas as URLs de produção na seção "URLs e Variáveis de Ambiente", sem mencionar o ambiente de homolog. Agentes que leram o arquivo naturalmente usaram as URLs de produção para investigação.
+
+### Impacto
+- 2 comandas órfãs OPEN em produção (tenant `teste-salao-top`)
+- Nenhum dado existente foi alterado, deletado ou corrompido
+- Nenhuma migration foi rodada
+
+### Correção aplicada
+- `CLAUDE.md` atualizado com seção **AMBIENTES — NÃO CONFUNDIR** no topo, antes de qualquer outra seção
+- URLs de homolog (frontend + backend + credenciais `studio-homolog`) agora documentadas explicitamente
+- Regra adicionada: "toda investigação usa HOMOLOG por padrão; produção só com autorização explícita"
+
+### Cleanup pendente
+`GET /commands` em produção retorna 500 (migration `expand_products_cadastro_estoque` não aplicada no banco de produção — issue separado). Não foi possível recuperar os IDs completos para cancel via API. Cleanup via Railway Prisma Studio: `SELECT id, status, created_at FROM commands WHERE tenant_id = (SELECT id FROM tenants WHERE slug = 'teste-salao-top') ORDER BY created_at DESC LIMIT 5`.

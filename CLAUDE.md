@@ -9,6 +9,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. NUNCA fazer push direto para `main` sem aprovação explícita do usuário
 5. NUNCA adicionar `Co-Authored-By` em commits
 
+## AMBIENTES — NÃO CONFUNDIR
+
+### HOMOLOG (usar para todo desenvolvimento/teste/investigação)
+- Frontend: https://frontend-nextjs-milli-homolog.up.railway.app
+- Backend: https://backend-nestjs-milli-homolog.up.railway.app
+- Tenant de teste: `studio-homolog` (`ddpobre@gmail.com` / `123456789`)
+
+### PRODUÇÃO (NUNCA testar aqui — só leitura emergencial com aprovação explícita)
+- Frontend: https://milli-agenda-production.up.railway.app
+- Backend: https://victorious-sparkle-production-adbc.up.railway.app
+
+**REGRA:** toda investigação, todo Playwright, todo curl de teste usa HOMOLOG por padrão.
+Produção só é tocada com autorização explícita e específica do usuário para aquela ação.
+
 ## FLUXO DE DEPLOY
 - **Homolog** (staging): recebe todo código novo
 - **Main** (produção): push só com aprovação explícita
@@ -116,15 +130,13 @@ Toda entidade no banco tem `tenantId`. Todos os services do backend recebem `ten
 
 | Variável | Onde | Valor |
 |----------|------|-------|
-| `NEXT_PUBLIC_API_URL` | frontend | URL do backend |
+| `NEXT_PUBLIC_API_URL` | frontend | URL do backend (homolog ou produção) |
 | `NEXT_PUBLIC_USE_REAL_API` | frontend | `true` em produção/homolog |
 | `DATABASE_URL` | backend | PostgreSQL (Railway) |
 | `JWT_SECRET` | backend | segredo para assinar tokens |
-| `JWT_EXPIRES_IN` | backend | ex: `1h` |
+| `JWT_EXPIRES_IN` | backend | ex: `8h` |
 
-- Frontend produção: https://milli-agenda-production.up.railway.app
-- Backend produção: https://victorious-sparkle-production-adbc.up.railway.app
-- Credenciais demo: `admin@bellavista.com` / `Admin@123` (tenant: `bella-vista`)
+Ver seção **AMBIENTES — NÃO CONFUNDIR** acima para URLs e credenciais corretas por ambiente.
 
 ## Subagentes por Módulo
 

@@ -1862,3 +1862,34 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
   - Tabela exibe Jun/26, R$ 30.000, 12% atingido, "Abaixo da meta"
   - Edição: reverse-calc correto (30.000 ÷ 30 = 1.000), mês desabilitado
   - Exclusão: confirmação inline → DELETE 200 → tabela vazia
+
+---
+
+## [30/06/2026] feat(schema): migration add_financeiro_models em homolog
+
+### Status: ✅ Concluído
+
+### Arquivos alterados
+- `packages/database/prisma/schema.prisma`
+- `packages/database/prisma/migrations/20260630000001_add_financeiro_models/migration.sql`
+
+### O que foi feito
+- Adicionados 4 novos modelos ao schema Prisma (homolog):
+  1. **CommissionPayment** — registra baixa de comissão por profissional/período com `comprovanteUrl?`
+  2. **ChartOfAccount** — plano de contas com campos: `nome`, `tipo` (String "fixa"/"variavel"), `categoria`, `valorPadrao?`, `recorrente`, `diaPagamento @default(5)`, `ativa`
+  3. **ChartOfAccountEntry** — entrada mensal por conta com `status String @default("PENDING")` + `paidAt?`; back-relation `expense Expense?` para vínculo 1:1 com saída de caixa
+  4. **Expense** — saída avulsa de caixa com `chartOfAccountEntryId String? @unique` ligando ao entry de plano de contas
+- Relations adicionadas em `Tenant` e `Professional`
+- Migration criada manualmente (ambiente não-TTY bloqueou `prisma migrate dev`); aplicada via `prisma migrate deploy`
+- BOM removido da migration init existente (`20260625000000_init`)
+- `npx prisma generate` executado — client atualizado
+
+### Validação
+- `prisma validate` → The schema at ... is valid 🚀
+- `prisma migrate deploy` → All migrations have been successfully applied
+- 4 tabelas criadas no banco homolog: `commission_payments`, `chart_of_accounts`, `chart_of_account_entries`, `expenses`
+
+### Próximo passo
+- ITEM 1 — Comissões: backend `POST /api/v1/reports/commissions/:professionalId/pay` + frontend "Dar baixa"
+- ITEM 2 — Fluxo de Caixa: backend `POST /api/v1/expenses` + frontend "Registrar saída"
+- ITEM 3 — Plano de Contas: CRUD completo backend + frontend

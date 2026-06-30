@@ -103,15 +103,19 @@ model Tenant {
   clients             Client[]
   professionalRoles   ProfessionalRole[]
   serviceCategories   ServiceCategory[]
-  appointments  Appointment[]
-  commands      Command[]
-  payments      Payment[]
-  schedules     Schedule[]
-  notifications Notification[]
-  apiKeys       ApiKey[]
-  auditLogs     AuditLog[]
-  goals         Goal[]
-  specialties   Specialty[]
+  appointments        Appointment[]
+  commands            Command[]
+  payments            Payment[]
+  schedules           Schedule[]
+  notifications       Notification[]
+  apiKeys             ApiKey[]
+  auditLogs           AuditLog[]
+  goals               Goal[]
+  specialties         Specialty[]
+  commissionPayments  CommissionPayment[]
+  chartOfAccounts     ChartOfAccount[]
+  chartOfAccountEntries ChartOfAccountEntry[]
+  expenses            Expense[]
 
   @@index([slug])
   @@map("tenants")
@@ -212,11 +216,12 @@ model Professional {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user         User?         @relation(fields: [userId], references: [id])
-  appointments Appointment[]
-  schedules    Schedule[]
-  specialties  ProfessionalSpecialty[]
+  tenant              Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                User?                 @relation(fields: [userId], references: [id])
+  appointments        Appointment[]
+  schedules           Schedule[]
+  specialties         ProfessionalSpecialty[]
+  commissionPayments  CommissionPayment[]
 
   @@index([tenantId])
   @@map("professionals")
@@ -605,4 +610,80 @@ model ProfessionalSpecialty {
 
   @@id([professionalId, specialtyId])
   @@map("professional_specialties")
+}
+
+// ─── Financeiro ───────────────────────────────────────────────────────────────
+
+model CommissionPayment {
+  id             String   @id @default(cuid())
+  tenantId       String
+  professionalId String
+  period         String
+  amount         Decimal  @db.Decimal(10, 2)
+  paidAt         DateTime @default(now())
+  comprovanteUrl String?
+  createdAt      DateTime @default(now())
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professional Professional @relation(fields: [professionalId], references: [id])
+
+  @@index([tenantId, professionalId])
+  @@map("commission_payments")
+}
+
+model ChartOfAccount {
+  id           String   @id @default(cuid())
+  tenantId     String
+  nome         String
+  tipo         String
+  categoria    String
+  valorPadrao  Decimal? @db.Decimal(10, 2)
+  recorrente   Boolean  @default(false)
+  diaPagamento Int      @default(5)
+  ativa        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant  Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  entries ChartOfAccountEntry[]
+
+  @@index([tenantId])
+  @@map("chart_of_accounts")
+}
+
+model ChartOfAccountEntry {
+  id               String   @id @default(cuid())
+  tenantId         String
+  chartOfAccountId String
+  period           String
+  valor            Decimal  @db.Decimal(10, 2)
+  status           String   @default("PENDING")
+  paidAt           DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  chartOfAccount ChartOfAccount @relation(fields: [chartOfAccountId], references: [id], onDelete: Cascade)
+  expense        Expense?
+
+  @@unique([chartOfAccountId, period])
+  @@index([tenantId, period])
+  @@map("chart_of_account_entries")
+}
+
+model Expense {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  descricao            String
+  valor                Decimal  @db.Decimal(10, 2)
+  data                 DateTime
+  chartOfAccountEntryId String? @unique
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant             Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  chartOfAccountEntry ChartOfAccountEntry? @relation(fields: [chartOfAccountEntryId], references: [id])
+
+  @@index([tenantId, data])
+  @@map("expenses")
 }

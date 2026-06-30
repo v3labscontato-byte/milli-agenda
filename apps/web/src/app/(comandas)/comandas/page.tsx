@@ -185,7 +185,10 @@ export default function ComandasPage() {
           deposit: firstPayment ? {
             amount: Number(firstPayment.amount),
             method: firstPayment.method as string,
-            paidAt: firstPayment.paidAt as string,
+            paidAt: (() => {
+              const raw = firstPayment.paidAt as string
+              return raw ? raw.slice(0, 10).split('-').reverse().join('/') : ''
+            })(),
           } : null,
         })
       }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   X, CheckCircle2, Plus, RefreshCw,
-  Scissors, Tag, Clock, Lock, Pencil, Info, ChevronRight,
+  Scissors, Tag, Clock, Lock, Info, ChevronRight,
   Banknote, CreditCard, QrCode, ArrowLeftRight, Gift,
   type LucideIcon,
 } from 'lucide-react'
@@ -235,7 +235,7 @@ export default function PaymentModal({
 
       {/* Panel */}
       <div className={cn(
-        'relative z-10 flex w-full max-w-4xl flex-col rounded-t-2xl bg-[#F8FAFC] shadow-2xl lg:rounded-xl',
+        'relative z-10 flex w-full max-w-4xl flex-col rounded-t-2xl bg-[#F1F5F9] shadow-2xl lg:rounded-xl',
         'transition-all duration-200 ease-out motion-reduce:transition-none',
         visible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 lg:translate-y-0',
       )} style={{ maxHeight: '92vh' }}>
@@ -288,19 +288,23 @@ export default function PaymentModal({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-tabular text-[14px] font-semibold text-[#0F172A]">{formatBRL(item.unitPrice)}</span>
-                      <button type="button" onClick={() => setLocalItems((prev) => prev.filter((i) => i._key !== item._key))}
-                        aria-label={`Remover ${item.name}`}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DBEAFE]">
-                        <Pencil size={12} aria-hidden />
-                      </button>
+                      {!isCompleted && (
+                        <button type="button" onClick={() => setLocalItems((prev) => prev.filter((i) => i._key !== item._key))}
+                          aria-label={`Remover ${item.name}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#DBEAFE]">
+                          <X size={12} aria-hidden />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={() => setAddItemOpen(true)}
-                  className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#CBD5E1] py-2.5 text-[13px] font-medium text-[#2563EB] transition-colors hover:border-[#2563EB] hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
-                  <Plus size={14} aria-hidden />
-                  Adicionar serviço ou produto
-                </button>
+                {!isCompleted && (
+                  <button type="button" onClick={() => setAddItemOpen(true)}
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#CBD5E1] py-2.5 text-[13px] font-medium text-[#2563EB] transition-colors hover:border-[#2563EB] hover:bg-[#EFF6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                    <Plus size={14} aria-hidden />
+                    Adicionar serviço ou produto
+                  </button>
+                )}
               </div>
             </div>
 
@@ -333,7 +337,7 @@ export default function PaymentModal({
                       </button>
                     </div>
                   </div>
-                ) : (
+                ) : !isCompleted ? (
                   <div className="space-y-2">
                     <p className="text-[11px] font-medium text-[#64748B]">Adicionar desconto</p>
                     <div className="flex items-center gap-2">
@@ -364,7 +368,7 @@ export default function PaymentModal({
                       </p>
                     )}
                   </div>
-                )}
+                ) : null}
 
                 {/* Sinal pago */}
                 {deposit && (
@@ -381,17 +385,19 @@ export default function PaymentModal({
                 )}
 
                 {/* Observações */}
-                <div>
-                  <label htmlFor="pm-notes" className="mb-1.5 block text-[11px] font-medium text-[#64748B]">
-                    Observações (opcional)
-                  </label>
-                  <textarea id="pm-notes" value={notes} onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Ex.: cliente preferiu esmalte cor nude"
-                    rows={3} maxLength={200}
-                    className="w-full resize-none rounded-lg border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
-                  />
-                  <p className="mt-0.5 text-right text-[11px] text-[#94A3B8]">{notes.length}/200</p>
-                </div>
+                {!isCompleted && (
+                  <div>
+                    <label htmlFor="pm-notes" className="mb-1.5 block text-[11px] font-medium text-[#64748B]">
+                      Observações (opcional)
+                    </label>
+                    <textarea id="pm-notes" value={notes} onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Ex.: cliente preferiu esmalte cor nude"
+                      rows={3} maxLength={200}
+                      className="w-full resize-none rounded-lg border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                    />
+                    <p className="mt-0.5 text-right text-[11px] text-[#94A3B8]">{notes.length}/200</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -459,7 +465,7 @@ export default function PaymentModal({
             </div>
 
             {/* Formas de Pagamento */}
-            <div>
+            {!isCompleted && <div>
               <p className="mb-3 text-[13px] font-semibold text-[#0F172A]">Formas de Pagamento</p>
               <div className="grid grid-cols-3 gap-2" role="group" aria-label="Selecionar forma de pagamento">
                 {METHODS.map((m) => {
@@ -486,11 +492,19 @@ export default function PaymentModal({
                   )
                 })}
               </div>
-            </div>
+            </div>}
 
             {/* Área dinâmica */}
             <div className="space-y-3">
-              {isCompleted || totalDue === 0 ? (
+              {isCompleted ? (
+                <div className="flex items-start gap-2.5 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3">
+                  <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[#16A34A]" aria-hidden />
+                  <div>
+                    <p className="text-[13px] font-medium text-[#15803D]">Comanda finalizada</p>
+                    <p className="text-[11px] text-[#16A34A]/70">Pagamento registrado com sucesso.</p>
+                  </div>
+                </div>
+              ) : totalDue === 0 ? (
                 <div className="flex items-start gap-2.5 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3">
                   <Info size={15} className="mt-0.5 shrink-0 text-[#2563EB]" aria-hidden />
                   <div>
@@ -518,30 +532,32 @@ export default function PaymentModal({
 
             {/* Ações */}
             <div className="mt-auto space-y-2 pt-1">
-              <button type="button" onClick={handleConfirm} disabled={!canConfirm || loading}
-                className={cn(
-                  'flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-semibold',
-                  'transition-colors motion-reduce:transition-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
-                  canConfirm && !loading
-                    ? 'bg-[#2563EB] text-white shadow-[0_2px_8px_rgba(37,99,235,0.35)] hover:bg-[#1D4ED8]'
-                    : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]',
-                )}>
-                {loading ? 'Processando...' : (
-                  <>
-                    <Lock size={16} aria-hidden />
-                    <span>Confirmar Pagamento</span>
-                    {canConfirm && (
-                      <span className="text-[13px] font-normal opacity-80">· Receber {formatBRL(totalDue)}</span>
-                    )}
-                    {!canConfirm && totalPaid > 0 && (
-                      <span className="rounded bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-semibold text-[#DC2626]">
-                        Falta {formatBRL(totalDue - totalPaid)}
-                      </span>
-                    )}
-                  </>
-                )}
-              </button>
+              {!isCompleted && (
+                <button type="button" onClick={handleConfirm} disabled={!canConfirm || loading}
+                  className={cn(
+                    'flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-semibold',
+                    'transition-colors motion-reduce:transition-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
+                    canConfirm && !loading
+                      ? 'bg-[#2563EB] text-white shadow-[0_2px_8px_rgba(37,99,235,0.35)] hover:bg-[#1D4ED8]'
+                      : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]',
+                  )}>
+                  {loading ? 'Processando...' : (
+                    <>
+                      <Lock size={16} aria-hidden />
+                      <span>Confirmar Pagamento</span>
+                      {canConfirm && (
+                        <span className="text-[13px] font-normal opacity-80">· Receber {formatBRL(totalDue)}</span>
+                      )}
+                      {!canConfirm && totalPaid > 0 && (
+                        <span className="rounded bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-semibold text-[#DC2626]">
+                          Falta {formatBRL(totalDue - totalPaid)}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </button>
+              )}
               <div className="flex gap-2">
                 {isCompleted && onReopen && (
                   <button type="button" onClick={onReopen}

@@ -2095,3 +2095,14 @@ Tabelas novas: `commission_payments`, `chart_of_accounts`, `chart_of_account_ent
 **Requer DATABASE_URL pública de produção fornecida pelo usuário.**
 Comando: `npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma`
 Não executar sem aprovação explícita.
+
+---
+
+## 2026-06-30 — Migration de produção aplicada
+
+### Migration: 20260630000001_add_financeiro_models
+- Aplicada em produção via `prisma migrate deploy` com DATABASE_URL pública (thomas.proxy.rlwy.net)
+- Tabelas criadas: `commission_payments`, `chart_of_accounts`, `chart_of_account_entries`, `expenses`
+- Verificado via `prisma migrate status` → `Database schema is up to date`
+- Homolog já estava up to date (verificado no mesmo ciclo)
+- Pendência de migration resolvida — módulo Financeiro completo em ambos os ambientes

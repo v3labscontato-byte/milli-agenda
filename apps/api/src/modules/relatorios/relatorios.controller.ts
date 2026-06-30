@@ -49,6 +49,15 @@ export class RelatoriosController {
     return this.relatoriosService.commissions(tenantId, from, to)
   }
 
+  @Post('commissions/:professionalId/pay')
+  payCommission(
+    @TenantFromJwt() tenantId: string,
+    @Param('professionalId') professionalId: string,
+    @Body() dto: { period: string; amount: number },
+  ) {
+    return this.relatoriosService.payCommission(tenantId, professionalId, dto)
+  }
+
   @Get('cashflow')
   cashflow(
     @TenantFromJwt() tenantId: string,

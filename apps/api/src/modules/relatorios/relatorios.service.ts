@@ -172,27 +172,35 @@ export class RelatoriosService {
     const { dateFrom, dateTo } = this.defaultRange(from, to)
     const periodoRef = `${dateFrom.toISOString().slice(0, 7)}`
 
-    const profs = await this.db.professional.findMany({
-      where: { tenantId, active: true },
-      select: {
-        id: true,
-        name: true,
-        commissionPct: true,
-        appointments: {
-          where: { startAt: { gte: dateFrom, lte: dateTo }, status: AppointmentStatus.COMPLETED },
-          select: {
-            command: {
-              select: {
-                payments: {
-                  where: { status: PaymentStatus.PAID },
-                  select: { amount: true },
+    const [profs, paidRecords] = await Promise.all([
+      this.db.professional.findMany({
+        where: { tenantId, active: true },
+        select: {
+          id: true,
+          name: true,
+          commissionPct: true,
+          appointments: {
+            where: { startAt: { gte: dateFrom, lte: dateTo }, status: AppointmentStatus.COMPLETED },
+            select: {
+              command: {
+                select: {
+                  payments: {
+                    where: { status: PaymentStatus.PAID },
+                    select: { amount: true },
+                  },
                 },
               },
             },
           },
         },
-      },
-    })
+      }),
+      this.db.commissionPayment.findMany({
+        where: { tenantId, period: periodoRef },
+        select: { professionalId: true, paidAt: true },
+      }),
+    ])
+
+    const paidMap = new Map(paidRecords.map((r) => [r.professionalId, r.paidAt]))
 
     return profs.map((p) => {
       const atendimentos = p.appointments.length
@@ -201,6 +209,7 @@ export class RelatoriosService {
       }, 0)
       const pctComissao = Number(p.commissionPct ?? 20)
       const comissaoValue = (receita * pctComissao) / 100
+      const paidAt = paidMap.get(p.id) ?? null
       return {
         professionalId: p.id,
         name: p.name,
@@ -209,8 +218,19 @@ export class RelatoriosService {
         pctComissao,
         comissaoValue,
         periodoRef,
-        status: 'PENDING',
+        status: paidAt ? 'PAID' : 'PENDING',
+        paidAt,
       }
+    })
+  }
+
+  async payCommission(tenantId: string, professionalId: string, dto: { period: string; amount: number }) {
+    const existing = await this.db.commissionPayment.findFirst({
+      where: { tenantId, professionalId, period: dto.period },
+    })
+    if (existing) return existing
+    return this.db.commissionPayment.create({
+      data: { tenantId, professionalId, period: dto.period, amount: dto.amount },
     })
   }
 

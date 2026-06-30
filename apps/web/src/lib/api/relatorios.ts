@@ -60,4 +60,7 @@ export const relatoriosApi = {
   goals: () => api.get('/api/v1/reports/goals'),
   createGoal: (dto: GoalCreateDto) => api.post('/api/v1/reports/goals', dto),
   deleteGoal: (id: string) => api.delete(`/api/v1/reports/goals/${id}`),
+
+  payCommission: (professionalId: string, dto: { period: string; amount: number }) =>
+    api.post(`/api/v1/reports/commissions/${professionalId}/pay`, dto),
 }

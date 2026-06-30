@@ -33,6 +33,7 @@ export interface CommissionRow {
   comissaoValue: number
   periodoRef: string
   status: 'PENDING' | 'PAID'
+  paidAt?: string | null
 }
 
 export interface CashflowEntry {

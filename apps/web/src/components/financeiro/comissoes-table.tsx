@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { COMISSAO_HISTORICO, type Comissao } from '@/lib/financeiro-mock'
 import { FEATURES } from '@/lib/features'
 import type { CommissionRow } from '@/hooks/use-relatorios'
+import { relatoriosApi } from '@/lib/api/relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
@@ -64,7 +65,8 @@ function initialsOf(name: string): string {
 
 const AVATAR_COLORS = ['#7C3AED', '#2563EB', '#DB2777', '#16A34A', '#D97706', '#0891B2']
 
-function toComissao(row: CommissionRow, i: number): Comissao {
+function toComissao(row: CommissionRow, i: number, paidOverride?: Set<string>): Comissao {
+  const isPaid = paidOverride?.has(row.professionalId) || row.status === 'PAID'
   return {
     id: row.professionalId || `c-${i}`,
     profissionalName: row.name,
@@ -78,7 +80,10 @@ function toComissao(row: CommissionRow, i: number): Comissao {
     diaPagamento: 5,
     periodoRef: row.periodoRef,
     diasAtraso: 0,
-    status: row.status,
+    status: isPaid ? 'PAID' : 'PENDING',
+    paidAt: isPaid
+      ? (row.paidAt ? new Date(row.paidAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }))
+      : undefined,
   }
 }
 
@@ -92,6 +97,8 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
   const [selectedMes, setSelectedMes] = useState('jun-26')
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [localData, setLocalData] = useState<Record<string, Comissao[]>>(COMISSAO_HISTORICO)
+  const [paidOverride, setPaidOverride] = useState<Set<string>>(new Set())
+  const [payingId, setPayingId] = useState<string | null>(null)
 
   const real = FEATURES.realRelatorios
 
@@ -100,7 +107,7 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
   }
 
   const comissoes = real
-    ? (realData ?? []).map(toComissao)
+    ? (realData ?? []).map((r, i) => toComissao(r, i, paidOverride))
     : (localData[selectedMes] ?? [])
 
   function handleMarkPaid(id: string) {
@@ -112,6 +119,17 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
           : c,
       ),
     }))
+  }
+
+  async function handlePayReal(professionalId: string, periodoRef: string, comissaoValue: number) {
+    setPayingId(professionalId)
+    try {
+      await relatoriosApi.payCommission(professionalId, { period: periodoRef, amount: comissaoValue })
+      setPaidOverride((prev) => new Set(Array.from(prev).concat(professionalId)))
+    } finally {
+      setPayingId(null)
+      setConfirmId(null)
+    }
   }
 
   const totalPending = comissoes.filter((c) => c.status === 'PENDING').reduce((s, c) => s + c.comissaoValue, 0)
@@ -189,12 +207,18 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
                     <td className="px-4 py-3.5"><StatusBadge c={c} /></td>
                     <td className="px-4 py-3.5 font-tabular text-[12px] text-[#475569]">{c.paidAt ?? '—'}</td>
                     <td className="px-4 py-3.5">
-                      {!real && c.status === 'PENDING' && (
+                      {c.status === 'PENDING' && (
                         confirmId === c.id ? (
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => { handleMarkPaid(c.id); setConfirmId(null) }}
-                              className="rounded-sm bg-[#16A34A] px-2.5 py-1 text-[11px] font-medium text-white hover:bg-[#15803D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
-                              Confirmar
+                            <button
+                              type="button"
+                              disabled={payingId === c.id}
+                              onClick={() => real
+                                ? handlePayReal(c.id, c.periodoRef, c.comissaoValue)
+                                : (handleMarkPaid(c.id), setConfirmId(null))
+                              }
+                              className="rounded-sm bg-[#16A34A] px-2.5 py-1 text-[11px] font-medium text-white hover:bg-[#15803D] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
+                              {payingId === c.id ? 'Salvando…' : 'Confirmar'}
                             </button>
                             <button type="button" onClick={() => setConfirmId(null)}
                               className="rounded-sm border border-[#E2E8F0] px-2.5 py-1 text-[11px] font-medium text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
@@ -204,7 +228,7 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
                         ) : (
                           <button type="button" onClick={() => setConfirmId(c.id)}
                             className="rounded-sm border border-[#E2E8F0] px-2.5 py-1 text-[11px] font-medium text-[#475569] opacity-0 transition-all group-hover:opacity-100 hover:border-[#16A34A] hover:text-[#16A34A] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
-                            Marcar Pago
+                            {real ? 'Dar baixa' : 'Marcar Pago'}
                           </button>
                         )
                       )}

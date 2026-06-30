@@ -169,6 +169,14 @@ export default function DayTimeline({
     return (relMin / intervalMin) * slotHeight
   }, [isToday, intervalMin, slotHeight])
 
+  const nowTimeStr = useMemo<string | null>(() => {
+    if (!isToday) return null
+    const now = new Date()
+    const h = now.getHours(); const m = now.getMinutes()
+    if (h * 60 + m - 8 * 60 < 0 || h * 60 + m - 8 * 60 > 12 * 60) return null
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  }, [isToday])
+
   const coveredSlots = useMemo(() => {
     const map: Record<string, Set<string>> = {}
     for (const prof of professionals) {
@@ -239,29 +247,40 @@ export default function DayTimeline({
               <tr>
                 <th
                   scope="col"
-                  className="sticky left-0 z-30 w-20 border-b border-r border-[#E2E8F0] bg-white"
+                  className="sticky left-0 z-30 w-20 border-b border-r border-[#E2E8F0] bg-[#F8FAFD]"
                   aria-label="Horário"
                 />
                 {hasProfs ? professionals.map((prof) => (
                   <th
                     key={prof.id}
                     scope="col"
-                    className="w-[180px] min-w-[180px] border-b border-r border-[#E2E8F0] bg-white px-3 py-3 text-left font-normal"
+                    className="w-[180px] min-w-[180px] border-b border-r border-[#E2E8F0] bg-[#F8FAFD] px-3 py-2.5 text-left font-normal"
                   >
                     <div className="flex items-center gap-2.5">
                       <span
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold text-white shadow-sm"
                         style={{ backgroundColor: prof.color }}
                         aria-hidden="true"
                       >
                         {prof.initials}
                       </span>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-[13px] font-semibold text-[#0F172A]">{prof.name}</p>
-                        <p className="truncate text-[11px] text-[#475569]">{prof.role}</p>
+                        <p className="truncate text-[11px] text-[#64748B]">{prof.role}</p>
                         {folgaProfIds.has(prof.id) && (
                           <span className="mt-0.5 inline-block rounded-full bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] text-[#94A3B8]">Folga</span>
                         )}
+                        {!folgaProfIds.has(prof.id) && (() => {
+                          const cnt = appointments.filter((a) => a.professionalId === prof.id && a.status !== 'CANCELLED').length
+                          const rev = appointments.filter((a) => a.professionalId === prof.id && a.status === 'COMPLETED').reduce((s, a) => s + a.amount, 0)
+                          if (cnt === 0) return null
+                          return (
+                            <div className="mt-1.5 flex items-center gap-2 border-t border-[#F1F5F9] pt-1.5">
+                              <span className="text-[10px] text-[#94A3B8]">{cnt} atend.</span>
+                              {rev > 0 && <span className="text-[10px] font-semibold text-[#16A34A]">R$ {rev.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</span>}
+                            </div>
+                          )
+                        })()}
                       </div>
                     </div>
                   </th>
@@ -281,12 +300,18 @@ export default function DayTimeline({
               {timeSlots.map((slot) => (
                 <tr key={slot}>
                   <td
-                    className="sticky left-0 z-10 w-20 border-b border-r border-[#E2E8F0] bg-white align-top"
+                    className="sticky left-0 z-10 w-20 border-b border-r border-[#E2E8F0] bg-[#F8FAFD] align-top"
                     style={{ height: `${slotHeight}px` }}
                   >
-                    <span className="block select-none pr-3 pt-1 text-right font-tabular text-[11px] text-[#94A3B8]">
-                      {slot}
-                    </span>
+                    {slot.endsWith(':00') ? (
+                      <span className="block select-none pr-3 pt-1 text-right font-tabular text-[11px] font-semibold text-[#475569]">
+                        {slot}
+                      </span>
+                    ) : (
+                      <span className="block select-none pr-3 pt-1 text-right font-tabular text-[9px] text-[#CBD5E1]">
+                        {slot}
+                      </span>
+                    )}
                   </td>
 
                   {hasProfs ? professionals.map((prof) => {
@@ -505,10 +530,15 @@ export default function DayTimeline({
               className="pointer-events-none absolute left-0 right-0 z-30 flex items-center"
               style={{ top: `${theadH + nowTop}px` }}
             >
-              <div className="flex w-20 shrink-0 justify-end pr-1">
-                <div className="h-2.5 w-2.5 rounded-full bg-[#DC2626]" />
+              <div className="flex w-20 shrink-0 items-center justify-end gap-0.5 pr-1">
+                {nowTimeStr && (
+                  <span className="rounded bg-[#DC2626] px-1 py-0.5 text-[8px] font-bold leading-none text-white">
+                    {nowTimeStr}
+                  </span>
+                )}
+                <div className="h-2 w-2 rounded-full bg-[#DC2626]" />
               </div>
-              <div className="h-[2px] flex-1 bg-[#DC2626]" />
+              <div className="h-[1.5px] flex-1 bg-[#DC2626] opacity-80" />
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { startOfWeek, addDays, format } from 'date-fns'
+import { CalendarDays, Clock, Banknote, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   getAppointmentsForDate,
@@ -138,6 +139,10 @@ export default function AgendaPage() {
   const calendarProfessionals = useMemo(() => profissionais.map(toCalendarProfessional), [profissionais])
 
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
+  const kpiTotal     = dayAppointments.length
+  const kpiPending   = dayAppointments.filter((a) => !['COMPLETED', 'CANCELLED'].includes(a.status)).length
+  const kpiReceived  = dayAppointments.filter((a) => a.status === 'COMPLETED').reduce((s, a) => s + a.amount, 0)
+  const kpiCancelled = dayAppointments.filter((a) => a.status === 'CANCELLED').length
 
   const tableDate = toDateString(selectedDate)
   const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
@@ -220,7 +225,7 @@ export default function AgendaPage() {
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-[#F4F7FC]">
       <CalendarHeader
         selectedDate={selectedDate}
         onPrev={goToPrev}
@@ -231,6 +236,46 @@ export default function AgendaPage() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
+
+      {/* KPI bar */}
+      <div className="shrink-0 flex gap-2.5 border-b border-[#E2E8F0] bg-white px-4 py-2.5">
+        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#EFF6FF] px-3 py-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
+            <CalendarDays size={14} className="text-[#2563EB]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiTotal}</p>
+            <p className="mt-0.5 text-[10px] text-[#64748B]">Agendamentos</p>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#FFF7ED] px-3 py-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
+            <Clock size={14} className="text-[#D97706]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiPending}</p>
+            <p className="mt-0.5 text-[10px] text-[#64748B]">Pendentes</p>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#F0FDF4] px-3 py-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
+            <Banknote size={14} className="text-[#16A34A]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">R$ {kpiReceived.toFixed(0)}</p>
+            <p className="mt-0.5 text-[10px] text-[#64748B]">Recebido</p>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#FEF2F2] px-3 py-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
+            <XCircle size={14} className="text-[#DC2626]" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiCancelled}</p>
+            <p className="mt-0.5 text-[10px] text-[#64748B]">Cancelados</p>
+          </div>
+        </div>
+      </div>
 
       {/* View toggle strip */}
       <div className="flex items-center gap-3 border-b border-[#E2E8F0] bg-white px-6 py-2">

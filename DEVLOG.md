@@ -1288,3 +1288,30 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 **Status:** Concluido
 **Causa:** setHours() em servidor UTC computava midnight UTC; agendamentos BRT (UTC-3) ficavam fora do range
 **Fix:** projeta horario para BRT, calcula dayStart/dayEnd como UTC+3h
+
+---
+
+## [2026-06-29] feat(agenda): refatoração visual premium — padrão SaaS
+
+### Arquivos modificados
+- `apps/web/src/components/agenda/appointment-block.tsx` — reescrita completa
+- `apps/web/src/components/agenda/calendar-header.tsx` — reescrita completa
+- `apps/web/src/components/agenda/day-timeline.tsx` — melhorias visuais
+- `apps/web/src/app/(dashboard)/agenda/page.tsx` — KPI bar + bg hierarchy
+
+### O que foi feito
+**appointment-block.tsx**: cards premium com tinted bg por status, barra de acento 3px, shadow, hover elevation, chips de status em cards altos, indicador `$` para pagamentos.
+
+**calendar-header.tsx**: header compacto single-row com data/dia-da-semana separados via date-fns format(), busca rounded-lg, botão "Novo Agendamento" com shadow.
+
+**day-timeline.tsx**:
+- Headers dos profissionais: avatar h-9 w-9, bg #F8FAFD, stats inline (contagem + receita filtrada por profissional)
+- Time labels: slots :00 em bold text-[#475569], sub-slots em text-[9px] text-[#CBD5E1]
+- Now line: badge vermelho com "HH:MM" + dot menor + linha com opacity-80
+- Coluna de horários e canto sticky: bg #F8FAFD para hierarquia de superfície
+
+**page.tsx**: KPI bar (Agendamentos, Pendentes, Recebido, Cancelados) com ícones lucide, bg #F4F7FC no container principal.
+
+### Qualidade
+- `npx tsc --noEmit` passou sem erros
+- Nenhuma lógica de negócio, hook, store, serviço ou drag-and-drop alterado

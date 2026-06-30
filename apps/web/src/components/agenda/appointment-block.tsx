@@ -1,34 +1,25 @@
 import type { CalendarAppointment } from '@/lib/calendar-utils'
 
-const CARD_STYLES: Record<string, { bg: string; border: string; accent: string; text: string; subtext: string }> = {
-  SCHEDULED:        { bg: '#EFF6FF', border: '#BFDBFE', accent: '#2563EB', text: '#1D4ED8', subtext: '#3B82F6' },
-  CONFIRMED:        { bg: '#F0FDF4', border: '#BBF7D0', accent: '#16A34A', text: '#15803D', subtext: '#16A34A' },
-  COMPLETED:        { bg: '#F5F3FF', border: '#DDD6FE', accent: '#7C3AED', text: '#7C3AED', subtext: '#8B5CF6' },
-  CANCELLED:        { bg: '#FEF2F2', border: '#FECACA', accent: '#DC2626', text: '#DC2626', subtext: '#EF4444' },
-  IN_SERVICE:       { bg: '#FFF7ED', border: '#FED7AA', accent: '#EA580C', text: '#C2410C', subtext: '#F97316' },
-  AWAITING_PAYMENT: { bg: '#FFFBEB', border: '#FDE68A', accent: '#D97706', text: '#92400E', subtext: '#D97706' },
-  CHECKED_IN:       { bg: '#F3E8FF', border: '#C4B5FD', accent: '#7C3AED', text: '#6B21A8', subtext: '#8B5CF6' },
-  NO_SHOW:          { bg: '#F1F5F9', border: '#CBD5E1', accent: '#94A3B8', text: '#475569', subtext: '#64748B' },
+// Status → visual config (light tinted bg + accent bar)
+const S: Record<string, { bg: string; border: string; accent: string; timeColor: string; dotColor: string; chipBg: string; chipText: string; chipBorder: string; label: string }> = {
+  SCHEDULED:        { bg: '#F6F9FF', border: '#DBEAFE', accent: '#3B82F6', timeColor: '#2563EB', dotColor: '#3B82F6', chipBg: '#EFF6FF', chipText: '#1D4ED8', chipBorder: '#BFDBFE', label: 'Agendado'        },
+  CONFIRMED:        { bg: '#F4FDF6', border: '#BBF7D0', accent: '#16A34A', timeColor: '#15803D', dotColor: '#22C55E', chipBg: '#F0FDF4', chipText: '#15803D', chipBorder: '#BBF7D0', label: 'Confirmado'       },
+  COMPLETED:        { bg: '#F8F5FF', border: '#DDD6FE', accent: '#7C3AED', timeColor: '#6D28D9', dotColor: '#8B5CF6', chipBg: '#F5F3FF', chipText: '#6D28D9', chipBorder: '#DDD6FE', label: 'Pago'             },
+  CANCELLED:        { bg: '#FFF5F5', border: '#FECACA', accent: '#EF4444', timeColor: '#DC2626', dotColor: '#EF4444', chipBg: '#FEF2F2', chipText: '#DC2626', chipBorder: '#FECACA', label: 'Cancelado'        },
+  IN_SERVICE:       { bg: '#FFF8F0', border: '#FED7AA', accent: '#F97316', timeColor: '#C2410C', dotColor: '#F97316', chipBg: '#FFF7ED', chipText: '#C2410C', chipBorder: '#FED7AA', label: 'Em atendimento'  },
+  AWAITING_PAYMENT: { bg: '#FFFCEB', border: '#FDE68A', accent: '#F59E0B', timeColor: '#92400E', dotColor: '#F59E0B', chipBg: '#FFFBEB', chipText: '#92400E', chipBorder: '#FDE68A', label: 'Aguard. Pagto'   },
+  CHECKED_IN:       { bg: '#F8F5FF', border: '#C4B5FD', accent: '#7C3AED', timeColor: '#6B21A8', dotColor: '#8B5CF6', chipBg: '#F5F3FF', chipText: '#6D28D9', chipBorder: '#C4B5FD', label: 'Check-in'        },
+  NO_SHOW:          { bg: '#F9FAFB', border: '#D1D5DB', accent: '#94A3B8', timeColor: '#64748B', dotColor: '#94A3B8', chipBg: '#F1F5F9', chipText: '#475569', chipBorder: '#CBD5E1', label: 'Não compareceu'  },
+}
+const DEFAULT_S = { bg: '#F9FAFB', border: '#E2E8F0', accent: '#94A3B8', timeColor: '#64748B', dotColor: '#94A3B8', chipBg: '#F1F5F9', chipText: '#475569', chipBorder: '#CBD5E1', label: '—' }
+
+function fmtAmt(n: number) {
+  return `R$ ${n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
 }
 
-const DEFAULT_STYLE = { bg: '#F8FAFC', border: '#E2E8F0', accent: '#94A3B8', text: '#475569', subtext: '#94A3B8' }
-
-function getPaymentLabel(appt: CalendarAppointment): string | null {
-  if (appt.status === 'CANCELLED') return null
-  if (appt.status === 'COMPLETED') return 'Pago'
-  return 'Pgto pendente'
-}
-
-function PaymentDot({ appt }: { appt: CalendarAppointment }) {
-  if (appt.status === 'CANCELLED') return null
-  const paid = appt.status === 'COMPLETED' && !!appt.commandId
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-      <span style={{ fontSize: 9, color: paid ? '#15803D' : '#92400E', lineHeight: 1 }}>$</span>
-      <span style={{ width: 7, height: 7, borderRadius: '50%', background: paid ? '#22C55E' : '#F59E0B', display: 'inline-block' }} />
-    </div>
-  )
-}
+const SHADOW_REST  = '0 1px 3px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.04)'
+const SHADOW_HOVER = '0 4px 16px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)'
+const SHADOW_FOCUS = '0 0 0 2px #93C5FD'
 
 interface AppointmentBlockProps {
   appointment: CalendarAppointment
@@ -37,10 +28,12 @@ interface AppointmentBlockProps {
 }
 
 export default function AppointmentBlock({ appointment, onClick, heightPx }: AppointmentBlockProps) {
-  const style = CARD_STYLES[appointment.status] ?? DEFAULT_STYLE
-  const compact = heightPx < 56
-  const cancelled = appointment.status === 'CANCELLED'
-  const paymentLabel = !compact ? getPaymentLabel(appointment) : null
+  const cfg        = S[appointment.status] ?? DEFAULT_S
+  const compact    = heightPx < 58
+  const tall       = heightPx >= 90
+  const cancelled  = appointment.status === 'CANCELLED'
+  const isPaid     = appointment.status === 'COMPLETED'
+  const hasMoney   = !cancelled && appointment.amount > 0
 
   return (
     <button
@@ -48,65 +41,98 @@ export default function AppointmentBlock({ appointment, onClick, heightPx }: App
       onClick={onClick}
       aria-label={`${appointment.client} — ${appointment.service} às ${appointment.startTime}`}
       style={{
-        background: style.bg,
-        border: `0.5px solid ${style.border}`,
-        borderLeft: `3px solid ${style.accent}`,
-        borderRadius: 4,
-        padding: compact ? '2px 4px' : '4px 6px',
-        width: '100%',
-        height: '100%',
-        textAlign: 'left',
-        overflow: 'hidden',
-        opacity: cancelled ? 0.75 : 1,
+        background: cfg.bg,
+        border: `0.5px solid ${cfg.border}`,
+        borderLeft: `3px solid ${cfg.accent}`,
+        borderRadius: 6,
+        padding: compact ? '3px 6px' : '6px 9px',
+        width: '100%', height: '100%',
+        textAlign: 'left', overflow: 'hidden',
+        opacity: cancelled ? 0.65 : 1,
         cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        outline: 'none',
-        boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column',
+        outline: 'none', boxSizing: 'border-box',
+        boxShadow: SHADOW_REST,
+        transition: 'box-shadow 140ms ease, transform 140ms ease',
       }}
-      onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 2px #DBEAFE' }}
-      onBlur={(e) => { e.currentTarget.style.boxShadow = 'none' }}
+      onMouseEnter={(e) => {
+        if (cancelled) return
+        e.currentTarget.style.boxShadow = SHADOW_HOVER
+        e.currentTarget.style.transform = 'translateY(-1px)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = SHADOW_REST
+        e.currentTarget.style.transform = ''
+      }}
+      onFocus={(e)  => { e.currentTarget.style.boxShadow = SHADOW_FOCUS }}
+      onBlur={(e)   => { e.currentTarget.style.boxShadow = SHADOW_REST  }}
     >
+      {/* ── Row 1: time range + payment indicator ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           {!compact && (
-            <p style={{ fontSize: 11, fontWeight: 500, color: style.text, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelled ? 'line-through' : 'none' }}>
-              {appointment.startTime} → {appointment.endTime}
+            <p style={{
+              fontSize: 10, fontWeight: 700, color: cfg.timeColor, margin: 0,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              letterSpacing: '0.015em',
+              textDecoration: cancelled ? 'line-through' : 'none',
+            }}>
+              {appointment.startTime} – {appointment.endTime}
             </p>
           )}
-          <p style={{ fontSize: compact ? 10 : 11, color: style.text, margin: compact ? 0 : '1px 0 0', fontWeight: compact ? 600 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: cancelled ? 'line-through' : 'none' }}>
+
+          {/* ── Client name ── */}
+          <p style={{
+            fontSize: compact ? 10 : 12,
+            fontWeight: 600,
+            color: cancelled ? '#94A3B8' : '#0F172A',
+            margin: compact ? 0 : '2px 0 0',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            textDecoration: cancelled ? 'line-through' : 'none',
+          }}>
             {appointment.client}
           </p>
         </div>
-        {!compact && <PaymentDot appt={appointment} />}
+
+        {/* Payment $ indicator */}
+        {!compact && hasMoney && (
+          <span style={{
+            fontSize: 13, fontWeight: 800, lineHeight: 1, flexShrink: 0,
+            color: isPaid ? '#16A34A' : '#D97706',
+            marginTop: 1,
+          }}>
+            $
+          </span>
+        )}
       </div>
+
+      {/* ── Row 2: service · amount ── */}
       {!compact && (
-        <p style={{ fontSize: 10, color: style.subtext, margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {appointment.service}{appointment.amount > 0 ? ` · R$ ${appointment.amount}` : ''}
+        <p style={{
+          fontSize: 11, color: '#64748B',
+          margin: '3px 0 0',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {appointment.service}
+          {appointment.amount > 0 ? ` · ${fmtAmt(appointment.amount)}` : ''}
         </p>
       )}
-      {paymentLabel && (
+
+      {/* ── Row 3: status chip (tall cards only) ── */}
+      {tall && !cancelled && (
         <span style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 3,
-          marginTop: 3,
-          padding: '1px 5px',
-          borderRadius: 20,
-          fontSize: 9,
-          fontWeight: 500,
-          background: paymentLabel === 'Pago' ? '#F0FDF4' : '#FFFBEB',
-          color: paymentLabel === 'Pago' ? '#15803D' : '#92400E',
-          border: `0.5px solid ${paymentLabel === 'Pago' ? '#BBF7D0' : '#FDE68A'}`,
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          marginTop: 5, padding: '2px 7px',
+          borderRadius: 20, fontSize: 10, fontWeight: 500,
+          background: cfg.chipBg, color: cfg.chipText,
+          border: `0.5px solid ${cfg.chipBorder}`,
+          alignSelf: 'flex-start',
         }}>
           <span style={{
-            width: 5,
-            height: 5,
-            borderRadius: '50%',
-            background: paymentLabel === 'Pago' ? '#22C55E' : '#F59E0B',
-            display: 'inline-block',
+            width: 5, height: 5, borderRadius: '50%',
+            background: cfg.dotColor, display: 'inline-block', flexShrink: 0,
           }} />
-          {paymentLabel}
+          {cfg.label}
         </span>
       )}
     </button>

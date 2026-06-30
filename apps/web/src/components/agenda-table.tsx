@@ -460,7 +460,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
             const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
             if (paymentAppt.commandId) {
               await fetch(`${base}/api/v1/commands/${paymentAppt.commandId}/reopen`, {
-                method: 'POST', headers,
+                method: 'POST', headers, body: JSON.stringify({}),
               })
             }
             await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {

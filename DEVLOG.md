@@ -1428,3 +1428,9 @@ if (!commandId) throw new Error('Comanda não criada')
 
 ### Guard de Prevenção
 Regra gravada em `.agents/AGENT_COMANDAS.md`: "Todo handlePaymentConfirm que cria comanda via `POST /commands` DEVE verificar `commandId` já existente antes de chamar o endpoint. Pattern obrigatório: `let commandId = appt.commandId ?? (await createCommand()).id`."
+
+### [2026-06-30] AGENT_COMANDAS — Fix: reopen() retornava 500 por corpo vazio com Content-Type application/json
+**Status:** ✅ Concluído
+**Causa raiz:** fetch do onReopen enviava Content-Type: application/json sem body, violando regra já conhecida do projeto (Fastify rejeita FST_ERR_CTP_EMPTY_JSON_BODY). Esse era o verdadeiro motivo do 500 que causava a cascata (close 400, payments 400, discount 400) — a comanda nunca saía de CLOSED.
+**Fix:** adicionado body: JSON.stringify({}) ao fetch de reopen em todos os 4 pontos de entrada (agenda-table.tsx, appointment-modal.tsx, comandas/page.tsx, agenda/page.tsx).
+**Arquivos alterados:** apps/web/src/components/agenda-table.tsx, apps/web/src/components/agenda/appointment-modal.tsx, apps/web/src/app/(comandas)/comandas/page.tsx, apps/web/src/app/(dashboard)/agenda/page.tsx

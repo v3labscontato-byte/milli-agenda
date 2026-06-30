@@ -605,7 +605,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
           const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
           if (appointment.commandId) {
             await fetch(`${base}/api/v1/commands/${appointment.commandId}/reopen`, {
-              method: 'POST', headers,
+              method: 'POST', headers, body: JSON.stringify({}),
             })
           }
           await fetch(`${base}/api/v1/appointments/${appointment.id}`, {

@@ -436,7 +436,7 @@ export default function AgendaPage() {
               const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
               if (dayPaymentAppt.commandId) {
                 await fetch(`${base}/api/v1/commands/${dayPaymentAppt.commandId}/reopen`, {
-                  method: 'POST', headers,
+                  method: 'POST', headers, body: JSON.stringify({}),
                 })
               }
               await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {

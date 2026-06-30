@@ -1640,3 +1640,48 @@ O `CLAUDE.md` listava apenas as URLs de produção na seção "URLs e Variáveis
 
 ### Cleanup pendente
 `GET /commands` em produção retorna 500 (migration `expand_products_cadastro_estoque` não aplicada no banco de produção — issue separado). Não foi possível recuperar os IDs completos para cancel via API. Cleanup via Railway Prisma Studio: `SELECT id, status, created_at FROM commands WHERE tenant_id = (SELECT id FROM tenants WHERE slug = 'teste-salao-top') ORDER BY created_at DESC LIMIT 5`.
+
+---
+
+## [2026-06-30] AGENT_COMANDAS — fix: sincroniza remoção de itens com backend antes de fechar comanda (commit 67365b1)
+**Status:** 🔄 Em andamento (deploy em progresso, validação via Playwright pendente)
+
+### Causa raiz identificada
+Divergência `appointment.amount = R$180` (esperado R$90) após ciclo fechar→reabrir→remover+adicionar→fechar.
+
+**Fluxo quebrado:**
+1. `PaymentModal` linha 292: `setLocalItems(prev.filter(...))` — só atualiza estado local React, sem DELETE na API
+2. `handlePaymentConfirm` usava `filterNewItems()` que detecta apenas ADIÇÕES, nunca remoções
+3. Backend `close()` recalcula `finalAmount` com TODOS os itens do banco (incluindo removidos visualmente)
+4. Resultado: Bronzeamento(90) + Shampoo(45) + Corte(80) − desconto(35) = R$180 (em vez de R$90)
+
+### Fix aplicado
+**`use-comanda-detalhe.ts`:** adicionado campo `id` no tipo `ComandaDetalhe.items` e no mapper (`i.id as string`) — necessário para montar URL do DELETE.
+
+**4 pontos de entrada — antes do `filterNewItems`:** bloco de DELETEs para itens removidos:
+```ts
+const removedItems = (detalhe?.items ?? []).filter((existing) =>
+  !(result.items ?? []).some((r) =>
+    (existing.serviceId && r.serviceId === existing.serviceId) ||
+    (existing.productId && r.productId === existing.productId),
+  ),
+)
+for (const item of removedItems) {
+  await fetch(`${base}/api/v1/commands/${commandId}/items/${item.id}`, { method: 'DELETE', headers })
+}
+```
+
+**Ordem de execução:** DELETEs correm ANTES dos POSTs de novos itens — garante devolução de estoque de produto antes de verificar disponibilidade dos novos.
+
+**Estoque confirmado:** `removeItem()` no backend (linha 169 `comandas.service.ts`) já chama `adjustStock(+quantity)` para produtos.
+
+### Arquivos alterados
+- `apps/web/src/hooks/use-comanda-detalhe.ts` — adiciona `id` ao tipo e mapper
+- `apps/web/src/app/(comandas)/comandas/page.tsx` — bloco removedItems
+- `apps/web/src/components/agenda-table.tsx` — bloco removedItems
+- `apps/web/src/components/agenda/appointment-modal.tsx` — bloco removedItems
+- `apps/web/src/app/(dashboard)/agenda/page.tsx` — bloco removedItems
+
+### Verificação
+- `npx tsc --noEmit` ✅ 0 erros
+- Playwright E2E: aguardando deploy ativo no Railway

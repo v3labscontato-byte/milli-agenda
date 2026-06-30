@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { startOfWeek, addDays, format } from 'date-fns'
-import { CalendarDays, Clock, Banknote, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 import {
   getAppointmentsForDate,
   nextDay,
@@ -83,6 +83,7 @@ export default function AgendaPage() {
   const [refetchKey, setRefetchKey]       = useState(0)
   const [dayPaymentAppt, setDayPaymentAppt] = useState<CalendarAppointment | null>(null)
   const [dayPaymentLoading, setDayPaymentLoading] = useState(false)
+  const [kpiPeriod, setKpiPeriod] = useState<'dia' | 'semana'>('dia')
   const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
@@ -140,14 +141,21 @@ export default function AgendaPage() {
   }, [view, selectedDate, filterProfId, refetchKey, weekStart])
 
   const { data: allAppointments, loading, error } = useAgenda(agendaParams)
+
+  const weekKpiParams = useMemo(() => ({
+    from: toDateString(weekStart),
+    to: toDateString(addDays(weekStart, 6)),
+    _key: refetchKey,
+  }), [weekStart, refetchKey])
+  const { data: weekKpiData } = useAgenda(weekKpiParams)
+
   const { data: profissionais } = useProfissionais()
   const calendarProfessionals = useMemo(() => profissionais.map(toCalendarProfessional), [profissionais])
 
   const dayAppointments = getAppointmentsForDate(selectedDate, allAppointments)
-  const kpiTotal     = dayAppointments.length
-  const kpiPending   = dayAppointments.filter((a) => !['COMPLETED', 'CANCELLED'].includes(a.status)).length
-  const kpiReceived  = dayAppointments.filter((a) => a.status === 'COMPLETED').reduce((s, a) => s + a.amount, 0)
-  const kpiCancelled = dayAppointments.filter((a) => a.status === 'CANCELLED').length
+  const kpiSource = kpiPeriod === 'semana'
+    ? (view === 'week' ? allAppointments : weekKpiData)
+    : dayAppointments
 
   const tableDate = toDateString(selectedDate)
   const tableAppointments = allAppointments.filter((a) => a.date === tableDate)
@@ -275,43 +283,53 @@ export default function AgendaPage() {
         onSearchChange={setSearchQuery}
       />
 
-      {/* KPI bar */}
-      <div className="shrink-0 flex gap-2.5 border-b border-[#E2E8F0] bg-white px-4 py-2.5">
-        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#EFF6FF] px-3 py-2">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
-            <CalendarDays size={14} className="text-[#2563EB]" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiTotal}</p>
-            <p className="mt-0.5 text-[10px] text-[#64748B]">Agendamentos</p>
-          </div>
+      {/* KPI strip */}
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-4 pb-3 pt-3">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">Resumo</p>
+          <KpiPeriodFilter
+            options={[
+              { key: 'dia', label: 'Hoje' },
+              { key: 'semana', label: 'Esta semana' },
+            ]}
+            active={kpiPeriod}
+            onChange={(p) => setKpiPeriod(p as 'dia' | 'semana')}
+          />
         </div>
-        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#FFF7ED] px-3 py-2">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
-            <Clock size={14} className="text-[#D97706]" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiPending}</p>
-            <p className="mt-0.5 text-[10px] text-[#64748B]">Pendentes</p>
-          </div>
-        </div>
-        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#F0FDF4] px-3 py-2">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
-            <Banknote size={14} className="text-[#16A34A]" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">R$ {kpiReceived.toFixed(0)}</p>
-            <p className="mt-0.5 text-[10px] text-[#64748B]">Recebido</p>
-          </div>
-        </div>
-        <div className="flex flex-1 items-center gap-2.5 rounded-lg bg-[#FEF2F2] px-3 py-2">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-white shadow-sm">
-            <XCircle size={14} className="text-[#DC2626]" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-tabular text-[15px] font-bold leading-none text-[#0F172A]">{kpiCancelled}</p>
-            <p className="mt-0.5 text-[10px] text-[#64748B]">Cancelados</p>
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <KpiCard
+            label="Agendamentos"
+            value={kpiSource.length}
+            sub={kpiPeriod === 'semana' ? 'na semana' : 'no dia'}
+            color="blue"
+          />
+          <KpiCard
+            label="Confirmados"
+            value={kpiSource.filter((a) => a.status === 'CONFIRMED').length}
+            sub="aguardando atendimento"
+          />
+          <KpiCard
+            label="A confirmar"
+            value={kpiSource.filter((a) => a.status === 'SCHEDULED').length}
+            sub="sem confirmação"
+          />
+          <KpiCard
+            label="Concluídos"
+            value={kpiSource.filter((a) => a.status === 'COMPLETED').length}
+            color="green"
+          />
+          <KpiCard
+            label="Cancelados"
+            value={kpiSource.filter((a) => a.status === 'CANCELLED').length}
+            color="red"
+          />
+          <KpiCard
+            label="Receita"
+            value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(
+              kpiSource.filter((a) => a.status === 'COMPLETED').reduce((s, a) => s + a.amount, 0),
+            )}
+            sub="atendimentos concluídos"
+          />
         </div>
       </div>
 

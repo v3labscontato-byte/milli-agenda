@@ -2075,3 +2075,23 @@ tsc: 0 erros. Push: `homolog`.
 
 **Fix adicional — Taxa Recebimento "Meta: 0%":**
 - `financeiro-kpi-strip.tsx`: card Taxa Recebimento renderizava `sub="Meta: 0%"` e `trend="vs 0% meta"` porque `taxaMeta` é sempre `0` quando não há meta configurada. Fix: quando `taxaMeta === 0`, `sub` mostra `"recebido / total"` e `trend` fica `undefined` (oculto pelo KpiCard).
+
+---
+
+## 2026-06-30 — Merge homolog → main (regressão aprovada)
+
+### Regressão Playwright (homolog)
+1. Reabrir comanda Teste 1 / Corte Fenix / Shampoo → POST /reopen 201 ✅
+2. Fechar sem alterar → POST /close 201, SEM POST /payments ✅
+3. Card Despesas no Financeiro continua R$ 2.900 ✅
+
+### Merge
+- `git merge homolog` fast-forward → `main` atualizado (284a9be → d99f3f3)
+- 31 arquivos modificados, migration 20260630000001_add_financeiro_models incluída
+
+### ⚠️ PENDÊNCIA — prisma migrate deploy em PRODUÇÃO
+Migration a aplicar: `20260630000001_add_financeiro_models`
+Tabelas novas: `commission_payments`, `chart_of_accounts`, `chart_of_account_entries`, `expenses`
+**Requer DATABASE_URL pública de produção fornecida pelo usuário.**
+Comando: `npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma`
+Não executar sem aprovação explícita.

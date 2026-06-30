@@ -729,38 +729,38 @@ d48f169 â€” style(servicos): impeccable 20/20
 **Fixes:** tooltip hover com agenda do dia, Finalizar abre PaymentModal, fluxo Reagendar inline com data+horario+PATCH API
 
 ---
-## [2026-06-26] feat(agenda): coluna status pagamento + botão comanda colorido
+## [2026-06-26] feat(agenda): coluna status pagamento + botï¿½o comanda colorido
 
-**Módulo:** Agenda — `apps/web/src/components/agenda-table.tsx`
+**Mï¿½dulo:** Agenda ï¿½ `apps/web/src/components/agenda-table.tsx`
 
 **O que foi feito:**
 - Adicionados helper `PaymentSt`, `getPaymentStatus()`, `PAYMENT_STYLES` e componente `PaymentStatusCell`
-- Nova coluna "Pagamento" no thead (oculta em < xl), com badge colorida: Pago (verde), Pendente (âmbar), Atrasado (vermelho)
-- `ComandaCell` refatorado: usa `COMANDA_STYLES` por status de pagamento — Ver Comanda (verde), Abrir Comanda (âmbar), Cobrar (vermelho)
+- Nova coluna "Pagamento" no thead (oculta em < xl), com badge colorida: Pago (verde), Pendente (ï¿½mbar), Atrasado (vermelho)
+- `ComandaCell` refatorado: usa `COMANDA_STYLES` por status de pagamento ï¿½ Ver Comanda (verde), Abrir Comanda (ï¿½mbar), Cobrar (vermelho)
 - colSpan atualizado 8?9 no estado vazio
 
 ---
-### [2026-06-26] AGENT_AGENDA — Fix tabela + tooltip semana
+### [2026-06-26] AGENT_AGENDA ï¿½ Fix tabela + tooltip semana
 **Status:** Concluido
 **Fixes:** colunas corretas (status pagamento visivel, removido status agendamento e valor), tooltip hover com posicao inteligente e horarios livres em verde
 
 ---
-### [2026-06-26] AGENT_AGENDA — Fix reagendar + cancelar
+### [2026-06-26] AGENT_AGENDA ï¿½ Fix reagendar + cancelar
 **Status:** Concluido
 **Fixes:** profissionais/servicos reais no reagendamento, cancelar funcional com motivo via PATCH, UpdateAppointmentDto no backend aceita status+cancelReason
 
 ---
-### [2026-06-26] AGENT_AGENDA — Fix reagendar pre-preenchido + cancelar mantém lista + coluna Atendimento
+### [2026-06-26] AGENT_AGENDA ï¿½ Fix reagendar pre-preenchido + cancelar mantï¿½m lista + coluna Atendimento
 **Status:** Concluido
 **Fixes:** reagendar mostra cliente (bloqueado) + selects pre-preenchidos; fetch profissionais/servicos sempre via token; coluna Atendimento (Realizado/Pendente/Cancelado) na tabela
 
 ---
-### [2026-06-26] AGENT_AGENDA — Reagendar dados reais + horarios disponiveis + info servico
+### [2026-06-26] AGENT_AGENDA ï¿½ Reagendar dados reais + horarios disponiveis + info servico
 **Status:** Concluido
 **Fixes:** FEATURES gate removido de handleReagendar/handleCancelar; horarios disponiveis por disponibilidade (fetch slots, exclui conflitos por duracao do servico); card de info do servico (duracao + valor); panel com scroll para form longo
 
 ---
-### [2026-06-26] fix(agenda): remover gate FEATURES.realAgenda — usar API real sempre
+### [2026-06-26] fix(agenda): remover gate FEATURES.realAgenda ï¿½ usar API real sempre
 **Status:** Concluido
 **Fix:** use-agenda.ts agora usa token check em vez de FEATURES.realAgenda; mock data removida; hook sempre busca da API real quando accessToken existe
 
@@ -991,33 +991,33 @@ d48f169 â€” style(servicos): impeccable 20/20
 **Status:** âœ… ConcluÃ­do
 **Fixes:** enabledServices vazio bloqueia agendamento, aviso no modal, aba ServiÃ§os correta
 
-### [2026-06-29] AGENT_PROFISSIONAIS — Aba Serviços: só ativos + toggle correto
-Filtro de serviços ativos adicionado em TabServicos: interface RawService agora inclui campo optional active?; const activeServices = allServices.filter(s => s.active !== false); JSX usa activeServices.map() em vez de allServices.map(). Sem mudanças no toggle — comportamento já correto.
+### [2026-06-29] AGENT_PROFISSIONAIS ï¿½ Aba Serviï¿½os: sï¿½ ativos + toggle correto
+Filtro de serviï¿½os ativos adicionado em TabServicos: interface RawService agora inclui campo optional active?; const activeServices = allServices.filter(s => s.active !== false); JSX usa activeServices.map() em vez de allServices.map(). Sem mudanï¿½as no toggle ï¿½ comportamento jï¿½ correto.
 
-### [2026-06-29] AGENT_SERVICOS — Fix categoria + botão nova categoria
-**Status:** Concluído
+### [2026-06-29] AGENT_SERVICOS ï¿½ Fix categoria + botï¿½o nova categoria
+**Status:** Concluï¿½do
 **Fixes:** category padrao vazia, ServicoCategory widened para string, categorias reais da API no modal, botao nova categoria inline, categoryId enviado no POST, DTO atualizado
 
-### [2026-06-29] AGENT_SERVICOS — SmartFormServico: categorias reais + nova categoria
+### [2026-06-29] AGENT_SERVICOS ï¿½ SmartFormServico: categorias reais + nova categoria
 **Status:** Concluido
 **Fixes:** categorias ja vinham da API; adicionados botao nova categoria com stopPropagation, form inline de criacao, e categoryId no handleSave
 
-### [2026-06-29] AGENT_SERVICOS — Include category no GET /services
+### [2026-06-29] AGENT_SERVICOS ï¿½ Include category no GET /services
 **Status:** Concluido
 **Fixes:** backend inclui category.name via include, frontend mapeia cat.name corretamente
 ### [$(date +%Y-%m-%d)] AGENT_SERVICOS â€” MÃ©tricas mensais nos serviÃ§os
 **Status:** âœ… ConcluÃ­do
 **Fixes:** backend calcula agendMes e fatMes, frontend mapeia e exibe na tabela
 
-### [2026-06-29] AGENT_SERVICOS — Metricas mensais nos servicos
+### [2026-06-29] AGENT_SERVICOS ï¿½ Metricas mensais nos servicos
 **Status:** Concluido
 **Fixes:** backend calcula agendMes e fatMes por servico no mes atual, frontend mapeia para bookingsThisMonth e revenueThisMonth (ja usados na tabela)
 
-### [2026-06-29] AGENT_SERVICOS — Edicao de categoria inline
+### [2026-06-29] AGENT_SERVICOS ï¿½ Edicao de categoria inline
 **Status:** Concluido
 **Fix:** select de categoria clicavel na tabela; Servico.categoryId adicionado; mapService mapeia categoryId; onUpdate Props aceita categoryId
 
-### [2026-06-29] AGENT_SERVICOS — Historico mensal no modal de servico
+### [2026-06-29] AGENT_SERVICOS ï¿½ Historico mensal no modal de servico
 **Status:** Concluido
 **Fixes:** backend monthlyHistory 6 meses, frontend mapeia para MonthlyBooking, TabDesempenho substituida por tabela transposta (Agendados/Finalizados/Pendentes/Cancelados/Faturado x meses)
 
@@ -1268,23 +1268,23 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 - Backend `open()`: apÃ³s criar a comanda, busca o agendamento com `include: { service: true }`, cria commandItem e chama recalculate()
 - Frontend: itens iniciais passados como `[{ name, quantity, unitPrice }]` sem serviceId â€” extraItems sÃ³ envia itens adicionados via AddItemModal
 
-### [2026-06-29] AGENT_COMANDAS — Fix: mostrar finalAmount na tabela
+### [2026-06-29] AGENT_COMANDAS ï¿½ Fix: mostrar finalAmount na tabela
 **Status:** Concluido
 **Fix:** backend inclui command.finalAmount, frontend usa esse valor na tabela
 
-### [2026-06-29] AGENT_COMANDAS — Fix: Ver Comanda busca dados reais
+### [2026-06-29] AGENT_COMANDAS ï¿½ Fix: Ver Comanda busca dados reais
 **Status:** Concluido
 **Fix:** modal Ver Comanda busca GET /commands/:id para mostrar itens reais e desconto
 
-### [2026-06-29] AGENT_COMANDAS — Fix: Ver Comanda mostra itens reais, desconto e forma de pagamento
+### [2026-06-29] AGENT_COMANDAS ï¿½ Fix: Ver Comanda mostra itens reais, desconto e forma de pagamento
 **Status:** Concluido
 **Fix:** comandaData inclui deposit (payments[0]); modal recebe deposit prop; console.log para debug
 
-### [2026-06-29] AGENT_UI — Refatorar PaymentModal layout duas colunas
+### [2026-06-29] AGENT_UI ï¿½ Refatorar PaymentModal layout duas colunas
 **Status:** Concluido
 **Mudancas:** Layout 2 colunas (65/35), card servicos, ajustes chips, resumo financeiro destacado, grid pagamento com icones Lucide, historico accordion, observacoes textarea
 
-### [2026-06-29] AGENT_DASHBOARD — Fix KPIs zerados: fuso horario UTC-3
+### [2026-06-29] AGENT_DASHBOARD ï¿½ Fix KPIs zerados: fuso horario UTC-3
 **Status:** Concluido
 **Causa:** setHours() em servidor UTC computava midnight UTC; agendamentos BRT (UTC-3) ficavam fora do range
 **Fix:** projeta horario para BRT, calcula dayStart/dayEnd como UTC+3h
@@ -1337,24 +1337,24 @@ onReopen sÃ³ patcheava appointment status â†’ modal reabria sem dados â†’ handle
 ### ValidaÃ§Ã£o
 - npx tsc --noEmit: 0 erros (frontend e backend)
 
-### [2026-06-30] AGENT_PRODUTOS — Fase 1: schema + backend de produtos
-**Status:** ? Concluído
+### [2026-06-30] AGENT_PRODUTOS ï¿½ Fase 1: schema + backend de produtos
+**Status:** ? Concluï¿½do
 **Arquivos alterados:**
-- `packages/database/prisma/schema.prisma` — model Product, CommandItem.productId (opcional), ServiceCategory.products, Tenant.products
-- `packages/database/prisma/migrations/20260630000000_add_products_module/migration.sql` — migration gerada (não aplicada em homolog ainda)
+- `packages/database/prisma/schema.prisma` ï¿½ model Product, CommandItem.productId (opcional), ServiceCategory.products, Tenant.products
+- `packages/database/prisma/migrations/20260630000000_add_products_module/migration.sql` ï¿½ migration gerada (nï¿½o aplicada em homolog ainda)
 - `apps/api/src/modules/produtos/produtos.module.ts`
-- `apps/api/src/modules/produtos/produtos.service.ts` — list, findOne, create, update, remove (soft delete), adjustStock
-- `apps/api/src/modules/produtos/produtos.controller.ts` — GET /products, GET /products/:id, POST /products, PATCH /products/:id, DELETE /products/:id, POST /products/:id/stock
+- `apps/api/src/modules/produtos/produtos.service.ts` ï¿½ list, findOne, create, update, remove (soft delete), adjustStock
+- `apps/api/src/modules/produtos/produtos.controller.ts` ï¿½ GET /products, GET /products/:id, POST /products, PATCH /products/:id, DELETE /products/:id, POST /products/:id/stock
 - `apps/api/src/modules/produtos/dto/create-product.dto.ts`
 - `apps/api/src/modules/produtos/dto/update-product.dto.ts`
-- `apps/api/src/app.module.ts` — ProdutosModule registrado
-**Decisão:** ServiceCategory reutilizada para produtos (categorias compartilhadas entre serviços e produtos)
+- `apps/api/src/app.module.ts` ï¿½ ProdutosModule registrado
+**Decisï¿½o:** ServiceCategory reutilizada para produtos (categorias compartilhadas entre serviï¿½os e produtos)
 **O que foi feito:** Modelo Product completo com estoque, CRUD + adjustStock, migration SQL criada manualmente (sem DATABASE_URL local), Prisma Client regenerado, tsc 0 erros
-**Próximo passo:** Aplicar migration em homolog (`npx prisma migrate deploy`) e seguir para Fase 2 (frontend)
+**Prï¿½ximo passo:** Aplicar migration em homolog (`npx prisma migrate deploy`) e seguir para Fase 2 (frontend)
 
-### [2026-06-30] AGENT_AUTH — accessToken expira em 8h (era 1h)
-**Status:** ? Concluído
-**Mudança:** auth.service.ts expiresIn '1h' ? '8h' no accessToken
+### [2026-06-30] AGENT_AUTH ï¿½ accessToken expira em 8h (era 1h)
+**Status:** ? Concluï¿½do
+**Mudanï¿½a:** auth.service.ts expiresIn '1h' ? '8h' no accessToken
 
 ---
 ## [2026-06-30] â€” Auditoria completa do mÃ³dulo Comandas
@@ -1587,3 +1587,30 @@ Ambos os componentes foram escritos antes da convenÃ§Ã£o de chave `accessToken` 
 - `saldoCaixa` = entradas âˆ’ saÃ­das do cashflow
 - Antes: `receitaMes = k.receitaBruta` (receita de HOJE apenas â€” bug crÃ­tico)
 - TypeScript: `npx tsc --noEmit` âœ… sem erros
+
+---
+
+## [2026-06-30] AGENT_FINANCEIRO â€” feat: conecta Metas Ã  API real de goals (commit dc6a356)
+**Status:** âœ… ConcluÃ­do
+
+### Arquivos alterados
+- `apps/web/src/lib/api/relatorios.ts` â€” adicionadas interfaces `GoalRaw`, `GoalCreateDto` e mÃ©todos `goals()`, `createGoal()`, `deleteGoal()` ao `relatoriosApi`
+- `apps/web/src/components/financeiro/metas-section.tsx` â€” integraÃ§Ã£o completa com `/reports/goals`
+
+### O que foi feito
+- Tab Metas do Financeiro estava sempre usando `MOCK_METAS_HISTORICO` sem verificar `FEATURES.realRelatorios`
+- `loadRealMetas()`: busca todos os goals via `GET /reports/goals` + faz fetch paralelo de cashflow por mÃªs para calcular `realizado`
+- `handleSave()` async: em modo real, DELETE do goal existente (via `goalIdMap`) + POST novo â€” estratÃ©gia obrigatÃ³ria pois backend nÃ£o tem PATCH
+- `handleDelete()` async: chama `relatoriosApi.deleteGoal(id)` em modo real
+- `goalIdMap`: mapa `mesKey â†’ goalId` para saber qual goal deletar antes de re-criar
+- Skeleton condicional: `if (!mounted || (FEATURES.realRelatorios && goalsLoading))`
+- Somente metas `tipo === 'mensal'` sÃ£o exibidas nos charts (filtro aplicado no load)
+
+### PadrÃµes do mÃ³dulo Goal
+- Model: `{ id, tenantId, tipo, periodo, valor, dataInicio, dataFim }` â€” sem PATCH, edit = DELETE + POST
+- `mesKeyToRange('jun-26')` â†’ `{ dataInicio: '2026-06-01', dataFim: '2026-06-30' }`
+- Endpoints: `GET /api/v1/reports/goals`, `POST /api/v1/reports/goals`, `DELETE /api/v1/reports/goals/:id`
+
+### VerificaÃ§Ã£o
+- `npx tsc --noEmit` âœ… sem erros
+- Tab Metas carrega dados reais; criar/editar/deletar meta persiste via API

@@ -197,6 +197,20 @@ export default function PaymentModal({
     return () => document.removeEventListener('keydown', handler)
   }, [open, onClose])
 
+  // Sync localItems when items arrive asynchronously (e.g. Ver Comanda fetches API after modal opens)
+  useEffect(() => {
+    if (!open) return
+    setLocalItems(items.map(withKey))
+  }, [open, items]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync discount when initialDiscount arrives asynchronously
+  useEffect(() => {
+    if (!open || !initialDiscount) return
+    setApplied(initialDiscount)
+    setDiscountType(initialDiscount.type ?? 'amount')
+    setDiscountInput(String(initialDiscount.value))
+  }, [open, initialDiscount]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!open) return null
 
   // ── Computed ────────────────────────────────────────────────────────────────

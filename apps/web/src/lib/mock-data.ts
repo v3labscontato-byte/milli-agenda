@@ -22,6 +22,7 @@ export interface Appointment {
   startedAt?: string
   clientId?: string
   date?: string
+  commandId?: string
 }
 
 export interface KpiData {

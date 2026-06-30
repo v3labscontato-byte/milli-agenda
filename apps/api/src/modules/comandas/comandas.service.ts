@@ -43,7 +43,33 @@ export class ComandasService {
     return cmd
   }
 
+  async reopen(tenantId: string, id: string) {
+    const cmd = await this.findOne(tenantId, id)
+    if (cmd.status !== CommandStatus.CLOSED) {
+      throw new BadRequestException('Command is not closed')
+    }
+    return this.db.command.update({
+      where: { id },
+      data: { status: CommandStatus.OPEN, closedAt: null },
+    })
+  }
+
   async open(tenantId: string, dto: CreateComandaDto) {
+    if (dto.appointmentId) {
+      const existingAppt = await this.db.appointment.findFirst({
+        where: { id: dto.appointmentId, tenantId },
+        select: { commandId: true },
+      })
+      if (existingAppt?.commandId) {
+        const existingCmd = await this.db.command.findFirst({
+          where: { id: existingAppt.commandId },
+        })
+        if (existingCmd && (existingCmd.status === CommandStatus.OPEN || existingCmd.status === CommandStatus.IN_PROGRESS)) {
+          return this.findOne(tenantId, existingCmd.id)
+        }
+      }
+    }
+
     const command = await this.db.command.create({
       data: { tenantId, clientId: dto.clientId, notes: dto.notes },
     })

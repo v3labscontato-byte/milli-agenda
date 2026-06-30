@@ -55,6 +55,7 @@ function toAppointment(ca: CalendarAppointment, profs: CalendarProfessional[]): 
     amount: ca.amount,
     clientId: ca.clientId,
     date: ca.date,
+    commandId: ca.commandId,
   }
 }
 
@@ -414,9 +415,14 @@ export default function AgendaPage() {
             onReopen={async () => {
               const token = localStorage.getItem('accessToken')
               const base = process.env.NEXT_PUBLIC_API_URL
+              const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+              if (dayPaymentAppt.commandId) {
+                await fetch(`${base}/api/v1/commands/${dayPaymentAppt.commandId}/reopen`, {
+                  method: 'POST', headers,
+                })
+              }
               await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                method: 'PATCH', headers,
                 body: JSON.stringify({ status: 'CONFIRMED' }),
               })
               setDayPaymentAppt(null)

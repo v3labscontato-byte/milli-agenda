@@ -101,12 +101,15 @@ export default function ComandasPage() {
       const base = process.env.NEXT_PUBLIC_API_URL
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-      const cmdRes = await fetch(`${base}/api/v1/commands`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
-      })
-      const cmd = (await cmdRes.json()) as { data?: { id: string } }
-      const commandId = cmd.data?.id
+      let commandId: string | undefined = paymentAppt.commandId
+      if (!commandId) {
+        const cmdRes = await fetch(`${base}/api/v1/commands`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
+        })
+        const cmd = (await cmdRes.json()) as { data?: { id: string } }
+        commandId = cmd.data?.id
+      }
       if (!commandId) throw new Error('Comanda não criada')
 
       const extraItems = (result.items ?? []).filter((i) => !!i.serviceId)
@@ -161,7 +164,7 @@ export default function ComandasPage() {
 
   const openPaymentModal = useCallback(async (appt: CalendarAppointment) => {
     setPaymentAppt(appt)
-    if (appt.status === 'COMPLETED' && appt.commandId) {
+    if (appt.commandId) {
       const token = localStorage.getItem('accessToken')
       const base = process.env.NEXT_PUBLIC_API_URL
       const res = await fetch(`${base}/api/v1/commands/${appt.commandId}`, {
@@ -437,17 +440,22 @@ export default function ComandasPage() {
             const token = localStorage.getItem('accessToken')
             const tenantSlug = localStorage.getItem('tenantSlug') ?? ''
             const base = process.env.NEXT_PUBLIC_API_URL
+            const headers = {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              'X-Tenant-Slug': tenantSlug,
+            }
+            if (paymentAppt.commandId) {
+              await fetch(`${base}/api/v1/commands/${paymentAppt.commandId}/reopen`, {
+                method: 'POST', headers,
+              })
+            }
             await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-                'X-Tenant-Slug': tenantSlug,
-              },
+              method: 'PATCH', headers,
               body: JSON.stringify({ status: 'CONFIRMED' }),
             })
-            setPaymentAppt(null)
-            refetch()
+            // Reload the modal in editable mode preserving comanda data
+            await openPaymentModal({ ...paymentAppt, status: 'CONFIRMED' })
           }}
         />
       )}

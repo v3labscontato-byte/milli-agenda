@@ -442,9 +442,14 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
             if (!paymentAppt) return
             const token = localStorage.getItem('accessToken')
             const base = process.env.NEXT_PUBLIC_API_URL
+            const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+            if (paymentAppt.commandId) {
+              await fetch(`${base}/api/v1/commands/${paymentAppt.commandId}/reopen`, {
+                method: 'POST', headers,
+              })
+            }
             await fetch(`${base}/api/v1/appointments/${paymentAppt.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              method: 'PATCH', headers,
               body: JSON.stringify({ status: 'CONFIRMED' }),
             })
             setPaymentAppt(null)

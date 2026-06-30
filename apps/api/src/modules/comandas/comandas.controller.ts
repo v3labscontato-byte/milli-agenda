@@ -61,6 +61,11 @@ export class ComandasController {
     return this.comandasService.close(tenantId, id)
   }
 
+  @Post(':id/reopen')
+  reopen(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.comandasService.reopen(tenantId, id)
+  }
+
   @Patch(':id/cancel')
   cancel(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
     return this.comandasService.cancel(tenantId, id)

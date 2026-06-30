@@ -1315,3 +1315,24 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 ### Qualidade
 - `npx tsc --noEmit` passou sem erros
 - Nenhuma lógica de negócio, hook, store, serviço ou drag-and-drop alterado
+
+---
+
+## [2026-06-29] fix(comandas): reabertura preserva valores e pagamentos da comanda original
+
+### Causa raiz corrigida
+onReopen só patcheava appointment status → modal reabria sem dados → handlePaymentConfirm criava nova comanda → comanda original ficava órfã com pagamentos duplicados.
+
+### Mudanças backend
+- `apps/api/src/modules/comandas/comandas.service.ts`: novo método reopen() (status OPEN, closedAt null); open() verifica commandId existente no appointment e reutiliza comanda OPEN ao invés de criar nova
+- `apps/api/src/modules/comandas/comandas.controller.ts`: nova rota POST /commands/:id/reopen
+
+### Mudanças frontend
+- `apps/web/src/lib/mock-data.ts`: commandId? adicionado ao tipo Appointment
+- `apps/web/src/app/(dashboard)/agenda/page.tsx`: toAppointment() mapeia commandId; onReopen chama /commands/:id/reopen antes de PATCH appointment
+- `apps/web/src/app/(comandas)/comandas/page.tsx`: onReopen chama reopen + reabre modal com dados preservados; openPaymentModal carrega dados quando commandId existe (não só COMPLETED); handlePaymentConfirm reutiliza commandId existente
+- `apps/web/src/components/agenda-table.tsx`: onReopen chama /commands/:id/reopen
+- `apps/web/src/components/agenda/appointment-modal.tsx`: onReopen chama /commands/:id/reopen
+
+### Validação
+- npx tsc --noEmit: 0 erros (frontend e backend)

@@ -584,9 +584,14 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         onReopen={async () => {
           const token = localStorage.getItem('accessToken')
           const base = process.env.NEXT_PUBLIC_API_URL
+          const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+          if (appointment.commandId) {
+            await fetch(`${base}/api/v1/commands/${appointment.commandId}/reopen`, {
+              method: 'POST', headers,
+            })
+          }
           await fetch(`${base}/api/v1/appointments/${appointment.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            method: 'PATCH', headers,
             body: JSON.stringify({ status: 'CONFIRMED' }),
           })
           setPaymentOpen(false)

@@ -1553,3 +1553,37 @@ Todos os 12 tabs de Configurações testados manualmente:
 Ambos os componentes foram escritos antes da convenção de chave `accessToken` ser padronizada. Outros componentes de configurações usam o `ApiClient` singleton (que injeta o token corretamente via `localStorage.getItem('accessToken')`), mas esses dois usam `fetch()` direto com `getToken()` próprio — função que estava com a chave errada.
 
 **Verificação pós-fix:** `npx tsc --noEmit` limpo. Testado no browser: ambas as tabs carregam dados reais da API.
+
+
+---
+## 2026-06-30 — Validação visual + fix KPI strip Financeiro
+
+### Validação tela por tela (todos os gráficos)
+
+| Componente | Status | Observação |
+|---|---|---|
+| KPI Strip — Receita Bruta/Hoje/Ticket/A Receber | ✅ Real | De /reports/kpis |
+| KPI Strip — Receita do Mês | ✅ CORRIGIDO | Era `receitaBruta` (hoje only) → agora soma do cashflow |
+| KPI Strip — Total Entradas / Saldo Caixa | ✅ CORRIGIDO | Era 0 hardcoded → agora derivado do cashflow |
+| KPI Strip — Receita da Semana | ⚪ 0 | Precisaria fetch separado com range semanal |
+| KPI Strip — Metas (diária/semanal/mensal/%) | ⚪ 0 | Requer integração com /reports/goals |
+| Faturamento Diário (bar chart) | ✅ Real | Cashflow endpoint |
+| Por Método (donut) | ❌ "Sem pagamentos" | Sem endpoint de breakdown por método |
+| Módulo de Despesas | ❌ Em breve | Sem tabela Expense no backend |
+| Tab Procedimentos | ❌ Em breve | Sem endpoint de receita por serviço |
+| Tab Recebimentos | ❌ Em breve | Sem endpoint /payments listagem |
+| Tab Comissões | ✅ Real | 4 profissionais, R$ 3.181,10 a pagar |
+| Tab Inadimplência | ✅ Real | 1 cliente, R$ 90,00 |
+| Tab Fluxo de Caixa | ✅ Real | Área chart + tabela movimentações (5 dias) |
+| Tab Metas | ⚠️ Mock | Sem check FEATURES — sempre usa MOCK_METAS_HISTORICO |
+| Tab Plano de Contas | ❌ Em breve | Sem endpoint /settings/chart-of-accounts |
+
+### Fix aplicado
+
+**`apps/web/src/app/(financeiro)/financeiro/page.tsx`**
+- `buildRealKpis()` recebe agora `cashflow: CashflowResponse | null` como 3º parâmetro
+- `receitaMes` = soma de `cashflow.entries[].entradas` (total do período selecionado)
+- `totalEntradas` = mesma soma
+- `saldoCaixa` = entradas − saídas do cashflow
+- Antes: `receitaMes = k.receitaBruta` (receita de HOJE apenas — bug crítico)
+- TypeScript: `npx tsc --noEmit` ✅ sem erros

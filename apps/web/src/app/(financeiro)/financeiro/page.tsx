@@ -12,7 +12,7 @@ import {
 } from '@/lib/financeiro-mock'
 import { MOCK_INADIMPLENCIA_HISTORICO } from '@/lib/financeiro-historico'
 import { FEATURES } from '@/lib/features'
-import { useRelatorios, periodToRange, type Period } from '@/hooks/use-relatorios'
+import { useRelatorios, periodToRange, type Period, type CashflowResponse } from '@/hooks/use-relatorios'
 import MonthFilter, { CURRENT_MONTH } from '@/components/financeiro/month-filter'
 import FinanceiroKpiStrip from '@/components/financeiro/financeiro-kpi-strip'
 import ReceitaChart from '@/components/financeiro/receita-chart'
@@ -205,13 +205,18 @@ const PERIOD_MAP: Record<PeriodFilter, Period> = {
   custom: 'custom',
 }
 
-function buildRealKpis(raw: ReturnType<typeof useRelatorios>['kpis'], overdueCount: number): FinanceiroKpis {
-  // Map documented API fields onto the FinanceiroKpis shape used by the strip.
-  // Fields the API does not provide (trend strings, metas) are zeroed — no mock
-  // leakage. See backlog TODOs in use-relatorios.ts for /reports/goals.
+function buildRealKpis(
+  raw: ReturnType<typeof useRelatorios>['kpis'],
+  overdueCount: number,
+  cashflow: CashflowResponse | null,
+): FinanceiroKpis {
   const k = raw ?? {}
+  const entries = cashflow?.entries ?? []
+  const totalEntradas = entries.reduce((s, e) => s + Number(e.entradas ?? 0), 0)
+  const totalSaidas   = entries.reduce((s, e) => s + Number(e.saidas   ?? 0), 0)
+  const saldoCaixa    = totalEntradas - totalSaidas
   return {
-    receitaMes:        k.receitaBruta ?? 0,
+    receitaMes:        totalEntradas,
     receitaMesTrend:   '',
     receitaMesTrendUp: true,
     receitaHoje:       k.todayRevenue ?? 0,
@@ -229,14 +234,14 @@ function buildRealKpis(raw: ReturnType<typeof useRelatorios>['kpis'], overdueCou
     despesas:          k.despesas ?? 0,
     lucroLiquido:      k.lucro ?? 0,
     margem:            k.margem ?? 0,
-    metaAting:         0, // TODO: /reports/goals
+    metaAting:         0,
     inadimplenciaPct:  0,
-    totalEntradas:     0,
-    saldoCaixa:        0,
+    totalEntradas,
+    saldoCaixa,
     receitaSemana:     0,
-    metaDiaria:        0, // TODO: /reports/goals
-    metaSemanal:       0, // TODO: /reports/goals
-    metaMensal:        0, // TODO: /reports/goals
+    metaDiaria:        0,
+    metaSemanal:       0,
+    metaMensal:        0,
   }
 }
 
@@ -265,7 +270,7 @@ export default function FinanceiroPage() {
     if (FEATURES.realRelatorios) fetchOverdue()
   }, [fetchOverdue])
 
-  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length) : FINANCEIRO_KPIS
+  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length, rel.cashflow) : FINANCEIRO_KPIS
 
   return (
     <>

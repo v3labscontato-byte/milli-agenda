@@ -295,7 +295,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
         })
       }
 
-      for (const m of result.methods ?? []) {
+      for (const m of (result.methods ?? []).filter((m) => m.amount > 0)) {
         const payRes = await fetch(`${base}/api/v1/payments`, {
           method: 'POST',
           headers,

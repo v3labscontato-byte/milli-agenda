@@ -332,7 +332,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
         })
       }
 
-      for (const m of result.methods ?? []) {
+      for (const m of (result.methods ?? []).filter((m) => m.amount > 0)) {
         await fetch(`${base}/api/v1/payments`, {
           method: 'POST',
           headers,

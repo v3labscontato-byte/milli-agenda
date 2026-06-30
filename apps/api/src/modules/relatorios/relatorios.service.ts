@@ -414,4 +414,58 @@ export class RelatoriosService {
   async deleteGoal(tenantId: string, id: string) {
     return this.db.goal.delete({ where: { id, tenantId } })
   }
+
+  async listChartOfAccounts(tenantId: string, period?: string) {
+    const p = period ?? new Date().toISOString().slice(0, 7)
+    const accounts = await this.db.chartOfAccount.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'asc' },
+      include: { entries: { where: { period: p }, take: 1 } },
+    })
+    return accounts.map((a) => ({
+      id: a.id, nome: a.nome, tipo: a.tipo, categoria: a.categoria,
+      valorPadrao: Number(a.valorPadrao ?? 0), recorrente: a.recorrente,
+      diaPagamento: a.diaPagamento, ativa: a.ativa, period: p,
+      entry: a.entries[0]
+        ? { id: a.entries[0].id, status: a.entries[0].status, valor: Number(a.entries[0].valor), paidAt: a.entries[0].paidAt }
+        : null,
+    }))
+  }
+
+  async createChartOfAccount(tenantId: string, dto: {
+    nome: string; tipo: string; categoria: string;
+    valorPadrao?: number; diaPagamento?: number; recorrente?: boolean; ativa?: boolean
+  }) {
+    return this.db.chartOfAccount.create({
+      data: {
+        tenantId, nome: dto.nome, tipo: dto.tipo, categoria: dto.categoria,
+        valorPadrao: dto.valorPadrao ?? null,
+        diaPagamento: dto.diaPagamento ?? 5,
+        recorrente: dto.recorrente ?? true,
+        ativa: dto.ativa ?? true,
+      },
+    })
+  }
+
+  async deleteChartOfAccount(tenantId: string, id: string) {
+    return this.db.chartOfAccount.delete({ where: { id, tenantId } })
+  }
+
+  async payChartOfAccountEntry(tenantId: string, id: string, dto: { period: string; valor: number }) {
+    const account = await this.db.chartOfAccount.findFirstOrThrow({
+      where: { id, tenantId }, select: { nome: true },
+    })
+    const entry = await this.db.chartOfAccountEntry.upsert({
+      where: { chartOfAccountId_period: { chartOfAccountId: id, period: dto.period } },
+      create: { tenantId, chartOfAccountId: id, period: dto.period, valor: dto.valor, status: 'PAID', paidAt: new Date() },
+      update: { status: 'PAID', valor: dto.valor, paidAt: new Date() },
+    })
+    const expenseExists = await this.db.expense.findUnique({ where: { chartOfAccountEntryId: entry.id } })
+    if (!expenseExists) {
+      await this.db.expense.create({
+        data: { tenantId, descricao: account.nome, valor: dto.valor, data: new Date(), chartOfAccountEntryId: entry.id },
+      })
+    }
+    return entry
+  }
 }

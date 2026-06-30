@@ -66,4 +66,16 @@ export const relatoriosApi = {
 
   createExpense: (dto: { descricao: string; valor: number; data: string }) =>
     api.post('/api/v1/reports/expenses', dto),
+
+  listChartOfAccounts: (period?: string) =>
+    api.get(`/api/v1/reports/chart-of-accounts${period ? `?period=${period}` : ''}`),
+
+  createChartOfAccount: (dto: { nome: string; tipo: string; categoria: string; valorPadrao?: number; diaPagamento?: number; recorrente?: boolean; ativa?: boolean }) =>
+    api.post('/api/v1/reports/chart-of-accounts', dto),
+
+  deleteChartOfAccount: (id: string) =>
+    api.delete(`/api/v1/reports/chart-of-accounts/${id}`),
+
+  payChartOfAccount: (id: string, dto: { period: string; valor: number }) =>
+    api.post(`/api/v1/reports/chart-of-accounts/${id}/pay`, dto),
 }

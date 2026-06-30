@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { RelatoriosService } from './relatorios.service'
@@ -105,6 +105,36 @@ export class RelatoriosController {
     @Body() dto: { descricao: string; valor: number; data: string },
   ) {
     return this.relatoriosService.createExpense(tenantId, dto)
+  }
+
+  @Get('chart-of-accounts')
+  listChartOfAccounts(
+    @TenantFromJwt() tenantId: string,
+    @Query('period') period?: string,
+  ) {
+    return this.relatoriosService.listChartOfAccounts(tenantId, period)
+  }
+
+  @Post('chart-of-accounts')
+  createChartOfAccount(
+    @TenantFromJwt() tenantId: string,
+    @Body() dto: { nome: string; tipo: string; categoria: string; valorPadrao?: number; diaPagamento?: number; recorrente?: boolean; ativa?: boolean },
+  ) {
+    return this.relatoriosService.createChartOfAccount(tenantId, dto)
+  }
+
+  @Delete('chart-of-accounts/:id')
+  deleteChartOfAccount(@TenantFromJwt() tenantId: string, @Param('id') id: string) {
+    return this.relatoriosService.deleteChartOfAccount(tenantId, id)
+  }
+
+  @Post('chart-of-accounts/:id/pay')
+  payChartOfAccountEntry(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: { period: string; valor: number },
+  ) {
+    return this.relatoriosService.payChartOfAccountEntry(tenantId, id, dto)
   }
 
   @Post('goals')

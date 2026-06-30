@@ -23,6 +23,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **REGRA:** toda investigação, todo Playwright, todo curl de teste usa HOMOLOG por padrão.
 Produção só é tocada com autorização explícita e específica do usuário para aquela ação.
 
+## REGRA DE ACESSO A PRODUÇÃO
+A partir de 2026-06-30, toda ação em produção (migrations, queries de investigação/cleanup) é executada PELO Claude Code via DATABASE_URL pública de PRODUÇÃO fornecida pontualmente pelo usuário — nunca mais manualmente direto no Railway Console.
+Motivo: garantir documentação automática de toda ação em DEVLOG.md (incidente de referência: reconciliação de schema em 2026-06-30).
+A URL pública de produção NUNCA é commitada em nenhum arquivo do repositório.
+
+## REGRA — DEPLOY DE CÓDIGO ≠ DEPLOY DE SCHEMA (separar sempre)
+Push para `main` (deploy de código em produção) e `prisma migrate deploy` contra o banco de produção são DUAS AÇÕES INDEPENDENTES — uma nunca dispara a outra automaticamente neste projeto.
+Sempre que um merge para `main` envolver mudança em `packages/database/prisma/schema.prisma` ou em `prisma/migrations/`, isso deve ser explicitamente sinalizado ao usuário como: "este deploy também requer `prisma migrate deploy` em produção — confirma quando posso rodar?"
+Nunca assumir que uma migration aplicada em homolog também foi aplicada em produção, mesmo que o código já esteja lá.
+
+## REGRA CRÍTICA — NENHUMA AÇÃO DESTRUTIVA EM PRODUÇÃO SEM APROVAÇÃO
+Mesmo com acesso via DATABASE_URL configurado, NENHUMA migration ou ação destrutiva em produção roda sem aprovação explícita do usuário para aquela ação específica.
+
 ## FLUXO DE DEPLOY
 - **Homolog** (staging): recebe todo código novo
 - **Main** (produção): push só com aprovação explícita

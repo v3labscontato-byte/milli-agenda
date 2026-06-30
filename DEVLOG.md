@@ -1685,3 +1685,98 @@ for (const item of removedItems) {
 ### Verificação
 - `npx tsc --noEmit` ✅ 0 erros
 - Playwright E2E: aguardando deploy ativo no Railway
+
+### Validação E2E — Playwright (CONCLUÍDA 30/06/2026)
+**Commit testado:** 67365b1  
+**Ambiente:** HOMOLOG (`studio-homolog` / `ddpobre@gmail.com`)
+
+#### Ciclo testado (agendamento 1234, 11:00, comanda `cmr0pl1xa00037xrg78nexn9x`)
+1. **1ª Fechamento:** Bronzeamento R$90 + Escova R$70 − desconto R$35 = R$125 (sinal PIX) ✅
+2. **Reopen:** POST /reopen 201, status voltou a Pendente, Recebido caiu para R$734 ✅
+3. **2ª Fechamento (crítico — testa o fix):**
+   - Removido: Escova R$70
+   - Adicionado: Corte Feminino R$80
+   - **Rede (ordem correta):**
+     - `DELETE .../items/cmr0pl2c100077xrgyu401i3d` → 200 ✅ (ANTES do POST)
+     - `POST .../items` → 201 ✅ (Corte Feminino)
+     - `POST .../discount` → 201 ✅
+     - `POST /payments` → 201 ✅ (R$10 PIX)
+     - `POST .../close` → 201 ✅
+   - **finalAmount retornado pelo backend:** R$135 (= R$90 + R$80 − R$35) ✅
+   - **Bug antigo teria retornado:** R$205 (incluiria Escova R$70 ainda no banco)
+   - **Tabela Agenda mostra:** `Pago R$ 135,00 Realizado` ✅
+   - **Dashboard Recebido:** R$869 = R$734 + R$135 ✅ (≠ R$939 que seria com bug)
+
+#### Resultado: ✅ PASS — fix validado em produção homolog
+
+---
+
+### [30/06/2026] CLAUDE — fix: filtro amount>0 no loop de POST /payments (3 entry points)
+
+**Status:** ✅ Concluído  
+**Commit:** 9db8a6c  
+**Branch:** homolog  
+**Arquivos alterados:**
+- `apps/web/src/app/(dashboard)/agenda/page.tsx` — `handleDayPaymentConfirm`
+- `apps/web/src/components/agenda-table.tsx` — handler de pagamento
+- `apps/web/src/components/agenda/appointment-modal.tsx` — handler de pagamento
+
+#### Bug encontrado durante regressão (PASSO 4.1)
+**Causa:** ao reabrir uma comanda já totalmente paga (sinal cobrindo 100%), o modal enviava `POST /payments` com `amount: 0` — o backend retornava 400. O `close` ainda ocorria (em bloco try/catch separado), mas ficava um request 400 desnecessário no log.
+
+**Raiz:** o fix anterior (67365b1) aplicou `.filter(m => m.amount > 0)` apenas em `comandas/page.tsx`. Os outros 3 entry points ficaram sem o filtro.
+
+**Fix:** adicionado `.filter((m) => m.amount > 0)` antes do loop `for (const m of result.methods ?? [])` nos 3 arquivos acima.
+
+#### Validação E2E — Regressão completa (PASSO 4 + PASSO 5)
+
+**Comanda testada:** `cmr0pl1xa00037xrg78nexn9x` (cliente 1234, 30/06 11:00)  
+**Appointment:** `cmr0pi2xr00017xrggd4hkmjx`
+
+**PASSO 4.1 — Reopen → fechar sem alterar (sinal cobre 100%)**
+- POST /reopen → 201 ✅
+- POST /discount → 201 ✅
+- **ZERO POST /payments** ✅ — filtro funcionou, method PIX amount=0 ignorado
+- POST /close → 201 ✅
+
+**PASSO 4.2 — Reopen → adicionar Escova R$70 → pagar valor exato**
+- POST /reopen → 201 ✅
+- POST /items → 201 (Escova adicionada) ✅
+- POST /discount → 201 ✅
+- POST /payments → 201 (amount=70, passou pelo filtro) ✅ — sem "already fully paid"
+- POST /close → 201 ✅
+
+**PASSO 4.3 — Reopen de comanda já fechada não retorna 500**
+- Confirmado múltiplas vezes: POST /reopen → 201 ✅
+
+**PASSO 5 — Consistência de dados / sem C2**
+- GET /commands/cmr0pl1xa00037xrg78nexn9x: `status=CLOSED`, `finalAmount=205`, `items=[Bronzeamento R$90, Corte Feminino R$80, Escova R$70]` ✅
+- GET /appointments/cmr0pi2xr00017xrggd4hkmjx: `commandId=cmr0pl1xa00037xrg78nexn9x` (único, sem C2) ✅
+
+#### Resultado: ✅ PASS — regressão completa validada
+
+---
+
+### [30/06/2026] PRODUÇÃO — Reconciliação de schema divergente (executado manualmente via Railway Console)
+**Status:** ✅ Resolvido
+
+**Contexto:** investigação de migrations pendentes em produção (originada da divergência appointment.amount em Comandas) revelou um problema mais profundo do que o esperado.
+
+**Achados:**
+- `_prisma_migrations` tinha `20260625000000_init` marcada como failed (`finished_at` null) mas as tabelas já existiam fisicamente — falso negativo de controle
+- 3 migrations (`add_password_reset_token`, `add_onboarding_models`, `add_goals`) já tinham sido aplicadas fisicamente em produção fora do fluxo formal de `migrate deploy`, sem nunca terem sido registradas em `_prisma_migrations`
+- Tabela `goals` existia com colunas em INGLÊS (`type`, `period`, `value`, `startDate`, `endDate`), divergente do `schema.prisma` atual (português) — confirmado vazia, foi dropada e recriada via migration
+- `products` e `command_items.productId` nunca existiam em produção — causa raiz real dos 500s vistos anteriormente em `addItem`/`close`/`GET /commands` em produção
+
+**Causa raiz de fundo:** deploy de CÓDIGO (frontend/backend via merge para main) e deploy de SCHEMA DE BANCO (migrations) são duas ações independentes neste projeto — uma não dispara a outra automaticamente. O código de Produtos/Goals foi para produção, mas ninguém rodou `prisma migrate deploy` contra o banco de produção depois, criando o descompasso.
+
+**Ações realizadas:**
+1. `prisma migrate resolve --applied` nas 3 migrations já existentes fisicamente
+2. `DROP TABLE goals CASCADE` (tabela vazia, schema divergente)
+3. `prisma migrate deploy` aplicando as 3 migrations reais
+
+**Resultado:** `npx prisma migrate status` → "Database schema is up to date" em produção
+
+**Cleanup adicional:** 2 comandas órfãs deletadas em produção (tenant `cmqszbwqq0000lzvpov34y5lh`, originadas de login acidental em tenant errado durante investigação anterior). Confirmadas vazias antes do DELETE.
+
+**Guard para o futuro:** sempre que `migrate status` reportar migration pendente ou falha, NÃO assumir que o banco está no estado "antes" da migration — verificar via `information_schema` se a estrutura já existe fisicamente antes de agir.

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ComposedChart, Bar, Line, LineChart,
+  ComposedChart, Bar, BarChart, Cell, LabelList, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine, ResponsiveContainer,
 } from 'recharts'
 import { Plus, X, Pencil, Trash2, Target, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react'
@@ -343,26 +343,34 @@ export default function MetasSection() {
         </div>
       </div>
 
-      {/* % Atingimento chart */}
+      {/* Taxa de Atingimento — BarChart com cores condicionais */}
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="border-b border-[#E2E8F0] px-5 py-4">
           <h3 className="text-[14px] font-semibold text-[#0F172A]">Taxa de Atingimento</h3>
           <p className="mt-0.5 text-[12px] text-[#475569]">% da meta mensal alcançado</p>
         </div>
         <div className="px-4 pb-4 pt-5">
-          <ResponsiveContainer width="100%" height={150}>
-            <LineChart data={lineData} margin={{ top: 4, right: 28, bottom: 0, left: 0 }}>
+          <ResponsiveContainer width="100%" height={170}>
+            <BarChart data={lineData} margin={{ top: 20, right: 16, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke="#F1F5F9" />
               <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={36}
-                tickFormatter={(v: number) => `${v}%`} domain={[0, 120]} />
+                tickFormatter={(v: number) => `${v}%`} domain={[0, Math.max(120, ...lineData.map((d) => d.pct + 10))]} />
               <Tooltip content={<PctTooltip />} />
               <ReferenceLine y={100} stroke="#16A34A" strokeDasharray="4 2" strokeWidth={1.5}
                 label={{ value: '100%', position: 'insideRight', fontSize: 10, fill: '#16A34A' }} />
-              <Line dataKey="pct" stroke="#7C3AED" strokeWidth={2}
-                dot={{ r: 4, fill: '#7C3AED', strokeWidth: 0 }}
-                activeDot={{ r: 5 }} isAnimationActive={false} />
-            </LineChart>
+              <Bar dataKey="pct" radius={[4, 4, 0, 0]} maxBarSize={52} isAnimationActive={false}>
+                <LabelList dataKey="pct" position="top" fontSize={11} fill="#475569"
+                  formatter={(v: unknown) => (v != null ? `${v}%` : '')} />
+                {lineData.map((entry, i) => (
+                  <Cell
+                    key={`cell-${i}`}
+                    fill={entry.pct >= 100 ? '#16A34A' : entry.pct >= 80 ? '#2563EB' : '#DC2626'}
+                    fillOpacity={entry.pct === 0 ? 0.3 : 1}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

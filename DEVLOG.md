@@ -1464,3 +1464,49 @@ Regra gravada em `.agents/AGENT_COMANDAS.md`: "Todo handlePaymentConfirm que cri
 + for (const m of (result.methods ?? []).filter((m) => m.amount > 0)) {
 ```
 Métodos com `amount=0` (cobertos pelo sinal) são filtrados antes do POST /payments. Quando o sinal cobre 100%, o loop fica vazio e vai direto ao `close` — comportamento correto.
+
+
+---
+
+### [2026-06-30] AGENT_COMANDAS — Cenário Completo de Testes E2E (Playwright + Chrome DevTools MCP)
+**Status:** ✅ Concluído
+**Comanda testada:** `cmr0bgkft00056q1jys6521pw` (appointment "Teste das 04:18", 30/06/2026 09:00)
+**Estado inicial dashboard:** ATENDIMENTOS 38 · PENDENTES 2 · RECEBIDO R$5.998 · CANCELADOS 2
+
+#### Fluxo testado (passo a passo):
+1. ✅ Comanda aberta: Bronzeamento R$90 + Shampoo R$45 (sinal R$100, desconto R$35)
+2. ✅ Serviço confirmado (Bronzeamento já presente)
+3. ✅ Produto confirmado (Shampoo já presente)
+4. ✅ Fechar comanda → `POST /close [201]` + `PATCH /appointments [200]` → PENDENTES 2→1, RECEBIDO R$5998→R$6098, tabela: Pendente→Pago, Confirmado→Realizado
+5. ✅ Aplicar desconto (R$35 existente — `POST /discount [201]`)
+6. ✅ Reabrir comanda → `POST /reopen [201]` + `PATCH /appointments [200]`
+7. ✅ Remover Shampoo (item produto) — subtotal R$135→R$90
+8. ✅ Adicionar Shampoo de volta → subtotal R$90→R$135
+9. ✅ Remover Bronzeamento (serviço) — subtotal R$135→R$45
+10. ✅ Adicionar Corte Feminino R$80 (serviço novo) → `POST /items [201]` — subtotal R$45→R$125
+11. ✅ Confirmar pagamento (total R$0 — coberto por sinal+desconto) → `POST /discount [201]` + `POST /close [201]` + `PATCH /appointments [200]`
+
+#### Resultado final dashboard:
+- PENDENTES: 1 (mantido — "Cadatro de produtos" pendente)
+- RECEBIDO: R$6.098 → **R$6.178** (+R$80)
+- "Teste das 04:18": R$100 → **R$180**, "Pago · Realizado · Ver Comanda"
+
+#### Network requests completos (Playwright capture):
+```
+POST /commands/.../discount    [201] ← aplicou desconto R$35
+POST /commands/.../close       [201] ← 1º fechamento
+PATCH /appointments/...        [200] ← appointment COMPLETED
+POST /commands/.../reopen      [201] ← reabertura
+PATCH /appointments/...        [200] ← appointment OPEN
+POST /commands/.../items       [201] ← Corte Feminino adicionado
+POST /commands/.../discount    [201] ← reaplicou desconto
+POST /commands/.../close       [201] ← 2º fechamento (sem POST /payments — amount filtrado para 0)
+PATCH /appointments/...        [200] ← appointment COMPLETED novamente
+GET  /appointments?...         [200] ← dashboard recarregado
+```
+
+#### Fix validado em produção (homolog):
+O filtro `m.amount > 0` em `handlePaymentConfirm` funcionou corretamente: nenhum `POST /payments` foi enviado no 2º fechamento (total coberto pelo sinal), indo direto ao `close` sem erro 400.
+
+#### Observação sobre RECEBIDO:
+O valor RECEBIDO no dashboard é calculado a partir de `appointment.amount`, que é atualizado via `PATCH /appointments` com o `totalAmount` da comanda a cada fechamento. No 2º fechamento, o `totalAmount` era R$125 (Shampoo + Corte Feminino), mas o appointment exibe R$180 — diferença de R$80 em relação ao valor anterior R$100. Possível bug residual no cálculo de `amount` passado ao PATCH, a investigar separadamente.

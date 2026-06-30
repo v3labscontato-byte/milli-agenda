@@ -10,7 +10,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 function getToken() {
   if (typeof window === 'undefined') return ''
-  return localStorage.getItem('milli_access_token') ?? ''
+  return localStorage.getItem('accessToken') ?? ''
 }
 
 const PRESET_COLORS = [

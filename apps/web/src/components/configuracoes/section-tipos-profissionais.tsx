@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 function getToken() {
   if (typeof window === 'undefined') return ''
-  return localStorage.getItem('milli_access_token') ?? ''
+  return localStorage.getItem('accessToken') ?? ''
 }
 
 interface ProfRole {
@@ -84,7 +84,7 @@ export default function SectionTiposProfissionais() {
       return
     }
     try {
-      const res = await fetch(`${API_URL}/professionals/roles/${id}`, {
+      const res = await fetch(`${API_URL}/api/v1/professionals/roles/${id}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: editName, description: editDesc || undefined }),

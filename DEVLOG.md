@@ -1510,3 +1510,46 @@ O filtro `m.amount > 0` em `handlePaymentConfirm` funcionou corretamente: nenhum
 
 #### Observação sobre RECEBIDO:
 O valor RECEBIDO no dashboard é calculado a partir de `appointment.amount`, que é atualizado via `PATCH /appointments` com o `totalAmount` da comanda a cada fechamento. No 2º fechamento, o `totalAmount` era R$125 (Shampoo + Corte Feminino), mas o appointment exibe R$180 — diferença de R$80 em relação ao valor anterior R$100. Possível bug residual no cálculo de `amount` passado ao PATCH, a investigar separadamente.
+
+---
+
+### [2026-06-30] AGENT_CONFIGURACOES — Teste completo de todos os botões de Configurações + 2 bugfixes
+**Status:** ✅ Concluído
+**Arquivos alterados:**
+- `apps/web/src/components/configuracoes/section-tipos-profissionais.tsx`
+- `apps/web/src/components/configuracoes/section-categorias-servicos.tsx`
+
+#### Cobertura de testes (Playwright MCP):
+Todos os 12 tabs de Configurações testados manualmente:
+
+| Tab | Resultado |
+|-----|-----------|
+| Meu Salão | ✅ Campos editáveis, "Salvar alterações" OK |
+| Horários | ✅ Toggles ON/OFF por dia, inputs de horário, "Salvar horários" OK |
+| Notificações | ✅ 8 toggles de notificação, "Salvar notificações" OK |
+| Pagamentos | ✅ Toggles métodos de pagamento, "Salvar configurações" OK |
+| Site Booking | ✅ "Verificar domínio" desabilitado (requer Enterprise — intencional); "Personalizar App" modal OK; WhatsApp "Conectar" desabilitado (Em breve — intencional) |
+| Tipos de Prof. | 🐛 **BUG CORRIGIDO** — ver abaixo |
+| Categorias Serv. | 🐛 **BUG CORRIGIDO** — ver abaixo |
+| Plano | ✅ Info do plano exibida, badges "Em breve" nos upgrades (intencional) |
+| API & Integr. | ⚠️ "Criar nova API Key" e "Adicionar webhook" sem onClick (TODO placeholder). Toggles Google Calendar/Outlook/WhatsApp Business alternam estado corretamente |
+| LGPD | ✅ 2 toggles de consentimento OK; dropdown retenção (1/2/3/5 anos/Indefinidamente); "Exportar JSON" desabilitado sem cliente (correto); "Anonimizar" desabilitado sem cliente (correto); "Salvar preferências" OK |
+| Afiliados | ✅ Toggle ativo/inativo OK; inputs comissão/valor mínimo editáveis; dropdown expiração (3/6/12/24 meses); "Salvar alterações" OK |
+| Fidelidade | ✅ Toggle desabilita todos os inputs (comportamento correto); inputs acúmulo e 4 tiers (Bronze/Silver/Gold/Diamond); "Salvar alterações" OK |
+
+#### Bugs encontrados e corrigidos:
+
+**Bug 1 — `section-tipos-profissionais.tsx`**
+- Linha 12: `localStorage.getItem('milli_access_token')` → `localStorage.getItem('accessToken')`
+  - Causava: GET /api/v1/professionals/roles → 401, tab mostrava "Nenhum tipo cadastrado" em vez dos dados reais
+- Linha 87: URL `/professionals/roles/${id}` → `/api/v1/professionals/roles/${id}`
+  - Causava: PATCH sem prefixo correto → 404
+
+**Bug 2 — `section-categorias-servicos.tsx`**
+- Linha 13: `localStorage.getItem('milli_access_token')` → `localStorage.getItem('accessToken')`
+  - Causava: GET /api/v1/services/categories → 401, tab mostrava estado vazio em vez das categorias reais
+
+#### Padrão de bug:
+Ambos os componentes foram escritos antes da convenção de chave `accessToken` ser padronizada. Outros componentes de configurações usam o `ApiClient` singleton (que injeta o token corretamente via `localStorage.getItem('accessToken')`), mas esses dois usam `fetch()` direto com `getToken()` próprio — função que estava com a chave errada.
+
+**Verificação pós-fix:** `npx tsc --noEmit` limpo. Testado no browser: ambas as tabs carregam dados reais da API.

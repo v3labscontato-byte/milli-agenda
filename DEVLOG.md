@@ -1920,3 +1920,62 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 
 ### Próximo passo
 - ITEM 2 — Fluxo de Caixa: backend `POST /api/v1/expenses` + frontend modal "Registrar saída"
+
+---
+
+## [30/06/2026] feat(fluxo-caixa): ITEM 2 — Registrar saída manual
+
+### Status: ✅ Concluído (aguardando validação Playwright pós-deploy)
+
+### Arquivos alterados
+- `apps/api/src/modules/relatorios/relatorios.service.ts`
+- `apps/api/src/modules/relatorios/relatorios.controller.ts`
+- `apps/web/src/lib/api/relatorios.ts`
+- `apps/web/src/app/(financeiro)/financeiro/page.tsx`
+- `apps/web/src/components/financeiro/fluxo-caixa.tsx`
+
+### O que foi feito
+**Backend:**
+- `cashflow()`: agora busca `Expense` do período em paralelo com appointments; inclui `saidas` por dia calculadas da tabela `expenses`; saldo = entradas - saidas por dia
+- `createExpense()`: cria registro na tabela `expenses` com descricao, valor e data
+- `POST /reports/expenses` → `{ descricao, valor, data }` no body
+
+**Frontend:**
+- `relatoriosApi.createExpense()` adicionado
+- `FluxoCaixa` recebe prop `onExpenseCreated?: () => void` passada pelo page.tsx (`fetchCashflow(from, to)`)
+- Botão "+ Registrar saída" no header da tabela de movimentações (modo real, cor vermelha)
+- Modal `ExpenseModal`: campos descricao (text), valor (number, step 0.01), data (date, default hoje); submit chama API → fecha modal → `onExpenseCreated()` faz refetch do cashflow
+
+### Próximo passo
+- ITEM 3 — Plano de Contas: CRUD completo (ChartOfAccount + ChartOfAccountEntry) backend + frontend
+
+---
+
+## [30/06/2026] feat(plano-contas): ITEM 3 — CRUD completo Plano de Contas
+
+### Status: ✅ Concluído — aguardando validação Playwright pós-deploy homolog
+
+### Arquivos alterados
+- `apps/api/src/modules/relatorios/relatorios.service.ts`
+- `apps/api/src/modules/relatorios/relatorios.controller.ts`
+- `apps/web/src/lib/api/relatorios.ts`
+- `apps/web/src/components/financeiro/plano-contas.tsx`
+
+### O que foi feito
+**Backend (4 endpoints novos):**
+- `GET /reports/chart-of-accounts?period=YYYY-MM` — lista contas do tenant com entry do período (null se não existe)
+- `POST /reports/chart-of-accounts` — cria ChartOfAccount
+- `DELETE /reports/chart-of-accounts/:id` — remove conta
+- `POST /reports/chart-of-accounts/:id/pay` — upsert entry como PAID + cria Expense vinculado (idempotente: verifica expense existente antes de criar)
+
+**Frontend:**
+- `relatoriosApi.listChartOfAccounts/createChartOfAccount/deleteChartOfAccount/payChartOfAccount` adicionados
+- `plano-contas.tsx` refatorado: substituiu early return "em breve" por `PlanoContasReal` completo
+- Componentes separados: `PlanoContasReal` (API real) e `PlanoContasMock` (dados mock) — export default roteia via `FEATURES.realRelatorios`
+- Conversão `monthKey → period`: `'jun-26'` → `'2026-06'` via `MONTH_TO_PERIOD` mapa gerado de `MONTHS`
+- Botão "Dar baixa" por conta (status PENDING/ATRASADO) → persiste entry PAID + Expense no banco
+- "Nova Conta" modal → persiste no banco e refetch
+- Botão delete com remoção otimista
+
+### Pendente
+- Validação Playwright após deploy homolog

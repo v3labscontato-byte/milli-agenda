@@ -1953,7 +1953,7 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 
 ## [30/06/2026] feat(plano-contas): ITEM 3 — CRUD completo Plano de Contas
 
-### Status: ✅ Concluído — aguardando validação Playwright pós-deploy homolog
+### Status: ✅ Concluído e validado via Playwright
 
 ### Arquivos alterados
 - `apps/api/src/modules/relatorios/relatorios.service.ts`

@@ -1336,3 +1336,18 @@ onReopen sÃ³ patcheava appointment status â†’ modal reabria sem dados â†’ handle
 
 ### ValidaÃ§Ã£o
 - npx tsc --noEmit: 0 erros (frontend e backend)
+
+### [2026-06-30] AGENT_PRODUTOS — Fase 1: schema + backend de produtos
+**Status:** ? Concluído
+**Arquivos alterados:**
+- `packages/database/prisma/schema.prisma` — model Product, CommandItem.productId (opcional), ServiceCategory.products, Tenant.products
+- `packages/database/prisma/migrations/20260630000000_add_products_module/migration.sql` — migration gerada (não aplicada em homolog ainda)
+- `apps/api/src/modules/produtos/produtos.module.ts`
+- `apps/api/src/modules/produtos/produtos.service.ts` — list, findOne, create, update, remove (soft delete), adjustStock
+- `apps/api/src/modules/produtos/produtos.controller.ts` — GET /products, GET /products/:id, POST /products, PATCH /products/:id, DELETE /products/:id, POST /products/:id/stock
+- `apps/api/src/modules/produtos/dto/create-product.dto.ts`
+- `apps/api/src/modules/produtos/dto/update-product.dto.ts`
+- `apps/api/src/app.module.ts` — ProdutosModule registrado
+**Decisão:** ServiceCategory reutilizada para produtos (categorias compartilhadas entre serviços e produtos)
+**O que foi feito:** Modelo Product completo com estoque, CRUD + adjustStock, migration SQL criada manualmente (sem DATABASE_URL local), Prisma Client regenerado, tsc 0 erros
+**Próximo passo:** Aplicar migration em homolog (`npx prisma migrate deploy`) e seguir para Fase 2 (frontend)

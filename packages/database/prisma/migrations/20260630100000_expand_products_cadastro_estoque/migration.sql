@@ -13,5 +13,5 @@ ALTER TABLE "products"
   ADD COLUMN "supplierName" TEXT,
   ADD COLUMN "unit" "ProductUnit" NOT NULL DEFAULT 'UNIT',
   ADD COLUMN "imageUrl" TEXT,
-  ADD COLUMN "classifications" "ProductClassification"[] DEFAULT ARRAY[]::"ProductClassification"[],
+  ADD COLUMN "classifications" "ProductClassification"[] NOT NULL DEFAULT ARRAY[]::"ProductClassification"[],
   ADD COLUMN "location" TEXT;

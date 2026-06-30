@@ -5,7 +5,7 @@ import { Calendar, ClipboardList, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type Appointment } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
-import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
+import { useComandaDetalhe, filterNewItems } from '@/hooks/use-comanda-detalhe'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -255,7 +255,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       const commandId = cmd.data?.id
       if (!commandId) throw new Error('Comanda não criada')
 
-      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
+      const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
       for (const item of extraItems) {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST',

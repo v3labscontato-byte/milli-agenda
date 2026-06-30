@@ -65,3 +65,16 @@ export function useComandaDetalhe() {
 
   return { detalhe, loadComandaDetalhe, clearDetalhe }
 }
+
+type ItemWithId = { serviceId?: string; productId?: string }
+
+/** Returns only items from resultItems whose serviceId/productId is NOT already in existingItems. */
+export function filterNewItems<T extends ItemWithId>(resultItems: T[], existingItems: ItemWithId[]): T[] {
+  const existingServiceIds = new Set(existingItems.map((i) => i.serviceId).filter((id): id is string => !!id))
+  const existingProductIds = new Set(existingItems.map((i) => i.productId).filter((id): id is string => !!id))
+  return resultItems.filter((i) => {
+    if (i.serviceId) return !existingServiceIds.has(i.serviceId)
+    if (i.productId) return !existingProductIds.has(i.productId)
+    return false
+  })
+}

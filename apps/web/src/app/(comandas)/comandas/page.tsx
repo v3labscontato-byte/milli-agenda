@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useHistoricoAgendamentos } from '@/hooks/use-historico-agendamentos'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { type CalendarAppointment } from '@/lib/calendar-utils'
-import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
+import { useComandaDetalhe, filterNewItems } from '@/hooks/use-comanda-detalhe'
 
 // ─── Types & config ───────────────────────────────────────────────────────────
 
@@ -108,7 +108,7 @@ export default function ComandasPage() {
       }
       if (!commandId) throw new Error('Comanda não criada')
 
-      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
+      const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
       for (const item of extraItems) {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST', headers,

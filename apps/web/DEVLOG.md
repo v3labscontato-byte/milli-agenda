@@ -91,3 +91,17 @@ Fix: max={tab==='product' && selected?.stock != null ? selected.stock : undefine
 - comandas/page.tsx refatorada: openPaymentModal virou wrapper fino do hook, eliminando ~30 linhas de lógica duplicada
 - clearDetalhe() chamado em todas as saídas (onClose, onReopen, confirm) para evitar estado stale
 - TypeScript: 0 erros
+
+## [2026-06-30] CLAUDE — Fix: reenvio duplicado de itens existentes em reopen/re-close
+**Status:** Concluído
+**Arquivos alterados:**
+- apps/web/src/hooks/use-comanda-detalhe.ts (filterNewItems exportada)
+- apps/web/src/components/agenda-table.tsx
+- apps/web/src/app/(dashboard)/agenda/page.tsx
+- apps/web/src/components/agenda/appointment-modal.tsx
+- apps/web/src/app/(comandas)/comandas/page.tsx
+- .agents/AGENT_PRODUTOS.md (criado)
+
+**Bug:** handlePaymentConfirm reenviava itens já existentes na comanda (carregados via use-comanda-detalhe), causando CommandItem duplicado e débito de estoque duplicado. Manifestado como "estoque insuficiente" após reopen.
+**Fix:** filterNewItems() exportada de use-comanda-detalhe.ts — retorna apenas itens cujo serviceId/productId NÃO existe em detalhe.items. Aplicada nos 4 pontos de entrada substituindo o filtro anterior (serviceId||productId).
+**Não tocado:** comandas.service.ts — backend correto, problema era exclusivamente no payload enviado pelo frontend.

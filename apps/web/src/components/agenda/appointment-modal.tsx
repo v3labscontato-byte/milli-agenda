@@ -7,7 +7,7 @@ import { STATUS_STYLES, type CalendarAppointment } from '@/lib/calendar-utils'
 import type { AppointmentStatus } from '@/lib/mock-data'
 import PaymentModal, { type PaymentResult } from '@/components/shared/payment-modal'
 import { agendaApi } from '@/lib/api/agenda'
-import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
+import { useComandaDetalhe, filterNewItems } from '@/hooks/use-comanda-detalhe'
 
 interface ProfItem { id: string; name: string; specialty?: string; workDays: number[]; workStart: string; workEnd: string; allowSimultaneous?: boolean }
 interface ServItem { id: string; name: string; durationMin?: number; price?: number }
@@ -291,7 +291,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       const commandId = cmd.data?.id
       if (!commandId) throw new Error('Comanda não criada')
 
-      const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
+      const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
       for (const item of extraItems) {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST',

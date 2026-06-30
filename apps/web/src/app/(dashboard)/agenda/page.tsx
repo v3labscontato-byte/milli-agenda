@@ -14,7 +14,7 @@ import {
 } from '@/lib/calendar-utils'
 import { useAgenda } from '@/hooks/use-agenda'
 import { useProfissionais } from '@/hooks/use-profissionais'
-import { useComandaDetalhe } from '@/hooks/use-comanda-detalhe'
+import { useComandaDetalhe, filterNewItems } from '@/hooks/use-comanda-detalhe'
 import type { Appointment } from '@/lib/mock-data'
 import CalendarHeader from '@/components/agenda/calendar-header'
 import DayTimeline from '@/components/agenda/day-timeline'
@@ -166,7 +166,7 @@ export default function AgendaPage() {
     const commandId = cmd.data?.id
     if (!commandId) return
 
-    const extraItems = (result.items ?? []).filter((i) => !!i.serviceId || !!i.productId)
+    const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
     for (const item of extraItems) {
       try {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {

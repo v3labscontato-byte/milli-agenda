@@ -2053,3 +2053,22 @@ Sessão 2 (continuação): 6 fixes em 1 commit — Comissões, Recebimentos, ITE
 
 ### Status
 tsc: 0 erros (frontend e backend). Push: `homolog`.
+
+---
+
+## 2026-06-30 — fix(financeiro): card Despesas e Margem
+
+### Causa raiz
+`buildRealKpis` em `page.tsx` usava `k.despesas ?? 0` (campo hardcoded como `0` no endpoint `/reports/kpis`) e `k.lucro`/`k.margem` derivados do mesmo valor errado.
+
+### Fix
+`page.tsx` — `buildRealKpis` (4 linhas):
+- `receitaBruta: totalEntradas` (era `k.receitaBruta` = só receita de hoje)
+- `despesas: totalSaidas` (era `k.despesas` = sempre 0)
+- `lucroLiquido: totalEntradas - totalSaidas`
+- `margem: totalEntradas > 0 ? Math.round(((totalEntradas - totalSaidas) / totalEntradas) * 100) : 0`
+
+`totalSaidas` já era computado no mesmo `buildRealKpis` a partir do cashflow — que por sua vez já busca `db.expense` no backend. Nenhum novo endpoint necessário.
+
+### Status
+tsc: 0 erros. Push: `homolog`.

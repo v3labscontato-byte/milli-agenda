@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  Package,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/clientes',        icon: Users,           label: 'Clientes'       },
   { href: '/profissionais',   icon: Scissors,        label: 'Profissionais'  },
   { href: '/servicos',        icon: ListChecks,      label: 'Serviços'       },
+  { href: '/produtos',        icon: Package,         label: 'Produtos'       },
   { href: '/financeiro',      icon: BarChart2,       label: 'Financeiro'     },
 ]
 

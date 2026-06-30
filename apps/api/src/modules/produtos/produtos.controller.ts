@@ -10,12 +10,29 @@ import { UpdateProductDto } from './dto/update-product.dto'
 export class ProdutosController {
   constructor(private readonly produtosService: ProdutosService) {}
 
+  @Get('dashboard')
+  getDashboard(@TenantFromJwt() tenantId: string) {
+    return this.produtosService.getDashboardStats(tenantId)
+  }
+
   @Get()
   findAll(
     @TenantFromJwt() tenantId: string,
     @Query('includeInactive') includeInactive?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('brand') brand?: string,
+    @Query('supplierName') supplierName?: string,
+    @Query('lowStock') lowStock?: string,
+    @Query('outOfStock') outOfStock?: string,
   ) {
-    return this.produtosService.findAll(tenantId, includeInactive !== 'true')
+    return this.produtosService.findAll(tenantId, {
+      onlyActive: includeInactive !== 'true',
+      categoryId: categoryId || undefined,
+      brand: brand || undefined,
+      supplierName: supplierName || undefined,
+      lowStock: lowStock === 'true',
+      outOfStock: outOfStock === 'true',
+    })
   }
 
   @Get(':id')

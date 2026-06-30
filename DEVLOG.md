@@ -1371,3 +1371,22 @@ onReopen só patcheava appointment status → modal reabria sem dados → handle
 
 ### Validação
 - `npx tsc --noEmit` → 0 erros
+
+### [2026-06-30] AGENT_PRODUTOS — Onda A+B: cadastro completo + estoque + dashboard
+**Status:** ✅ Concluído
+**Arquivos alterados:**
+- `packages/database/prisma/schema.prisma` — enums `ProductUnit` / `ProductClassification`, campos novos em `Product`
+- `packages/database/prisma/migrations/20260630100000_expand_products_cadastro_estoque/migration.sql` — migration gerada localmente
+- `apps/api/src/modules/produtos/dto/create-product.dto.ts` — todos os campos Onda A+B
+- `apps/api/src/modules/produtos/produtos.service.ts` — create/update expandidos, filtros findAll, getDashboardStats()
+- `apps/api/src/modules/produtos/produtos.controller.ts` — GET /products/dashboard, query filters
+- `apps/web/src/lib/features.ts` — flag `realProdutos`
+- `apps/web/src/lib/api/produtos.ts` — API lib criada
+- `apps/web/src/hooks/use-produtos.ts` — hook completo
+- `apps/web/src/app/(produtos)/layout.tsx` — shell layout
+- `apps/web/src/app/(produtos)/produtos/page.tsx` — página com KPI cards, filtros, tabela, badges de estoque
+- `apps/web/src/components/produtos/produto-modal.tsx` — modal criar/editar com todos os campos
+- `apps/web/src/components/sidebar.tsx` — item "Produtos" adicionado
+**Decisão de design:** classificações múltiplas como `ProductClassification[]` (array Postgres nativo), padrão já usado em `workDays Int[]` e `enabledServices String[]`
+**Problemas encontrados:** Prisma client precisou ser regenerado (`prisma generate`) antes do tsc passar
+**Próximo passo:** aplicar migration em homolog com `DATABASE_URL` configurado

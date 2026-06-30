@@ -62,6 +62,21 @@ enum PaymentMethod {
   VOUCHER
 }
 
+enum ProductUnit {
+  UNIT
+  ML
+  G
+  KG
+  LITER
+}
+
+enum ProductClassification {
+  RESALE
+  INTERNAL_USE
+  PROCEDURE
+  CONSUMABLE
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model Tenant {
@@ -521,17 +536,26 @@ model ServiceCategory {
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  tenantId      String
-  categoryId    String?
-  name          String
-  description   String?
-  price         Decimal  @db.Decimal(10, 2)
-  stockQuantity Int      @default(0)
-  minStockAlert Int      @default(0)
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String                  @id @default(cuid())
+  tenantId        String
+  categoryId      String?
+  name            String
+  description     String?
+  notes           String?
+  price           Decimal                 @db.Decimal(10, 2)
+  stockQuantity   Int                     @default(0)
+  minStockAlert   Int                     @default(0)
+  maxStock        Int?
+  active          Boolean                 @default(true)
+  sku             String?
+  brand           String?
+  supplierName    String?
+  unit            ProductUnit             @default(UNIT)
+  imageUrl        String?
+  classifications ProductClassification[]
+  location        String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
 
   tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   category     ServiceCategory? @relation(fields: [categoryId], references: [id])

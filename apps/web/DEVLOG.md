@@ -59,3 +59,19 @@
 - apps/web/src/components/agenda/appointment-modal.tsx: idem
 
 **tsc --noEmit: 0 erros (frontend e backend)**
+
+## [2026-06-30] CLAUDE — fix(comandas): produto some ao reabrir comanda + sem limite de qtd no AddItemModal
+**Status:** Concluído
+**Arquivos:**
+- apps/web/src/app/(comandas)/comandas/page.tsx
+- apps/web/src/components/shared/add-item-modal.tsx
+
+**Bug 1 — nome vazio ao reabrir comanda com produto:**
+openPaymentModal usava i.service?.name ?? i.name ?? '' para mapear nome dos items.
+CommandItem não tem campo 
+ame; para items de produto i.service é null. Resultado: name=''.
+Fix: i.service?.name ?? i.product?.name ?? ''
+
+**Bug 2 — input de quantidade sem max no AddItemModal:**
+Quantidade podia ser qualquer valor; validação só no backend.
+Fix: max={tab==='product' && selected?.stock != null ? selected.stock : undefined}

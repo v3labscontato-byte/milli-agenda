@@ -254,7 +254,7 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
                 <div className="flex gap-3 border-t border-[#F1F5F9] px-5 py-4">
                   <div className="flex-1">
                     <label className="mb-1 block text-[11px] font-medium text-[#475569]">Qtd.</label>
-                    <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                    <input type="number" min="1" max={tab === 'product' && selected?.stock != null ? selected.stock : undefined} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                   </div>
                   <div className="flex-1">
                     <label className="mb-1 block text-[11px] font-medium text-[#475569]">Preço (R$)</label>

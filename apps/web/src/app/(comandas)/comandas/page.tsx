@@ -182,7 +182,7 @@ export default function ComandasPage() {
       console.log('[openPaymentModal] cmd.data:', JSON.stringify(cmd.data, null, 2))
       if (cmd.data) {
         const items = (cmd.data.items ?? []).map((i: any) => ({
-          name: (i.service?.name as string) ?? (i.name as string) ?? '',
+          name: (i.service?.name ?? i.product?.name ?? '') as string,
           quantity: i.quantity as number,
           unitPrice: Number(i.unitPrice),
         }))

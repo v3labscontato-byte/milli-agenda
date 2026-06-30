@@ -1351,3 +1351,7 @@ onReopen sÃ³ patcheava appointment status â†’ modal reabria sem dados â†’ handle
 **Decisão:** ServiceCategory reutilizada para produtos (categorias compartilhadas entre serviços e produtos)
 **O que foi feito:** Modelo Product completo com estoque, CRUD + adjustStock, migration SQL criada manualmente (sem DATABASE_URL local), Prisma Client regenerado, tsc 0 erros
 **Próximo passo:** Aplicar migration em homolog (`npx prisma migrate deploy`) e seguir para Fase 2 (frontend)
+
+### [2026-06-30] AGENT_AUTH — accessToken expira em 8h (era 1h)
+**Status:** ? Concluído
+**Mudança:** auth.service.ts expiresIn '1h' ? '8h' no accessToken

@@ -185,7 +185,7 @@ export class AuthService {
   private issueTokens(sub: string, tenantId: string, tenantSlug: string, email: string, role: string) {
     const payload = { sub, tenantId, tenantSlug, email, role }
     return {
-      accessToken: this.jwt.sign(payload, { expiresIn: '1h' }),
+      accessToken: this.jwt.sign(payload, { expiresIn: '8h' }),
       refreshToken: this.jwt.sign(payload, { expiresIn: '30d' }),
     }
   }

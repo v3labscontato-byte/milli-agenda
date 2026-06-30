@@ -1447,3 +1447,20 @@ Regra gravada em `.agents/AGENT_COMANDAS.md`: "Todo handlePaymentConfirm que cri
 - apps/web/src/app/(dashboard)/agenda/page.tsx: try/catch wrapper, dayPaymentLoading state, payRes.ok check, throw em lugar de return silencioso
 - apps/web/src/hooks/use-comanda-detalhe.ts: soma de todos payments com status=PAID em alreadyPaid em vez de payments[0]
 - apps/api/src/modules/comandas/comandas.service.ts: recalculate() busca discountAmount atual da comanda antes do update, preservando desconto de nível-comanda
+
+
+### [2026-06-30] AGENT_COMANDAS — Fix: Cenário 1 — reabrir comanda paga envia amount=0 ao backend
+**Status:** ✅ Concluído
+**Causa raiz (3 camadas):**
+1. Backend `reopen()` só altera `status=OPEN, closedAt=null` — registros `Payment` com `status=PAID` permanecem intactos.
+2. `use-comanda-detalhe.ts` soma todos os PAID payments → `deposit.amount` = valor total já pago.
+3. `PaymentModal`: `totalDue = max(0, finalAmount − deposit) = 0` → `canConfirm = true` sem o usuário preencher valor → `handleConfirm` envia `amount: parseFloat('') || 0 = 0` → backend retorna 400 "Payment amount must be greater than zero".
+**Investigação prévia (Playwright MCP):** confirmado com network capture:
+- POST /payments body: `{"method":"PIX","amount":0}` → [400]
+- POST /payments (Cenário 2, item novo): `{"method":"PIX","amount":45}` → [201] ✅ (Cenário 2 não é bug)
+**Fix (cirúrgico — 1 linha):** `apps/web/src/app/(comandas)/comandas/page.tsx:134`
+```diff
+- for (const m of result.methods ?? []) {
++ for (const m of (result.methods ?? []).filter((m) => m.amount > 0)) {
+```
+Métodos com `amount=0` (cobertos pelo sinal) são filtrados antes do POST /payments. Quando o sinal cobre 100%, o loop fica vazio e vai direto ao `close` — comportamento correto.

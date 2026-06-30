@@ -7,6 +7,8 @@ import {
 } from 'recharts'
 import { MOCK_DESPESAS_CATEGORIA, MOCK_DESPESAS_MENSAL } from '@/lib/financeiro-mock'
 import { FEATURES } from '@/lib/features'
+import { relatoriosApi } from '@/lib/api/relatorios'
+import type { CashflowResponse } from '@/hooks/use-relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -14,6 +16,8 @@ function fmtBRL(n: number) {
 
 const TOTAL_DESPESAS = MOCK_DESPESAS_CATEGORIA.reduce((s, d) => s + d.valor, 0)
 const SORTED_CATEGORIAS = [...MOCK_DESPESAS_CATEGORIA].sort((a, b) => b.valor - a.valor)
+
+const MES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
 
 interface LineTEntry { dataKey?: string | number; value?: number; color?: string }
 interface LineTooltipProps { active?: boolean; payload?: LineTEntry[]; label?: string }
@@ -33,18 +37,59 @@ function LineTooltip({ active, payload, label }: LineTooltipProps) {
   )
 }
 
+interface GvFEntry { dataKey?: string | number; value?: number; color?: string }
+function GvFTooltip({ active, payload, label }: { active?: boolean; payload?: GvFEntry[]; label?: string }) {
+  if (!active || !payload?.length) return null
+  const fat = (payload.find((p) => p.dataKey === 'faturamento')?.value ?? 0)
+  const desp = (payload.find((p) => p.dataKey === 'despesas')?.value ?? 0)
+  return (
+    <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2.5 shadow-md">
+      <p className="mb-1.5 text-[12px] font-semibold text-[#0F172A]">{label}</p>
+      <p className="text-[12px] text-[#2563EB]">Faturamento: {fmtBRL(fat)}</p>
+      <p className="text-[12px] text-[#DC2626]">Despesas: {fmtBRL(desp)}</p>
+      <p className="mt-1 border-t border-[#F1F5F9] pt-1 text-[12px] font-semibold text-[#0F172A]">
+        Lucro bruto: {fmtBRL(fat - desp)}
+      </p>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DespesasSection() {
-  // TODO: conectar endpoint /reports/expenses (tabela Expense no banco) quando disponível
-  if (FEATURES.realRelatorios) return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
-      <p className="text-[13px] font-medium text-[#475569]">Módulo de Despesas em breve</p>
-      <p className="mt-1 text-[12px]">As despesas serão registradas aqui quando o módulo for ativado.</p>
-    </div>
-  )
   const [mounted, setMounted]           = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
+  const [realData, setRealData]         = useState<{ mes: string; faturamento: number; despesas: number }[]>([])
+  const [realLoading, setRealLoading]   = useState(FEATURES.realRelatorios)
+
+  useEffect(() => {
+    if (!FEATURES.realRelatorios) return
+    const now = new Date()
+    const from6 = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    relatoriosApi.cashflow({ from: fmt(from6), to: fmt(now) })
+      .then((res) => {
+        const entries = ((res as CashflowResponse)?.entries ?? [])
+        const byMonth = new Map<string, { faturamento: number; despesas: number }>()
+        for (const e of entries) {
+          const month = e.date.slice(0, 7)
+          const prev = byMonth.get(month) ?? { faturamento: 0, despesas: 0 }
+          byMonth.set(month, {
+            faturamento: prev.faturamento + Number(e.entradas ?? 0),
+            despesas:    prev.despesas    + Number(e.saidas   ?? 0),
+          })
+        }
+        const sorted = Array.from(byMonth.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([month, v]) => {
+            const [y, m] = month.split('-')
+            return { mes: `${MES_PT[parseInt(m) - 1]}/${y.slice(2)}`, ...v }
+          })
+        setRealData(sorted)
+      })
+      .catch(() => {})
+      .finally(() => setRealLoading(false))
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -54,6 +99,38 @@ export default function DespesasSection() {
     mq.addEventListener('change', h)
     return () => mq.removeEventListener('change', h)
   }, [])
+
+  if (FEATURES.realRelatorios) {
+    if (realLoading) return (
+      <div className="h-64 animate-pulse rounded-lg bg-[#F1F5F9]" aria-hidden="true" />
+    )
+    return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Faturamento vs Despesas</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">Últimos 6 meses</p>
+        </div>
+        <div className="px-5 pb-4 pt-5">
+          {realData.length === 0 ? (
+            <p className="py-8 text-center text-[13px] text-[#94A3B8]">Sem movimentações nos últimos 6 meses.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={realData} barCategoryGap="25%" barGap={3}>
+                <CartesianGrid vertical={false} stroke="#F1F5F9" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} width={52}
+                  tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip content={<GvFTooltip />} cursor={{ fill: '#F8FAFC' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px', color: '#475569' }} iconType="square" iconSize={8} />
+                <Bar dataKey="faturamento" name="Faturamento" fill="#2563EB" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="despesas"    name="Despesas"    fill="#DC2626" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

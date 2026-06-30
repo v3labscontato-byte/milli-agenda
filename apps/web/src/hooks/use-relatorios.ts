@@ -80,6 +80,7 @@ export interface PaymentRow {
   paidAt: string
   clientName: string
   service: string
+  professional?: string
 }
 
 export type Period = 'hoje' | 'semana' | 'mes' | 'ultimos30' | 'custom'

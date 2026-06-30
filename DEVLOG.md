@@ -2010,3 +2010,46 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 
 ### Status
 tsc: 0 erros (frontend e backend). Deploy automático via push para `homolog`.
+
+---
+
+## 2026-06-30 — fix(financeiro): grafico meta, metodo pagamento, despesas vs faturamento, cards zerados, comissoes/recebimentos tabelas
+
+### Escopo
+Sessão 2 (continuação): 6 fixes em 1 commit — Comissões, Recebimentos, ITEM A (ReferenceLine meta), ITEM B (rename + tooltip zIndex), ITEM C (BarChart Faturamento vs Despesas), ITEM D (KPI cards zerados).
+
+### O que foi feito
+
+**Comissões (PASSO 4 aprovado):**
+- `comissoes-table.tsx`: removido `opacity-0 group-hover:opacity-100` do botão "Dar baixa"/"Marcar Pago" — sempre visível.
+
+**Recebimentos (PASSO 4 aprovado):**
+- `pagamentos-table.tsx`: mock StatusBadge cores corrigidas para design system (#DCFCE7/#16A34A pago, #FEF9C3/#CA8A04 pendente).
+- Modo real: adicionadas colunas Profissional e Status badge. CSV exportado com ambas.
+- `use-relatorios.ts`: `PaymentRow.professional?: string` adicionado.
+- `relatorios.service.ts`: `listPayments` agora inclui `command.appointments[0].professional.name`.
+
+**ITEM A — ReferenceLine de meta diária no Faturamento Diário:**
+- `receita-chart.tsx`: `RealCharts` aceita `goals?: GoalRaw[]`. Computa `metaDiaria = metaMensal / daysInMonth` para o mês corrente. `DailyTooltip` aceita `metaDiaria` prop (fallback ao hardcoded `META_DIARIA=800` no mock). ReferenceLine laranja tracejada com label "Meta R$X".
+
+**ITEM B — Rename "Por Método" → "Método de Pagamento" + tooltip zIndex:**
+- `receita-chart.tsx`: título renomeado em real mode e mock mode. `wrapperStyle={{ zIndex: 50 }}` no Tooltip do donut para evitar clipping.
+
+**ITEM C — BarChart Faturamento vs Despesas (substituiu placeholder):**
+- `despesas-section.tsx`: estado/efeito de cashflow adicionado ANTES de qualquer return condicional (fix de hooks order). Busca últimos 6 meses via `relatoriosApi.cashflow()`. Agrega por mês. Renderiza BarChart agrupado (Faturamento=#2563EB, Despesas=#DC2626) com `GvFTooltip` (Faturamento, Despesas, Lucro bruto). `Array.from(byMonth.entries())` para compatibilidade de target ES.
+
+**ITEM D — KPI cards zerados corrigidos:**
+- `page.tsx`: `buildRealKpis` agora aceita `goals: GoalRaw[]`. Computa:
+  - `receitaSemana`: soma cashflow entries dos últimos 7 dias.
+  - `taxaRecebimento`: `recebido / (recebido + aReceber) * 100`.
+  - `metaMensal / metaDiaria / metaSemanal / metaAting`: a partir do goal do mês corrente (`tipo='mensal'`, `periodo='jun-26'`).
+  - `inadimplenciaPct`: `overdueCount / totalClients * 100`.
+- `goals` state + `useEffect` (fetch `relatoriosApi.goals()`) adicionados em `FinanceiroPage`.
+- `goals` passado para `buildRealKpis` e `<ReceitaChart>`.
+
+**Fix de tipo TS:**
+- `DailyTooltipProps.payload`: `readonly DailyPayload[]` com `DailyPayload { value?: unknown; dataKey?: unknown }`.
+- `DailyTooltipProps.label`: `string | number | undefined` para compatibilidade com Recharts.
+
+### Status
+tsc: 0 erros (frontend e backend). Push: `homolog`.

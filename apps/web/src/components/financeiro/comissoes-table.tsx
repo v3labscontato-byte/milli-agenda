@@ -227,7 +227,7 @@ function ComissoesTable({ realData, loading, error }: ComissoesTableProps) {
                           </div>
                         ) : (
                           <button type="button" onClick={() => setConfirmId(c.id)}
-                            className="rounded-sm border border-[#E2E8F0] px-2.5 py-1 text-[11px] font-medium text-[#475569] opacity-0 transition-all group-hover:opacity-100 hover:border-[#16A34A] hover:text-[#16A34A] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
+                            className="rounded-sm border border-[#E2E8F0] px-2.5 py-1 text-[11px] font-medium text-[#475569] hover:border-[#16A34A] hover:text-[#16A34A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
                             {real ? 'Dar baixa' : 'Marcar Pago'}
                           </button>
                         )

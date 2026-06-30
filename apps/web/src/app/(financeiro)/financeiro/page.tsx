@@ -13,6 +13,7 @@ import {
 import { MOCK_INADIMPLENCIA_HISTORICO } from '@/lib/financeiro-historico'
 import { FEATURES } from '@/lib/features'
 import { useRelatorios, periodToRange, type Period, type CashflowResponse } from '@/hooks/use-relatorios'
+import { relatoriosApi, type GoalRaw } from '@/lib/api/relatorios'
 import MonthFilter, { CURRENT_MONTH } from '@/components/financeiro/month-filter'
 import FinanceiroKpiStrip from '@/components/financeiro/financeiro-kpi-strip'
 import ReceitaChart from '@/components/financeiro/receita-chart'
@@ -204,16 +205,48 @@ const PERIOD_MAP: Record<PeriodFilter, Period> = {
   custom: 'custom',
 }
 
+const MONTHS_PT_KPI = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+
+function ymdStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function buildRealKpis(
   raw: ReturnType<typeof useRelatorios>['kpis'],
   overdueCount: number,
   cashflow: CashflowResponse | null,
+  goals: GoalRaw[],
 ): FinanceiroKpis {
   const k = raw ?? {}
   const entries = cashflow?.entries ?? []
   const totalEntradas = entries.reduce((s, e) => s + Number(e.entradas ?? 0), 0)
   const totalSaidas   = entries.reduce((s, e) => s + Number(e.saidas   ?? 0), 0)
   const saldoCaixa    = totalEntradas - totalSaidas
+
+  const now = new Date()
+  const sevenAgoStr = ymdStr(new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000))
+  const todayStr    = ymdStr(now)
+  const receitaSemana = entries
+    .filter((e) => e.date >= sevenAgoStr && e.date <= todayStr)
+    .reduce((s, e) => s + Number(e.entradas ?? 0), 0)
+
+  const recebido = k.recebido ?? 0
+  const aReceber = k.aReceber ?? 0
+  const taxaRecebimento = (recebido + aReceber) > 0
+    ? Math.round((recebido / (recebido + aReceber)) * 100)
+    : 0
+
+  const monthKey = `${MONTHS_PT_KPI[now.getMonth()]}-${String(now.getFullYear()).slice(2)}`
+  const currentGoal = goals.find((g) => String(g.tipo) === 'mensal' && g.periodo === monthKey)
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const metaMensal = currentGoal ? Number(currentGoal.valor) : 0
+  const metaDiaria = metaMensal > 0 ? Math.round(metaMensal / daysInMonth) : 0
+  const metaSemanal = metaDiaria > 0 ? metaDiaria * 7 : 0
+  const metaAting = metaMensal > 0 ? Math.min(Math.round((totalEntradas / metaMensal) * 100), 100) : 0
+
+  const totalClients = k.totalClients ?? 0
+  const inadimplenciaPct = totalClients > 0 ? Math.round((overdueCount / totalClients) * 100) : 0
+
   return {
     receitaMes:        totalEntradas,
     receitaMesTrend:   '',
@@ -221,9 +254,9 @@ function buildRealKpis(
     receitaHoje:       k.todayRevenue ?? 0,
     receitaHojeTrend:  '',
     receitaHojeTrendUp: true,
-    aReceber:          k.aReceber ?? 0,
+    aReceber,
     pendingCount:      overdueCount,
-    taxaRecebimento:   0,
+    taxaRecebimento,
     taxaMeta:          0,
     taxaTrendUp:       true,
     ticketMedio:       k.ticketMedio ?? 0,
@@ -233,14 +266,14 @@ function buildRealKpis(
     despesas:          k.despesas ?? 0,
     lucroLiquido:      k.lucro ?? 0,
     margem:            k.margem ?? 0,
-    metaAting:         0,
-    inadimplenciaPct:  0,
+    metaAting,
+    inadimplenciaPct,
     totalEntradas,
     saldoCaixa,
-    receitaSemana:     0,
-    metaDiaria:        0,
-    metaSemanal:       0,
-    metaMensal:        0,
+    receitaSemana,
+    metaDiaria,
+    metaSemanal,
+    metaMensal,
   }
 }
 
@@ -250,6 +283,7 @@ export default function FinanceiroPage() {
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
   const [activeTab, setActiveTab]   = useState<TabId>('procedimentos')
+  const [goals, setGoals]           = useState<GoalRaw[]>([])
 
   const range = useMemo(
     () => periodToRange(PERIOD_MAP[period], customFrom, customTo),
@@ -271,7 +305,12 @@ export default function FinanceiroPage() {
     if (FEATURES.realRelatorios) fetchOverdue()
   }, [fetchOverdue])
 
-  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length, rel.cashflow) : FINANCEIRO_KPIS
+  useEffect(() => {
+    if (!FEATURES.realRelatorios) return
+    relatoriosApi.goals().then((r) => setGoals(r as GoalRaw[])).catch(() => {})
+  }, [])
+
+  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length, rel.cashflow, goals) : FINANCEIRO_KPIS
 
   return (
     <>
@@ -299,6 +338,7 @@ export default function FinanceiroPage() {
         <ReceitaChart
           realCashflow={rel.cashflow}
           realMethodData={rel.methodData}
+          goals={goals}
           loading={rel.cashflowLoading}
           error={rel.cashflowError}
         />

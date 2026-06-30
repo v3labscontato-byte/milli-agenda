@@ -376,7 +376,10 @@ export class RelatoriosService {
             client: { select: { name: true } },
             appointments: {
               take: 1,
-              select: { service: { select: { name: true } } },
+              select: {
+                service:      { select: { name: true } },
+                professional: { select: { name: true } },
+              },
             },
           },
         },
@@ -391,6 +394,7 @@ export class RelatoriosService {
       paidAt: p.createdAt,
       clientName: p.command?.client?.name ?? '—',
       service: p.command?.appointments?.[0]?.service?.name ?? '—',
+      professional: p.command?.appointments?.[0]?.professional?.name ?? '—',
     }))
   }
 

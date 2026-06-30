@@ -80,8 +80,8 @@ function StatusBadge({ status }: { status: TransactionStatus }) {
       className={cn(
         'inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-medium',
         status === 'PAID'
-          ? 'bg-[#DCFCE7] text-[#166534]'
-          : 'bg-[#FEF9C3] text-[#854D0E]',
+          ? 'bg-[#DCFCE7] text-[#16A34A]'
+          : 'bg-[#FEF9C3] text-[#CA8A04]',
       )}
     >
       {STATUS_LABELS[status]}
@@ -166,10 +166,10 @@ function PagamentosTable({ realData, loading, error }: PagamentosTableProps) {
     const rows = realData ?? []
     const realTotal = rows.reduce((s, r) => s + r.amount, 0)
     const toCSVReal = () => {
-      const header = ['Data', 'Cliente', 'Serviço', 'Método', 'Valor', 'Status']
+      const header = ['Data', 'Cliente', 'Serviço', 'Profissional', 'Método', 'Valor', 'Status']
       const lines = rows.map((r) => [
         r.paidAt ? new Date(r.paidAt).toLocaleDateString('pt-BR') : '—',
-        r.clientName, r.service,
+        r.clientName, r.service, r.professional ?? '—',
         METHOD_LABELS[r.method] ?? r.method,
         fmtBRL(r.amount), r.status === 'PAID' ? 'Pago' : r.status,
       ].map((v) => `"${v}"`).join(','))
@@ -195,10 +195,10 @@ function PagamentosTable({ realData, loading, error }: PagamentosTableProps) {
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[580px]" aria-label="Tabela de recebimentos">
+          <table className="w-full min-w-[780px]" aria-label="Tabela de recebimentos">
             <thead>
               <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                {['Data', 'Cliente', 'Serviço', 'Método', 'Valor'].map((h) => (
+                {['Data', 'Cliente', 'Serviço', 'Profissional', 'Método', 'Valor', 'Status'].map((h) => (
                   <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
                     h === 'Valor' ? 'text-right' : 'text-left')}>{h}</th>
                 ))}
@@ -206,7 +206,7 @@ function PagamentosTable({ realData, loading, error }: PagamentosTableProps) {
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className="py-12 text-center text-[13px] text-[#64748B]">Nenhum recebimento no período.</td></tr>
+                <tr><td colSpan={7} className="py-12 text-center text-[13px] text-[#64748B]">Nenhum recebimento no período.</td></tr>
               ) : rows.map((r, i) => (
                 <tr key={r.id} className={cn('transition-colors hover:bg-[#F8FAFC]', i < rows.length - 1 && 'border-b border-[#F1F5F9]')}>
                   <td className="whitespace-nowrap px-4 py-3 font-tabular text-[12px] text-[#475569]">
@@ -214,15 +214,22 @@ function PagamentosTable({ realData, loading, error }: PagamentosTableProps) {
                   </td>
                   <td className="px-4 py-3 text-[13px] font-medium text-[#0F172A]">{r.clientName}</td>
                   <td className="px-4 py-3 text-[12px] text-[#475569]">{r.service}</td>
+                  <td className="px-4 py-3 text-[12px] text-[#475569]">{r.professional ?? '—'}</td>
                   <td className="px-4 py-3 text-[12px] text-[#475569]">{METHOD_LABELS[r.method] ?? r.method}</td>
                   <td className="px-4 py-3 text-right font-tabular text-[13px] font-medium text-[#0F172A]">{fmtBRL(r.amount)}</td>
+                  <td className="px-4 py-3">
+                    <span className={cn('inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-medium',
+                      r.status === 'PAID' ? 'bg-[#DCFCE7] text-[#16A34A]' : 'bg-[#FEF9C3] text-[#CA8A04]')}>
+                      {r.status === 'PAID' ? 'Pago' : 'Pendente'}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
             {rows.length > 0 && (
               <tfoot>
                 <tr className="border-t-2 border-[#E2E8F0] bg-[#F8FAFC]">
-                  <td colSpan={4} className="px-4 py-3 text-[12px] font-semibold text-[#0F172A]">Total do período</td>
+                  <td colSpan={6} className="px-4 py-3 text-[12px] font-semibold text-[#0F172A]">Total do período</td>
                   <td className="px-4 py-3 text-right font-tabular text-[13px] font-bold text-[#0F172A]">{fmtBRL(realTotal)}</td>
                 </tr>
               </tfoot>

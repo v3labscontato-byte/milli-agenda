@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { WeeklyRevenue, MetodoDistrib, FaturamentoMensal } from '@/lib/financeiro-mock'
 import type { CashflowResponse, MethodDatum } from '@/hooks/use-relatorios'
+import type { GoalRaw } from '@/lib/api/relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -40,19 +41,19 @@ const DAILY_DATA: DailyEntry[] = [
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
 
-interface DailyPayload { value?: number; dataKey?: string }
-interface DailyTooltipProps { active?: boolean; payload?: DailyPayload[]; label?: string }
+interface DailyPayload { value?: unknown; dataKey?: unknown }
+interface DailyTooltipProps { active?: boolean; payload?: readonly DailyPayload[]; label?: string | number; metaDiaria?: number }
 
-function DailyTooltip({ active, payload, label }: DailyTooltipProps) {
+function DailyTooltip({ active, payload, label, metaDiaria = META_DIARIA }: DailyTooltipProps) {
   if (!active || !payload?.length) return null
   const value = (payload[0]?.value as number) ?? 0
-  const atingida = value >= META_DIARIA && value > 0
+  const atingida = metaDiaria > 0 && value >= metaDiaria && value > 0
   return (
     <div className="rounded-md border border-[#E2E8F0] bg-white px-3 py-2.5 shadow-md">
       <p className="mb-1.5 text-[12px] font-semibold text-[#0F172A]">{label}</p>
       <p className="text-[12px] text-[#475569]">Faturamento: <span className="font-medium text-[#0F172A]">{fmtBRL(value)}</span></p>
-      <p className="text-[12px] text-[#475569]">Meta: <span className="font-medium text-[#0F172A]">{fmtBRL(META_DIARIA)}</span></p>
-      {value > 0 && (
+      {metaDiaria > 0 && <p className="text-[12px] text-[#475569]">Meta: <span className="font-medium text-[#0F172A]">{fmtBRL(metaDiaria)}</span></p>}
+      {metaDiaria > 0 && value > 0 && (
         <p className={cn('mt-1.5 text-[11px] font-semibold', atingida ? 'text-[#16A34A]' : 'text-[#DC2626]')}>
           {atingida ? '✓ Atingida' : '✗ Abaixo da meta'}
         </p>
@@ -139,16 +140,27 @@ const METHOD_LABELS: Record<string, string> = {
 
 // ─── Real-data charts ─────────────────────────────────────────────────────────
 
+const MONTHS_PT_SHORT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+
 interface RealChartsProps {
   dailyData: DailyEntry[]
   prefersReduced: boolean
   methodData: MethodDatum[]
+  goals?: GoalRaw[]
 }
 
-function RealCharts({ dailyData, prefersReduced, methodData }: RealChartsProps) {
+function RealCharts({ dailyData, prefersReduced, methodData, goals = [] }: RealChartsProps) {
   const withValue = dailyData.filter((d) => d.value > 0)
   const avgDiario = withValue.length
     ? Math.round(withValue.reduce((s, d) => s + d.value, 0) / withValue.length)
+    : 0
+
+  const now = new Date()
+  const monthKey = `${MONTHS_PT_SHORT[now.getMonth()]}-${String(now.getFullYear()).slice(2)}`
+  const currentGoal = goals.find((g) => String(g.tipo) === 'mensal' && g.periodo === monthKey)
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const metaDiaria = currentGoal && Number(currentGoal.valor) > 0
+    ? Math.round(Number(currentGoal.valor) / daysInMonth)
     : 0
 
   const methodTotal = methodData.reduce((s, m) => s + m.total, 0)
@@ -183,7 +195,11 @@ function RealCharts({ dailyData, prefersReduced, methodData }: RealChartsProps) 
               <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={44}
                 tickFormatter={(v: number) => `R$${v}`} />
-              <Tooltip content={<DailyTooltip />} cursor={{ fill: '#F8FAFC' }} />
+              <Tooltip content={(props) => <DailyTooltip {...props} metaDiaria={metaDiaria} />} cursor={{ fill: '#F8FAFC' }} />
+              {metaDiaria > 0 && (
+                <ReferenceLine y={metaDiaria} stroke="#F59E0B" strokeDasharray="4 4" strokeWidth={1.5}
+                  label={{ value: `Meta R$${metaDiaria}`, position: 'insideTopRight', fontSize: 10, fill: '#D97706', dy: -4 }} />
+              )}
               <Bar dataKey="value" radius={[3, 3, 0, 0]} isAnimationActive={!prefersReduced}>
                 {dailyData.map((d, i) => (
                   <Cell key={i} fill={d.value === 0 ? '#F1F5F9' : '#2563EB'} />
@@ -197,7 +213,7 @@ function RealCharts({ dailyData, prefersReduced, methodData }: RealChartsProps) 
       {/* Method distribution */}
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="border-b border-[#E2E8F0] px-5 py-4">
-          <h3 className="text-[14px] font-semibold text-[#0F172A]">Por Método</h3>
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Método de Pagamento</h3>
           <p className="mt-0.5 text-[12px] text-[#475569]">Distribuição do período</p>
         </div>
         {donutData.length === 0 ? (
@@ -213,7 +229,7 @@ function RealCharts({ dailyData, prefersReduced, methodData }: RealChartsProps) 
                   isAnimationActive={!prefersReduced}>
                   {donutData.map((m, i) => <Cell key={i} fill={m.color} />)}
                 </Pie>
-                <Tooltip content={<DonutTooltip />} />
+                <Tooltip content={<DonutTooltip />} wrapperStyle={{ zIndex: 50 }} />
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className="font-tabular text-[16px] font-bold text-[#0F172A]">{fmtBRL(methodTotal)}</span>
@@ -257,6 +273,7 @@ interface ReceitaChartProps {
   monthlyData?: FaturamentoMensal[]
   realCashflow?: CashflowResponse | null
   realMethodData?: MethodDatum[]
+  goals?: GoalRaw[]
   loading?: boolean
   error?: string | null
 }
@@ -265,7 +282,7 @@ const META_SEMANAL = 4000
 
 export default function ReceitaChart({
   weeklyData = [], metodoData = [], monthlyData = [],
-  realCashflow, realMethodData = [], loading, error,
+  realCashflow, realMethodData = [], goals = [], loading, error,
 }: ReceitaChartProps) {
   const isReal = realCashflow !== undefined
   const [mounted, setMounted] = useState(false)
@@ -296,7 +313,7 @@ export default function ReceitaChart({
         </div>
       )
     }
-    return <RealCharts dailyData={dailyData} prefersReduced={prefersReduced} methodData={realMethodData} />
+    return <RealCharts dailyData={dailyData} prefersReduced={prefersReduced} methodData={realMethodData} goals={goals} />
   }
 
   if (!mounted) return <Skeleton />
@@ -360,10 +377,10 @@ export default function ReceitaChart({
           </div>
         </div>
 
-        {/* Donut: por método */}
+        {/* Donut: método de pagamento */}
         <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
           <div className="border-b border-[#E2E8F0] px-5 py-4">
-            <h3 className="text-[14px] font-semibold text-[#0F172A]">Por Método</h3>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">Método de Pagamento</h3>
             <p className="mt-0.5 text-[12px] text-[#475569]">Distribuição do período</p>
           </div>
           <div className="flex items-center gap-5 px-5 pb-5 pt-4">
@@ -375,7 +392,7 @@ export default function ReceitaChart({
                   isAnimationActive={!prefersReduced}>
                   {metodoDataWithTotal.map((m) => <Cell key={m.id} fill={m.color} />)}
                 </Pie>
-                <Tooltip content={<DonutTooltip />} />
+                <Tooltip content={<DonutTooltip />} wrapperStyle={{ zIndex: 50 }} />
               </PieChart>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className="font-tabular text-[22px] font-bold text-[#0F172A]">{fmtBRL(total)}</span>

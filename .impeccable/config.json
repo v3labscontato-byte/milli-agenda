@@ -5,6 +5,13 @@
       "apps/web/src/components/agenda/day-timeline.tsx",
       "apps/web/src/components/agenda/appointment-block.tsx"
     ],
-    "ignoreValues": []
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#16a34a",
+        "reason": "#16A34A is the project canonical Success text color, defined in CLAUDE.md design system table",
+        "createdAt": "2026-06-30T21:35:41.102Z"
+      }
+    ]
   }
 }

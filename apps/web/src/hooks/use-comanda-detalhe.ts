@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 
 interface ComandaDetalhe {
-  items: Array<{ name: string; quantity: number; unitPrice: number; serviceId?: string; productId?: string }>
+  items: Array<{ id: string; name: string; quantity: number; unitPrice: number; serviceId?: string; productId?: string }>
   discount: { type: 'amount'; value: number } | null
   finalAmount: number
   deposit: { amount: number; method: string; paidAt: string } | null
@@ -33,6 +33,7 @@ export function useComandaDetalhe() {
       if (!cmd.data) { setDetalhe(null); return }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rawItems = (cmd.data.items ?? []).map((i: any) => ({
+        id: i.id as string,
         name: (i.service?.name ?? i.product?.name ?? '') as string,
         serviceId: i.serviceId as string | undefined,
         productId: i.productId as string | undefined,

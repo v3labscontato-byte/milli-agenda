@@ -294,6 +294,18 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
       }
       if (!commandId) throw new Error('Comanda não criada')
 
+      const removedItems = (detalhe?.items ?? []).filter((existing) =>
+        !(result.items ?? []).some((r) =>
+          (existing.serviceId && r.serviceId === existing.serviceId) ||
+          (existing.productId && r.productId === existing.productId),
+        ),
+      )
+      for (const item of removedItems) {
+        await fetch(`${base}/api/v1/commands/${commandId}/items/${item.id}`, {
+          method: 'DELETE', headers,
+        })
+      }
+
       const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
       for (const item of extraItems) {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {

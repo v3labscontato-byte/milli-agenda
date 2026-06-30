@@ -1780,3 +1780,44 @@ for (const item of removedItems) {
 **Cleanup adicional:** 2 comandas órfãs deletadas em produção (tenant `cmqszbwqq0000lzvpov34y5lh`, originadas de login acidental em tenant errado durante investigação anterior). Confirmadas vazias antes do DELETE.
 
 **Guard para o futuro:** sempre que `migrate status` reportar migration pendente ou falha, NÃO assumir que o banco está no estado "antes" da migration — verificar via `information_schema` se a estrutura já existe fisicamente antes de agir.
+
+---
+
+### [30/06/2026] CLAUDE — feat(financeiro): Por Método, Procedimentos e Recebimentos com dados reais
+
+**Status:** ✅ Concluído  
+**Commit:** ebcceee  
+**Branch:** homolog
+
+#### Contexto
+3 dos 4 itens pendentes do módulo Financeiro estavam com empty state em produção (`FEATURES.realRelatorios = true`). Backend já tinha dados (tabela `Payment`, `CommandItem`, `Appointment`) mas não tinha endpoints para servi-los.
+
+#### Implementação
+
+**Backend (relatorios.service.ts + controller):**
+- `paymentsByMethod(tenantId, from?, to?)`: `groupBy` em `Payment` por `method` filtrando `status=PAID`, retorna `[{ method, total }]`
+- `topServices(tenantId, from?, to?)`: agrupa `CommandItem` por `service.name` em comandas CLOSED, retorna top 10 por receita com `rank/nome/qtd/receita`
+- `listPayments(tenantId, from?, to?)`: lista `Payment` com joins em `Command→Client` e `Command→Appointment→Service`, retorna `[{ id, method, amount, clientName, service, paidAt }]`
+- 3 novas rotas: `GET /reports/payments-by-method|top-services|payments`
+
+**Frontend (hook + componentes):**
+- `use-relatorios.ts`: 3 novos tipos (`MethodDatum`, `ServiceRankRow`, `PaymentRow`) + 3 callbacks (`fetchMethodData`, `fetchTopServices`, `fetchPayments`)
+- `receita-chart.tsx`: `RealCharts` recebe `methodData` e renderiza donut real com cores por método (PIX verde, Crédito roxo, Débito âmbar, Dinheiro azul)
+- `procedimentos-section.tsx`: aceita `realData/loading/error`, renderiza tabela+gráfico real quando `FEATURES.realRelatorios=true`
+- `pagamentos-table.tsx`: aceita `realData/loading/error`, renderiza tabela real com exportação CSV quando `FEATURES.realRelatorios=true`
+- `financeiro/page.tsx`: chama os 3 novos fetches no mesmo `useEffect` do `fetchCashflow`
+
+#### Validação E2E — Playwright (homolog, commit ebcceee)
+
+**Network:**
+- `GET /reports/payments-by-method?from=2026-06-01&to=2026-06-30` → 200 ✅
+- `GET /reports/top-services?from=2026-06-01&to=2026-06-30` → 200 ✅
+- `GET /reports/payments?from=2026-06-01&to=2026-06-30` → 200 ✅
+
+**Visual:**
+- Donut "Por Método": PIX R$7.869 (72%), Dinheiro R$1.550 (14%), Crédito R$990 (9%), Débito R$450 (4%), Voucher R$70 (1%) — total R$10.929 ✅
+- Tab Procedimentos: Coloração 19x R$2.850 (42%), Bronzeamento 17x R$1.530 (23%), total R$6.765 ✅
+- Tab Recebimentos: 55 transações no período com cliente/serviço/método/valor reais + botão CSV ✅
+
+#### Pendente (fora do escopo desta sessão)
+- Plano de Contas → requer novo modelo Prisma (Expense/ChartOfAccount) + migration

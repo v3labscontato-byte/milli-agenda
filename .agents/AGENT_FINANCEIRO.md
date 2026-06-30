@@ -25,6 +25,9 @@ cat DEVLOG.md | tail -100
 - GET /api/v1/reports/commissions?from=&to=
 - GET /api/v1/reports/cashflow?from=&to=
 - GET /api/v1/reports/overdue
+- GET /api/v1/reports/payments-by-method?from=&to= → [{ method, total }]
+- GET /api/v1/reports/top-services?from=&to= → [{ rank, nome, qtd, receita }]
+- GET /api/v1/reports/payments?from=&to= → [{ id, method, amount, status, paidAt, clientName, service }]
 - GET /api/v1/reports/goals
 - POST /api/v1/reports/goals → { tipo, periodo, valor, dataInicio, dataFim }
 - DELETE /api/v1/reports/goals/:id
@@ -35,13 +38,17 @@ cat DEVLOG.md | tail -100
 ✅ Comissões por profissional
 ✅ Inadimplência (overdue)
 ✅ Metas: smart-form-meta conectado ao POST /reports/goals
-✅ Guarda FEATURES.realRelatorios removida — seção renderiza normalmente
+✅ Por Método (donut): conectado a GET /reports/payments-by-method (commit ebcceee)
+✅ Procedimentos: ranking de serviços por receita, conectado a GET /reports/top-services (commit ebcceee)
+✅ Recebimentos: lista com exportação CSV, conectado a GET /reports/payments (commit ebcceee)
 
-## MÓDULOS COM GUARD (mostram Empty State em produção)
-- Despesas (sem backend ainda)
-- Procedimentos detalhados (sem backend ainda)
-- Plano de Contas (sem backend ainda)
-- Pagamentos histórico detalhado (sem backend ainda)
+## MÓDULOS COM GUARD (mostram Empty State)
+- Despesas (sem backend — requer modelo Expense no schema)
+- Plano de Contas (sem backend — requer modelo ChartOfAccount no schema)
+
+## PADRÃO DE FETCH (hook use-relatorios.ts)
+Novos fetches seguem padrão: estado [data/loading/error] + callback `fetchXxx(from?,to?)` via useCallback.
+Todos chamados no useEffect de financeiro/page.tsx junto com fetchCashflow.
 
 ## PADRÕES CRÍTICOS DO MÓDULO
 - /reports/kpis retorna OBJETO FLAT, não array — usar toKpiArray()

@@ -164,7 +164,7 @@ export default function ComandasPage() {
       setPaymentLoading(false)
       setPaymentAppt(null)
     }
-  }, [paymentAppt, refetch])
+  }, [paymentAppt, refetch, detalhe])
 
   const openPaymentModal = useCallback(async (appt: CalendarAppointment) => {
     setPaymentAppt(appt)

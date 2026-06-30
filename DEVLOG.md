@@ -1390,3 +1390,41 @@ onReopen só patcheava appointment status → modal reabria sem dados → handle
 **Decisão de design:** classificações múltiplas como `ProductClassification[]` (array Postgres nativo), padrão já usado em `workDays Int[]` e `enabledServices String[]`
 **Problemas encontrados:** Prisma client precisou ser regenerado (`prisma generate`) antes do tsc passar
 **Próximo passo:** aplicar migration em homolog com `DATABASE_URL` configurado
+
+---
+
+## [2026-06-30] CLAUDE — Lessons Learned: Itens e pagamento somem após reopen+reclose (Onda E bug)
+**Status:** Concluído
+**Severidade:** Crítica (perda real de dados — CommandItem + Payment orphaned)
+
+### Sintoma
+Após fechar → reabrir → fechar comanda SEM alterar nada:
+- "Ver Comanda" mostrava só Bronzeamento (1 item em vez de 2)
+- Total a Pagar: R$75 em vez de R$0
+- Shampoo CommandItem + pagamento PIX R$300 "sumiam"
+
+### Causa Raiz
+C2 criado desnecessariamente: `agenda-table.tsx` e `appointment-modal.tsx` chamavam `POST /commands` INCONDICIONALMENTE, sem verificar se `commandId` já existia. Quando `reopen()` falhava silenciosamente (sem check de response), C1 ficava CLOSED → `open()` criava C2 com apenas o item do agendamento → `appointment.commandId` atualizado para C2 → C1 orphanado com todos os dados.
+
+**Evidência:** R$75 = Bronzeamento (R$90) − desconto (R$15), exatamente o que `open()` cria ao inicializar uma nova comanda com service item.
+
+### Causa Secundária
+`handlePaymentConfirm` em `comandas/page.tsx` era `useCallback([paymentAppt, refetch])` sem `detalhe` nos deps → stale closure capturava `detalhe = null` → `filterNewItems(items, [])` reenviava Bronzeamento + Shampoo como novos itens.
+
+### Arquivos Alterados
+- apps/web/src/components/agenda-table.tsx — usa `paymentAppt.commandId` antes de chamar `POST /commands`
+- apps/web/src/components/agenda/appointment-modal.tsx — usa `appointment.commandId` antes de chamar `POST /commands`
+- apps/web/src/app/(comandas)/comandas/page.tsx — `detalhe` adicionado aos deps do useCallback
+
+### Padrão Correto
+```ts
+let commandId: string | undefined = paymentAppt.commandId
+if (!commandId) {
+  const cmdRes = await fetch(`${base}/api/v1/commands`, { ... })
+  commandId = (await cmdRes.json()).data?.id
+}
+if (!commandId) throw new Error('Comanda não criada')
+```
+
+### Guard de Prevenção
+Regra gravada em `.agents/AGENT_COMANDAS.md`: "Todo handlePaymentConfirm que cria comanda via `POST /commands` DEVE verificar `commandId` já existente antes de chamar o endpoint. Pattern obrigatório: `let commandId = appt.commandId ?? (await createCommand()).id`."

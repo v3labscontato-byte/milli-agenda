@@ -246,13 +246,16 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       const base = process.env.NEXT_PUBLIC_API_URL
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-      const cmdRes = await fetch(`${base}/api/v1/commands`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
-      })
-      const cmd = await cmdRes.json()
-      const commandId = cmd.data?.id
+      let commandId: string | undefined = paymentAppt.commandId
+      if (!commandId) {
+        const cmdRes = await fetch(`${base}/api/v1/commands`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ clientId: paymentAppt.clientId, appointmentId: paymentAppt.id }),
+        })
+        const cmd = await cmdRes.json()
+        commandId = cmd.data?.id
+      }
       if (!commandId) throw new Error('Comanda não criada')
 
       const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])

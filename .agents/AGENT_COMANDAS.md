@@ -49,6 +49,23 @@ cat DEVLOG.md | tail -100
 3. SEMPRE >> DEVLOG.md
 4. SEMPRE git checkout homolog && git merge main && git push origin homolog && git checkout main
 
+## GUARD — Criação de Comanda (aprendizado [2026-06-30])
+**TODO `handlePaymentConfirm` que chama `POST /commands` DEVE verificar `commandId` existente antes:**
+```ts
+// ✅ CORRETO — evita criar C2 quando C1 já existe
+let commandId: string | undefined = appt.commandId
+if (!commandId) {
+  const res = await fetch(`${base}/api/v1/commands`, { method: 'POST', ... })
+  commandId = (await res.json()).data?.id
+}
+if (!commandId) throw new Error('Comanda não criada')
+
+// ❌ ERRADO — sempre cria/abre, orphanando comanda existente se ela estiver CLOSED
+const res = await fetch(`${base}/api/v1/commands`, { method: 'POST', ... })
+const commandId = (await res.json()).data?.id
+```
+**Por quê:** `open()` no backend só retorna comanda existente se `status === OPEN|IN_PROGRESS`. Se a comanda estiver CLOSED (reopen falhou silenciosamente), uma C2 é criada, `appointment.commandId` é atualizado para C2, e C1 fica orphanada com todos os dados (itens + pagamentos).
+
 ## PASSO FINAL OBRIGATÓRIO
 npx tsc --noEmit → 0 erros
 git add [arquivos] DEVLOG.md && git commit -m "tipo(comandas): desc" && git checkout homolog && git merge main && git push origin homolog && git checkout main

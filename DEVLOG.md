@@ -1434,3 +1434,16 @@ Regra gravada em `.agents/AGENT_COMANDAS.md`: "Todo handlePaymentConfirm que cri
 **Causa raiz:** fetch do onReopen enviava Content-Type: application/json sem body, violando regra já conhecida do projeto (Fastify rejeita FST_ERR_CTP_EMPTY_JSON_BODY). Esse era o verdadeiro motivo do 500 que causava a cascata (close 400, payments 400, discount 400) — a comanda nunca saía de CLOSED.
 **Fix:** adicionado body: JSON.stringify({}) ao fetch de reopen em todos os 4 pontos de entrada (agenda-table.tsx, appointment-modal.tsx, comandas/page.tsx, agenda/page.tsx).
 **Arquivos alterados:** apps/web/src/components/agenda-table.tsx, apps/web/src/components/agenda/appointment-modal.tsx, apps/web/src/app/(comandas)/comandas/page.tsx, apps/web/src/app/(dashboard)/agenda/page.tsx
+
+
+### [2026-06-30] AGENT_COMANDAS — Fix: payment 400 ignorado + deposit incompleto + recalculate apaga desconto
+**Status:** Concluído
+**Bug #1 (crítico):** handlePaymentConfirm fechava comanda mesmo com POST /payments retornando 400, persistindo "finalizada" sem pagamento real registrado.
+**Bug #2:** deposit no use-comanda-detalhe.ts usava só payments[0], ocultando pagamentos parciais anteriores e fazendo o modal calcular "Total a Pagar" incorretamente.
+**Bug #3:** recalculate() sobrescrevia discountAmount com soma de descontos por-item, apagando desconto de nível-comanda ao adicionar item.
+**Fix:**
+- apps/web/src/app/(comandas)/comandas/page.tsx: payRes.ok check + throw em POST /payments
+- apps/web/src/components/agenda-table.tsx: payRes.ok check + throw em POST /payments
+- apps/web/src/app/(dashboard)/agenda/page.tsx: try/catch wrapper, dayPaymentLoading state, payRes.ok check, throw em lugar de return silencioso
+- apps/web/src/hooks/use-comanda-detalhe.ts: soma de todos payments com status=PAID em alreadyPaid em vez de payments[0]
+- apps/api/src/modules/comandas/comandas.service.ts: recalculate() busca discountAmount atual da comanda antes do update, preservando desconto de nível-comanda

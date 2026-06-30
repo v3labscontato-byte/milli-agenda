@@ -132,7 +132,7 @@ export default function ComandasPage() {
       }
 
       for (const m of result.methods ?? []) {
-        await fetch(`${base}/api/v1/payments`, {
+        const payRes = await fetch(`${base}/api/v1/payments`, {
           method: 'POST', headers,
           body: JSON.stringify({
             commandId,
@@ -140,6 +140,10 @@ export default function ComandasPage() {
             amount: m.amount,
           }),
         })
+        if (!payRes.ok) {
+          const err = await payRes.json() as { message?: string }
+          throw new Error(err.message ?? 'Erro ao registrar pagamento')
+        }
       }
 
       try {

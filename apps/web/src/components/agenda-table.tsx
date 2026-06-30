@@ -284,7 +284,7 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
       }
 
       for (const m of result.methods ?? []) {
-        await fetch(`${base}/api/v1/payments`, {
+        const payRes = await fetch(`${base}/api/v1/payments`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -293,6 +293,10 @@ export default function AgendaTable({ appointments, isLoading = false, onResched
             amount: m.amount,
           }),
         })
+        if (!payRes.ok) {
+          const err = await payRes.json() as { message?: string }
+          throw new Error(err.message ?? 'Erro ao registrar pagamento')
+        }
       }
 
       try {

@@ -233,7 +233,10 @@ export class ComandasService {
   }
 
   private async recalculate(commandId: string) {
-    const items = await this.db.commandItem.findMany({ where: { commandId } })
+    const [items, cmd] = await Promise.all([
+      this.db.commandItem.findMany({ where: { commandId } }),
+      this.db.command.findUnique({ where: { id: commandId }, select: { discountAmount: true } }),
+    ])
     const totals = calcCommandTotals(
       items.map((i) => ({
         quantity: i.quantity,
@@ -241,9 +244,15 @@ export class ComandasService {
         discount: Number(i.discount),
       })),
     )
+    const commandDiscount = Number(cmd?.discountAmount ?? 0)
+    const finalAmount = Math.max(0, totals.totalAmount - commandDiscount)
     return this.db.command.update({
       where: { id: commandId },
-      data: totals,
+      data: {
+        totalAmount: totals.totalAmount,
+        discountAmount: commandDiscount,
+        finalAmount,
+      },
     })
   }
 }

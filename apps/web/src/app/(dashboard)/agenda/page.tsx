@@ -82,6 +82,7 @@ export default function AgendaPage() {
   const [searchQuery, setSearchQuery]     = useState('')
   const [refetchKey, setRefetchKey]       = useState(0)
   const [dayPaymentAppt, setDayPaymentAppt] = useState<CalendarAppointment | null>(null)
+  const [dayPaymentLoading, setDayPaymentLoading] = useState(false)
   const { detalhe, loadComandaDetalhe, clearDetalhe } = useComandaDetalhe()
 
   const goToToday = useCallback(() => setSelectedDate(new Date()), [])
@@ -154,21 +155,22 @@ export default function AgendaPage() {
 
   async function handleDayPaymentConfirm(result: PaymentResult) {
     if (!dayPaymentAppt) return
-    const token = localStorage.getItem('accessToken')
-    const base = process.env.NEXT_PUBLIC_API_URL
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    setDayPaymentLoading(true)
+    try {
+      const token = localStorage.getItem('accessToken')
+      const base = process.env.NEXT_PUBLIC_API_URL
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-    const cmdRes = await fetch(`${base}/api/v1/commands`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ clientId: dayPaymentAppt.clientId, appointmentId: dayPaymentAppt.id }),
-    })
-    const cmd = await cmdRes.json() as { data?: { id?: string } }
-    const commandId = cmd.data?.id
-    if (!commandId) return
+      const cmdRes = await fetch(`${base}/api/v1/commands`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ clientId: dayPaymentAppt.clientId, appointmentId: dayPaymentAppt.id }),
+      })
+      const cmd = await cmdRes.json() as { data?: { id?: string } }
+      const commandId = cmd.data?.id
+      if (!commandId) throw new Error('Comanda não criada')
 
-    const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
-    for (const item of extraItems) {
-      try {
+      const extraItems = filterNewItems(result.items ?? [], detalhe?.items ?? [])
+      for (const item of extraItems) {
         const itemRes = await fetch(`${base}/api/v1/commands/${commandId}/items`, {
           method: 'POST', headers,
           body: JSON.stringify({
@@ -178,50 +180,57 @@ export default function AgendaPage() {
         })
         if (!itemRes.ok) {
           const err = await itemRes.json() as { message?: string }
-          alert(err.message ?? 'Erro ao adicionar item')
+          throw new Error(err.message ?? 'Erro ao adicionar item')
         }
-      } catch (e) {
-        console.error('[agenda] addItem:', e)
-        if (e instanceof Error) alert(e.message)
       }
-    }
 
-    const discountAmt = result.discountAbsolute ?? 0
-    if (discountAmt > 0) {
-      await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ amount: discountAmt }),
-      })
-    }
+      const discountAmt = result.discountAbsolute ?? 0
+      if (discountAmt > 0) {
+        await fetch(`${base}/api/v1/commands/${commandId}/discount`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ amount: discountAmt }),
+        })
+      }
 
-    for (const m of result.methods ?? []) {
-      await fetch(`${base}/api/v1/payments`, {
-        method: 'POST', headers,
-        body: JSON.stringify({
-          commandId,
-          method: METHOD_MAP[m.method] ?? m.method.toUpperCase(),
-          amount: m.amount,
-        }),
-      })
-    }
+      for (const m of result.methods ?? []) {
+        const payRes = await fetch(`${base}/api/v1/payments`, {
+          method: 'POST', headers,
+          body: JSON.stringify({
+            commandId,
+            method: METHOD_MAP[m.method] ?? m.method.toUpperCase(),
+            amount: m.amount,
+          }),
+        })
+        if (!payRes.ok) {
+          const err = await payRes.json() as { message?: string }
+          throw new Error(err.message ?? 'Erro ao registrar pagamento')
+        }
+      }
 
-    try {
-      await fetch(`${base}/api/v1/commands/${commandId}/close`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({}),
+      try {
+        await fetch(`${base}/api/v1/commands/${commandId}/close`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({}),
+        })
+      } catch (e) {
+        console.error('[close] falhou:', e)
+      }
+
+      await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ status: 'COMPLETED' }),
       })
+
+      setDayPaymentAppt(null)
+      clearDetalhe()
+      handleCreated()
     } catch (e) {
-      console.error('[close] falhou:', e)
+      console.error('[agenda] pagamento:', e)
+      if (e instanceof Error) alert(e.message)
+    } finally {
+      setDayPaymentLoading(false)
     }
-    await fetch(`${base}/api/v1/appointments/${dayPaymentAppt.id}`, {
-      method: 'PATCH', headers,
-      body: JSON.stringify({ status: 'COMPLETED' }),
-    })
-
-    setDayPaymentAppt(null)
-    clearDetalhe()
-    handleCreated()
   }
 
   if (loading) return (
@@ -426,7 +435,7 @@ export default function AgendaPage() {
             items={detalhe?.items ?? [{ name: dayPaymentAppt.service, quantity: 1, unitPrice: dayPaymentAppt.amount }]}
             initialDiscount={detalhe?.discount ?? null}
             deposit={detalhe?.deposit ?? null}
-            loading={false}
+            loading={dayPaymentLoading}
             isCompleted
             onClose={() => { setDayPaymentAppt(null); clearDetalhe() }}
             onConfirm={handleDayPaymentConfirm}

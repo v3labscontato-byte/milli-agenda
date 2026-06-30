@@ -42,16 +42,19 @@ export function useComandaDetalhe() {
       const discountAmount = Number(cmd.data.discountAmount ?? 0)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payments: any[] = cmd.data.payments ?? []
-      const firstPayment = payments[0] ?? null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const paidPayments: any[] = payments.filter((p: any) => p.status === 'PAID')
+      const alreadyPaid = paidPayments.reduce((s: number, p: any) => s + Number(p.amount), 0) // eslint-disable-line @typescript-eslint/no-explicit-any
+      const firstPaid = paidPayments[0] ?? null
       setDetalhe({
         items: rawItems.length > 0 ? rawItems : [{ name: fallbackName, quantity: 1, unitPrice: fallbackPrice }],
         discount: discountAmount > 0 ? { type: 'amount', value: discountAmount } : null,
         finalAmount: Number(cmd.data.finalAmount),
-        deposit: firstPayment ? {
-          amount: Number(firstPayment.amount),
-          method: firstPayment.method as string,
+        deposit: alreadyPaid > 0 ? {
+          amount: alreadyPaid,
+          method: paidPayments.length > 1 ? 'multiple' : (firstPaid.method as string),
           paidAt: (() => {
-            const raw = firstPayment.paidAt as string
+            const raw = firstPaid.paidAt as string
             return raw ? raw.slice(0, 10).split('-').reverse().join('/') : ''
           })(),
         } : null,

@@ -49,11 +49,11 @@ export default function ComandaCard({ comanda, isSelected, onClick }: ComandaCar
       aria-pressed={isSelected}
       aria-label={`Comanda #${number} — ${clientName}`}
       className={cn(
-        'w-full border-b border-[#F1F5F9] px-4 py-3.5 text-left transition-colors',
+        'w-full border-b border-[#E2E8F0] px-4 py-3.5 text-left transition-colors duration-150 motion-reduce:transition-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DBEAFE]',
         isSelected
-          ? 'bg-[#EFF6FF] ring-1 ring-inset ring-[#2563EB]'
-          : 'bg-white hover:bg-[#F8FAFC]',
+          ? 'bg-[#EFF6FF] ring-2 ring-inset ring-[#2563EB]'
+          : 'bg-[#F8FAFC] hover:bg-white',
       )}
     >
       {/* Row 1: number + client + status badge */}

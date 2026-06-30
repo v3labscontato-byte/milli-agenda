@@ -75,9 +75,6 @@ export default function ComandaKpiStrip({
     <div className="shrink-0 border-b border-[#E2E8F0] bg-white">
       {/* Header row */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
-          Visão geral
-        </p>
         <button
           type="button"
           onClick={onNew}
@@ -115,7 +112,7 @@ export default function ComandaKpiStrip({
                 canClick ? 'cursor-pointer' : 'cursor-default',
                 isActive
                   ? 'shadow-sm'
-                  : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]',
+                  : 'border-[#E2E8F0] bg-[#F8FAFC] shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-[#94A3B8] hover:bg-white',
               )}
               style={
                 isActive

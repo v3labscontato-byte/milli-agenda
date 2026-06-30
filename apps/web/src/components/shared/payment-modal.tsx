@@ -202,7 +202,7 @@ export default function PaymentModal({
   const totalDue           = Math.max(0, calculateTotal(subtotal, appliedDiscountAmt) - depositAmt)
   const totalPaid          = entries.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
   const diff               = totalPaid - totalDue
-  const canConfirm         = totalPaid >= totalDue && totalPaid > 0
+  const canConfirm         = (depositAmt > 0 && totalDue === 0) || (totalPaid >= totalDue && totalPaid > 0)
   const previewDiscountVal = parseFloat(discountInput)
   const previewDiscountAmt = !appliedDiscount && discountInput && !isNaN(previewDiscountVal)
     ? calculateDiscount(subtotal, { type: discountType, value: previewDiscountVal }) : null
@@ -505,11 +505,17 @@ export default function PaymentModal({
                   </div>
                 </div>
               ) : totalDue === 0 ? (
-                <div className="flex items-start gap-2.5 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3">
-                  <Info size={15} className="mt-0.5 shrink-0 text-[#2563EB]" aria-hidden />
+                <div className="flex items-start gap-2.5 rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3">
+                  <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[#16A34A]" aria-hidden />
                   <div>
-                    <p className="text-[13px] font-medium text-[#1D4ED8]">Selecione uma forma de pagamento</p>
-                    <p className="text-[11px] text-[#3B82F6]">O valor será preenchido automaticamente.</p>
+                    <p className="text-[13px] font-medium text-[#15803D]">
+                      {depositAmt > 0 ? 'Valor coberto pelo sinal pago' : 'Nenhum valor a cobrar'}
+                    </p>
+                    <p className="text-[11px] text-[#16A34A]/70">
+                      {depositAmt > 0
+                        ? `Sinal de ${formatBRL(depositAmt)} já registrado.`
+                        : 'Confirme para fechar a comanda.'}
+                    </p>
                   </div>
                 </div>
               ) : (

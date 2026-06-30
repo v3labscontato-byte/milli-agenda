@@ -1355,3 +1355,19 @@ onReopen só patcheava appointment status → modal reabria sem dados → handle
 ### [2026-06-30] AGENT_AUTH � accessToken expira em 8h (era 1h)
 **Status:** ? Conclu�do
 **Mudan�a:** auth.service.ts expiresIn '1h' ? '8h' no accessToken
+
+---
+## [2026-06-30] — Auditoria completa do módulo Comandas
+
+### Visual fixes
+- `comanda-card.tsx`: resting bg `white` → `#F8FAFC`, hover `#F8FAFC` → `white`, separador `#F1F5F9` → `#E2E8F0`, selected `ring-1` → `ring-2`
+- `comanda-kpi-strip.tsx`: removido eyebrow "VISÃO GERAL" (padrão banido); cards resting `bg-white` → `bg-[#F8FAFC]` + shadow sutil
+- `comanda-detail.tsx`: divisores de seção `#F1F5F9` → `#E2E8F0`; empty state dos itens ganhou ícone Package + link CTA
+- `page.tsx` (comandas): KPI cards resting `bg-white` → `bg-[#F8FAFC]` + shadow; linhas da tabela `#F1F5F9` → `#E2E8F0`; empty state ganhou botão "Limpar filtros"
+
+### Bug fixes
+- `payment-modal.tsx`: `canConfirm` agora permite confirmar quando `depositAmt > 0 && totalDue === 0` (sinal cobre 100%)
+- `payment-modal.tsx`: caixa de info quando `totalDue === 0` agora exibe mensagem correta ("Valor coberto pelo sinal pago" vs texto de pagamento)
+
+### Validação
+- `npx tsc --noEmit` → 0 erros

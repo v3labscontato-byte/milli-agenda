@@ -242,7 +242,7 @@ export default function ComandasPage() {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                 filter === filterValue
                   ? 'border-[#2563EB] bg-[#EFF6FF] shadow-none'
-                  : 'border-[#E2E8F0] bg-white shadow-[0_1px_2px_0_rgb(0_0_0/0.04)] hover:border-[#2563EB]',
+                  : 'border-[#E2E8F0] bg-[#F8FAFC] shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-[#94A3B8] hover:bg-white',
               )}
             >
               <p className="text-[11px] font-medium uppercase tracking-wide text-[#94A3B8]">{label}</p>
@@ -295,6 +295,15 @@ export default function ComandasPage() {
             <ReceiptText className="mb-4 h-12 w-12 text-[#CBD5E1]" aria-hidden="true" />
             <h3 className="font-medium text-[#475569]">Nenhum atendimento encontrado</h3>
             <p className="mt-1 text-[13px] text-[#94A3B8]">Tente outro filtro ou período.</p>
+            {(filter !== 'ALL' || searchQuery.trim()) && (
+              <button
+                type="button"
+                onClick={() => { setFilter('ALL'); setSearchQuery('') }}
+                className="mt-4 rounded-md border border-[#E2E8F0] bg-white px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:border-[#2563EB] hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              >
+                Limpar filtros
+              </button>
+            )}
           </div>
         ) : (
           <table className="w-full min-w-[820px] border-collapse text-[13px]">
@@ -323,7 +332,7 @@ export default function ComandasPage() {
                 return (
                   <tr
                     key={appt.id}
-                    className="border-b border-[#F1F5F9] bg-white transition-colors last:border-0 hover:bg-[#F8FAFC]"
+                    className="border-b border-[#E2E8F0] bg-white transition-colors last:border-0 hover:bg-[#F8FAFC]"
                   >
                     {/* Data */}
                     <td className="px-4 py-3 font-tabular text-[13px] text-[#475569]">{d}/{m}/{y}</td>

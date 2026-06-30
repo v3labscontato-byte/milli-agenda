@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, Trash2, Plus, Printer, ReceiptText, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Trash2, Plus, Printer, ReceiptText, AlertCircle, Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   calculateSubtotal,
@@ -168,7 +168,19 @@ export default function ComandaDetail({
             </div>
 
             {items.length === 0 ? (
-              <p className="py-6 text-center text-[13px] text-[#94A3B8]">Nenhum item adicionado</p>
+              <div className="flex flex-col items-center gap-2 py-6 text-center">
+                <Package size={28} className="text-[#CBD5E1]" aria-hidden="true" />
+                <p className="text-[13px] text-[#94A3B8]">Nenhum item adicionado</p>
+                {isEditable && (
+                  <button
+                    type="button"
+                    onClick={() => setAddOpen(true)}
+                    className="mt-1 text-[12px] font-medium text-[#2563EB] hover:text-[#1D4ED8] focus-visible:outline-none focus-visible:underline"
+                  >
+                    + Adicionar primeiro item
+                  </button>
+                )}
+              </div>
             ) : (
               <ul className="divide-y divide-[#F8FAFC]" aria-label="Itens da comanda">
                 {items.map((item) => {
@@ -213,7 +225,7 @@ export default function ComandaDetail({
 
           {/* Discount */}
           {isEditable && (
-            <div className="border-t border-[#F1F5F9] px-5 py-4">
+            <div className="border-t border-[#E2E8F0] px-5 py-4">
               <p className="mb-3 text-[12px] font-medium text-[#64748B]">
                 Desconto
               </p>
@@ -282,7 +294,7 @@ export default function ComandaDetail({
           )}
 
           {/* Totals */}
-          <div className="border-t border-[#F1F5F9] px-5 py-4 space-y-2">
+          <div className="border-t border-[#E2E8F0] px-5 py-4 space-y-2">
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-[#475569]">Subtotal</span>
               <span className="font-tabular text-[#0F172A]">{formatBRL(subtotal)}</span>
@@ -293,7 +305,7 @@ export default function ComandaDetail({
                 <span className="font-tabular text-[#16A34A]">−{formatBRL(discountAmt)}</span>
               </div>
             )}
-            <div className="flex items-center justify-between border-t border-[#F1F5F9] pt-2">
+            <div className="flex items-center justify-between border-t border-[#E2E8F0] pt-2">
               <span className="text-[15px] font-semibold text-[#0F172A]">Total</span>
               <span className="font-tabular text-[16px] font-bold text-[#0F172A]">{formatBRL(total)}</span>
             </div>

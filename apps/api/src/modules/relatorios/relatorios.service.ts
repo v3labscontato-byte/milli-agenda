@@ -13,9 +13,18 @@ export class RelatoriosService {
   }
 
   async kpis(tenantId: string, dateStr?: string) {
-    const date = dateStr ? new Date(dateStr) : new Date()
-    const dayStart = new Date(date.setHours(0, 0, 0, 0))
-    const dayEnd = new Date(date.setHours(23, 59, 59, 999))
+    // Appointments are stored in UTC; BRT (Brasília) = UTC-3.
+    // setHours() on a UTC server would compute midnight UTC, not midnight BRT,
+    // so we project to BRT first, find the calendar date, then build UTC boundaries.
+    const BRT_OFFSET_MS = 3 * 60 * 60 * 1000
+    const now = dateStr ? new Date(dateStr) : new Date()
+    const brtNow = new Date(now.getTime() - BRT_OFFSET_MS)
+    const y = brtNow.getUTCFullYear()
+    const m = brtNow.getUTCMonth()
+    const d = brtNow.getUTCDate()
+    // BRT midnight = UTC 03:00 of the same calendar day
+    const dayStart = new Date(Date.UTC(y, m, d, 3, 0, 0, 0))
+    const dayEnd   = new Date(Date.UTC(y, m, d + 1, 3, 0, 0, -1))
 
     const [totalAppts, completedAppts, cancelledAppts, todayAppts, totalClients] =
       await Promise.all([

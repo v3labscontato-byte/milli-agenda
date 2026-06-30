@@ -1283,3 +1283,8 @@ Rodar migration no Railway: `DATABASE_URL="..." npx prisma migrate deploy --sche
 ### [2026-06-29] AGENT_UI — Refatorar PaymentModal layout duas colunas
 **Status:** Concluido
 **Mudancas:** Layout 2 colunas (65/35), card servicos, ajustes chips, resumo financeiro destacado, grid pagamento com icones Lucide, historico accordion, observacoes textarea
+
+### [2026-06-29] AGENT_DASHBOARD — Fix KPIs zerados: fuso horario UTC-3
+**Status:** Concluido
+**Causa:** setHours() em servidor UTC computava midnight UTC; agendamentos BRT (UTC-3) ficavam fora do range
+**Fix:** projeta horario para BRT, calcula dayStart/dayEnd como UTC+3h

@@ -30,9 +30,9 @@ function getPaymentStatus(appt: Appointment): PaymentSt {
 }
 
 const PAYMENT_STYLES: Record<PaymentSt, { bg: string; text: string; border: string; label: string }> = {
-  pago:     { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Pago'     },
-  pendente: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente' },
-  atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Atrasado' },
+  pago:     { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', label: 'Pago'     },
+  pendente: { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Pendente' },
+  atrasado: { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', label: 'Atrasado' },
 }
 
 function PaymentStatusCell({ appt }: { appt: Appointment }) {
@@ -65,10 +65,10 @@ function getAtendimentoStatus(appt: Appointment): AtendimentoSt {
 }
 
 const ATENDIMENTO_STYLES: Record<AtendimentoSt, { bg: string; text: string; border: string; label: string }> = {
-  realizado:  { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Realizado'  },
-  pendente:   { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente'   },
-  confirmado: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Confirmado' },
-  cancelado:  { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cancelado'  },
+  realizado:  { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', label: 'Realizado'  },
+  pendente:   { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Pendente'   },
+  confirmado: { bg: '#DBEAFE', text: '#2563EB', border: '#BFDBFE', label: 'Confirmado' },
+  cancelado:  { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', label: 'Cancelado'  },
 }
 
 function AtendimentoCell({ appt }: { appt: Appointment }) {
@@ -146,9 +146,9 @@ function AgendaCell({ appt, onReschedule }: { appt: Appointment; onReschedule?: 
 }
 
 const COMANDA_STYLES: Record<PaymentSt, { bg: string; text: string; border: string; label: string; icon: typeof ClipboardList }> = {
-  pago:     { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Ver Comanda',   icon: ClipboardList },
-  pendente: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Abrir Comanda', icon: ClipboardList },
-  atrasado: { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cobrar',        icon: CreditCard   },
+  pago:     { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', label: 'Ver Comanda',   icon: ClipboardList },
+  pendente: { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Abrir Comanda', icon: ClipboardList },
+  atrasado: { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', label: 'Cobrar',        icon: CreditCard   },
 }
 
 function ComandaCell({ appt, onOpen }: { appt: Appointment; onOpen: () => void }) {

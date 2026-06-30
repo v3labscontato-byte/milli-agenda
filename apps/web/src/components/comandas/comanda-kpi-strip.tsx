@@ -18,10 +18,10 @@ interface CardConfig {
 
 const CARD_CFG: CardConfig[] = [
   { filter: null,                label: 'Total',          accentBg: '#F8FAFC', accentBorder: '#CBD5E1', accentText: '#475569' },
-  { filter: 'OPEN_IN_PROGRESS', label: 'Abertas',         accentBg: '#EFF6FF', accentBorder: '#2563EB', accentText: '#2563EB' },
-  { filter: 'AWAITING_PAYMENT', label: 'Aguard. Pagto',   accentBg: '#FFFBEB', accentBorder: '#D97706', accentText: '#D97706' },
-  { filter: 'PAID',             label: 'Pagas',           accentBg: '#F0FDF4', accentBorder: '#16A34A', accentText: '#16A34A' },
-  { filter: 'CANCELLED',        label: 'Canceladas',      accentBg: '#FEF2F2', accentBorder: '#DC2626', accentText: '#DC2626' },
+  { filter: 'OPEN_IN_PROGRESS', label: 'Abertas',         accentBg: '#DBEAFE', accentBorder: '#2563EB', accentText: '#2563EB' },
+  { filter: 'AWAITING_PAYMENT', label: 'Aguard. Pagto',   accentBg: '#FEF9C3', accentBorder: '#CA8A04', accentText: '#CA8A04' },
+  { filter: 'PAID',             label: 'Pagas',           accentBg: '#DCFCE7', accentBorder: '#16A34A', accentText: '#16A34A' },
+  { filter: 'CANCELLED',        label: 'Canceladas',      accentBg: '#FEE2E2', accentBorder: '#DC2626', accentText: '#DC2626' },
 ]
 
 function comTotal(c: Comanda): number {

@@ -5,11 +5,11 @@ import type { ServicoCategory, ServicoStatus } from '@/lib/servicos-mock'
 // ─── Category badge ───────────────────────────────────────────────────────────
 
 export const CATEGORY_STYLES: Record<ServicoCategory, { bg: string; text: string; dot: string }> = {
-  Cabelo:      { bg: '#EFF6FF', text: '#2563EB', dot: '#2563EB' },
+  Cabelo:      { bg: '#DBEAFE', text: '#2563EB', dot: '#2563EB' },
   Barba:       { bg: '#F1F5F9', text: '#475569', dot: '#64748B' },
   Unhas:       { bg: '#FDF2F8', text: '#9D174D', dot: '#BE185D' },
-  Estética:    { bg: '#F0FDF4', text: '#166534', dot: '#16A34A' },
-  Sobrancelha: { bg: '#FEF3C7', text: '#B45309', dot: '#D97706' },
+  Estética:    { bg: '#DCFCE7', text: '#16A34A', dot: '#16A34A' },
+  Sobrancelha: { bg: '#FEF9C3', text: '#CA8A04', dot: '#CA8A04' },
 }
 
 export function CategoryBadge({ category }: { category: ServicoCategory }) {
@@ -28,7 +28,7 @@ export function CategoryBadge({ category }: { category: ServicoCategory }) {
 // ─── Status badge ─────────────────────────────────────────────────────────────
 
 const STATUS_CFG: Record<ServicoStatus, { bg: string; text: string; label: string }> = {
-  active:   { bg: '#F0FDF4', text: '#166534', label: 'Ativo'   },
+  active:   { bg: '#DCFCE7', text: '#16A34A', label: 'Ativo'   },
   inactive: { bg: '#F1F5F9', text: '#64748B', label: 'Inativo' },
 }
 

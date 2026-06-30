@@ -30,12 +30,12 @@ function getDisplayStatus(c: Comissao): DisplayStatus {
 function StatusBadge({ c }: { c: Comissao }) {
   const s = getDisplayStatus(c)
   if (s === 'pago') return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#F0FDF4] px-2 py-0.5 text-[11px] font-medium text-[#16A34A]">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[11px] font-medium text-[#16A34A]">
       <CheckCircle2 size={11} aria-hidden="true" />Pago
     </span>
   )
   if (s === 'atrasado') return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF2F2] px-2 py-0.5 text-[11px] font-medium text-[#DC2626]">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-medium text-[#DC2626]">
       <AlertCircle size={11} aria-hidden="true" />Atrasado · {c.diasAtraso}d
     </span>
   )

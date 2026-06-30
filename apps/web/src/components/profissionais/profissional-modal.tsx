@@ -589,9 +589,9 @@ function TabDesempenho({ p }: { p: Profissional }) {
                           {isCancelado ? <span className="text-[#94A3B8]">—</span> : (
                             <span className={cn(
                               'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium',
-                              isPago ? 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]' : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                              isPago ? 'bg-[#DCFCE7] text-[#16A34A] border-[#BBF7D0]' : 'bg-[#FEF9C3] text-[#CA8A04] border-[#FDE68A]'
                             )}>
-                              <span className={cn('h-1.5 w-1.5 rounded-full', isPago ? 'bg-[#22C55E]' : 'bg-[#F59E0B]')} />
+                              <span className={cn('h-1.5 w-1.5 rounded-full', isPago ? 'bg-[#16A34A]' : 'bg-[#CA8A04]')} />
                               {isPago ? 'Pago' : 'Pendente'}
                             </span>
                           )}

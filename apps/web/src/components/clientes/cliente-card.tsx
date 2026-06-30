@@ -6,11 +6,11 @@ import type { ClientTag } from '@/lib/clientes-mock'
 // ─── Tag badge ────────────────────────────────────────────────────────────────
 
 const TAG_STYLES: Record<ClientTag, { bg: string; text: string; label: string }> = {
-  VIP:        { bg: '#FFFBEB', text: '#B45309', label: 'VIP' },
-  Novo:       { bg: '#EFF6FF', text: '#2563EB', label: 'Novo' },
+  VIP:        { bg: '#FEF9C3', text: '#CA8A04', label: 'VIP' },
+  Novo:       { bg: '#DBEAFE', text: '#2563EB', label: 'Novo' },
   Inativo:    { bg: '#F1F5F9', text: '#64748B', label: 'Inativo' },
   Aniversário:{ bg: '#FDF2F8', text: '#9D174D', label: '🎂 Aniversário' },
-  Fidelidade: { bg: '#F0FDF4', text: '#166534', label: 'Fidelidade' },
+  Fidelidade: { bg: '#DCFCE7', text: '#16A34A', label: 'Fidelidade' },
 }
 
 interface ClienteTagBadgeProps {

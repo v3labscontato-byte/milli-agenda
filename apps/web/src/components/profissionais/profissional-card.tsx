@@ -54,7 +54,7 @@ const ROLE_STYLES: Record<ProfissionalRole, { bg: string; text: string }> = {
   Barbeiro:       { bg: '#F1F5F9', text: 'var(--color-text-secondary)' },
   Manicure:       { bg: '#FDF2F8', text: '#9D174D' },
   'Nail Designer':{ bg: '#FDF2F8', text: '#BE185D' },
-  Esteticista:    { bg: '#F0FDF4', text: '#166534' },
+  Esteticista:    { bg: '#DCFCE7', text: '#16A34A' },
 }
 
 // ─── Specialty badge ──────────────────────────────────────────────────────────
@@ -124,9 +124,9 @@ const STATUS_ICONS: Record<ProfissionalStatus, typeof CheckCircle2> = {
 }
 
 export const STATUS_STYLES: Record<ProfissionalStatus, { bg: string; text: string; label: string }> = {
-  active:   { bg: '#F0FDF4', text: '#166534', label: 'Ativo'    },
-  vacation: { bg: '#FEF3C7', text: '#B45309', label: 'Férias'   },
-  inactive: { bg: '#F1F5F9', text: 'var(--color-text-secondary)', label: 'Inativo'  },
+  active:   { bg: '#DCFCE7', text: '#16A34A', label: 'Ativo'    },
+  vacation: { bg: '#FEF9C3', text: '#CA8A04', label: 'Férias'   },
+  inactive: { bg: '#F1F5F9', text: '#64748B', label: 'Inativo'  },
 }
 
 export function StatusBadge({ status }: { status: string | null | undefined }) {

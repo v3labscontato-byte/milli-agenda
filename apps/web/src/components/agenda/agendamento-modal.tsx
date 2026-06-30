@@ -21,14 +21,14 @@ const STATUS_ACTIONS: {
     status: 'completed',
     label: 'Marcar concluído',
     icon: CheckCircle2,
-    className: 'border-[#BBF7D0] bg-[#F0FDF4] text-[#166534] hover:bg-[#DCFCE7]',
+    className: 'border-[#BBF7D0] bg-[#DCFCE7] text-[#16A34A] hover:bg-[#BBF7D0]',
     showWhen: ['confirmed', 'pending'],
   },
   {
     status: 'confirmed',
     label: 'Confirmar',
     icon: CheckCircle2,
-    className: 'border-[#BFDBFE] bg-[#EFF6FF] text-[#2563EB] hover:bg-[#DBEAFE]',
+    className: 'border-[#BFDBFE] bg-[#DBEAFE] text-[#2563EB] hover:bg-[#BFDBFE]',
     showWhen: ['pending'],
   },
   {

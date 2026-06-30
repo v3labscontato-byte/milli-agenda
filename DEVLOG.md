@@ -2106,3 +2106,59 @@ Não executar sem aprovação explícita.
 - Verificado via `prisma migrate status` → `Database schema is up to date`
 - Homolog já estava up to date (verificado no mesmo ciclo)
 - Pendência de migration resolvida — módulo Financeiro completo em ambos os ambientes
+
+---
+
+## 2026-06-30 — Padronização visual: tokens de cor de status em todos os módulos
+
+### Tarefa
+Padronizar os tokens de cor de badges de status em todos os 7 módulos do dashboard para ficarem alinhados com o design system definido no CLAUDE.md.
+
+### Problema
+Badges de status usavam `#F0FDF4`/`#166534`/`#15803D` (verdes fora do design system) e `#EFF6FF`/`#FFFBEB`/`#FEF2F2` (azul/amarelo/vermelho divergentes) em vez dos tokens oficiais.
+
+### Correções aplicadas (19 arquivos)
+
+**Dashboard** — `kpi-strip.tsx`
+- Trend up: `#065F46` → `#16A34A` | Trend down: `#991B1B` → `#DC2626`
+
+**Agenda** — `agenda-badge.tsx`, `agenda-table.tsx`, `agendamento-modal.tsx`
+- completed/realizado/pago: `#F0FDF4`/`#15803D` → `#DCFCE7`/`#16A34A`
+- pending/pendente: `#FEF3C7`/`#B45309` → `#FEF9C3`/`#CA8A04`
+- confirmado: `#EFF6FF`/`#1D4ED8` → `#DBEAFE`/`#2563EB`
+- cancelado/no-show: `#FEF2F2` → `#FEE2E2`
+
+**Comandas** — `comanda-detail.tsx`, `comanda-drawer.tsx`, `comanda-table.tsx`, `comanda-card.tsx`, `comanda-kpi-strip.tsx`, `comandas/page.tsx`
+- PAID: `#F0FDF4` → `#DCFCE7` | IN_PROGRESS: `#EFF6FF` → `#DBEAFE`
+- AWAITING_PAYMENT: `#FFFBEB`/`#D97706` → `#FEF9C3`/`#CA8A04`
+- CANCELLED: `#FEF2F2` → `#FEE2E2`
+
+**Clientes** — `cliente-card.tsx`, `cliente-modal.tsx`
+- Fidelidade tag: `#F0FDF4`/`#166534` → `#DCFCE7`/`#16A34A`
+- VIP: `#FFFBEB`/`#B45309` → `#FEF9C3`/`#CA8A04`
+- Novo: `#EFF6FF` → `#DBEAFE`
+- Modal status pago: `#F0FDF4`/`#15803D` → `#DCFCE7`/`#16A34A`
+
+**Profissionais** — `profissional-card.tsx`, `profissional-modal.tsx`
+- StatusBadge active: `#F0FDF4`/`#166534` → `#DCFCE7`/`#16A34A`
+- StatusBadge vacation: `#FEF3C7`/`#B45309` → `#FEF9C3`/`#CA8A04`
+- StatusBadge inactive text: `var(--color-text-secondary)` → `#64748B`
+- Esteticista role: `#F0FDF4`/`#166534` → `#DCFCE7`/`#16A34A`
+
+**Serviços** — `servico-card.tsx`, `servico-list.tsx`
+- active status: `#F0FDF4`/`#166534` → `#DCFCE7`/`#16A34A`
+- CSS vars → hardcoded: `var(--color-success-light)` → `#DCFCE7`, `var(--color-success)` → `#16A34A`
+- Estética category: `#F0FDF4`/`#166534` → `#DCFCE7`/`#16A34A`
+- Cabelo category: `#EFF6FF` → `#DBEAFE` | Sobrancelha: `#FEF3C7`/`#B45309` → `#FEF9C3`/`#CA8A04`
+
+**Produtos** — `produtos/page.tsx`
+- StockBadge OK: `#F0FDF4` → `#DCFCE7`
+- Status Ativo badge: CSS vars → `#DCFCE7`/`#16A34A`
+- Edit button: removido `opacity-0 group-hover:opacity-100` (Ações sempre visível)
+
+**Financeiro** (também padronizado) — `comissoes-table.tsx`, `fluxo-caixa.tsx`
+- pago/entrada: `#F0FDF4` → `#DCFCE7` | atrasado/saída: `#FEF2F2` → `#FEE2E2`
+
+### Validação
+- `npx tsc --noEmit` → 0 erros
+- Screenshots Playwright validados para todos os 7 módulos

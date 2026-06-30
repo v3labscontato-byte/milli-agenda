@@ -20,9 +20,9 @@ interface KpiTileProps {
 function KpiTile({ kpi }: KpiTileProps) {
   const trendColor =
     kpi.trendUp === true
-      ? 'text-[#065F46]'
+      ? 'text-[#16A34A]'
       : kpi.trendUp === false
-        ? 'text-[#991B1B]'
+        ? 'text-[#DC2626]'
         : 'text-[#475569]'
 
   const TrendIcon =

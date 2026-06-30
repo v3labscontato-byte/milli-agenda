@@ -348,7 +348,7 @@ function FluxoCaixa({ realData, loading, error, onExpenseCreated }: FluxoCaixaPr
                     <td className="px-4 py-2.5 font-tabular text-[12px] text-[#475569]">{l.date}</td>
                     <td className="px-4 py-2.5">
                       <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-                        l.tipo === 'entrada' ? 'bg-[#F0FDF4] text-[#16A34A]' : 'bg-[#FEF2F2] text-[#DC2626]')}>
+                        l.tipo === 'entrada' ? 'bg-[#DCFCE7] text-[#16A34A]' : 'bg-[#FEE2E2] text-[#DC2626]')}>
                         {l.tipo === 'entrada' ? 'Entrada' : 'Saída'}
                       </span>
                     </td>

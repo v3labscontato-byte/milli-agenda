@@ -40,19 +40,19 @@ function fmtBRL(n: number) {
 // ─── Cell styles ──────────────────────────────────────────────────────────────
 
 const PAY_STYLES = {
-  pago:     { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Pago'     },
-  pendente: { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente' },
+  pago:     { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', label: 'Pago'     },
+  pendente: { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Pendente' },
 } as const
 
 const AT_STYLES: Record<string, { bg: string; text: string; border: string; label: string }> = {
-  COMPLETED:       { bg: '#F0FDF4', text: '#15803D', border: '#BBF7D0', label: 'Realizado'      },
-  CANCELLED:       { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', label: 'Cancelado'      },
-  CONFIRMED:       { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Confirmado'     },
-  SCHEDULED:       { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Pendente'       },
-  CHECKED_IN:      { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Check-in'       },
-  IN_SERVICE:      { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE', label: 'Em serviço'     },
-  AWAITING_PAYMENT:{ bg: '#FFFBEB', text: '#92400E', border: '#FDE68A', label: 'Aguard. Pagto'  },
-  NO_SHOW:         { bg: '#FEF9C3', text: '#713F12', border: '#FDE047', label: 'Não compareceu' },
+  COMPLETED:       { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', label: 'Realizado'      },
+  CANCELLED:       { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', label: 'Cancelado'      },
+  CONFIRMED:       { bg: '#DBEAFE', text: '#2563EB', border: '#BFDBFE', label: 'Confirmado'     },
+  SCHEDULED:       { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Pendente'       },
+  CHECKED_IN:      { bg: '#DBEAFE', text: '#2563EB', border: '#BFDBFE', label: 'Check-in'       },
+  IN_SERVICE:      { bg: '#DBEAFE', text: '#2563EB', border: '#BFDBFE', label: 'Em serviço'     },
+  AWAITING_PAYMENT:{ bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', label: 'Aguard. Pagto'  },
+  NO_SHOW:         { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', label: 'Não compareceu' },
 }
 
 const TH = 'px-3 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[#475569] text-left'
@@ -392,10 +392,10 @@ export default function ComandasPage() {
                         )}
                         style={
                           isPaid
-                            ? { backgroundColor: '#F0FDF4', color: '#15803D', borderColor: '#BBF7D0' }
+                            ? { backgroundColor: '#DCFCE7', color: '#16A34A', borderColor: '#BBF7D0' }
                             : isCancelled
                               ? { backgroundColor: '#F8FAFC', color: '#94A3B8', borderColor: '#E2E8F0' }
-                              : { backgroundColor: '#FFFBEB', color: '#92400E', borderColor: '#FDE68A' }
+                              : { backgroundColor: '#FEF9C3', color: '#CA8A04', borderColor: '#FDE68A' }
                         }
                       >
                         {isPaid

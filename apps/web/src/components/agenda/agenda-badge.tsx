@@ -5,11 +5,11 @@ import type { AgendaStatus } from '@/lib/agenda-mock'
 export const STATUS_CONFIG: Record<AgendaStatus, {
   bg: string; text: string; border: string; dot: string; label: string
 }> = {
-  confirmed:  { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE', dot: '#2563EB', label: 'Confirmado'  },
-  pending:    { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', dot: '#D97706', label: 'Pendente'    },
-  completed:  { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0', dot: '#16A34A', label: 'Concluído'   },
+  confirmed:  { bg: '#DBEAFE', text: '#2563EB', border: '#BFDBFE', dot: '#2563EB', label: 'Confirmado'  },
+  pending:    { bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A', dot: '#CA8A04', label: 'Pendente'    },
+  completed:  { bg: '#DCFCE7', text: '#16A34A', border: '#BBF7D0', dot: '#16A34A', label: 'Concluído'   },
   cancelled:  { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0', dot: '#94A3B8', label: 'Cancelado'   },
-  'no-show':  { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA', dot: '#EF4444', label: 'Não veio'    },
+  'no-show':  { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA', dot: '#EF4444', label: 'Não veio'    },
 }
 
 export function StatusBadge({ status }: { status: AgendaStatus }) {

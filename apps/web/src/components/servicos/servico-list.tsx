@@ -306,7 +306,7 @@ function ServicoList({ servicos, isFiltered = false, onView, onUpdate, onToggleS
                       'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors',
                       onToggleStatus ? 'cursor-pointer' : 'cursor-default',
                       s.status === 'active'
-                        ? 'bg-[var(--color-success-light)] text-[var(--color-success)] hover:bg-[#DCFCE7]'
+                        ? 'bg-[#DCFCE7] text-[#16A34A] hover:bg-[#BBF7D0]'
                         : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border-primary)]',
                     )}
                   >

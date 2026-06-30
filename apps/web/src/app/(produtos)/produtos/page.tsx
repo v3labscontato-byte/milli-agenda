@@ -36,7 +36,7 @@ function StockBadge({ product }: { product: Product }) {
   if (product.stockQuantity <= product.minStockAlert) {
     return <span className="inline-flex items-center rounded-full bg-[#FFFBEB] px-2 py-0.5 text-[10px] font-semibold text-[#B45309]">Estoque baixo</span>
   }
-  return <span className="inline-flex items-center rounded-full bg-[#F0FDF4] px-2 py-0.5 text-[10px] font-semibold text-[#16A34A]">OK</span>
+  return <span className="inline-flex items-center rounded-full bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-semibold text-[#16A34A]">OK</span>
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ export default function ProdutosPage() {
                     <span className={cn(
                       'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium',
                       p.active
-                        ? 'bg-[var(--color-success-light)] text-[var(--color-success)]'
+                        ? 'bg-[#DCFCE7] text-[#16A34A]'
                         : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]',
                     )}>
                       {p.active ? 'Ativo' : 'Inativo'}
@@ -254,7 +254,7 @@ export default function ProdutosPage() {
                       type="button"
                       onClick={() => setModalProduct(p)}
                       aria-label={`Editar ${p.name}`}
-                      className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--color-brand)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+                      className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
                     >
                       <Pencil size={14} aria-hidden="true" />
                     </button>

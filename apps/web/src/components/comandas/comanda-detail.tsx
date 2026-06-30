@@ -17,16 +17,16 @@ import PaymentModal from '@/components/shared/payment-modal'
 
 const STATUS_CFG: Record<ComandaStatus, { label: string; bg: string; text: string }> = {
   OPEN:             { label: 'Aberta',          bg: '#F1F5F9', text: '#475569' },
-  IN_PROGRESS:      { label: 'Em Atendimento',  bg: '#EFF6FF', text: '#2563EB' },
-  AWAITING_PAYMENT: { label: 'Aguard. Pagto',   bg: '#FFFBEB', text: '#D97706' },
-  PAID:             { label: 'Paga',            bg: '#F0FDF4', text: '#16A34A' },
-  CANCELLED:        { label: 'Cancelada',       bg: '#FEF2F2', text: '#DC2626' },
+  IN_PROGRESS:      { label: 'Em Atendimento',  bg: '#DBEAFE', text: '#2563EB' },
+  AWAITING_PAYMENT: { label: 'Aguard. Pagto',   bg: '#FEF9C3', text: '#CA8A04' },
+  PAID:             { label: 'Paga',            bg: '#DCFCE7', text: '#16A34A' },
+  CANCELLED:        { label: 'Cancelada',       bg: '#FEE2E2', text: '#DC2626' },
 }
 
 const CAT_CFG: Record<ItemCategory, { label: string; bg: string; text: string }> = {
-  service:    { label: 'Serviço',  bg: '#EFF6FF', text: '#2563EB' },
-  product:    { label: 'Produto',  bg: '#F0FDF4', text: '#16A34A' },
-  fee:        { label: 'Taxa',     bg: '#FFFBEB', text: '#D97706' },
+  service:    { label: 'Serviço',  bg: '#DBEAFE', text: '#2563EB' },
+  product:    { label: 'Produto',  bg: '#DCFCE7', text: '#16A34A' },
+  fee:        { label: 'Taxa',     bg: '#FEF9C3', text: '#CA8A04' },
   adjustment: { label: 'Ajuste',  bg: '#F5F3FF', text: '#7C3AED' },
 }
 

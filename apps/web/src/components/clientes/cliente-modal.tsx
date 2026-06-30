@@ -257,12 +257,12 @@ function TabHistorico({ c }: { c: Cliente }) {
                     <span
                       className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium"
                       style={isPago
-                        ? { backgroundColor: '#F0FDF4', color: '#15803D', borderColor: '#BBF7D0' }
-                        : { backgroundColor: '#FFFBEB', color: '#92400E', borderColor: '#FDE68A' }}
+                        ? { backgroundColor: '#DCFCE7', color: '#16A34A', borderColor: '#BBF7D0' }
+                        : { backgroundColor: '#FEF9C3', color: '#CA8A04', borderColor: '#FDE68A' }}
                     >
                       <span
                         className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: isPago ? '#22C55E' : '#F59E0B' }}
+                        style={{ backgroundColor: isPago ? '#16A34A' : '#CA8A04' }}
                       />
                       {isPago ? 'Pago' : 'Pendente'}
                     </span>
@@ -283,10 +283,10 @@ function TabHistorico({ c }: { c: Cliente }) {
                   <span
                     className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
                     style={isPago
-                      ? { backgroundColor: '#F0FDF4', color: '#16A34A' }
+                      ? { backgroundColor: '#DCFCE7', color: '#16A34A' }
                       : isCancelado
-                        ? { backgroundColor: '#FEF2F2', color: '#DC2626' }
-                        : { backgroundColor: '#EFF6FF', color: '#1D4ED8' }}
+                        ? { backgroundColor: '#FEE2E2', color: '#DC2626' }
+                        : { backgroundColor: '#DBEAFE', color: '#2563EB' }}
                   >
                     {isPago ? 'Realizado' : isCancelado ? 'Cancelado' : 'Pendente'}
                   </span>

@@ -6,10 +6,10 @@ import type { Comanda, ComandaStatus } from '@/lib/comanda-mock'
 
 const STATUS_CFG: Record<ComandaStatus, { label: string; bg: string; text: string }> = {
   OPEN:             { label: 'Aberta',        bg: '#F1F5F9', text: '#475569' },
-  IN_PROGRESS:      { label: 'Em Atend.',     bg: '#EFF6FF', text: '#2563EB' },
-  AWAITING_PAYMENT: { label: 'Aguard. Pagto', bg: '#FFFBEB', text: '#D97706' },
-  PAID:             { label: 'Paga',          bg: '#F0FDF4', text: '#16A34A' },
-  CANCELLED:        { label: 'Cancelada',     bg: '#FEF2F2', text: '#DC2626' },
+  IN_PROGRESS:      { label: 'Em Atend.',     bg: '#DBEAFE', text: '#2563EB' },
+  AWAITING_PAYMENT: { label: 'Aguard. Pagto', bg: '#FEF9C3', text: '#CA8A04' },
+  PAID:             { label: 'Paga',          bg: '#DCFCE7', text: '#16A34A' },
+  CANCELLED:        { label: 'Cancelada',     bg: '#FEE2E2', text: '#DC2626' },
 }
 
 function formatDateLabel(date: Date | string | undefined, startTime?: string): string {

@@ -306,21 +306,22 @@ function FluxoCaixa({ realData, loading, error, onExpenseCreated }: FluxoCaixaPr
         </div>
         <div className="overflow-x-auto">
           {real ? (
-            <table className="w-full min-w-[560px]" aria-label="Movimentações diárias">
+            <table className="w-full min-w-[680px]" aria-label="Movimentações diárias">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                  {['Data','Entradas','Saídas','Saldo do dia','Saldo acum.'].map((h) => (
+                  {['Data','Descrição','Entradas','Saídas','Saldo do dia','Saldo acum.'].map((h) => (
                     <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
-                      h === 'Data' ? 'text-left' : 'text-right')}>{h}</th>
+                      h === 'Data' || h === 'Descrição' ? 'text-left' : 'text-right')}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {displayDaily.length === 0 ? (
-                  <tr><td colSpan={5} className="py-12 text-center text-[13px] text-[#94A3B8]">Sem movimentações no período selecionado.</td></tr>
+                  <tr><td colSpan={6} className="py-12 text-center text-[13px] text-[#94A3B8]">Sem movimentações no período selecionado.</td></tr>
                 ) : displayDaily.map((e, i) => (
                   <tr key={e.date} className={cn('transition-colors hover:bg-[#F8FAFC]', i < displayDaily.length - 1 && 'border-b border-[#F1F5F9]')}>
                     <td className="px-4 py-2.5 font-tabular text-[12px] text-[#475569]">{e.dateLabel}</td>
+                    <td className="max-w-[180px] truncate px-4 py-2.5 text-[12px] text-[#475569]">{e.descricao || '—'}</td>
                     <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#16A34A]">{e.entradas > 0 ? fmtBRL(e.entradas) : '—'}</td>
                     <td className="px-4 py-2.5 text-right font-tabular text-[12px] text-[#DC2626]">{e.saidas > 0 ? fmtBRL(e.saidas) : '—'}</td>
                     <td className={cn('px-4 py-2.5 text-right font-tabular text-[12px] font-medium', e.saldo >= 0 ? 'text-[#0F172A]' : 'text-[#DC2626]')}>{fmtBRL(e.saldo)}</td>

@@ -42,6 +42,7 @@ export interface CashflowEntry {
   entradas: number
   saidas: number
   saldo: number
+  descricao?: string
 }
 
 export interface CashflowResponse {

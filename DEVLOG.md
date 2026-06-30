@@ -1979,3 +1979,34 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 
 ### Pendente
 - Validação Playwright após deploy homolog
+
+---
+
+## 2026-07-02 — Design system tabelas + Fluxo de Caixa (Descrição) + Plano de Contas (botões visíveis)
+
+### Arquivos alterados
+- `CLAUDE.md` (projeto) — seção "DESIGN SYSTEM DE TABELAS — OBRIGATÓRIO" adicionada
+- `apps/api/src/modules/relatorios/relatorios.service.ts` — `cashflow()`: select de expenses inclui `descricao`; cada entry do resultado inclui campo `descricao` (despesas do dia concatenadas com `, `)
+- `apps/web/src/hooks/use-relatorios.ts` — `CashflowEntry` recebe `descricao?: string`
+- `apps/web/src/components/financeiro/fluxo-caixa.tsx` — tabela modo real: coluna "Descrição" inserida entre "Data" e "Entradas"; min-w ajustado para 680px; colSpan do empty state atualizado para 6
+- `apps/web/src/components/financeiro/plano-contas.tsx` — `PlanoContasReal` e `PlanoContasMock`: `opacity-0 group-hover:opacity-100` removido dos botões de ação; substituído por padrão de confirmação inline "Excluir? Sim / Não" (`confirmingDelete` state)
+
+### O que foi feito
+**PASSO 1:** Adicionada seção "DESIGN SYSTEM DE TABELAS — OBRIGATÓRIO" ao CLAUDE.md do projeto, cobrindo: visibilidade de ações (sempre visíveis), confirmação de exclusão inline, cores de status badges, empty states e valores monetários.
+
+**PASSO 2 (Fluxo de Caixa — Descrição):**
+- Backend: `cashflow()` agora coleta `descricaoByDay: Map<string, string[]>` das despesas selecionadas e inclui `descricao: string` em cada entry do resultado.
+- Frontend: `CashflowEntry` tipado com `descricao?: string`; tabela real adicionada coluna "Descrição" com `max-w-[180px] truncate`.
+
+**PASSO 3 (Plano de Contas — botões visíveis):**
+- Ambos `PlanoContasReal` e `PlanoContasMock`: removido `opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100` do container de ações.
+- Botão lixeira substituído por padrão de confirmação: clique → mostra "Excluir? [Sim] [Não]"; "Sim" executa exclusão, "Não" cancela.
+- `setConfirmingDelete(null)` inserido no início de `handleRemove` (PlanoContasReal) para limpar estado caso a exclusão seja disparada via teclado.
+
+**PASSO 4 — Auditoria (report only, sem implementação):**
+- Comissões: botão "Dar baixa"/"Marcar Pago" ainda usa `opacity-0 group-hover:opacity-100` (linha 230). Confirmação já existe; apenas o trigger é invisível.
+- Recebimentos (modo real): coluna Status ausente; coluna Profissional ausente vs mock; cores do StatusBadge no mock divergem do design system (#DCFCE7 vs #F0FDF4).
+- Procedimentos: conforme — ranking puro, sem ações, sem status.
+
+### Status
+tsc: 0 erros (frontend e backend). Deploy automático via push para `homolog`.

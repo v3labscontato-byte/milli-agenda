@@ -246,7 +246,7 @@ export class RelatoriosService {
       }),
       this.db.expense.findMany({
         where: { tenantId, data: { gte: dateFrom, lte: dateTo } },
-        select: { data: true, valor: true },
+        select: { data: true, valor: true, descricao: true },
       }),
     ])
 
@@ -257,20 +257,23 @@ export class RelatoriosService {
     }
 
     const saidasByDay = new Map<string, number>()
+    const descricaoByDay = new Map<string, string[]>()
     for (const e of expenses) {
       const key = e.data.toISOString().slice(0, 10)
       saidasByDay.set(key, (saidasByDay.get(key) ?? 0) + Number(e.valor))
+      descricaoByDay.set(key, [...(descricaoByDay.get(key) ?? []), e.descricao])
     }
 
     const allDays = new Set([...entradasByDay.keys(), ...saidasByDay.keys()])
-    const result: { date: string; dateLabel: string; entradas: number; saidas: number; saldo: number }[] = []
+    const result: { date: string; dateLabel: string; entradas: number; saidas: number; saldo: number; descricao: string }[] = []
     let saldoAcumulado = 0
     for (const date of [...allDays].sort()) {
       const entradas = entradasByDay.get(date) ?? 0
       const saidas   = saidasByDay.get(date) ?? 0
       saldoAcumulado += entradas - saidas
       const [, m, d] = date.split('-')
-      result.push({ date, dateLabel: `${d}/${m}`, entradas, saidas, saldo: saldoAcumulado })
+      const descricao = (descricaoByDay.get(date) ?? []).join(', ')
+      result.push({ date, dateLabel: `${d}/${m}`, entradas, saidas, saldo: saldoAcumulado, descricao })
     }
 
     return { from: dateFrom, to: dateTo, entries: result }

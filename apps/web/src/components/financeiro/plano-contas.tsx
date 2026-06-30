@@ -219,6 +219,7 @@ function PlanoContasReal() {
   const [filtro, setFiltro] = useState<'all'|'fixa'|'variavel'>('all')
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
 
   async function fetchContas(monthKey: string) {
     const data = await relatoriosApi.listChartOfAccounts(toPeriod(monthKey)) as RealConta[]
@@ -237,6 +238,7 @@ function PlanoContasReal() {
   }
 
   async function handleRemove(id: string) {
+    setConfirmingDelete(null)
     await relatoriosApi.deleteChartOfAccount(id)
     setContas((prev) => prev.filter((c) => c.id !== id))
   }
@@ -310,17 +312,25 @@ function PlanoContasReal() {
                     <td className="px-4 py-3 font-tabular text-[12px] text-[#475569]">{proxVencReal(c)}</td>
                     <td className="px-4 py-3"><StatusBadge status={st} /></td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                      <div className="flex items-center gap-2">
                         {st !== 'pago' && c.ativa && (
                           <button type="button" disabled={savingId === c.id} onClick={() => handlePay(c)}
                             className="rounded-sm bg-[#F0FDF4] px-2 py-1 text-[11px] font-medium text-[#16A34A] hover:bg-[#DCFCE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0] disabled:opacity-50">
                             {savingId === c.id ? 'Salvando…' : 'Dar baixa'}
                           </button>
                         )}
-                        <button type="button" onClick={() => handleRemove(c.id)} aria-label={`Remover ${c.nome}`}
-                          className="rounded-sm p-1 text-[#94A3B8] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">
-                          <Trash2 size={13} aria-hidden="true" />
-                        </button>
+                        {confirmingDelete === c.id ? (
+                          <span className="flex items-center gap-1">
+                            <span className="text-[11px] font-medium text-[#DC2626]">Excluir?</span>
+                            <button type="button" onClick={() => handleRemove(c.id)} className="rounded-sm bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-medium text-[#DC2626] hover:bg-[#FCA5A5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">Sim</button>
+                            <button type="button" onClick={() => setConfirmingDelete(null)} className="rounded-sm bg-[#F1F5F9] px-1.5 py-0.5 text-[11px] font-medium text-[#64748B] hover:bg-[#E2E8F0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">Não</button>
+                          </span>
+                        ) : (
+                          <button type="button" onClick={() => setConfirmingDelete(c.id)} aria-label={`Remover ${c.nome}`}
+                            className="rounded-sm p-1 text-[#94A3B8] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">
+                            <Trash2 size={13} aria-hidden="true" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -342,6 +352,7 @@ function PlanoContasMock() {
   const [modalOpen, setModalOpen] = useState(false)
   const [filtro, setFiltro] = useState<'all'|'fixa'|'variavel'>('all')
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
 
   function handleSave(data: ContaFormData) {
     setContas((prev) => [...prev, { ...data, id: `pc-${Date.now()}`, pagoMesAtual: false }])
@@ -412,17 +423,25 @@ function PlanoContasMock() {
                     <td className="px-4 py-3 font-tabular text-[12px] text-[#475569]">{proxVencimento(c)}</td>
                     <td className="px-4 py-3"><StatusBadge status={st} /></td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                      <div className="flex items-center gap-2">
                         {st !== 'pago' && c.ativa && selectedMonth === CURRENT_MONTH && (
                           <button type="button" onClick={() => markPago(c.id)}
                             className="rounded-sm bg-[#F0FDF4] px-2 py-1 text-[11px] font-medium text-[#16A34A] hover:bg-[#DCFCE7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BBF7D0]">
                             Marcar Pago
                           </button>
                         )}
-                        <button type="button" onClick={() => remove(c.id)} aria-label={`Remover ${c.nome}`}
-                          className="rounded-sm p-1 text-[#94A3B8] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">
-                          <Trash2 size={13} aria-hidden="true" />
-                        </button>
+                        {confirmingDelete === c.id ? (
+                          <span className="flex items-center gap-1">
+                            <span className="text-[11px] font-medium text-[#DC2626]">Excluir?</span>
+                            <button type="button" onClick={() => { remove(c.id); setConfirmingDelete(null) }} className="rounded-sm bg-[#FEE2E2] px-1.5 py-0.5 text-[11px] font-medium text-[#DC2626] hover:bg-[#FCA5A5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">Sim</button>
+                            <button type="button" onClick={() => setConfirmingDelete(null)} className="rounded-sm bg-[#F1F5F9] px-1.5 py-0.5 text-[11px] font-medium text-[#64748B] hover:bg-[#E2E8F0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">Não</button>
+                          </span>
+                        ) : (
+                          <button type="button" onClick={() => setConfirmingDelete(c.id)} aria-label={`Remover ${c.nome}`}
+                            className="rounded-sm p-1 text-[#94A3B8] hover:bg-[#FEF2F2] hover:text-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FECACA]">
+                            <Trash2 size={13} aria-hidden="true" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

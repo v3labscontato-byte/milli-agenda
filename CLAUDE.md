@@ -23,6 +23,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **REGRA:** toda investigação, todo Playwright, todo curl de teste usa HOMOLOG por padrão.
 Produção só é tocada com autorização explícita e específica do usuário para aquela ação.
 
+## DESIGN SYSTEM DE TABELAS — OBRIGATÓRIO
+
+Toda tabela nova deve seguir este padrão desde o início. Tabela que não seguir está incompleta.
+
+### Colunas obrigatórias
+- Tabelas financeiras: Data, Descrição, Valor (alinhado direita, BRL), Categoria, Status (badge), Ações
+- Tabelas operacionais: Nome, Identificador secundário, Status (badge), Info de negócio, Ações
+- Descrição NUNCA pode ser omitida em tabelas financeiras
+
+### Coluna de Ações — sempre visível
+- NUNCA esconder em hover, NUNCA transparente
+- 1 ação: botão de texto direto
+- 2+ ações: dropdown ⋮ sempre visível
+- Ações de status (Dar baixa, Marcar pago): botão destacado FORA do dropdown
+- Sempre incluir: Editar + Excluir/Desativar
+- Excluir sempre pede confirmação antes de executar
+
+### Status — sempre badge colorido (nunca texto solto)
+- Pago/Ativo/Concluído: fundo #DCFCE7, texto #16A34A
+- Pendente/Em aberto: fundo #FEF9C3, texto #CA8A04
+- Atrasado/Vencido: fundo #FEE2E2, texto #DC2626
+- Cancelado/Inativo: fundo #F1F5F9, texto #64748B
+- Em andamento/Confirmado: fundo #DBEAFE, texto #2563EB
+
+### Estado vazio — sempre: ícone + título + subtítulo + botão de ação primária
+
+### Valores monetários
+- Sempre alinhados à direita
+- Formato: R$ 1.200,00
+- Saídas em vermelho #DC2626, entradas em verde #16A34A
+- Totais em negrito
+
+### Checklist antes de declarar tabela pronta
+- [ ] Descrição presente (tabelas financeiras)
+- [ ] Ações sempre visíveis (Editar + Excluir/Desativar)
+- [ ] Status como badge colorido
+- [ ] Valores alinhados à direita e formatados BRL
+- [ ] Estado vazio com ícone + título + subtítulo + botão
+- [ ] Confirmação antes de ação destrutiva
+- [ ] Validado via Playwright com screenshot real
+
 ## REGRA DE ACESSO A PRODUÇÃO
 A partir de 2026-06-30, toda ação em produção (migrations, queries de investigação/cleanup) é executada PELO Claude Code via DATABASE_URL pública de PRODUÇÃO fornecida pontualmente pelo usuário — nunca mais manualmente direto no Railway Console.
 Motivo: garantir documentação automática de toda ação em DEVLOG.md (incidente de referência: reconciliação de schema em 2026-06-30).

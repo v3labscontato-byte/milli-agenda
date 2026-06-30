@@ -99,6 +99,14 @@ export class RelatoriosController {
     return this.relatoriosService.listPayments(tenantId, from, to)
   }
 
+  @Post('expenses')
+  createExpense(
+    @TenantFromJwt() tenantId: string,
+    @Body() dto: { descricao: string; valor: number; data: string },
+  ) {
+    return this.relatoriosService.createExpense(tenantId, dto)
+  }
+
   @Post('goals')
   createGoal(
     @TenantFromJwt() tenantId: string,

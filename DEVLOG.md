@@ -1893,3 +1893,30 @@ de `MetasSection` (abria `MetaModal` interno). Os dois modais tinham lógica des
 - ITEM 1 — Comissões: backend `POST /api/v1/reports/commissions/:professionalId/pay` + frontend "Dar baixa"
 - ITEM 2 — Fluxo de Caixa: backend `POST /api/v1/expenses` + frontend "Registrar saída"
 - ITEM 3 — Plano de Contas: CRUD completo backend + frontend
+
+---
+
+## [30/06/2026] feat(comissoes): ITEM 1 — botão "Dar baixa" com persistência no banco
+
+### Status: ✅ Concluído e validado via Playwright
+
+### Arquivos alterados
+- `apps/api/src/modules/relatorios/relatorios.service.ts`
+- `apps/api/src/modules/relatorios/relatorios.controller.ts`
+- `apps/web/src/lib/api/relatorios.ts`
+- `apps/web/src/hooks/use-relatorios.ts`
+- `apps/web/src/components/financeiro/comissoes-table.tsx`
+
+### O que foi feito
+**Backend:**
+- `commissions()`: agora busca `CommissionPayment` do período em paralelo com profissionais; retorna `status: 'PAID'` e `paidAt` para profissionais com baixa registrada
+- `payCommission()`: cria `CommissionPayment` (idempotente — retorna existente se já pago no período)
+- `POST /reports/commissions/:professionalId/pay` → `{ period, amount }` no body
+
+**Frontend:**
+- `relatoriosApi.payCommission()` adicionado em `lib/api/relatorios.ts`
+- `CommissionRow.paidAt` adicionado na interface do hook
+- `comissoes-table.tsx`: botão "Dar baixa" exibido em modo real para linhas PENDING; ao confirmar → chama API → atualização otimista via `paidOverride` Set; texto "Salvando…" durante request
+
+### Próximo passo
+- ITEM 2 — Fluxo de Caixa: backend `POST /api/v1/expenses` + frontend modal "Registrar saída"

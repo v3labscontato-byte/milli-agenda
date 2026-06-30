@@ -63,4 +63,7 @@ export const relatoriosApi = {
 
   payCommission: (professionalId: string, dto: { period: string; amount: number }) =>
     api.post(`/api/v1/reports/commissions/${professionalId}/pay`, dto),
+
+  createExpense: (dto: { descricao: string; valor: number; data: string }) =>
+    api.post('/api/v1/reports/expenses', dto),
 }

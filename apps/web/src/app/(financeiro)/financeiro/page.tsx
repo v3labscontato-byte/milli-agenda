@@ -364,7 +364,12 @@ export default function FinanceiroPage() {
           </div>
           <div role="tabpanel" id="panel-fluxo" aria-labelledby="tab-fluxo" hidden={activeTab !== 'fluxo'}>
             {activeTab === 'fluxo' && (
-              <FluxoCaixa realData={rel.cashflow} loading={rel.cashflowLoading} error={rel.cashflowError} />
+              <FluxoCaixa
+                realData={rel.cashflow}
+                loading={rel.cashflowLoading}
+                error={rel.cashflowError}
+                onExpenseCreated={() => fetchCashflow(range.from, range.to)}
+              />
             )}
           </div>
           <div role="tabpanel" id="panel-metas" aria-labelledby="tab-metas" hidden={activeTab !== 'metas'}>

@@ -238,31 +238,53 @@ export class RelatoriosService {
     const dateFrom = from ? new Date(from + 'T00:00:00.000Z') : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
 
-    const appts = await this.db.appointment.findMany({
-      where: {
-        tenantId,
-        status: AppointmentStatus.COMPLETED,
-        startAt: { gte: dateFrom, lte: dateTo },
-      },
-      include: { service: { select: { price: true } } },
-      orderBy: { startAt: 'asc' },
-    })
+    const [appts, expenses] = await Promise.all([
+      this.db.appointment.findMany({
+        where: { tenantId, status: AppointmentStatus.COMPLETED, startAt: { gte: dateFrom, lte: dateTo } },
+        include: { service: { select: { price: true } } },
+        orderBy: { startAt: 'asc' },
+      }),
+      this.db.expense.findMany({
+        where: { tenantId, data: { gte: dateFrom, lte: dateTo } },
+        select: { data: true, valor: true },
+      }),
+    ])
 
-    const byDay = new Map<string, number>()
+    const entradasByDay = new Map<string, number>()
     for (const a of appts) {
       const key = a.startAt.toISOString().slice(0, 10)
-      byDay.set(key, (byDay.get(key) ?? 0) + Number(a.service?.price ?? 0))
+      entradasByDay.set(key, (entradasByDay.get(key) ?? 0) + Number(a.service?.price ?? 0))
     }
 
+    const saidasByDay = new Map<string, number>()
+    for (const e of expenses) {
+      const key = e.data.toISOString().slice(0, 10)
+      saidasByDay.set(key, (saidasByDay.get(key) ?? 0) + Number(e.valor))
+    }
+
+    const allDays = new Set([...entradasByDay.keys(), ...saidasByDay.keys()])
     const result: { date: string; dateLabel: string; entradas: number; saidas: number; saldo: number }[] = []
     let saldoAcumulado = 0
-    for (const [date, entradas] of [...byDay.entries()].sort()) {
-      saldoAcumulado += entradas
+    for (const date of [...allDays].sort()) {
+      const entradas = entradasByDay.get(date) ?? 0
+      const saidas   = saidasByDay.get(date) ?? 0
+      saldoAcumulado += entradas - saidas
       const [, m, d] = date.split('-')
-      result.push({ date, dateLabel: `${d}/${m}`, entradas, saidas: 0, saldo: saldoAcumulado })
+      result.push({ date, dateLabel: `${d}/${m}`, entradas, saidas, saldo: saldoAcumulado })
     }
 
     return { from: dateFrom, to: dateTo, entries: result }
+  }
+
+  async createExpense(tenantId: string, dto: { descricao: string; valor: number; data: string }) {
+    return this.db.expense.create({
+      data: {
+        tenantId,
+        descricao: dto.descricao,
+        valor: dto.valor,
+        data: new Date(dto.data + 'T12:00:00.000Z'),
+      },
+    })
   }
 
   async overdue(tenantId: string) {

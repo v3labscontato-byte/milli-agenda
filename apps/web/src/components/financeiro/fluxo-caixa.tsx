@@ -1,11 +1,13 @@
 'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_FLUXO_HISTORICO, MOCK_LANCAMENTOS_HISTORICO } from '@/lib/financeiro-historico'
 import { FEATURES } from '@/lib/features'
 import type { CashflowResponse } from '@/hooks/use-relatorios'
+import { relatoriosApi } from '@/lib/api/relatorios'
 import MonthFilter, { CURRENT_MONTH } from './month-filter'
 
 function fmtBRL(n: number) {
@@ -46,13 +48,117 @@ interface FluxoCaixaProps {
   realData?: CashflowResponse | null
   loading?: boolean
   error?: string | null
+  onExpenseCreated?: () => void
 }
 
-function FluxoCaixa({ realData, loading, error }: FluxoCaixaProps) {
+// ─── Modal Registrar Saída ────────────────────────────────────────────────────
+
+function todayISO() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+interface ExpenseModalProps {
+  onClose: () => void
+  onSaved: () => void
+}
+
+function ExpenseModal({ onClose, onSaved }: ExpenseModalProps) {
+  const [descricao, setDescricao] = useState('')
+  const [valor, setValor]         = useState('')
+  const [data, setData]           = useState(todayISO())
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const firstRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { firstRef.current?.focus() }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const v = parseFloat(valor.replace(',', '.'))
+    if (!descricao.trim() || !v || v <= 0 || !data) return
+    setSaving(true)
+    setError(null)
+    try {
+      await relatoriosApi.createExpense({ descricao: descricao.trim(), valor: v, data })
+      onSaved()
+      onClose()
+    } catch {
+      setError('Erro ao registrar. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+      <div className="w-full max-w-sm rounded-xl border border-[#E2E8F0] bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <h2 id="expense-modal-title" className="text-[14px] font-semibold text-[#0F172A]">Registrar saída</h2>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded-md p-1 text-[#94A3B8] hover:bg-[#F1F5F9] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+            <X size={16} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
+          <div className="space-y-1.5">
+            <label htmlFor="exp-desc" className="block text-[12px] font-medium text-[#475569]">Descrição</label>
+            <input
+              id="exp-desc"
+              ref={firstRef}
+              type="text"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Ex: Produto de limpeza"
+              required
+              className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="exp-valor" className="block text-[12px] font-medium text-[#475569]">Valor (R$)</label>
+            <input
+              id="exp-valor"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+              placeholder="0,00"
+              required
+              className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="exp-data" className="block text-[12px] font-medium text-[#475569]">Data</label>
+            <input
+              id="exp-data"
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              required
+              className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+            />
+          </div>
+          {error && <p className="text-[12px] text-[#DC2626]">{error}</p>}
+          <div className="flex justify-end gap-2 pt-1">
+            <button type="button" onClick={onClose} className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving} className="rounded-md bg-[#DC2626] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#B91C1C] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FCA5A5]">
+              {saving ? 'Salvando…' : 'Registrar saída'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function FluxoCaixa({ realData, loading, error, onExpenseCreated }: FluxoCaixaProps) {
   const real = FEATURES.realRelatorios
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const [mounted, setMounted] = useState(false)
   const [prefersReduced, setPrefersReduced] = useState(false)
+  const [expenseOpen, setExpenseOpen] = useState(false)
 
   const apiEntries = useMemo(() => realData?.entries ?? [], [realData])
 
@@ -126,6 +232,13 @@ function FluxoCaixa({ realData, loading, error }: FluxoCaixaProps) {
   }
 
   return (
+    <>
+    {expenseOpen && (
+      <ExpenseModal
+        onClose={() => setExpenseOpen(false)}
+        onSaved={() => onExpenseCreated?.()}
+      />
+    )}
     <div className="space-y-4">
       {!real && <MonthFilter selected={selectedMonth} onChange={setSelectedMonth} />}
       {/* KPI cards */}
@@ -174,11 +287,22 @@ function FluxoCaixa({ realData, loading, error }: FluxoCaixaProps) {
 
       {/* Movimentações table */}
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
-        <div className="border-b border-[#E2E8F0] px-5 py-4">
-          <h3 className="text-[14px] font-semibold text-[#0F172A]">{real ? 'Movimentações diárias' : 'Lançamentos'}</h3>
-          <p className="mt-0.5 text-[12px] text-[#475569]">
-            {real ? `${apiEntries.length} dias no período` : `${lancamentos.length} movimentações no mês`}
-          </p>
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">{real ? 'Movimentações diárias' : 'Lançamentos'}</h3>
+            <p className="mt-0.5 text-[12px] text-[#475569]">
+              {real ? `${apiEntries.length} dias no período` : `${lancamentos.length} movimentações no mês`}
+            </p>
+          </div>
+          {real && (
+            <button
+              type="button"
+              onClick={() => setExpenseOpen(true)}
+              className="rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#DC2626] transition-colors hover:border-[#DC2626] hover:bg-[#FEF2F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FCA5A5]"
+            >
+              + Registrar saída
+            </button>
+          )}
         </div>
         <div className="overflow-x-auto">
           {real ? (
@@ -247,6 +371,7 @@ function FluxoCaixa({ realData, loading, error }: FluxoCaixaProps) {
         </div>
       </div>
     </div>
+    </>
   )
 }
 

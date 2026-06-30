@@ -7,6 +7,7 @@ import { txDateLabel, type Transaction, type TransactionStatus } from '@/lib/fin
 import { MOCK_TRANSACTIONS_HISTORICO } from '@/lib/financeiro-historico'
 import MonthFilter, { CURRENT_MONTH } from './month-filter'
 import { FEATURES } from '@/lib/features'
+import type { PaymentRow } from '@/hooks/use-relatorios'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,11 +15,17 @@ type SortKey = 'date' | 'clientName' | 'method' | 'value' | 'status'
 type SortDir = 'asc' | 'desc'
 
 const METHOD_LABELS: Record<string, string> = {
-  pix:      'PIX',
-  credito:  'Crédito',
-  debito:   'Débito',
-  dinheiro: 'Dinheiro',
-  voucher:  'Voucher',
+  pix:           'PIX',
+  credito:       'Crédito',
+  debito:        'Débito',
+  dinheiro:      'Dinheiro',
+  voucher:       'Voucher',
+  PIX:           'PIX',
+  CASH:          'Dinheiro',
+  CREDIT_CARD:   'Crédito',
+  DEBIT_CARD:    'Débito',
+  BANK_TRANSFER: 'Transferência',
+  VOUCHER:       'Voucher',
 }
 
 const STATUS_LABELS: Record<TransactionStatus, string> = {
@@ -96,14 +103,13 @@ function EmptyState() {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function PagamentosTable() {
-  // TODO: conectar endpoint /payments com paginação quando disponível
-  if (FEATURES.realRelatorios) return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
-      <p className="text-[13px] font-medium text-[#475569]">Histórico de Pagamentos em breve</p>
-      <p className="mt-1 text-[12px]">As transações aparecerão aqui assim que o módulo for ativado.</p>
-    </div>
-  )
+interface PagamentosTableProps {
+  realData?: PaymentRow[]
+  loading?: boolean
+  error?: string | null
+}
+
+function PagamentosTable({ realData, loading, error }: PagamentosTableProps) {
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH)
   const transactions = MOCK_TRANSACTIONS_HISTORICO[selectedMonth] ?? []
   const [sortKey, setSortKey] = useState<SortKey>('date')
@@ -145,6 +151,87 @@ function PagamentosTable() {
       <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
     </button>
   )
+
+  if (FEATURES.realRelatorios) {
+    if (error) return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center">
+        <p className="text-[13px] text-[#DC2626]">Erro ao carregar recebimentos. Tente novamente.</p>
+      </div>
+    )
+    if (loading) return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white px-5 py-12 text-center">
+        <p className="text-[13px] text-[#64748B]">Carregando…</p>
+      </div>
+    )
+    const rows = realData ?? []
+    const realTotal = rows.reduce((s, r) => s + r.amount, 0)
+    const toCSVReal = () => {
+      const header = ['Data', 'Cliente', 'Serviço', 'Método', 'Valor', 'Status']
+      const lines = rows.map((r) => [
+        r.paidAt ? new Date(r.paidAt).toLocaleDateString('pt-BR') : '—',
+        r.clientName, r.service,
+        METHOD_LABELS[r.method] ?? r.method,
+        fmtBRL(r.amount), r.status === 'PAID' ? 'Pago' : r.status,
+      ].map((v) => `"${v}"`).join(','))
+      const blob = new Blob([[header.join(','), ...lines].join('\n')], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `recebimentos-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+    return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-[#0F172A]">Recebimentos</h3>
+            <p className="mt-0.5 text-[12px] text-[#475569]">{rows.length} transações no período</p>
+          </div>
+          <button type="button" onClick={toCSVReal}
+            className="flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-3 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:border-[#2563EB] hover:text-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            aria-label="Exportar CSV">
+            <Download size={13} aria-hidden="true" />CSV
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[580px]" aria-label="Tabela de recebimentos">
+            <thead>
+              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                {['Data', 'Cliente', 'Serviço', 'Método', 'Valor'].map((h) => (
+                  <th key={h} className={cn('px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
+                    h === 'Valor' ? 'text-right' : 'text-left')}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr><td colSpan={5} className="py-12 text-center text-[13px] text-[#64748B]">Nenhum recebimento no período.</td></tr>
+              ) : rows.map((r, i) => (
+                <tr key={r.id} className={cn('transition-colors hover:bg-[#F8FAFC]', i < rows.length - 1 && 'border-b border-[#F1F5F9]')}>
+                  <td className="whitespace-nowrap px-4 py-3 font-tabular text-[12px] text-[#475569]">
+                    {r.paidAt ? new Date(r.paidAt).toLocaleDateString('pt-BR') : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-[13px] font-medium text-[#0F172A]">{r.clientName}</td>
+                  <td className="px-4 py-3 text-[12px] text-[#475569]">{r.service}</td>
+                  <td className="px-4 py-3 text-[12px] text-[#475569]">{METHOD_LABELS[r.method] ?? r.method}</td>
+                  <td className="px-4 py-3 text-right font-tabular text-[13px] font-medium text-[#0F172A]">{fmtBRL(r.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            {rows.length > 0 && (
+              <tfoot>
+                <tr className="border-t-2 border-[#E2E8F0] bg-[#F8FAFC]">
+                  <td colSpan={4} className="px-4 py-3 text-[12px] font-semibold text-[#0F172A]">Total do período</td>
+                  <td className="px-4 py-3 text-right font-tabular text-[13px] font-bold text-[#0F172A]">{fmtBRL(realTotal)}</td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

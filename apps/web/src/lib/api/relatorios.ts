@@ -46,6 +46,11 @@ export const relatoriosApi = {
 
   topServices: (params?: RelatorioParams) => api.get(`/api/v1/reports/top-services${qs(params)}`),
 
+  paymentsByMethod: (params?: RelatorioParams) =>
+    api.get(`/api/v1/reports/payments-by-method${qs(params)}`),
+
+  payments: (params?: RelatorioParams) => api.get(`/api/v1/reports/payments${qs(params)}`),
+
   commissions: (params?: RelatorioParams) => api.get(`/api/v1/reports/commissions${qs(params)}`),
 
   cashflow: (params?: RelatorioParams) => api.get(`/api/v1/reports/cashflow${qs(params)}`),

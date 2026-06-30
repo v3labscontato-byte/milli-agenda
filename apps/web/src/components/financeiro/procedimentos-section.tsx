@@ -8,6 +8,7 @@ import {
   type ProcedimentoRanking, type ProfissionalRanking, type ProdutoRanking,
 } from '@/lib/financeiro-mock'
 import { FEATURES } from '@/lib/features'
+import type { ServiceRankRow } from '@/hooks/use-relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -179,14 +180,13 @@ function ProdutosPanel({ data, reduced }: { data: ProdutoRanking[]; reduced: boo
 
 // ─── Section ──────────────────────────────────────────────────────────────────
 
-export default function ProcedimentosSection() {
-  // TODO: conectar /reports/professionals + /reports/revenue por serviço quando disponível
-  if (FEATURES.realRelatorios) return (
-    <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center text-[#94A3B8]">
-      <p className="text-[13px] font-medium text-[#475569]">Ranking de Procedimentos em breve</p>
-      <p className="mt-1 text-[12px]">Os dados de procedimentos e produtos serão exibidos aqui.</p>
-    </div>
-  )
+interface ProcedimentosSectionProps {
+  realData?: ServiceRankRow[]
+  loading?: boolean
+  error?: string | null
+}
+
+export default function ProcedimentosSection({ realData, loading, error }: ProcedimentosSectionProps) {
   const [mesSel, setMesSel] = useState('jun-26')
   const [reduced, setReduced] = useState(false)
 
@@ -202,6 +202,64 @@ export default function ProcedimentosSection() {
   const procedimentos = useMemo(() => [...MOCK_PROCEDIMENTOS].sort((a, b) => b.receita - a.receita), [])
   const profissionais  = useMemo(() => [...MOCK_PROF_RANKING].sort((a, b) => b.receita - a.receita), [])
   const produtos       = useMemo(() => [...MOCK_PRODUTOS].sort((a, b) => b.receita - a.receita), [])
+
+  if (FEATURES.realRelatorios) {
+    if (error) return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center">
+        <p className="text-[13px] text-[#DC2626]">Erro ao carregar procedimentos. Tente novamente.</p>
+      </div>
+    )
+    if (loading) return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center">
+        <p className="text-[13px] text-[#64748B]">Carregando…</p>
+      </div>
+    )
+    if (!realData || realData.length === 0) return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white p-10 text-center">
+        <p className="text-[13px] text-[#475569] font-medium">Sem procedimentos no período.</p>
+        <p className="mt-1 text-[12px] text-[#94A3B8]">Os dados aparecerão assim que houver comandas fechadas.</p>
+      </div>
+    )
+    const total = realData.reduce((s, p) => s + p.receita, 0)
+    return (
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
+        <div className="border-b border-[#E2E8F0] px-5 py-4">
+          <h3 className="text-[14px] font-semibold text-[#0F172A]">Top Procedimentos</h3>
+          <p className="mt-0.5 text-[12px] text-[#475569]">Total: {fmtBRL(total)} no período</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[400px]" aria-label="Ranking de procedimentos">
+            <thead>
+              <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                {['#', 'Procedimento', 'Qtd', 'Receita', '%'].map((h) => (
+                  <th key={h} className={cn('px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-[#64748B]',
+                    ['Receita', '%'].includes(h) ? 'text-right' : 'text-left')}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {realData.map((p, i) => (
+                <tr key={p.rank} className={cn('hover:bg-[#F8FAFC]', i < realData.length - 1 && 'border-b border-[#F1F5F9]')}>
+                  <td className="px-4 py-2 text-[12px] font-bold" style={{ color: PROC_COLORS[i] }}>#{p.rank}</td>
+                  <td className="px-4 py-2 text-[12px] font-medium text-[#0F172A]">{p.nome}</td>
+                  <td className="px-4 py-2 text-[12px] text-[#475569]">{p.qtd}x</td>
+                  <td className="px-4 py-2 text-right font-tabular text-[12px] font-semibold text-[#0F172A]">{fmtBRL(p.receita)}</td>
+                  <td className="px-4 py-2 text-right">
+                    <span className="rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-medium text-[#2563EB]">
+                      {total > 0 ? ((p.receita / total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="border-t border-[#F1F5F9] px-5 pb-4 pt-4">
+          <HBar data={realData} colors={PROC_COLORS} yWidth={128} reduced={reduced} height={Math.max(120, realData.length * 28)} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5">

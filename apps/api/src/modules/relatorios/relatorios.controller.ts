@@ -63,6 +63,33 @@ export class RelatoriosController {
     return this.relatoriosService.overdue(tenantId)
   }
 
+  @Get('payments-by-method')
+  paymentsByMethod(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.relatoriosService.paymentsByMethod(tenantId, from, to)
+  }
+
+  @Get('top-services')
+  topServices(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.relatoriosService.topServices(tenantId, from, to)
+  }
+
+  @Get('payments')
+  listPayments(
+    @TenantFromJwt() tenantId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.relatoriosService.listPayments(tenantId, from, to)
+  }
+
   @Post('goals')
   createGoal(
     @TenantFromJwt() tenantId: string,

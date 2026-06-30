@@ -58,6 +58,28 @@ export interface OverdueRow {
   daysOverdue: number
 }
 
+export interface MethodDatum {
+  method: string
+  total: number
+}
+
+export interface ServiceRankRow {
+  rank: number
+  nome: string
+  qtd: number
+  receita: number
+}
+
+export interface PaymentRow {
+  id: string
+  method: string
+  amount: number
+  status: string
+  paidAt: string
+  clientName: string
+  service: string
+}
+
 export type Period = 'hoje' | 'semana' | 'mes' | 'ultimos30' | 'custom'
 
 export interface DateRange {
@@ -160,6 +182,18 @@ export function useRelatorios(from?: string, to?: string) {
   const [overdueLoading, setOverdueLoading] = useState(false)
   const [overdueError, setOverdueError]   = useState<string | null>(null)
 
+  const [methodData, setMethodData]             = useState<MethodDatum[]>([])
+  const [methodLoading, setMethodLoading]       = useState(false)
+  const [methodError, setMethodError]           = useState<string | null>(null)
+
+  const [topServices, setTopServices]           = useState<ServiceRankRow[]>([])
+  const [topServicesLoading, setTopServicesLoading] = useState(false)
+  const [topServicesError, setTopServicesError] = useState<string | null>(null)
+
+  const [payments, setPayments]                 = useState<PaymentRow[]>([])
+  const [paymentsLoading, setPaymentsLoading]   = useState(false)
+  const [paymentsError, setPaymentsError]       = useState<string | null>(null)
+
   const [period, setPeriod]         = useState<Period>('mes')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo]     = useState('')
@@ -222,6 +256,39 @@ export function useRelatorios(from?: string, to?: string) {
       .finally(() => setOverdueLoading(false))
   }, [])
 
+  const fetchMethodData = useCallback((from?: string, to?: string) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    setMethodLoading(true)
+    setMethodError(null)
+    relatoriosApi.paymentsByMethod({ from, to })
+      .then((res: unknown) => setMethodData(Array.isArray(res) ? (res as MethodDatum[]) : []))
+      .catch(() => setMethodError('Erro ao carregar métodos'))
+      .finally(() => setMethodLoading(false))
+  }, [])
+
+  const fetchTopServices = useCallback((from?: string, to?: string) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    setTopServicesLoading(true)
+    setTopServicesError(null)
+    relatoriosApi.topServices({ from, to })
+      .then((res: unknown) => setTopServices(Array.isArray(res) ? (res as ServiceRankRow[]) : []))
+      .catch(() => setTopServicesError('Erro ao carregar procedimentos'))
+      .finally(() => setTopServicesLoading(false))
+  }, [])
+
+  const fetchPayments = useCallback((from?: string, to?: string) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    setPaymentsLoading(true)
+    setPaymentsError(null)
+    relatoriosApi.payments({ from, to })
+      .then((res: unknown) => setPayments(Array.isArray(res) ? (res as PaymentRow[]) : []))
+      .catch(() => setPaymentsError('Erro ao carregar recebimentos'))
+      .finally(() => setPaymentsLoading(false))
+  }, [])
+
   const range = periodToRange(period, customFrom, customTo)
 
   return {
@@ -230,6 +297,9 @@ export function useRelatorios(from?: string, to?: string) {
     commissions, commissionsLoading, commissionsError, fetchCommissions,
     cashflow, cashflowLoading, cashflowError, fetchCashflow,
     overdue, overdueLoading, overdueError, fetchOverdue,
+    methodData, methodLoading, methodError, fetchMethodData,
+    topServices, topServicesLoading, topServicesError, fetchTopServices,
+    payments, paymentsLoading, paymentsError, fetchPayments,
     period, setPeriod, customFrom, setCustomFrom, customTo, setCustomTo, range,
   }
 }

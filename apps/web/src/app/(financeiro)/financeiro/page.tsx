@@ -258,13 +258,16 @@ export default function FinanceiroPage() {
     [period, customFrom, customTo],
   )
 
-  const { fetchCommissions, fetchCashflow, fetchOverdue } = rel
+  const { fetchCommissions, fetchCashflow, fetchOverdue, fetchMethodData, fetchTopServices, fetchPayments } = rel
   useEffect(() => {
     if (!FEATURES.realRelatorios) return
     if (period === 'custom' && (!customFrom || !customTo)) return
     fetchCommissions(range.from, range.to)
     fetchCashflow(range.from, range.to)
-  }, [fetchCommissions, fetchCashflow, range.from, range.to, period, customFrom, customTo])
+    fetchMethodData(range.from, range.to)
+    fetchTopServices(range.from, range.to)
+    fetchPayments(range.from, range.to)
+  }, [fetchCommissions, fetchCashflow, fetchMethodData, fetchTopServices, fetchPayments, range.from, range.to, period, customFrom, customTo])
 
   useEffect(() => {
     if (FEATURES.realRelatorios) fetchOverdue()
@@ -297,6 +300,7 @@ export default function FinanceiroPage() {
       {FEATURES.realRelatorios ? (
         <ReceitaChart
           realCashflow={rel.cashflow}
+          realMethodData={rel.methodData}
           loading={rel.cashflowLoading}
           error={rel.cashflowError}
         />
@@ -344,7 +348,13 @@ export default function FinanceiroPage() {
 
         <div className="pt-5">
           <div role="tabpanel" id="panel-recebimentos" aria-labelledby="tab-recebimentos" hidden={activeTab !== 'recebimentos'}>
-            {activeTab === 'recebimentos' && <PagamentosTable />}
+            {activeTab === 'recebimentos' && (
+              <PagamentosTable
+                realData={rel.payments}
+                loading={rel.paymentsLoading}
+                error={rel.paymentsError}
+              />
+            )}
           </div>
           <div role="tabpanel" id="panel-comissoes" aria-labelledby="tab-comissoes" hidden={activeTab !== 'comissoes'}>
             {activeTab === 'comissoes' && (
@@ -383,7 +393,13 @@ export default function FinanceiroPage() {
             {activeTab === 'plano' && <PlanoContas />}
           </div>
           <div role="tabpanel" id="panel-procedimentos" aria-labelledby="tab-procedimentos" hidden={activeTab !== 'procedimentos'}>
-            {activeTab === 'procedimentos' && <ProcedimentosSection />}
+            {activeTab === 'procedimentos' && (
+              <ProcedimentosSection
+                realData={rel.topServices}
+                loading={rel.topServicesLoading}
+                error={rel.topServicesError}
+              />
+            )}
           </div>
         </div>
       </div>

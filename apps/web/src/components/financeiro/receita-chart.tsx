@@ -8,7 +8,7 @@ import {
 } from 'recharts'
 import { cn } from '@/lib/utils'
 import type { WeeklyRevenue, MetodoDistrib, FaturamentoMensal } from '@/lib/financeiro-mock'
-import type { CashflowResponse } from '@/hooks/use-relatorios'
+import type { CashflowResponse, MethodDatum } from '@/hooks/use-relatorios'
 
 function fmtBRL(n: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(n)
@@ -117,18 +117,49 @@ function Skeleton() {
   )
 }
 
+// ─── Method colours & labels ──────────────────────────────────────────────────
+
+const METHOD_COLORS: Record<string, string> = {
+  PIX:           '#16A34A',
+  CASH:          '#2563EB',
+  CREDIT_CARD:   '#7C3AED',
+  DEBIT_CARD:    '#F59E0B',
+  BANK_TRANSFER: '#0EA5E9',
+  VOUCHER:       '#94A3B8',
+}
+
+const METHOD_LABELS: Record<string, string> = {
+  PIX:           'PIX',
+  CASH:          'Dinheiro',
+  CREDIT_CARD:   'Crédito',
+  DEBIT_CARD:    'Débito',
+  BANK_TRANSFER: 'Transferência',
+  VOUCHER:       'Voucher',
+}
+
 // ─── Real-data charts ─────────────────────────────────────────────────────────
 
 interface RealChartsProps {
   dailyData: DailyEntry[]
   prefersReduced: boolean
+  methodData: MethodDatum[]
 }
 
-function RealCharts({ dailyData, prefersReduced }: RealChartsProps) {
+function RealCharts({ dailyData, prefersReduced, methodData }: RealChartsProps) {
   const withValue = dailyData.filter((d) => d.value > 0)
   const avgDiario = withValue.length
     ? Math.round(withValue.reduce((s, d) => s + d.value, 0) / withValue.length)
     : 0
+
+  const methodTotal = methodData.reduce((s, m) => s + m.total, 0)
+  const donutData = methodData
+    .filter((m) => m.total > 0)
+    .map((m) => ({
+      name: METHOD_LABELS[m.method] ?? m.method,
+      value: m.total,
+      color: METHOD_COLORS[m.method] ?? '#94A3B8',
+      total: methodTotal,
+    }))
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -163,15 +194,50 @@ function RealCharts({ dailyData, prefersReduced }: RealChartsProps) {
         </div>
       </div>
 
-      {/* Method distribution — no API data yet */}
+      {/* Method distribution */}
       <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]">
         <div className="border-b border-[#E2E8F0] px-5 py-4">
           <h3 className="text-[14px] font-semibold text-[#0F172A]">Por Método</h3>
           <p className="mt-0.5 text-[12px] text-[#475569]">Distribuição do período</p>
         </div>
-        <div className="flex items-center justify-center px-5 py-12">
-          <p className="text-[13px] text-[#64748B]">Sem pagamentos no período.</p>
-        </div>
+        {donutData.length === 0 ? (
+          <div className="flex items-center justify-center px-5 py-12">
+            <p className="text-[13px] text-[#64748B]">Sem pagamentos no período.</p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-5 px-5 pb-5 pt-4">
+            <div className="relative shrink-0" style={{ width: 160, height: 160 }}>
+              <PieChart width={160} height={160}>
+                <Pie data={donutData} dataKey="value" nameKey="name"
+                  cx="50%" cy="50%" innerRadius={48} outerRadius={75} strokeWidth={2} stroke="#fff"
+                  isAnimationActive={!prefersReduced}>
+                  {donutData.map((m, i) => <Cell key={i} fill={m.color} />)}
+                </Pie>
+                <Tooltip content={<DonutTooltip />} />
+              </PieChart>
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-tabular text-[16px] font-bold text-[#0F172A]">{fmtBRL(methodTotal)}</span>
+                <span className="text-[10px] text-[#475569]">total</span>
+              </div>
+            </div>
+            <ul className="flex-1 space-y-2" aria-label="Métodos de pagamento">
+              {donutData.map((m) => (
+                <li key={m.name} className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: m.color }} aria-hidden="true" />
+                    <span className="truncate text-[12px] text-[#475569]">{m.name}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="font-tabular text-[12px] font-semibold text-[#0F172A]">{fmtBRL(m.value)}</span>
+                    <span className="w-7 text-right text-[11px] text-[#64748B]">
+                      {((m.value / methodTotal) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -190,6 +256,7 @@ interface ReceitaChartProps {
   metodoData?: MetodoDistrib[]
   monthlyData?: FaturamentoMensal[]
   realCashflow?: CashflowResponse | null
+  realMethodData?: MethodDatum[]
   loading?: boolean
   error?: string | null
 }
@@ -198,7 +265,7 @@ const META_SEMANAL = 4000
 
 export default function ReceitaChart({
   weeklyData = [], metodoData = [], monthlyData = [],
-  realCashflow, loading, error,
+  realCashflow, realMethodData = [], loading, error,
 }: ReceitaChartProps) {
   const isReal = realCashflow !== undefined
   const [mounted, setMounted] = useState(false)
@@ -229,7 +296,7 @@ export default function ReceitaChart({
         </div>
       )
     }
-    return <RealCharts dailyData={dailyData} prefersReduced={prefersReduced} />
+    return <RealCharts dailyData={dailyData} prefersReduced={prefersReduced} methodData={realMethodData} />
   }
 
   if (!mounted) return <Skeleton />

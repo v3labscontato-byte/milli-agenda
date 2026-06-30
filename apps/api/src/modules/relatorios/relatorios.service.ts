@@ -270,6 +270,85 @@ export class RelatoriosService {
     }))
   }
 
+  async paymentsByMethod(tenantId: string, from?: string, to?: string) {
+    const { dateFrom, dateTo } = this.defaultRange(from, to)
+    const grouped = await this.db.payment.groupBy({
+      by: ['method'],
+      where: { tenantId, status: 'PAID', createdAt: { gte: dateFrom, lte: dateTo } },
+      _sum: { amount: true },
+    })
+    return grouped.map((g) => ({
+      method: g.method,
+      total: Number(g._sum.amount ?? 0),
+    }))
+  }
+
+  async topServices(tenantId: string, from?: string, to?: string) {
+    const { dateFrom, dateTo } = this.defaultRange(from, to)
+    const items = await this.db.commandItem.findMany({
+      where: {
+        command: { tenantId, status: 'CLOSED' },
+        serviceId: { not: null },
+        createdAt: { gte: dateFrom, lte: dateTo },
+      },
+      select: {
+        unitPrice: true,
+        quantity: true,
+        service: { select: { name: true } },
+      },
+    })
+
+    const map = new Map<string, { nome: string; qtd: number; receita: number }>()
+    for (const item of items) {
+      const nome = item.service?.name ?? 'Desconhecido'
+      const prev = map.get(nome) ?? { nome, qtd: 0, receita: 0 }
+      map.set(nome, {
+        nome,
+        qtd: prev.qtd + item.quantity,
+        receita: prev.receita + Number(item.unitPrice) * item.quantity,
+      })
+    }
+
+    return [...map.values()]
+      .sort((a, b) => b.receita - a.receita)
+      .slice(0, 10)
+      .map((s, i) => ({ rank: i + 1, ...s }))
+  }
+
+  async listPayments(tenantId: string, from?: string, to?: string) {
+    const { dateFrom, dateTo } = this.defaultRange(from, to)
+    const payments = await this.db.payment.findMany({
+      where: { tenantId, status: 'PAID', createdAt: { gte: dateFrom, lte: dateTo } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        method: true,
+        amount: true,
+        status: true,
+        createdAt: true,
+        command: {
+          select: {
+            client: { select: { name: true } },
+            appointments: {
+              take: 1,
+              select: { service: { select: { name: true } } },
+            },
+          },
+        },
+      },
+    })
+
+    return payments.map((p) => ({
+      id: p.id,
+      method: p.method,
+      amount: Number(p.amount),
+      status: p.status,
+      paidAt: p.createdAt,
+      clientName: p.command?.client?.name ?? '—',
+      service: p.command?.appointments?.[0]?.service?.name ?? '—',
+    }))
+  }
+
   async createGoal(tenantId: string, dto: { tipo: string; periodo: string; valor: number; dataInicio: string; dataFim: string }) {
     return this.db.goal.create({
       data: {

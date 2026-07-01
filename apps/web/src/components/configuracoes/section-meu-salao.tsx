@@ -31,9 +31,18 @@ interface SalonForm {
   phone: string
   email: string
   document: string
+  slogan: string
+  address: string
+  neighborhood: string
+  cep: string
+  city: string
+  state: string
 }
 
-const EMPTY_FORM: SalonForm = { name: '', phone: '', email: '', document: '' }
+const EMPTY_FORM: SalonForm = {
+  name: '', phone: '', email: '', document: '',
+  slogan: '', address: '', neighborhood: '', cep: '', city: '', state: '',
+}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -60,10 +69,16 @@ export default function SectionMeuSalao() {
   useEffect(() => {
     if (settings) {
       setForm({
-        name:     settings.name ?? '',
-        phone:    settings.phone ?? '',
-        email:    settings.email ?? '',
-        document: settings.document ?? '',
+        name:         settings.name ?? '',
+        phone:        settings.phone ?? '',
+        email:        settings.email ?? '',
+        document:     settings.document ?? '',
+        slogan:       settings.slogan ?? '',
+        address:      settings.address ?? '',
+        neighborhood: settings.neighborhood ?? '',
+        cep:          settings.cep ?? '',
+        city:         settings.city ?? '',
+        state:        settings.state ?? '',
       })
       setLogoPreview(settings.logoUrl ?? null)
     }
@@ -77,11 +92,17 @@ export default function SectionMeuSalao() {
     setSaveError('')
     setSaveState('saving')
     const result = await update({
-      name:     form.name,
-      phone:    form.phone,
-      email:    form.email,
-      document: form.document,
-      logoUrl:  logoPreview ?? undefined,
+      name:         form.name,
+      phone:        form.phone,
+      email:        form.email,
+      document:     form.document,
+      logoUrl:      logoPreview ?? undefined,
+      slogan:       form.slogan || undefined,
+      address:      form.address || undefined,
+      neighborhood: form.neighborhood || undefined,
+      cep:          form.cep || undefined,
+      city:         form.city || undefined,
+      state:        form.state || undefined,
     })
     if (result.success) {
       setSaveState('saved')
@@ -114,8 +135,6 @@ export default function SectionMeuSalao() {
     try {
       const dataUrl = await readFileAsDataURL(file)
       setPreview(dataUrl)
-      setStatus('saving')
-      await new Promise<void>((r) => setTimeout(r, 1000))
       setStatus('saved')
       setTimeout(() => setStatus('idle'), 2500)
     } catch {
@@ -211,7 +230,6 @@ export default function SectionMeuSalao() {
               <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Logo do Salão</p>
               <div className="rounded-lg border border-[#E2E8F0] p-4">
                 <div className="flex items-start gap-4">
-                  {/* Preview / avatar */}
                   {logoPreview ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -295,9 +313,6 @@ export default function SectionMeuSalao() {
                     </div>
 
                     <div role="status" aria-live="polite">
-                      {logoStatus === 'saving' && (
-                        <p className="mt-2 text-[11px] text-[#64748B]">Salvando…</p>
-                      )}
                       {logoStatus === 'saved' && (
                         <p className="mt-2 text-[11px] text-[#10B981]">
                           <span aria-hidden="true">✓ </span>Imagem carregada! Clique em salvar para aplicar.
@@ -312,7 +327,7 @@ export default function SectionMeuSalao() {
               </div>
             </div>
 
-            {/* Cover — TODO: conectar API quando endpoint /settings/cover existir */}
+            {/* Cover */}
             <div>
               <p className="mb-3 text-[13px] font-medium text-[#0F172A]">Foto de Capa</p>
               <div className="overflow-hidden rounded-lg border border-[#E2E8F0]">
@@ -399,8 +414,7 @@ export default function SectionMeuSalao() {
 
                   <div className="ml-auto text-right">
                     <div role="status" aria-live="polite">
-                      {coverStatus === 'saving' && <p className="text-[11px] text-[#64748B]">Salvando…</p>}
-                      {coverStatus === 'saved'  && <p className="text-[11px] text-[#10B981]"><span aria-hidden="true">✓ </span>Imagem carregada!</p>}
+                      {coverStatus === 'saved' && <p className="text-[11px] text-[#10B981]"><span aria-hidden="true">✓ </span>Imagem carregada!</p>}
                     </div>
                     {coverError && <p className="text-[11px] text-[#DC2626]" role="alert">{coverError}</p>}
                   </div>
@@ -421,6 +435,16 @@ export default function SectionMeuSalao() {
                 value={form.name}
                 onChange={(v) => set('name', v)}
                 placeholder="Nome do salão"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <FieldLabel htmlFor="salon-slogan">Slogan / Descrição curta</FieldLabel>
+              <TextInput
+                id="salon-slogan"
+                value={form.slogan}
+                onChange={(v) => set('slogan', v)}
+                placeholder="Ex.: Beleza e cuidado para você"
               />
             </div>
 
@@ -454,6 +478,63 @@ export default function SectionMeuSalao() {
                 value={form.document}
                 onChange={(v) => set('document', v)}
                 placeholder="00.000.000/0001-00"
+              />
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── Endereço ── */}
+        <SectionCard title="Endereço">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="space-y-1.5 sm:col-span-1">
+                <FieldLabel htmlFor="salon-cep">CEP</FieldLabel>
+                <TextInput
+                  id="salon-cep"
+                  value={form.cep}
+                  onChange={(v) => set('cep', v)}
+                  placeholder="00000-000"
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <FieldLabel htmlFor="salon-address">Logradouro</FieldLabel>
+                <TextInput
+                  id="salon-address"
+                  value={form.address}
+                  onChange={(v) => set('address', v)}
+                  placeholder="Rua, Av., número"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <FieldLabel htmlFor="salon-neighborhood">Bairro</FieldLabel>
+                <TextInput
+                  id="salon-neighborhood"
+                  value={form.neighborhood}
+                  onChange={(v) => set('neighborhood', v)}
+                  placeholder="Bairro"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <FieldLabel htmlFor="salon-city">Cidade</FieldLabel>
+                <TextInput
+                  id="salon-city"
+                  value={form.city}
+                  onChange={(v) => set('city', v)}
+                  placeholder="Cidade"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-[120px]">
+              <FieldLabel htmlFor="salon-state">Estado</FieldLabel>
+              <TextInput
+                id="salon-state"
+                value={form.state}
+                onChange={(v) => set('state', v.toUpperCase().slice(0, 2))}
+                placeholder="SP"
               />
             </div>
           </div>

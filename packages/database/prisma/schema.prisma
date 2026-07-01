@@ -92,6 +92,20 @@ model Tenant {
   trialEndsAt          DateTime?
   onboardingCompleted  Boolean   @default(false)
   nichoSlug            String?
+  // Horários de funcionamento
+  businessHours        Json?
+  slotGapMinutes       Int       @default(30)
+  minAdvanceHours      Int       @default(0)
+  maxAdvanceDays       Int       @default(60)
+  // Formas de pagamento aceitas
+  acceptedPaymentMethods Json    @default("[\"PIX\",\"CASH\",\"CREDIT_CARD\",\"DEBIT_CARD\",\"VOUCHER\",\"BANK_TRANSFER\"]")
+  // Dados do salão
+  slogan               String?
+  address              String?
+  neighborhood         String?
+  cep                  String?
+  city                 String?
+  state                String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

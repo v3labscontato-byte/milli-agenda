@@ -8,24 +8,16 @@ import { useClientes } from '@/hooks/use-clientes'
 import ClienteList from '@/components/clientes/cliente-list'
 import ClienteModal from '@/components/clientes/cliente-modal'
 import NovoClienteModal from '@/components/clientes/novo-cliente-modal'
+import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 
-// ─── KPI strip ────────────────────────────────────────────────────────────────
+type KpiPeriod = 'hoje' | 'semana' | 'mes' | '30d'
 
-interface KpiCardProps {
-  label: string
-  value: string | number
-  sub: string
-}
-
-function KpiCard({ label, value, sub }: KpiCardProps) {
-  return (
-    <div className="flex flex-col rounded-xl border border-[#E2E8F0] bg-white p-5">
-      <span className="font-tabular text-3xl font-bold leading-none text-[#0F172A]">{value}</span>
-      <span className="mt-1.5 text-sm font-semibold text-[#0F172A]">{label}</span>
-      <span className="mt-0.5 text-[11px] text-[#94A3B8]">{sub}</span>
-    </div>
-  )
-}
+const KPI_PERIODOS: Array<{ key: KpiPeriod; label: string }> = [
+  { key: 'hoje',   label: 'Hoje'            },
+  { key: 'semana', label: 'Esta semana'     },
+  { key: 'mes',    label: 'Este mês'        },
+  { key: '30d',    label: 'Últimos 30 dias' },
+]
 
 // ─── Filter pills ─────────────────────────────────────────────────────────────
 
@@ -45,6 +37,7 @@ export default function ClientesPage() {
   const [tagFilter, setTagFilter]       = useState<ClientTag | null>(null)
   const [selectedCliente, setSelected]  = useState<Cliente | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
+  const [kpiPeriod, setKpiPeriod]       = useState<KpiPeriod>('mes')
 
   const { data: clientes, loading, error, create, updateField, remove } = useClientes()
   const [toast, setToast] = useState<string | null>(null)
@@ -71,14 +64,22 @@ export default function ClientesPage() {
   }, [toast])
 
   const stats = useMemo(() => {
+    const now = new Date()
+    const from = new Date(now)
+    if (kpiPeriod === 'hoje')   from.setHours(0, 0, 0, 0)
+    else if (kpiPeriod === 'semana') from.setDate(from.getDate() - from.getDay())
+    else if (kpiPeriod === 'mes')    from.setDate(1)
+    else                              from.setDate(from.getDate() - 30)
+
     const total = clientes.length
-    const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30)
-    const novos = clientes.filter((c) => new Date(c.clienteSince) >= thirtyAgo).length
+    const novos = clientes.filter((c) => new Date(c.clienteSince) >= from).length
     const returners = clientes.filter((c) => c.visitCount > 1).length
     const retorno = total > 0 ? Math.round((returners / total) * 100) : 0
     const avgTicket = total > 0 ? Math.round(clientes.reduce((s, c) => s + c.avgTicket, 0) / total) : 0
-    return { total, novos, retorno, avgTicket }
-  }, [clientes])
+    const vip = clientes.filter((c) => c.tags.includes('VIP')).length
+    const inativos = clientes.filter((c) => c.tags.includes('Inativo')).length
+    return { total, novos, retorno, avgTicket, vip, inativos }
+  }, [clientes, kpiPeriod])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -117,11 +118,18 @@ export default function ClientesPage() {
   return (
     <div className="flex h-full flex-col">
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[#E2E8F0] bg-white">
-        <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
-            Visão geral
-          </p>
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 pb-4 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              Visão geral
+            </p>
+            <KpiPeriodFilter
+              options={KPI_PERIODOS}
+              active={kpiPeriod}
+              onChange={(k) => setKpiPeriod(k as KpiPeriod)}
+            />
+          </div>
           <button
             type="button"
             onClick={() => setNovoOpen(true)}
@@ -137,16 +145,22 @@ export default function ClientesPage() {
           </button>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <KpiCard
             label="Total de Clientes"
             value={stats.total}
             sub="cadastrados"
+            color="blue"
           />
           <KpiCard
-            label="Novos (30 dias)"
+            label="Novos no período"
             value={stats.novos}
-            sub={stats.novos === 1 ? '1 novo cadastro' : `${stats.novos} novos cadastros`}
+            sub={KPI_PERIODOS.find((p) => p.key === kpiPeriod)?.label.toLowerCase()}
+          />
+          <KpiCard
+            label="VIP"
+            value={stats.vip}
+            sub={`${stats.total > 0 ? Math.round((stats.vip / stats.total) * 100) : 0}% da base`}
           />
           <KpiCard
             label="Taxa de Retorno"
@@ -157,6 +171,12 @@ export default function ClientesPage() {
             label="Ticket Médio"
             value={`R$ ${stats.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
             sub="por visita"
+          />
+          <KpiCard
+            label="Inativos"
+            value={stats.inativos}
+            sub="sem visitas recentes"
+            color={stats.inativos > 0 ? 'red' : 'default'}
           />
         </div>
       </div>

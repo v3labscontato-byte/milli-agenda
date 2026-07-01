@@ -2213,3 +2213,23 @@ sub:   text-[11px] text-[#64748B]               — abaixo do valor
 - `npx tsc --noEmit` → 0 erros após cada módulo
 - Deploy em homolog: branch `homolog` atualizada (commit `560c3cc`)
 - Screenshots Playwright validados para Agenda (via Playwright MCP)
+
+---
+
+## 2026-06-30 — ITEM 1: Fix crash Categorias de Serviços (envelope unwrap)
+
+### Causa raiz
+`section-categorias-servicos.tsx` chamava `fetch` direto (sem usar `api` client) e iterava sobre o envelope `{ success, data: [] }` inteiro em vez de desempacotar `.data`. Três pontos afetados:
+- `fetchCategories` → `setCategories(data)` → deveria ser `data.data ?? []`
+- `handleCreate` → `setCategories(prev => [...prev, data])` → deveria ser `data.data`
+- `handleUpdate` → `prev.map(cat => cat.id === id ? data : cat)` → deveria ser `data.data`
+
+### Fix
+Arquivo: `apps/web/src/components/configuracoes/section-categorias-servicos.tsx`
+- linha do fetch GET: `setCategories(data.data ?? [])`
+- linha do POST create: `setCategories(prev => [...prev, data.data])`
+- linha do PATCH update: `prev.map(cat => cat.id === id ? data.data : cat)`
+
+### Validação
+- `npx tsc --noEmit` → 0 erros
+- CRUD validado via Playwright pendente (requer servidor rodando)

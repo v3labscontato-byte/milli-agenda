@@ -54,7 +54,7 @@ export default function SectionCategoriasServicos() {
       })
       if (res.ok) {
         const data = await res.json()
-        setCategories(data)
+        setCategories(data.data ?? [])
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err)
@@ -89,7 +89,7 @@ export default function SectionCategoriasServicos() {
       })
       if (res.ok) {
         const data = await res.json()
-        setCategories(prev => [...prev, data])
+        setCategories(prev => [...prev, data.data])
         setNewName('')
         setNewColor(PRESET_COLORS[0])
         setIsAdding(false)
@@ -123,7 +123,7 @@ export default function SectionCategoriasServicos() {
       if (res.ok) {
         const data = await res.json()
         setCategories(prev =>
-          prev.map(cat => (cat.id === id ? data : cat))
+          prev.map(cat => (cat.id === id ? data.data : cat))
         )
         setEditingId(null)
         setEditName('')

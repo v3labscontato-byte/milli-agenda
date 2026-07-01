@@ -3172,3 +3172,16 @@ GET /api/v1/public/bella-vista/professionals
 ```
 
 **Status final produção:** 11/11 migrations aplicadas — `Database schema is up to date!`
+
+---
+
+## [2026-07-01] docs: checklist obrigatório de início de sessão
+
+Adicionado ao CLAUDE.md (raiz):
+- Regra 6: NUNCA usar `prisma db push`
+- Seção "CHECKLIST OBRIGATÓRIO — INÍCIO DE SESSÃO" com:
+  1. Verificação de status de migrations (homolog + produção)
+  2. Verificação de CORS_ORIGIN por ambiente
+  3. Validação de login pós-mudança de variáveis
+
+Motivação: incidente de 2026-07-01 onde banco homolog estava vazio, CORS errado, e 2 migrations pendentes em produção causaram crash.

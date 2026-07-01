@@ -8,6 +8,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. SEMPRE rodar `npx tsc --noEmit` antes de commitar
 4. NUNCA fazer push direto para `main` sem aprovação explícita do usuário
 5. NUNCA adicionar `Co-Authored-By` em commits
+6. NUNCA usar `prisma db push` — sempre `npx prisma migrate dev --name descricao`
+
+## CHECKLIST OBRIGATÓRIO — INÍCIO DE SESSÃO
+
+Antes de qualquer desenvolvimento que envolva banco ou deploy:
+
+### 1. Status das migrations (obter DATABASE_URLs via `railway variables`)
+```bash
+# Homolog — DATABASE_URL disponível em: railway variables (serviço backend NestJS / Milli-Homolog)
+DATABASE_URL="<homolog-db-url>" \
+npx prisma migrate status --schema=packages/database/prisma/schema.prisma
+
+# Produção — DATABASE_URL disponível em: railway variables (serviço backend NestJS / production)
+DATABASE_URL="<prod-db-url>" \
+npx prisma migrate status --schema=packages/database/prisma/schema.prisma
+```
+Se retornar migrations pendentes → **PARAR e reportar** antes de continuar.
+
+### 2. CORS_ORIGIN de cada backend
+Cada backend DEVE apontar para o frontend do MESMO ambiente:
+- Homolog backend → `https://frontend-nextjs-milli-homolog.up.railway.app`
+- Produção backend → `https://milli-agenda-production.up.railway.app`
+
+Verificar via: `railway variables | grep CORS`
+
+### 3. Validação de login após qualquer mudança de variáveis
+```bash
+curl -s -X POST https://backend-nestjs-milli-homolog.up.railway.app/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ddpobre@gmail.com","password":"123456789"}' | python -c "import sys,json; d=json.load(sys.stdin); print('OK' if d.get('success') else 'FALHOU:', d)"
+```
+Deve retornar `accessToken`. Se 401 → banco vazio ou credenciais erradas.
 
 ## AMBIENTES — NÃO CONFUNDIR
 

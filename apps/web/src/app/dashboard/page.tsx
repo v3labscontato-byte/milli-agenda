@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import KpiStrip from '@/components/kpi-strip'
+import { KpiPeriodFilter } from '@/components/shared/kpi-card'
 import BookingsChart from '@/components/charts/bookings-chart'
 import WeeklyChart from '@/components/charts/weekly-chart'
 import ServicesChart from '@/components/charts/services-chart'
@@ -31,28 +32,56 @@ function periodoToRange(p: Periodo): { from: string; to: string } {
   return { from: fmt(from), to }
 }
 
+type KpiPeriod = 'hoje' | 'semana' | 'mes' | '30d'
+
+const KPI_PERIODOS: Array<{ key: KpiPeriod; label: string }> = [
+  { key: 'hoje',   label: 'Hoje'            },
+  { key: 'semana', label: 'Esta semana'     },
+  { key: 'mes',    label: 'Este mês'        },
+  { key: '30d',    label: 'Últimos 30 dias' },
+]
+
+function kpiPeriodoToRange(p: KpiPeriod): { from: string; to: string } {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const to = fmt(now)
+  if (p === 'hoje') return { from: to, to }
+  const from = new Date(now)
+  if (p === 'semana') from.setDate(from.getDate() - from.getDay())
+  if (p === 'mes')    from.setDate(1)
+  if (p === '30d')    from.setDate(from.getDate() - 30)
+  return { from: fmt(from), to }
+}
+
 export default function DashboardPage() {
   const [periodo, setPeriodo] = useState<Periodo>('30d')
   const [customRange, setCustomRange] = useState<{ from: string; to: string } | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [tempFrom, setTempFrom] = useState('')
   const [tempTo, setTempTo] = useState('')
+  const [kpiPeriodo, setKpiPeriodo] = useState<KpiPeriod>('hoje')
 
   const { from, to } = customRange ?? periodoToRange(periodo)
-  const { data: kpis, loading } = useRelatorios()
+  const { from: kpiFrom, to: kpiTo } = kpiPeriodoToRange(kpiPeriodo)
+  const { data: kpis, loading } = useRelatorios(kpiFrom, kpiTo)
 
   return (
     <div className="space-y-8 pb-10">
 
-      {/* ① Visão Geral de Hoje — KPIs fixos (sem filtro) */}
+      {/* ① Visão Geral — KPIs com filtro de período */}
       <div>
-        <h2 className="mb-4 text-[15px] font-semibold text-[#0F172A]">Visão Geral de Hoje</h2>
-        {loading
-          ? <div className="grid animate-pulse grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-              {[0,1,2,3,4,5].map((i) => <div key={i} className="h-24 rounded-xl bg-[#F1F5F9]" />)}
-            </div>
-          : <KpiStrip kpis={kpis} />
-        }
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-[#0F172A]">
+            Visão Geral — {KPI_PERIODOS.find((p) => p.key === kpiPeriodo)?.label}
+          </h2>
+          <KpiPeriodFilter
+            options={KPI_PERIODOS}
+            active={kpiPeriodo}
+            onChange={(k) => setKpiPeriodo(k as KpiPeriod)}
+          />
+        </div>
+        <KpiStrip kpis={kpis} isLoading={loading} />
       </div>
 
       {/* ② Histórico & Analytics — com filtro de período */}

@@ -1,44 +1,15 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { KpiCard } from '@/components/shared/kpi-card'
 import type { KpiData } from '@/lib/mock-data'
 
-// Skeleton tile shown while data loads
 function KpiTileSkeleton() {
   return (
-    <div className="bg-white px-6 py-4" aria-hidden="true">
-      <div className="h-8 w-16 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
-      <div className="mt-2 h-3 w-28 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
-      <div className="mt-2 h-3 w-20 animate-pulse motion-reduce:animate-none rounded bg-[#F1F5F9]" />
-    </div>
-  )
-}
-
-interface KpiTileProps {
-  kpi: KpiData
-}
-
-function KpiTile({ kpi }: KpiTileProps) {
-  const trendColor =
-    kpi.trendUp === true
-      ? 'text-[#16A34A]'
-      : kpi.trendUp === false
-        ? 'text-[#DC2626]'
-        : 'text-[#475569]'
-
-  const TrendIcon =
-    kpi.trendUp === true ? TrendingUp : kpi.trendUp === false ? TrendingDown : Minus
-
-  // flex-col + CSS order: dt precedes dd in HTML (spec requires it), order utilities flip visual position
-  return (
-    <div className="flex flex-col bg-white px-6 py-4">
-      <dt className="order-2 mt-1 text-[12px] font-medium text-[#475569]">{kpi.label}</dt>
-      <dd className="order-1 text-kpi font-tabular text-[#0F172A]">{kpi.value}</dd>
-      {kpi.trend && (
-        <div className={cn('order-3 mt-1.5 flex items-center gap-1 text-[11px] font-medium', trendColor)}>
-          <TrendIcon size={11} aria-hidden="true" />
-          <span>{kpi.trend}</span>
-        </div>
-      )}
+    <div
+      className="flex flex-col rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]"
+      aria-hidden="true"
+    >
+      <div className="h-3 w-20 animate-pulse rounded bg-[#F1F5F9] motion-reduce:animate-none" />
+      <div className="mt-1.5 h-8 w-16 animate-pulse rounded bg-[#F1F5F9] motion-reduce:animate-none" />
+      <div className="mt-1 h-3 w-24 animate-pulse rounded bg-[#F1F5F9] motion-reduce:animate-none" />
     </div>
   )
 }
@@ -50,18 +21,22 @@ interface KpiStripProps {
 
 export default function KpiStrip({ kpis, isLoading = false }: KpiStripProps) {
   return (
-    // gap-px + bg-[#E2E8F0] creates 1px dividers between cells without explicit borders
-    // This avoids the "identical floating card grid" pattern while preserving separation
-    <dl
-      className={cn(
-        'grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-[#E2E8F0] md:grid-cols-3 xl:grid-cols-6',
-        'bg-[#E2E8F0] shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
-      )}
+    <div
+      className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
       aria-label="Métricas do dia"
     >
       {isLoading
         ? Array.from({ length: 6 }).map((_, i) => <KpiTileSkeleton key={i} />)
-        : kpis.map((kpi) => <KpiTile key={kpi.label} kpi={kpi} />)}
-    </dl>
+        : kpis.map((kpi, i) => (
+            <KpiCard
+              key={kpi.label}
+              label={kpi.label}
+              value={kpi.value}
+              trend={kpi.trend || undefined}
+              trendUp={kpi.trendUp ?? undefined}
+              color={i === 0 ? 'blue' : 'default'}
+            />
+          ))}
+    </div>
   )
 }

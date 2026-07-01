@@ -13,7 +13,6 @@ import {
 } from '@/lib/api/public-booking'
 import { useBookingClient, type BookingClientInfo } from '@/hooks/use-booking-client'
 import { usePublicTenant } from '@/hooks/use-public-tenant'
-import PhoneIdentify from '@/components/booking/phone-identify'
 
 type ActiveStatus = 'SCHEDULED' | 'CONFIRMED' | 'CHECKED_IN' | 'IN_SERVICE' | 'AWAITING_PAYMENT'
 type DoneStatus   = 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
@@ -260,7 +259,7 @@ function Skeleton() {
 
 export default function MeusAgendamentosPage() {
   const router = useRouter()
-  const { client, setClient, clearClient, ready } = useBookingClient()
+  const { client, clearClient, ready } = useBookingClient()
   const { tenant } = usePublicTenant()
 
   const [appointments, setAppointments] = useState<PublicAppointmentItem[]>([])
@@ -287,11 +286,6 @@ export default function MeusAgendamentosPage() {
     if (ready && client) loadAppointments(client)
   }, [ready, client, loadAppointments])
 
-  function handleFound(c: BookingClientInfo) {
-    setClient(c)
-    loadAppointments(c)
-  }
-
   function handleCancelConfirm(id: string) {
     setAppointments((prev) =>
       prev.map((a) => a.id === id ? { ...a, status: 'CANCELLED' } : a),
@@ -304,8 +298,7 @@ export default function MeusAgendamentosPage() {
     router.push('/booking/agendar')
   }
 
-  if (!ready) return null
-  if (!client) return <PhoneIdentify onFound={handleFound} tenant={tenant} />
+  if (!ready || !client) return <Skeleton />
 
   const upcoming = appointments.filter(isUpcoming)
   const history  = appointments.filter((a) => !isUpcoming(a))
@@ -332,8 +325,8 @@ export default function MeusAgendamentosPage() {
           </div>
           <button
             type="button"
-            onClick={clearClient}
             aria-label="Sair da identificação"
+            onClick={() => { clearClient(); window.location.replace('/booking/login') }}
             className="flex h-9 w-9 items-center justify-center rounded-full text-content-subtle transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border"
           >
             <LogOut size={16} aria-hidden="true" />

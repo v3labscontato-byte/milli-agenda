@@ -9,6 +9,7 @@ import {
 } from '@/lib/booking-mock'
 import HomeCarousel from '@/components/booking/home-carousel'
 import { usePublicTenant } from '@/hooks/use-public-tenant'
+import { useBookingClient } from '@/hooks/use-booking-client'
 import { FEATURES } from '@/lib/features'
 
 const loyaltyCfg = getLoyaltyConfig(CLIENT.pontos)
@@ -95,13 +96,14 @@ function NotificationBell({ inverted = false }: { inverted?: boolean }) {
 export default function BookingHomePage() {
   const { tenant: tenantData } = usePublicTenant()
   const tenant = FEATURES.realBooking ? tenantData : null
+  const { client } = useBookingClient()
 
   const salonName    = tenant?.name     ?? SALON_MOCK.name
   const salonLogoUrl = tenant?.logoUrl  ?? SALON_MOCK.logoUrl
   const salonAddress = tenant?.address
     ? [tenant.address, tenant.city].filter(Boolean).join(' — ')
     : SALON_MOCK.address
-  const coverUrl = SALON_MOCK.coverUrl
+  const coverUrl = FEATURES.realBooking ? (tenant?.coverImageUrl ?? null) : (SALON_MOCK.coverUrl ?? null)
 
   return (
     <div className="flex min-h-full flex-col">
@@ -132,7 +134,7 @@ export default function BookingHomePage() {
         </div>
       ) : (
         /* ─ WITHOUT cover image ─ */
-        <div className="bg-gradient-to-b from-primary-xlight to-white px-5 pb-5 pt-6">
+        <div className="bg-gradient-to-b from-[#C9B8A8] to-[#8B7355] px-5 pb-5 pt-6">
           <div className="flex items-start gap-3">
             <SalonLogo size="sm" name={salonName} logoUrl={salonLogoUrl} />
             <div className="min-w-0 flex-1">
@@ -153,7 +155,7 @@ export default function BookingHomePage() {
       {/* ── Greeting + compact summary card ── */}
       <div className="px-5 pb-4 pt-4">
         <p className="mb-3 text-[16px] font-semibold text-content-primary">
-          Olá, {CLIENT.name.split(' ')[0]}! 👋
+          Olá, {(client?.name ?? 'você').split(' ')[0]}! 👋
         </p>
 
         <Link

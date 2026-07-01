@@ -2162,3 +2162,54 @@ Badges de status usavam `#F0FDF4`/`#166534`/`#15803D` (verdes fora do design sys
 ### Validação
 - `npx tsc --noEmit` → 0 erros
 - Screenshots Playwright validados para todos os 7 módulos
+
+---
+
+## 2026-06-30 — Padronização estrutural dos KPI cards em todos os 7 módulos
+
+### Tarefa
+Padronizar a estrutura e layout dos KPI cards (strips de resumo) de todos os 7 módulos do dashboard para seguir o padrão visual do módulo Financeiro, conforme BOAS-PRATICAS-MILLI-AGENDA.md §7.
+
+### Problema
+Cada módulo tinha implementação própria de KPI card com divergências em: tamanho da fonte (`text-3xl` vs `text-[22px]`), ordem label/valor (valor-antes-label vs label-antes-valor), estilos de borda e fundo, ausência de grid responsivo 6 colunas, CSS vars no lugar de hex hardcoded, e ausência de period filter strip.
+
+### Solução arquitetural
+Criado componente compartilhado `apps/web/src/components/shared/kpi-card.tsx` exportando:
+- `KpiCard` — card padronizado: label (11px) acima do valor (22px bold), borda `#E2E8F0`, sombra leve, primeiro card em `color="blue"` (`border-[#2563EB] bg-[#EFF6FF]`). Cores suportadas: `default`, `blue`, `green`, `red`, `yellow` (adicionado para estoque baixo: `border-[#CA8A04] bg-[#FEF9C3]`).
+- `KpiPeriodFilter` — strip de filtro de período reutilizável com acessibilidade (`role="group"`, `aria-pressed`).
+
+### Módulos alterados (commits)
+
+| Módulo | Commit | Cards | Period filter |
+|--------|--------|-------|---------------|
+| Agenda | `8596df5` | 4 → 6 | Hoje / Esta semana |
+| Comandas | `a23fa33` | 5 → 6 | Hoje / Esta semana / Este mês / Últimos 30 dias |
+| Dashboard | `3675c66` | 6 (mantido) | Hoje / Esta semana / Este mês / Últimos 30 dias |
+| Clientes | `38c0a0e` | 4 → 6 | Hoje / Esta semana / Este mês / Últimos 30 dias |
+| Profissionais | `7ced818` | 4 → 6 | Hoje / Esta semana / Este mês / Últimos 30 dias |
+| Serviços | `22163c2` | 4 → 6 | Hoje / Esta semana / Este mês / Últimos 30 dias |
+| Produtos | `560c3cc` | 4 → 6 | Hoje / Esta semana / Este mês / Últimos 30 dias |
+
+### Cards adicionados por módulo
+- **Agenda**: Receita (novo) — soma de serviços concluídos
+- **Comandas**: Receita (novo) — soma de comandas pagas + aguardando
+- **Clientes**: VIP, Ticket Médio, Inativos (novos)
+- **Profissionais**: Ativos, Avaliação Média, Em Férias/Inativos (novos)
+- **Serviços**: Ativos, Inativos, Agend./Mês (novos)
+- **Produtos**: OK (estoque suficiente), Estoque baixo (yellow), Sem estoque (red), Preço médio (novos)
+
+### Padrão final aplicado
+```
+grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6
+label: text-[11px] font-medium text-[#64748B]  — acima do valor
+value: text-[22px] font-bold font-tabular       — cor por contexto
+sub:   text-[11px] text-[#64748B]               — abaixo do valor
+```
+- Primeiro card: `border-[#2563EB] bg-[#EFF6FF]` (azul destaque)
+- Demais: `border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]`
+- Nenhum CSS var restante na seção KPI de nenhum módulo
+
+### Validação
+- `npx tsc --noEmit` → 0 erros após cada módulo
+- Deploy em homolog: branch `homolog` atualizada (commit `560c3cc`)
+- Screenshots Playwright validados para Agenda (via Playwright MCP)

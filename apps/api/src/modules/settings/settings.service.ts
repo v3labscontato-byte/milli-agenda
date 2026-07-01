@@ -26,6 +26,20 @@ const SETTINGS_SELECT = {
   state: true,
 } as const
 
+const PUBLIC_TENANT_SELECT = {
+  name: true,
+  slug: true,
+  logoUrl: true,
+  slogan: true,
+  address: true,
+  neighborhood: true,
+  city: true,
+  state: true,
+  phone: true,
+  businessHours: true,
+  acceptedPaymentMethods: true,
+} as const
+
 @Injectable()
 export class SettingsService {
   constructor(private readonly db: DatabaseService) {}
@@ -45,5 +59,14 @@ export class SettingsService {
       data: dto,
       select: { ...SETTINGS_SELECT, updatedAt: true },
     })
+  }
+
+  async getPublicTenant(slug: string) {
+    const tenant = await this.db.tenant.findUnique({
+      where: { slug },
+      select: PUBLIC_TENANT_SELECT,
+    })
+    if (!tenant) throw new NotFoundException('Tenant not found')
+    return tenant
   }
 }

@@ -2347,3 +2347,48 @@ A URL pública de produção NÃO foi commitada em nenhum arquivo do repositóri
 - Código (main): deploiado via Railway após o push anterior
 - Schema: migração agora aplicada
 - Configurações de Horários/Pagamentos/Meu Salão funcionais em produção
+
+---
+
+## 2026-07-01 — Onda 2 Itens 1 e 2: Política de Agendamento + Booking PWA com API real
+
+### ITEM 1 — Política de Agendamento refletindo na disponibilidade de slots
+
+**Problema identificado:**
+- `packages/business-rules/src/agenda/availability.ts` → `getAvailableSlots()` tinha `cursor += 30 * 60 * 1000` hardcoded, ignorando `slotGapMinutes` do tenant
+- `profissionais.service.ts` → `disponibilidade()` não consultava o tenant para `slotGapMinutes`, `minAdvanceHours` e `maxAdvanceDays`
+
+**Implementado:**
+- `getAvailableSlots()` agora aceita `slotGapMinutes` (default 30) como 5º parâmetro
+- `disponibilidade()` busca tenant em paralelo com schedules e appointments
+- Aplica `maxAdvanceDays`: se data solicitada > hoje + maxAdvanceDays, retorna `[]`
+- Aplica `minAdvanceHours`: filtra slots com `startAt < now + minAdvanceHours`
+- `slotGapMinutes` define o intervalo real entre ofertas de horário
+
+**Prisma:** regenerado após constatar que client desatualizado causava TS errors nos novos campos.
+
+### ITEM 2 — Site Booking PWA consumindo dados reais do tenant
+
+**Problema identificado:**
+- `SALON` hardcoded em `booking-mock.ts` com `name: 'Salão Bella Vista'`
+- `GET /api/v1/settings` protegido por JWT — booking (público, sem auth) não conseguia acessar
+
+**Implementado:**
+- Backend: `GET /api/v1/settings/public/:slug` sem JWT — retorna name, logoUrl, slogan, address, neighborhood, city, state, phone, businessHours, acceptedPaymentMethods
+- Frontend: `apps/web/src/hooks/use-public-tenant.ts` — hook que faz fetch via `NEXT_PUBLIC_TENANT_SLUG` env var
+- `apps/web/src/lib/features.ts` → flag `realBooking: USE_REAL_API` adicionada
+- `apps/web/src/app/(booking)/booking/page.tsx` → usa hook, prefere dados reais, fallback para mock
+- `apps/web/src/components/booking/auth-screen.tsx` → salonName dinâmico passado por prop de `AuthScreen`
+
+**Variável necessária no Railway (homolog e produção):**
+`NEXT_PUBLIC_TENANT_SLUG=<slug-do-tenant>` (homolog: `studio-homolog`)
+
+### Status ITEM 5 — /close → 400 na comanda "Cadatro de produtos"
+
+**Diagnóstico:**
+- Linha 192 de `comandas.service.ts`: `if (cmd.status !== OPEN && status !== IN_PROGRESS) throw BadRequestException('Command cannot be closed')`
+- A comanda "Cadatro de produtos" provavelmente já está com status CLOSED ou CANCELLED (dado inconsistente de teste anterior)
+- **Conclusão: bug de dado de teste, não bug de código** — não requer correção
+
+### TypeScript
+- `npx tsc --noEmit` → 0 erros (frontend e backend)

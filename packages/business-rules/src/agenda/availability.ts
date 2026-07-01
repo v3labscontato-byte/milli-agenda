@@ -14,6 +14,7 @@ export function getAvailableSlots(
   schedules: ScheduleEntry[],
   bookedSlots: TimeSlot[],
   serviceDurationMin: number,
+  slotGapMinutes = 30,
 ): TimeSlot[] {
   const dayOfWeek = date.getDay()
   const workSchedule = schedules.find((s) => s.dayOfWeek === dayOfWeek)
@@ -31,6 +32,7 @@ export function getAvailableSlots(
 
   const slots: TimeSlot[] = []
   const slotMs = serviceDurationMin * 60 * 1000
+  const gapMs = slotGapMinutes * 60 * 1000
   let cursor = windowStart.getTime()
 
   while (cursor + slotMs <= windowEnd.getTime()) {
@@ -45,7 +47,7 @@ export function getAvailableSlots(
       slots.push({ startAt: slotStart, endAt: slotEnd })
     }
 
-    cursor += 30 * 60 * 1000
+    cursor += gapMs
   }
 
   return slots

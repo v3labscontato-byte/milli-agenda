@@ -132,7 +132,8 @@ export class ProfissionaisService {
   async disponibilidade(tenantId: string, id: string, date: string, durationMin: number) {
     await this.findOne(tenantId, id)
     const dateObj = new Date(date)
-    const [schedules, appointments] = await Promise.all([
+
+    const [schedules, appointments, tenant] = await Promise.all([
       this.db.schedule.findMany({ where: { tenantId, professionalId: id, active: true } }),
       this.db.appointment.findMany({
         where: {
@@ -143,8 +144,27 @@ export class ProfissionaisService {
         },
         select: { startAt: true, endAt: true },
       }),
+      this.db.tenant.findUnique({
+        where: { id: tenantId },
+        select: { slotGapMinutes: true, minAdvanceHours: true, maxAdvanceDays: true },
+      }),
     ])
-    return getAvailableSlots(dateObj, schedules, appointments, durationMin)
+
+    const slotGapMinutes = tenant?.slotGapMinutes ?? 30
+    const minAdvanceHours = tenant?.minAdvanceHours ?? 0
+    const maxAdvanceDays = tenant?.maxAdvanceDays ?? 60
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const maxDate = new Date(today.getTime() + maxAdvanceDays * 86_400_000)
+    if (dateObj > maxDate) return []
+
+    const allSlots = getAvailableSlots(dateObj, schedules, appointments, durationMin, slotGapMinutes)
+
+    if (minAdvanceHours === 0) return allSlots
+
+    const earliest = new Date(Date.now() + minAdvanceHours * 3_600_000)
+    return allSlots.filter((s) => s.startAt >= earliest)
   }
 
   create(tenantId: string, dto: CreateProfissionalDto) {

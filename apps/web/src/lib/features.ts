@@ -11,4 +11,5 @@ export const FEATURES = {
   realProfissionais: USE_REAL_API,
   realConfiguracoes: USE_REAL_API,
   realProdutos:      USE_REAL_API,
+  realBooking:       USE_REAL_API,
 }

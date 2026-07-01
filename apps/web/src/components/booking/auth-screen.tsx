@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SALON } from '@/lib/booking-mock'
+import { usePublicTenant } from '@/hooks/use-public-tenant'
+import { FEATURES } from '@/lib/features'
 
 type View = 'login' | 'signup'
 
@@ -47,7 +49,7 @@ function Divider() {
   )
 }
 
-function LoginView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?: () => void }) {
+function LoginView({ onSwitch, onSuccess, salonName }: { onSwitch: () => void; onSuccess?: () => void; salonName: string }) {
   const [email,    setEmail]   = useState('maria@email.com')
   const [password, setPassword] = useState('••••••••')
   const [showPw,   setShowPw]  = useState(false)
@@ -69,7 +71,7 @@ function LoginView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?: 
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-1 text-center">
         <span className="text-[48px]" aria-hidden="true">{SALON.emoji}</span>
-        <h1 className="text-[20px] font-bold text-content-primary">{SALON.name}</h1>
+        <h1 className="text-[20px] font-bold text-content-primary">{salonName}</h1>
       </div>
 
       <h2 className="mb-6 text-[18px] font-semibold text-content-primary">Bem-vinda de volta! 👋</h2>
@@ -148,7 +150,7 @@ function LoginView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?: 
   )
 }
 
-function SignupView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?: () => void }) {
+function SignupView({ onSwitch, onSuccess, salonName }: { onSwitch: () => void; onSuccess?: () => void; salonName: string }) {
   const [name,     setName]     = useState('')
   const [email,    setEmail]    = useState('')
   const [phone,    setPhone]    = useState('')
@@ -174,7 +176,7 @@ function SignupView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?:
     <div className="flex min-h-[100dvh] flex-col px-6 py-10">
       <div className="mb-6 flex flex-col items-center gap-1 text-center">
         <span className="text-[48px]" aria-hidden="true">{SALON.emoji}</span>
-        <h1 className="text-[20px] font-bold text-content-primary">{SALON.name}</h1>
+        <h1 className="text-[20px] font-bold text-content-primary">{salonName}</h1>
       </div>
 
       <h2 className="mb-5 text-[18px] font-semibold text-content-primary">Criar sua conta ✨</h2>
@@ -248,8 +250,10 @@ function SignupView({ onSwitch, onSuccess }: { onSwitch: () => void; onSuccess?:
 
 export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [view, setView] = useState<View>('login')
+  const { tenant } = usePublicTenant()
+  const salonName = (FEATURES.realBooking ? tenant?.name : null) ?? SALON.name
 
   return view === 'login'
-    ? <LoginView  onSwitch={() => setView('signup')} onSuccess={onSuccess} />
-    : <SignupView onSwitch={() => setView('login')}  onSuccess={onSuccess} />
+    ? <LoginView  onSwitch={() => setView('signup')} onSuccess={onSuccess} salonName={salonName} />
+    : <SignupView onSwitch={() => setView('login')}  onSuccess={onSuccess} salonName={salonName} />
 }

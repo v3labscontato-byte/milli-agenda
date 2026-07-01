@@ -37,7 +37,7 @@ const BTN = {
 
 const PAYMENT_ACTIONS = new Set(['Cobrar', 'Cobrar Agora', 'Finalizar'])
 
-const SELECT_CLS = 'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
+const SELECT_CLS = 'w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-[13px] text-[#0F172A] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]'
 
 function getAuthToken() {
   return typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
@@ -397,7 +397,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                 type="button"
                 onClick={onClose}
                 aria-label="Fechar"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#475569] hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
               >
                 <X size={16} aria-hidden="true" />
               </button>
@@ -430,12 +430,12 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
           {/* Inline reagendar form */}
           {reagendando && (
-            <div className="space-y-3 border-t border-[#F1F5F9] px-5 py-4">
+            <div className="space-y-3 border-t border-[#E2E8F0] px-5 py-4">
               <p className="text-[12px] font-medium text-[#475569]">Reagendar</p>
 
               <div>
                 <label className="mb-1 block text-[12px] text-[#64748B]">Cliente</label>
-                <div className="rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-[13px] text-[#475569]">
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5 text-[13px] text-[#475569]">
                   {appointment.client}
                   <span className="ml-2 text-[11px] text-[#94A3B8]">(bloqueado)</span>
                 </div>
@@ -463,7 +463,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                     ))}
                   </select>
                   {servicoSelecionado && (
-                    <div className="mt-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5">
+                    <div className="mt-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2.5">
                       <div className="flex justify-between text-[12px]">
                         <span className="text-[#64748B]">Duração</span>
                         <span className="font-medium text-[#0F172A]">{servicoSelecionado.durationMin ?? '—'} min</span>
@@ -541,20 +541,20 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
           {/* Cancel form */}
           {cancelMode && (
-            <div className="space-y-4 border-t border-[#F1F5F9] px-5 py-4">
+            <div className="space-y-4 border-t border-[#E2E8F0] px-5 py-4">
               <p className="text-[12px] font-medium text-[#475569]">Motivo do cancelamento (opcional)</p>
               <textarea
                 rows={3}
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
                 placeholder="Ex.: cliente solicitou, conflito de agenda…"
-                className={cn('w-full resize-none rounded-md border border-[#E2E8F0] px-3 py-2', 'text-[13px] text-[#0F172A] placeholder:text-[#94A3B8]', 'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]')}
+                className={cn('w-full resize-none rounded-xl border border-[#E2E8F0] px-3 py-2.5', 'text-[13px] text-[#0F172A] placeholder:text-[#94A3B8]', 'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]')}
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setCancelMode(false)}
-                  className={cn('flex-1 rounded-md border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]', 'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
+                  className={cn('flex-1 rounded-xl border border-[#E2E8F0] py-2 text-[13px] font-medium text-[#475569]', 'transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
                 >
                   Voltar
                 </button>
@@ -562,7 +562,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                   type="button"
                   onClick={handleCancelar}
                   disabled={saving}
-                  className={cn('flex-1 rounded-md bg-[#DC2626] py-2 text-[13px] font-medium text-white', 'transition-colors hover:bg-[#B91C1C] disabled:opacity-50', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
+                  className={cn('flex-1 rounded-xl bg-[#FEE2E2] py-2 text-[13px] font-medium text-[#DC2626]', 'transition-colors hover:bg-[#FECACA] disabled:opacity-50', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]')}
                 >
                   {saving ? 'Cancelando…' : 'Confirmar cancelamento'}
                 </button>
@@ -572,7 +572,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
 
           {/* Actions */}
           {showActions && (
-            <div className="flex gap-2 border-t border-[#F1F5F9] px-5 py-4">
+            <div className="flex gap-2 border-t border-[#E2E8F0] px-5 py-4">
               {actions.map((action) => {
                 const Icon = action.icon
                 return (
@@ -581,7 +581,7 @@ export default function AppointmentModal({ appointment, onClose, onSuccess, onRe
                     type="button"
                     onClick={() => handleAction(action.label)}
                     className={cn(
-                      'flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[13px] font-medium',
+                      'flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[13px] font-medium',
                       'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                       BTN[action.variant],
                     )}

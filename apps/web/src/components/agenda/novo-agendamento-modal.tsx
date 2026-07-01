@@ -7,10 +7,10 @@ import { useServicos } from '@/hooks/use-servicos'
 import { useProfissionais } from '@/hooks/use-profissionais'
 import { agendaApi } from '@/lib/api/agenda'
 
-const LABEL = 'text-[12px] font-medium text-[#475569]'
+const LABEL = 'text-sm font-medium text-[#64748B]'
 const INPUT = cn(
-  'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
-  'placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
+  'w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-[13px] text-[#0F172A]',
+  'placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
 
 interface ClientResult {
@@ -292,18 +292,21 @@ export default function NovoAgendamentoModal({
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-              <CalendarPlus size={14} className="text-[#2563EB]" aria-hidden="true" />
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EFF6FF]">
+              <CalendarPlus size={16} className="text-[#2563EB]" aria-hidden="true" />
             </div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Agendamento</h2>
+            <div>
+              <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Agendamento</h2>
+              <p className="text-[12px] text-[#64748B]">Preencha os dados do agendamento</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -318,7 +321,7 @@ export default function NovoAgendamentoModal({
               <label htmlFor="na-client" className={LABEL}>Cliente *</label>
 
               {clientSelected ? (
-                <div className="flex items-center justify-between rounded-md border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-2.5">
+                <div className="flex items-center justify-between rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-2.5">
                   <div>
                     <p className="text-[13px] font-medium text-[#0F172A]">{clientSelected.name}</p>
                     {clientSelected.phone && (
@@ -355,7 +358,7 @@ export default function NovoAgendamentoModal({
                     className={cn(INPUT, 'pl-8')}
                   />
                   {showDropdown && (
-                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-md border border-[#E2E8F0] bg-white shadow-lg">
+                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-xl border border-[#E2E8F0] bg-white shadow-lg">
                       {clientLoading ? (
                         <p className="px-3 py-2 text-[12px] text-[#94A3B8]">Buscando…</p>
                       ) : clientResults.length === 0 ? (
@@ -437,7 +440,7 @@ export default function NovoAgendamentoModal({
                 </p>
               )}
               {form.professionalId && profSelecionado && servicosFiltrados.length === 0 && (
-                <div className="rounded-md bg-[#FEF2F2] border border-[#FECACA] px-3 py-2 mt-1">
+                <div className="rounded-xl bg-[#FEF2F2] border border-[#FECACA] px-3 py-2 mt-1">
                   <p className="text-[12px] text-[#DC2626] font-medium">Nenhum serviço habilitado para este profissional.</p>
                   <p className="text-[11px] text-[#DC2626] mt-0.5">Acesse Profissionais → Detalhes → Serviços para habilitar.</p>
                 </div>
@@ -504,11 +507,11 @@ export default function NovoAgendamentoModal({
         )}
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[#E2E8F0] px-5 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="rounded-xl border border-[#E2E8F0] px-4 py-2.5 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             Cancelar
           </button>
@@ -516,7 +519,7 @@ export default function NovoAgendamentoModal({
             type="submit"
             form="novo-agenda-form"
             disabled={saving || profFolga || (!!form.professionalId && servicosFiltrados.length === 0)}
-            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
+            className="flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
           >
             <CalendarPlus size={13} aria-hidden="true" />
             {saving ? 'Agendando…' : 'Agendar'}

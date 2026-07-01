@@ -2555,3 +2555,40 @@ Client criado/encontrado por phone → find-or-create funcionando ✅
 
 ### Próximo passo
 Aguardando aprovação para merge homolog → main.
+
+---
+
+## 2026-07-01 — Merge Onda 3 para main + status migration produção
+
+### Merge homolog → main
+- `git merge homolog` fast-forward bem-sucedido
+- `git push origin main` ✅ — produção receberá deploy automático via Railway
+
+### Commits incluídos no merge (base: 5cd7e52 → ad49363)
+- `69cb1ae` fix(profissionais): fallback de slots para workDays/workStart/workEnd
+- `dae2289` feat(booking): endpoints públicos + fluxo agendamento real
+- Commits de Onda 2 (configurações persistidas, horários, pagamentos, slogan, endereço)
+- Commit de migration `20260625000000_init`
+
+### Migration pendente em produção
+`20260701000000_add_deposit_and_cancellation_policy` — não aplicada ainda.
+Aguardando DATABASE_URL de produção do usuário para rodar `prisma migrate deploy`.
+
+### Onda 3 — Resumo final
+**Backend público criado** (`apps/api/src/modules/public/`):
+- `GET /api/v1/public/:slug/services` — 11 serviços reais
+- `GET /api/v1/public/:slug/professionals?serviceId=` — filtrado por serviço
+- `GET /api/v1/public/:slug/professionals/:id/slots?date=&durationMin=` — slots reais com fallback workDays
+- `POST /api/v1/public/:slug/appointments` — cria appointment + find-or-create client por phone
+
+**Frontend integrado** (`apps/web/src/lib/api/public-booking.ts` + steps):
+- Wizard /booking/agendar: 4 steps 100% reais (zero mock data no fluxo principal)
+- Categorias dinâmicas, filtro por serviço, slots com workDays, confirmação real
+
+**Validação Playwright**: appointment `2026-07-03T10:00 | Escova | Arthur | Cliente Playwright Teste` criado no banco homolog ✅
+
+### Pendências pós-Onda 3
+- [ ] Auth cliente WhatsApp / magic link
+- [ ] Pagamento Pagar.me integrado na confirmação
+- [ ] Meus agendamentos (requer auth cliente)
+- [ ] Migration `20260701000000_add_deposit_and_cancellation_policy` em produção

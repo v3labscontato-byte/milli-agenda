@@ -3402,3 +3402,27 @@ O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada
 - Botão Movimentar (ArrowLeftRight) em cada linha da tabela
 
 ### npx tsc --noEmit → 0 erros (backend e frontend)
+
+---
+
+## [2026-07-01] Claude — Merge homolog → main: Ondas C e D de Produtos
+
+**Status:** ✅ Concluído  
+**Branch:** main (produção)
+
+### O que foi mergeado (commits 8a42d49..5ed8109)
+- **fix(infra):** prisma migrate deploy movido para preDeployCommand do Railway — sem overhead de migration no startup
+- **feat(produtos): Onda C** — campo costPrice, margem e markup em tempo real (frontend + backend)
+- **feat(produtos): Onda D** — movimentação manual de estoque com histórico (ENTRADA/SAIDA/AJUSTE/INVENTARIO)
+- **fix(relatorios):** corrige period param e fonte de receita
+- **feat(booking): step 4** — usa dados do cliente logado, sem repetição de formulário
+
+### Migrations aplicadas em produção (thomas.proxy.rlwy.net)
+- `20260701220000_add_product_cost_price` → `products.costPrice DECIMAL(10,2)`
+- `20260701230000_add_stock_movements` → tabela `stock_movements` + enum `StockMovementType`
+
+### Database schema is up to date! (homolog e produção em sincronia)
+
+### Próximo
+- Correções Impeccable (design system audit)
+- Teste E2E completo (agenda, booking, financeiro, produtos)

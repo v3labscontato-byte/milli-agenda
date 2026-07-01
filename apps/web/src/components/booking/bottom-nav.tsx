@@ -3,25 +3,32 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Calendar, ClipboardList, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
-  { href: '/booking',                        label: 'Início',       icon: Home          },
-  { href: '/booking/agendar',                label: 'Agendar',      icon: Calendar      },
-  { href: '/booking/meus-agendamentos',      label: 'Agendamentos', icon: ClipboardList },
-  { href: '/booking/perfil',                 label: 'Perfil',       icon: User          },
+  { href: '/booking',                   label: 'Início',       icon: Home          },
+  { href: '/booking/agendar',           label: 'Agendar',      icon: Calendar      },
+  { href: '/booking/meus-agendamentos', label: 'Agendamentos', icon: ClipboardList },
+  { href: '/booking/perfil',            label: 'Perfil',       icon: User          },
 ]
 
-export default function BottomNav() {
+interface BottomNavProps {
+  primaryColor?: string
+}
+
+export default function BottomNav({ primaryColor = '#81736f' }: BottomNavProps) {
   const pathname = usePathname()
 
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white"
+      style={{
+        borderTop: '1px solid #eaebec',
+        boxShadow: '0px 2px 48px rgba(0,0,0,0.12)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
     >
-      <div className="mx-auto flex max-w-md items-center justify-around">
+      <div className="mx-auto flex h-[70px] max-w-md items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = href === '/booking'
             ? pathname === '/booking' || pathname === '/booking/'
@@ -31,13 +38,11 @@ export default function BottomNav() {
               key={href}
               href={href}
               aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'flex min-h-[56px] min-w-[56px] flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors',
-                isActive ? 'text-primary' : 'text-content-subtle hover:text-content-secondary',
-              )}
+              className="flex flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors"
+              style={{ color: isActive ? primaryColor : '#9c9899' }}
             >
               <Icon size={22} aria-hidden="true" />
-              <span className={cn('text-[10px] font-medium', isActive ? 'text-primary' : 'text-content-subtle')}>
+              <span className="text-[10px] font-medium" style={{ letterSpacing: '0.5px' }}>
                 {label}
               </span>
             </Link>

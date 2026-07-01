@@ -17,22 +17,24 @@ interface MenuItemProps {
 
 function MenuItem({ icon, label, sublabel, danger, href, onClick }: MenuItemProps) {
   const cls = cn(
-    'flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-4 transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
+    'flex w-full items-center gap-3 rounded-[8px] border border-[#eaebec] bg-white px-4 py-4 transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]',
     danger
       ? 'hover:border-[#FEE2E2] hover:bg-[#FEE2E2]'
-      : 'hover:border-primary-light hover:bg-primary-xlight',
+      : 'hover:border-[#d0cac9] hover:bg-[#faf8f7]',
   )
   const inner = (
     <>
-      <span className={cn('shrink-0', danger ? 'text-[#DC2626]' : 'text-content-secondary')} aria-hidden="true">
+      <span className={cn('shrink-0', danger ? 'text-[#DC2626]' : 'text-[#9c9899]')} aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0 flex-1 text-left">
-        <p className={cn('text-body font-medium', danger ? 'text-[#DC2626]' : 'text-content-primary')}>{label}</p>
-        {sublabel && <p className="text-[11px] text-content-subtle">{sublabel}</p>}
+        <p className={cn('text-[14px] font-medium', danger ? 'text-[#DC2626]' : 'text-[#2e2a2b]')}>
+          {label}
+        </p>
+        {sublabel && <p className="text-[11px] text-[#9c9899]">{sublabel}</p>}
       </div>
-      {!danger && <ChevronRight size={16} className="shrink-0 text-content-muted" aria-hidden="true" />}
+      {!danger && <ChevronRight size={16} className="shrink-0 text-[#9c9899]" aria-hidden="true" />}
     </>
   )
   if (href) return <Link href={href} className={cls}>{inner}</Link>
@@ -47,17 +49,20 @@ export default function PerfilPage() {
   const { client, clearClient } = useBookingClient()
   const { tenant } = usePublicTenant()
 
+  const primaryColor = tenant?.primaryColor ?? '#81736f'
+
   if (!client) {
     return (
       <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
         <span className="mb-4 text-[40px]" aria-hidden="true">👤</span>
-        <h2 className="text-[18px] font-bold text-content-primary">Minha conta</h2>
-        <p className="mt-1 text-body text-content-subtle">
+        <h2 className="text-[18px] font-bold text-[#2e2a2b]">Minha conta</h2>
+        <p className="mt-1 text-[14px] text-[#9c9899]">
           Identifique-se para ver seus dados e agendamentos.
         </p>
         <Link
           href="/booking/meus-agendamentos"
-          className="mt-6 rounded-xl bg-primary px-6 py-3 text-body font-semibold text-white transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+          className="mt-6 flex h-[48px] items-center rounded-[24px] px-6 text-[14px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          style={{ backgroundColor: primaryColor }}
         >
           Identificar-me
         </Link>
@@ -68,21 +73,24 @@ export default function PerfilPage() {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-b from-primary-xlight to-white px-5 pb-6 pt-8">
+      <div className="bg-white px-[14px] pb-6 pt-8">
         <div className="flex flex-col items-center text-center">
           <div
-            className="flex h-20 w-20 items-center justify-center rounded-full bg-[#2563EB] text-[26px] font-bold text-white shadow-md"
+            className="flex h-20 w-20 items-center justify-center rounded-full text-[26px] font-bold text-white shadow-md"
+            style={{ backgroundColor: primaryColor }}
             aria-label={`Avatar de ${client.name}`}
           >
             {initials(client.name)}
           </div>
-          <h1 className="mt-3 text-h2 font-bold text-content-primary">{client.name}</h1>
-          {client.email && <p className="mt-0.5 text-body text-content-subtle">{client.email}</p>}
-          <p className="text-body text-content-subtle">{client.phone}</p>
+          <h1 className="mt-3 text-[20px] font-bold text-[#2e2a2b]">{client.name}</h1>
+          {client.email && (
+            <p className="mt-0.5 text-[14px] text-[#9c9899]">{client.email}</p>
+          )}
+          <p className="text-[14px] text-[#9c9899]">{client.phone}</p>
         </div>
       </div>
 
-      <div className="space-y-4 px-5 pb-6">
+      <div className="space-y-4 px-[14px] pb-6 pt-2">
         {/* Menu */}
         <nav aria-label="Menu do perfil" className="space-y-2">
           <MenuItem
@@ -106,8 +114,8 @@ export default function PerfilPage() {
             label="Cupons e Promoções"
             href="/booking/notificacoes"
           />
-          <MenuItem icon={<Bell size={18} />}     label="Notificações"        href="/booking/notificacoes" />
-          <MenuItem icon={<FileText size={18} />} label="Políticas do salão"  href="/booking/politicas" />
+          <MenuItem icon={<Bell size={18} />}     label="Notificações"       href="/booking/notificacoes" />
+          <MenuItem icon={<FileText size={18} />} label="Políticas do salão" href="/booking/politicas" />
         </nav>
 
         <div className="pt-2">
@@ -120,7 +128,7 @@ export default function PerfilPage() {
           />
         </div>
 
-        <p className="pt-2 text-center text-caption text-content-disabled">
+        <p className="pt-2 text-center text-[11px] text-[#9c9899]">
           {tenant?.name ?? 'Milli Agenda'} · Versão 1.0.0
         </p>
       </div>

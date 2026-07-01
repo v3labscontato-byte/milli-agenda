@@ -3008,3 +3008,63 @@ Arquivo de tracking criado: `packages/database/prisma/migrations/20260701200000_
 ### Nota sobre homolog
 Login com `ddpobre@gmail.com` / `123456789` falha com "Invalid credentials" — problema pré-existente na DB de homolog (não relacionado a esta tarefa). Validação feita via simulação de sessionStorage.
 
+
+---
+
+## [2026-07-01] feat(booking): redesign telas internas — design system Figma ODQuma661d7gzvVSeGNVYG
+
+### Design tokens aplicados (extraídos do Figma)
+- primaryColor: `tenant?.primaryColor ?? '#81736f'` (warm taupe/brown)
+- Background app: `#fafafa` | Surface/card: `#ffffff`
+- Border padrão: `#eaebec` | Border selecionado: `primaryColor`
+- Texto principal: `#2e2a2b` | Texto secundário: `#9c9899`
+- Sombra cards: `0px 2px 48px rgba(0,0,0,0.04)`
+- Sombra bottom nav: `0px 2px 48px rgba(0,0,0,0.12)`
+- Border radius cards: `8px` | Botão CTA: `24px` (pill) | Altura: `48px`
+- Bottom nav: `70px` | Avatar profissional: `90×90px` | Margem lateral: `14px`
+
+### Arquivos alterados
+**`bottom-nav.tsx`** — redesign visual:
+- Altura `h-[70px]`, border-top `#eaebec`, shadow `0px 2px 48px rgba(0,0,0,0.12)`
+- Aceita prop `primaryColor?: string` (default `#81736f`) — NÃO usa `usePublicTenant()`
+- Item ativo: `style={{ color: primaryColor }}` | Inativo: `#9c9899`
+- Label: `10px` + `letter-spacing: 0.5px`
+
+**`(booking)/layout.tsx`** — adiciona `usePublicTenant()`:
+- Deriva `primaryColor = tenant?.primaryColor ?? '#81736f'`
+- Passa `<BottomNav primaryColor={primaryColor} />`
+- Background wrapper alterado para `#fafafa`, `pb-[72px]` → `pb-[70px]`
+
+**`booking/page.tsx`** — redesign completo (Home):
+- Header: "Olá, {firstName}! 👋" (semibold 20px) + Bell com badge de não-lidas
+- Hero: `200px`, `border-radius 0 0 16px 16px`, gradiente `#C9B8A8 → primaryColor` (fallback)
+- Seção "Próximo agendamento": card `#eaebec` + shadow, mostra próximo ou pontos de fidelidade
+- Seção "Serviços": scroll horizontal, chips `52×52px` com `primaryColor + 1A` (10% opacity)
+- Seção "Profissionais": scroll horizontal, avatar `90×90px` round, nome/cargo/rating
+- CTA sticky: pill `48px` em `primaryColor`, `bottom-[70px]`
+- Busca serviços/profissionais via API (`fetchPublicServices`, `fetchPublicProfessionals`); mock como estado inicial
+- Remove: `HomeCarousel`, `SalonLogo`, `NotificationBell` (componentes inline substituídos)
+
+**`booking/meus-agendamentos/page.tsx`** — tokens de cor:
+- Substituídas todas as classes `text-primary`, `bg-primary`, `border-border`, `text-content-*` por hex explícito
+- Tab ativo: `borderBottomColor: primaryColor, color: primaryColor` via inline style
+- Cards: `rounded-[8px] border-[#eaebec]` + `box-shadow 0px 2px 48px rgba(0,0,0,0.04)`
+- CTA vazio: pill `48px` em `primaryColor`
+- `CancelModal` e `UpcomingCard` recebem `primaryColor` como prop
+
+**`booking/perfil/page.tsx`** — tokens de cor:
+- Avatar: `style={{ backgroundColor: primaryColor }}` (era `#2563EB` hardcoded)
+- Header: background branco liso (era gradiente `from-primary-xlight`)
+- MenuItem: border `#eaebec`, hover neutro `#faf8f7`, focus ring `#eaebec`
+- Textos: `text-[#2e2a2b]` e `text-[#9c9899]` explícitos
+
+### Validação Playwright
+
+| Tela | Screenshot | Resultado |
+|------|-----------|-----------|
+| Home | redesign-home-full.png | ✅ |
+| Meus Agendamentos | redesign-agendamentos.png | ✅ |
+| Perfil | redesign-perfil.png | ✅ |
+
+### TypeScript
+`npx tsc --noEmit` → 0 erros

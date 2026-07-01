@@ -2767,3 +2767,26 @@ Validação Playwright dos 11 modais — screenshots visuais confirmando o padr�
 
 ### Conclusão
 Todos os 11 modais operacionais padronizados e validados. Pronto para merge homolog → main com aprovação do usuário.
+
+---
+
+## 2026-07-01 CLAUDE 2 — Regressão completa + merge para main
+
+**Status:** ✅ Concluído  
+**Branch:** main (mergeado de homolog)  
+**Commit:** e6716a4
+
+### Regressão via Playwright — fluxo completo Agenda → Comanda
+1. ✅ Criar agendamento (Novo Agendamento modal) — Vilson Carneiro, Arthur, Escova, 01/07 08:00
+2. ✅ Abrir comanda do agendamento (PaymentModal) — R$ 70,00
+3. ✅ Adicionar item Coloração via add-item-modal — total R$ 220,00
+4. ✅ Confirmar pagamento PIX → `POST /close` **201**
+
+### Network log confirmado
+- `POST /commands` → 201
+- `POST /commands/{id}/items` → 201
+- `POST /payments` → 201
+- `POST /commands/{id}/close` → 201
+- `PATCH /appointments/{id}` → 200
+
+### Próximo: Produtos — Ondas C, D e E

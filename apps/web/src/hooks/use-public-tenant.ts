@@ -15,6 +15,8 @@ export interface PublicTenant {
   name: string
   slug: string
   logoUrl: string | null
+  coverImageUrl: string | null
+  primaryColor: string | null
   slogan: string | null
   address: string | null
   neighborhood: string | null

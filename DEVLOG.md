@@ -2883,3 +2883,39 @@ Crash: `Cannot find module 'busboy'` ao iniciar o servidor no Railway.
 ### Ação necessária
 Corrigir `R2_SECRET_ACCESS_KEY` no Railway Milli-Homolog (serviço backend NestJS).  
 Variáveis necessárias: `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL`
+
+## 2026-07-01 CLAUDE 2 — feat(booking): tela de acesso premium PWA
+
+**Status:** ✅ Implementado — deploy pendente  
+**Branch:** homolog  
+
+### Schema (aguarda confirmação para migrate)
+Adicionados ao model Tenant:
+- `coverImageUrl String?` — foto de capa do salão
+- `primaryColor String? @default("#3D2B1F")` — cor primária do salão
+
+`npx prisma generate` executado (tipos TS atualizados). Migration pendente:
+```
+npx prisma migrate dev --schema=packages/database/prisma/schema.prisma
+```
+
+### Backend
+- `GET /api/v1/settings/public/:slug` agora retorna `coverImageUrl` e `primaryColor`
+- `POST /api/v1/public/:slug/clients` (novo endpoint público):
+  - Busca client por phone + tenantId
+  - Se existe → retorna existente (sem duplicata)
+  - Se não existe → cria novo
+  - Retorna `{ id, name, phone, email }`
+
+### Frontend
+- `use-public-tenant.ts`: interface `PublicTenant` atualizada com `coverImageUrl` e `primaryColor`
+- `public-booking.ts`: função `createPublicClient()` adicionada
+- `phone-identify.tsx`: redesenhado com paleta bege/marrom premium:
+  - Hero 240px (foto de capa ou gradiente bege→marrom)
+  - Logo do salão (iniciais ou logoUrl)
+  - Status "Aberto/Fechado · Cidade"
+  - Tabs: Entrar | Cadastrar com underline na tab ativa
+  - Aba Entrar: telefone → verifica → redireciona ou muda para Cadastrar
+  - Aba Cadastrar: nome + telefone + e-mail → POST /clients → redireciona
+  - Botão Google → toast "Em breve"
+  - primaryColor do tenant aplicado em tabs + botões

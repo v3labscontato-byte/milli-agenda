@@ -145,6 +145,36 @@ export class PublicService {
     })
   }
 
+  async createOrFindClient(slug: string, name: string, phone: string, email?: string) {
+    const tenantId = await this.resolveTenantId(slug)
+    const digits = phone.replace(/\D/g, '')
+    if (!name?.trim() || digits.length < 10) {
+      throw new BadRequestException('Nome e telefone são obrigatórios')
+    }
+
+    let client = await this.db.client.findFirst({
+      where: { tenantId, phone },
+      select: { id: true, name: true, phone: true, email: true },
+    })
+
+    if (!client && digits.length >= 8) {
+      const all = await this.db.client.findMany({
+        where: { tenantId },
+        select: { id: true, name: true, phone: true, email: true },
+      })
+      client = all.find((c) => (c.phone ?? '').replace(/\D/g, '') === digits) ?? null
+    }
+
+    if (!client) {
+      client = await this.db.client.create({
+        data: { tenantId, name: name.trim(), phone, email: email ?? null },
+        select: { id: true, name: true, phone: true, email: true },
+      })
+    }
+
+    return { id: client.id, name: client.name, phone: client.phone, email: client.email }
+  }
+
   // TODO: Usado pelo Google OAuth — não exposto via endpoint ainda
   async findOrCreateClientByEmail(tenantId: string, email: string, name: string) {
     const existing = await this.db.client.findFirst({ where: { tenantId, email } })

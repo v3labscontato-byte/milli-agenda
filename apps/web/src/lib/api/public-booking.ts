@@ -135,6 +135,30 @@ export function cancelPublicAppointment(
   })
 }
 
+export interface CreatePublicClientBody {
+  name: string
+  phone: string
+  email?: string
+}
+
+export interface PublicCreatedClient {
+  id: string
+  name: string
+  phone: string | null
+  email: string | null
+}
+
+export function createPublicClient(
+  slug: string,
+  body: CreatePublicClientBody,
+): Promise<PublicCreatedClient> {
+  return apiFetch(`${API_BASE}/api/v1/public/${slug}/clients`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 export function slotToTimeStr(iso: string): string {
   const d = new Date(iso)
   return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`

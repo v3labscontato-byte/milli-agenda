@@ -36,6 +36,8 @@ const PUBLIC_TENANT_SELECT = {
   name: true,
   slug: true,
   logoUrl: true,
+  coverImageUrl: true,
+  primaryColor: true,
   slogan: true,
   address: true,
   neighborhood: true,

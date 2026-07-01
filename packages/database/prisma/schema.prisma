@@ -87,7 +87,9 @@ model Tenant {
   document    String?
   phone       String?
   email       String?
-  logoUrl     String?
+  logoUrl       String?
+  coverImageUrl String?
+  primaryColor  String?  @default("#3D2B1F")
   active               Boolean   @default(true)
   trialEndsAt          DateTime?
   onboardingCompleted  Boolean   @default(false)

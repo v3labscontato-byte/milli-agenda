@@ -32,6 +32,14 @@ export class PublicController {
     return this.publicService.getSlots(slug, professionalId, date, Number(durationMin))
   }
 
+  @Post(':slug/clients')
+  createOrFindClient(
+    @Param('slug') slug: string,
+    @Body() body: { name: string; phone: string; email?: string },
+  ) {
+    return this.publicService.createOrFindClient(slug, body.name, body.phone, body.email)
+  }
+
   @Post(':slug/appointments')
   createAppointment(
     @Param('slug') slug: string,

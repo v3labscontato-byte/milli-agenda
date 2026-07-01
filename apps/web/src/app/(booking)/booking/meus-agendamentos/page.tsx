@@ -305,7 +305,7 @@ export default function MeusAgendamentosPage() {
   }
 
   if (!ready) return null
-  if (!client) return <PhoneIdentify onFound={handleFound} />
+  if (!client) return <PhoneIdentify onFound={handleFound} tenant={tenant} />
 
   const upcoming = appointments.filter(isUpcoming)
   const history  = appointments.filter((a) => !isUpcoming(a))

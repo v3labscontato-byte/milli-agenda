@@ -2852,3 +2852,17 @@ O build do Railway (que roda do root) não encontrava o módulo no TypeScript co
 - `main.ts`: `addContentTypeParser(/^multipart\/form-data/)` — aceita a content-type sem parsear
 - `upload.controller.ts`: `require('busboy')` direto + `raw.pipe(bb)` — parse do stream no controller
 - Zero novas dependências externas
+
+## 2026-07-01 CLAUDE 2 — fix(upload): declarar busboy como dependência explícita
+
+**Status:** ✅ Fix aplicado — commitado e push para homolog  
+**Branch:** homolog  
+
+### Causa raiz do runtime failure (3º crash)
+`busboy` estava disponível localmente como dep transitiva do Fastify (`node_modules/busboy`).  
+No Docker de produção do Railway, apenas deps explícitas de `apps/api/package.json` são garantidas.  
+Crash: `Cannot find module 'busboy'` ao iniciar o servidor no Railway.
+
+### Fix
+`cd apps/api && npm install busboy` → adicionou `"busboy": "^1.6.0"` a `apps/api/package.json`  
+`npx tsc --noEmit` → 0 erros confirmados após a instalação

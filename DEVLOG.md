@@ -2592,3 +2592,11 @@ Aguardando DATABASE_URL de produção do usuário para rodar `prisma migrate dep
 - [ ] Pagamento Pagar.me integrado na confirmação
 - [ ] Meus agendamentos (requer auth cliente)
 - [ ] Migration `20260701000000_add_deposit_and_cancellation_policy` em produção
+
+---
+
+## 2026-07-01 — Migration produção aplicada
+
+`20260701000000_add_deposit_and_cancellation_policy` aplicada via `prisma migrate deploy` contra banco de produção (Railway).
+Status final: `Database schema is up to date!` — 9/9 migrations aplicadas.
+DATABASE_URL fornecida pontualmente pelo usuário, não commitada em nenhum arquivo.

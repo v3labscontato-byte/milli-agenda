@@ -3,5 +3,5 @@ builder = "DOCKERFILE"
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-startCommand = "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && node dist/main"
+startCommand = "for m in 20260625000000_init 20260625010000_add_password_reset_token 20260625020000_add_onboarding_models 20260625030000_add_goals 20260630000000_add_products_module 20260630000001_add_financeiro_models 20260630100000_expand_products_cadastro_estoque 20260630200000_add_tenant_settings_fields 20260701000000_add_deposit_and_cancellation_policy 20260701200000_add_tenant_image_color; do npx prisma migrate resolve --applied $m --schema=packages/database/prisma/schema.prisma 2>/dev/null || true; done && npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma && node dist/main"
 restartPolicyType = "ON_FAILURE"

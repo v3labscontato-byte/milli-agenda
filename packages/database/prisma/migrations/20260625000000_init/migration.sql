@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "PlanSlug" AS ENUM ('FREE', 'STARTER', 'PROFESSIONAL', 'ENTERPRISE');
 
 -- CreateEnum

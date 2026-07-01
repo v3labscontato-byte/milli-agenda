@@ -2433,3 +2433,34 @@ Toggle "Devolver sinal em caso de cancelamento dentro do prazo" na seção Polí
 ### Pendente
 - Migration ainda não aplicada em homolog (aguardando DATABASE_URL)
 - Validação Playwright após aplicar migration
+
+---
+
+## 2026-07-01 — Onda 2: Validação Playwright ITEMs 1, 3, 4 + Estado ITEM 2
+
+### Migration 20260701000000_add_deposit_and_cancellation_policy aplicada em homolog
+- Executada via DATABASE_URL pública fornecida pelo usuário (reseau.proxy.rlwy.net:47381)
+- `prisma migrate deploy` → success
+
+### ITEM 1 — slotGapMinutes / minAdvanceHours / maxAdvanceDays afetam disponibilidade
+**Validado parcialmente:**
+- `GET /api/v1/settings` → confirma `slotGapMinutes: 15` salvo (mudado para 30 ao final da sessão)
+- Código: `profissionais.service.ts` busca tenant em paralelo, aplica `maxAdvanceDays` cutoff, filtra por `minAdvanceHours`, passa `slotGapMinutes` para `getAvailableSlots()`
+- `packages/business-rules/src/agenda/availability.ts` aceita `slotGapMinutes` como 5º parâmetro
+- Limitação homolog: nenhum profissional tem `Schedule` records → endpoint retorna [] independente dos parâmetros. Validação end-to-end de slots requer criação de Schedule records.
+
+### ITEM 3 + ITEM 4 — Política de Sinal e Cancelamento
+**Validado via Playwright:**
+- Valores configurados: depositRequired=true, depositType='percentage', depositValue=30, cancellationMinHours=48, cancellationFeePercent=50, cancellationRefundSignal=true
+- "Salvar configurações" → 200 OK
+- Reload completo da página → valores persistidos corretamente em todos os 6 campos
+- `npx tsc --noEmit` → 0 erros
+
+### ITEM 2 — Booking PWA com dados reais do tenant
+**Status: aguardando variável de ambiente no Railway**
+- Endpoint `GET /api/v1/settings/public/studio-homolog` → 200, `name: "Studio Homolog"`
+- Booking PWA ainda exibe "Salão Bella Vista" (dados mock) pois `NEXT_PUBLIC_TENANT_SLUG` não está configurado no Railway frontend homolog
+- **Ação pendente do usuário:** Railway → frontend-nextjs-milli-homolog → Variables → adicionar `NEXT_PUBLIC_TENANT_SLUG=studio-homolog` → redeploy automático
+
+### Commits pendentes
+- Onda 2 completa ainda não commitada — aguardando ITEM 2 validado antes de commitar + merge para main

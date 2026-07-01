@@ -21,14 +21,14 @@ export default function BottomNav({ primaryColor = '#81736f' }: BottomNavProps) 
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white"
+      className="w-full shrink-0 bg-white"
       style={{
         borderTop: '1px solid #eaebec',
         boxShadow: '0px 2px 48px rgba(0,0,0,0.12)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="mx-auto flex h-[70px] max-w-md items-center justify-around">
+      <div className="flex h-[70px] items-center justify-around">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = href === '/booking'
             ? pathname === '/booking' || pathname === '/booking/'

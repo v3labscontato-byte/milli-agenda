@@ -92,6 +92,7 @@
   *::after {
     box-sizing: border-box;
     border-color: #E2E8F0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -101,6 +102,11 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  button, a, input, textarea, select {
+    touch-action: manipulation;
   }
 
   :focus-visible {

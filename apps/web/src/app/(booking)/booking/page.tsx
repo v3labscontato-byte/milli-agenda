@@ -103,7 +103,7 @@ export default function BookingHomePage() {
         <Link
           href="/booking/notificacoes"
           aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
-          className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#9c9899] transition-colors hover:bg-[#f5f5f5]"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#9c9899] transition-transform duration-100 hover:bg-[#f5f5f5] active:scale-90"
         >
           <Bell size={20} aria-hidden="true" />
           {unread > 0 && (
@@ -144,7 +144,7 @@ export default function BookingHomePage() {
       <div className="px-[14px] pt-4">
         <Link
           href="/booking/meus-agendamentos"
-          className="block rounded-[8px] border border-[#eaebec] bg-white px-4 py-3 transition-colors hover:border-[#d0cac9]"
+          className="block rounded-[8px] border border-[#eaebec] bg-white px-4 py-3 transition-transform duration-100 hover:border-[#d0cac9] active:scale-[0.98]"
           style={{ boxShadow: '0px 2px 48px rgba(0,0,0,0.04)' }}
         >
           {next ? (
@@ -193,7 +193,7 @@ export default function BookingHomePage() {
             <Link
               key={svc.id}
               href="/booking/agendar"
-              className="flex shrink-0 flex-col items-center gap-2"
+              className="flex shrink-0 flex-col items-center gap-2 transition-transform duration-100 active:scale-90"
             >
               <div
                 className="flex h-[52px] w-[52px] items-center justify-center rounded-full text-[22px]"
@@ -222,7 +222,7 @@ export default function BookingHomePage() {
             <Link
               key={pro.id}
               href="/booking/agendar"
-              className="flex shrink-0 flex-col items-center gap-2"
+              className="flex shrink-0 flex-col items-center gap-2 transition-transform duration-100 active:scale-95"
             >
               <div
                 className="flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-full text-[24px] font-bold text-white"
@@ -247,7 +247,7 @@ export default function BookingHomePage() {
 
       {/* ── Sticky CTA ── */}
       <div
-        className="sticky bottom-[70px] bg-white/95 px-[14px] py-3 backdrop-blur-sm"
+        className="sticky bottom-0 bg-white/95 px-[14px] py-3 backdrop-blur-sm"
         style={{ borderTop: '1px solid #f1f5f9' }}
       >
         <Link

@@ -3426,3 +3426,29 @@ O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada
 ### Próximo
 - Correções Impeccable (design system audit)
 - Teste E2E completo (agenda, booking, financeiro, produtos)
+
+---
+
+## [2026-07-01] Claude — PWA: manifest, viewport 100dvh e sensação de app nativo
+
+**Status:** ✅ Concluído  
+**Branch:** homolog
+
+### Arquivos criados
+- `apps/web/public/manifest.json` — PWA manifest (name, start_url, display:standalone, icons, theme_color)
+- `apps/web/src/app/(booking)/_booking-shell.tsx` — client shell extraído do layout (100dvh, flex column)
+- `apps/web/src/components/booking/install-banner.tsx` — banner Android "Instalar app" (beforeinstallprompt, localStorage)
+
+### Arquivos atualizados
+- `apps/web/src/app/(booking)/layout.tsx` — reescrito como server component com `metadata` (manifest, appleWebApp, icons) e `viewport` (themeColor, viewport-fit=cover)
+- `apps/web/src/components/booking/bottom-nav.tsx` — removido `fixed bottom-0 left-0 right-0`; agora é flex child (`w-full shrink-0`) dentro do container 100dvh
+- `apps/web/src/app/globals.css` — `overscroll-behavior: none` no body, `-webkit-tap-highlight-color: transparent` global, `touch-action: manipulation` em inputs/botões/links
+- `apps/web/src/app/(booking)/booking/page.tsx` — `active:scale-9x` em ícone notificação, card agendamento, chips de serviço e cards de profissional; sticky CTA movido de `bottom-[70px]` → `bottom-0` (BottomNav deixou de ser fixed)
+
+### Arquitetura PWA
+- layout.tsx (server) exporta metadata/viewport → BookingShell (client) renderiza a UI
+- Container: `height: 100dvh; overflow: hidden; flex-direction: column`
+- main: `flex: 1; overflow-y: auto; pb-[70px]`
+- BottomNav: `w-full shrink-0` — sempre visível, sem sobreposição
+
+### npx tsc --noEmit → 0 erros

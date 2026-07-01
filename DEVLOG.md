@@ -2646,3 +2646,23 @@ Branch: `homolog`. Commit base: `34b72f1`.
 
 ### Status
 ✅ Onda 4 completa — aguardando aprovação para merge homolog → main
+
+---
+
+## 2026-07-01 — Merge Onda 4 para main + status migration produção
+
+### Ações executadas
+- `git merge homolog → main && git push origin main` ✅
+  - 9 arquivos alterados: public.controller.ts, public.service.ts, meus-agendamentos/page.tsx, perfil/page.tsx, phone-identify.tsx (novo), use-booking-client.ts (novo), public-booking.ts, AGENT_BOOKING.md, DEVLOG.md
+- Migration `20260701000000_add_deposit_and_cancellation_policy` verificada em produção: **já aplicada** (Database schema is up to date — 9/9 migrations)
+
+### Onda 4 — Resumo executivo
+**Funcionalidade:** "Meus Agendamentos" com dados reais via identificação por telefone (sem auth JWT)
+**8 cenários Playwright aprovados** — ver entrada anterior neste DEVLOG
+
+### Pendências de produto (backlog Fase 5)
+- [ ] **Google OAuth** — `findOrCreateClientByEmail()` stub já existe em `public.service.ts`; falta endpoint + lib Google
+- [ ] **Pagamento Pagar.me** — integração de cobrança de sinal (depositRequired/depositValue já no schema)
+- [ ] **Auth WhatsApp OTP** — alternativa ao Google OAuth para identificação de clientes
+- [ ] Reagendamento (editar agendamento existente)
+- [ ] Programa de fidelidade real (schema implementado mas sem endpoints)

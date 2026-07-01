@@ -2821,3 +2821,18 @@ curl -X POST https://backend-nestjs-milli-homolog.up.railway.app/api/v1/upload/i
 ```
 
 ### Próximo: Produtos — Ondas C, D e E
+
+---
+
+## 2026-07-01 CLAUDE 2 — fix(upload): downgrade @fastify/multipart v8
+
+**Status:** ✅ Fix aplicado — deploy em progresso  
+**Branch:** homolog  
+
+### Causa raiz
+`@fastify/multipart@10` exige Fastify 5.x. `@nestjs/platform-fastify` usa Fastify 4.28.1 internamente.  
+Crash: `FST_ERR_PLUGIN_VERSION_MISMATCH` — servidor não subia.
+
+### Fix
+`npm install @fastify/multipart@8` (v8.x suporta Fastify 4.x)  
+`npx tsc --noEmit` → 0 erros

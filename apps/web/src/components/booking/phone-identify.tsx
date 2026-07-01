@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Phone, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchPublicClientAppointments, TENANT_SLUG } from '@/lib/api/public-booking'
-import { useBookingClient, type BookingClientInfo } from '@/hooks/use-booking-client'
+import { type BookingClientInfo } from '@/hooks/use-booking-client'
 
 function maskPhone(raw: string): string {
   const d = raw.replace(/\D/g, '').slice(0, 11)
@@ -19,7 +19,6 @@ interface PhoneIdentifyProps {
 }
 
 export default function PhoneIdentify({ onFound }: PhoneIdentifyProps) {
-  const { setClient } = useBookingClient()
   const [phone, setPhone]       = useState('')
   const [loading, setLoading]   = useState(false)
   const [notFound, setNotFound] = useState(false)
@@ -37,14 +36,12 @@ export default function PhoneIdentify({ onFound }: PhoneIdentifyProps) {
       if (!client) {
         setNotFound(true)
       } else {
-        const info: BookingClientInfo = {
+        onFound({
           id: client.id,
           name: client.name,
           phone: client.phone ?? phone,
           email: client.email,
-        }
-        setClient(info)
-        onFound(info)
+        })
       }
     } catch {
       setError('Erro ao buscar agendamentos. Tente novamente.')

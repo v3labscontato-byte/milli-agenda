@@ -260,7 +260,7 @@ function Skeleton() {
 
 export default function MeusAgendamentosPage() {
   const router = useRouter()
-  const { client, clearClient, ready } = useBookingClient()
+  const { client, setClient, clearClient, ready } = useBookingClient()
   const { tenant } = usePublicTenant()
 
   const [appointments, setAppointments] = useState<PublicAppointmentItem[]>([])
@@ -288,6 +288,7 @@ export default function MeusAgendamentosPage() {
   }, [ready, client, loadAppointments])
 
   function handleFound(c: BookingClientInfo) {
+    setClient(c)
     loadAppointments(c)
   }
 

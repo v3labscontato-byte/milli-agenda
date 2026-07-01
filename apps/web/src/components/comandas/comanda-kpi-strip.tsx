@@ -1,27 +1,35 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { calculateSubtotal, calculateDiscount, calculateTotal, formatBRL } from '@/lib/business-rules'
+import { KpiPeriodFilter } from '@/components/shared/kpi-card'
 import type { Comanda, ComandasFilter } from '@/lib/comanda-mock'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 interface CardConfig {
-  filter: ComandasFilter | null  // null = "Total" (no filter, just info)
+  filter: ComandasFilter
   label: string
-  accentBg: string
-  accentBorder: string
-  accentText: string
+  activeBg: string
+  activeBorder: string
+  activeText: string
+  clickable: boolean
 }
 
 const CARD_CFG: CardConfig[] = [
-  { filter: null,                label: 'Total',          accentBg: '#F8FAFC', accentBorder: '#CBD5E1', accentText: '#475569' },
-  { filter: 'OPEN_IN_PROGRESS', label: 'Abertas',         accentBg: '#DBEAFE', accentBorder: '#2563EB', accentText: '#2563EB' },
-  { filter: 'AWAITING_PAYMENT', label: 'Aguard. Pagto',   accentBg: '#FEF9C3', accentBorder: '#CA8A04', accentText: '#CA8A04' },
-  { filter: 'PAID',             label: 'Pagas',           accentBg: '#DCFCE7', accentBorder: '#16A34A', accentText: '#16A34A' },
-  { filter: 'CANCELLED',        label: 'Canceladas',      accentBg: '#FEE2E2', accentBorder: '#DC2626', accentText: '#DC2626' },
+  { filter: 'ALL',              label: 'Total',         activeBg: '#EFF6FF',  activeBorder: '#2563EB', activeText: '#2563EB', clickable: true  },
+  { filter: 'OPEN_IN_PROGRESS', label: 'Abertas',        activeBg: '#DBEAFE',  activeBorder: '#2563EB', activeText: '#2563EB', clickable: true  },
+  { filter: 'AWAITING_PAYMENT', label: 'Aguard. Pagto',  activeBg: '#FEF9C3',  activeBorder: '#CA8A04', activeText: '#CA8A04', clickable: true  },
+  { filter: 'PAID',             label: 'Pagas',          activeBg: '#DCFCE7',  activeBorder: '#16A34A', activeText: '#16A34A', clickable: true  },
+  { filter: 'CANCELLED',        label: 'Canceladas',     activeBg: '#FEE2E2',  activeBorder: '#DC2626', activeText: '#DC2626', clickable: true  },
+  { filter: 'ALL',              label: 'Receita',        activeBg: '#DCFCE7',  activeBorder: '#16A34A', activeText: '#16A34A', clickable: false },
+]
+
+const PERIOD_OPTIONS = [
+  { key: 'hoje',   label: 'Hoje'        },
+  { key: 'semana', label: 'Esta semana' },
 ]
 
 function comTotal(c: Comanda): number {
@@ -44,6 +52,8 @@ export default function ComandaKpiStrip({
   onFilterChange,
   onNew,
 }: ComandaKpiStripProps) {
+  const [period, setPeriod] = useState('hoje')
+
   const stats = useMemo(() => {
     const total = comandas.length
     const open  = comandas.filter((c) => c.status === 'OPEN' || c.status === 'IN_PROGRESS').length
@@ -60,15 +70,17 @@ export default function ComandaKpiStrip({
       paidCount: paid.length,
       paidAmt:   paid.reduce((s, c) => s + comTotal(c), 0),
       canc,
+      receita: [...awPmt, ...paid].reduce((s, c) => s + comTotal(c), 0),
     }
   }, [comandas])
 
-  const cards: Array<{ cfg: CardConfig; value: number | string; sub: string }> = [
-    { cfg: CARD_CFG[0], value: stats.total,    sub: 'no total hoje' },
-    { cfg: CARD_CFG[1], value: stats.open,     sub: `${stats.openPct}% do total` },
-    { cfg: CARD_CFG[2], value: stats.awCount,  sub: `${formatBRL(stats.awAmt)} pendente` },
-    { cfg: CARD_CFG[3], value: stats.paidCount, sub: `${formatBRL(stats.paidAmt)} recebido` },
-    { cfg: CARD_CFG[4], value: stats.canc,      sub: stats.canc === 1 ? '1 cancelada' : `${stats.canc} canceladas` },
+  const cardValues: Array<{ value: number | string; sub: string }> = [
+    { value: stats.total,                     sub: 'no período'                                           },
+    { value: stats.open,                      sub: `${stats.openPct}% do total`                          },
+    { value: stats.awCount,                   sub: `${formatBRL(stats.awAmt)} pendente`                  },
+    { value: stats.paidCount,                 sub: `${formatBRL(stats.paidAmt)} recebido`                },
+    { value: stats.canc,                      sub: stats.canc === 1 ? '1 cancelada' : `${stats.canc} canceladas` },
+    { value: formatBRL(stats.receita),        sub: 'pago + a receber'                                    },
   ]
 
   return (
@@ -88,51 +100,48 @@ export default function ComandaKpiStrip({
           <Plus size={13} aria-hidden="true" />
           Nova Comanda
         </button>
+        <KpiPeriodFilter options={PERIOD_OPTIONS} active={period} onChange={setPeriod} />
       </div>
 
-      {/* KPI cards row */}
-      <div className="grid w-full grid-cols-2 gap-3 px-5 pb-4 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4">
-        {cards.map(({ cfg, value, sub }) => {
-          const isActive = cfg.filter !== null && activeFilter === cfg.filter
-          const canClick = cfg.filter !== null
+      {/* KPI cards grid */}
+      <div className="grid w-full grid-cols-2 gap-3 px-5 pb-4 sm:grid-cols-3 xl:grid-cols-6">
+        {CARD_CFG.map((cfg, i) => {
+          const { value, sub } = cardValues[i]
+          const isActive = cfg.clickable && activeFilter === cfg.filter
+          const isReceita = !cfg.clickable
 
           return (
             <button
-              key={cfg.label}
+              key={`${cfg.label}-${i}`}
               type="button"
-              disabled={!canClick}
+              disabled={isReceita}
               onClick={() => {
-                if (!cfg.filter) return
+                if (!cfg.clickable) return
                 onFilterChange(isActive ? 'ALL' : cfg.filter)
               }}
-              aria-pressed={isActive}
+              aria-pressed={cfg.clickable ? isActive : undefined}
               className={cn(
-                'flex flex-1 flex-col rounded-xl border-2 p-5 text-left transition-all duration-150 motion-reduce:transition-none',
+                'flex flex-col rounded-xl border p-4 text-left transition-all duration-150 motion-reduce:transition-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
-                canClick ? 'cursor-pointer' : 'cursor-default',
+                cfg.clickable ? 'cursor-pointer' : 'cursor-default',
                 isActive
                   ? 'shadow-sm'
-                  : 'border-[#E2E8F0] bg-[#F8FAFC] shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:border-[#94A3B8] hover:bg-white',
+                  : 'border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]',
+                cfg.clickable && !isActive && 'hover:border-[#94A3B8]',
               )}
-              style={
-                isActive
-                  ? { backgroundColor: cfg.accentBg, borderColor: cfg.accentBorder }
-                  : undefined
-              }
+              style={isActive ? { backgroundColor: cfg.activeBg, borderColor: cfg.activeBorder } : undefined}
             >
+              <span className="text-[11px] font-medium text-[#64748B]">{cfg.label}</span>
               <span
-                className="font-tabular text-3xl font-bold leading-none"
-                style={{ color: isActive ? cfg.accentText : '#0F172A' }}
+                className="mt-1.5 font-tabular text-[22px] font-bold leading-none"
+                style={{ color: isActive ? cfg.activeText : '#0F172A' }}
               >
                 {value}
               </span>
               <span
-                className="mt-1.5 text-sm font-semibold"
-                style={{ color: isActive ? cfg.accentText : '#0F172A' }}
+                className="mt-1 text-[11px]"
+                style={{ color: isActive ? cfg.activeText : '#94A3B8' }}
               >
-                {cfg.label}
-              </span>
-              <span className="mt-0.5 text-[11px]" style={{ color: isActive ? cfg.accentText : '#94A3B8' }}>
                 {sub}
               </span>
             </button>

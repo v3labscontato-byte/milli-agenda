@@ -15,29 +15,16 @@ import ProfissionalModal from '@/components/profissionais/profissional-modal'
 import NovoProfissionalModal from '@/components/profissionais/novo-profissional-modal'
 import SmartFormProfissional from '@/components/shared/smart-form-profissional'
 import NovaEspecialidadeModal from '@/components/profissionais/nova-especialidade-modal'
+import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 
-// ─── KPI card ─────────────────────────────────────────────────────────────────
+type KpiPeriod = 'hoje' | 'semana' | 'mes' | '30d'
 
-interface KpiCardProps { label: string; value: React.ReactNode; sub: string; accent?: boolean }
-
-function KpiCard({ label, value, sub, accent }: KpiCardProps) {
-  return (
-    <div className={cn(
-      'flex flex-col rounded-xl border p-5',
-      accent ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]' : 'border-[var(--color-border-primary)] bg-white',
-    )}>
-      <span className={cn('font-tabular text-3xl font-bold leading-none', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
-        {value}
-      </span>
-      <span className={cn('mt-1.5 text-sm font-semibold', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
-        {label}
-      </span>
-      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[var(--color-brand-dark)]' : 'text-[var(--color-text-tertiary)]')}>
-        {sub}
-      </span>
-    </div>
-  )
-}
+const KPI_PERIODOS: Array<{ key: KpiPeriod; label: string }> = [
+  { key: 'hoje',   label: 'Hoje'            },
+  { key: 'semana', label: 'Esta semana'     },
+  { key: 'mes',    label: 'Este mês'        },
+  { key: '30d',    label: 'Últimos 30 dias' },
+]
 
 // ─── Filter config ────────────────────────────────────────────────────────────
 
@@ -76,6 +63,7 @@ export default function ProfissionaisPage() {
   const [novoOpen, setNovoOpen]             = useState(false)
   const [smartOpen, setSmartOpen]           = useState(false)
   const [especialidadeOpen, setEspecialidadeOpen] = useState(false)
+  const [kpiPeriod, setKpiPeriod]           = useState<KpiPeriod>('mes')
 
   const { data: profissionais, loading, error, create, toggleStatus, remove, refetch } = useProfissionais()
   const stats = useMemo(() => {
@@ -85,11 +73,16 @@ export default function ProfissionaisPage() {
     const faturamento = profissionais.reduce((s, p) => s + Number(p.revenueThisMonth ?? 0), 0)
     const totalRating = profissionais.reduce((s, p) => s + Number(p.rating ?? 0) * Number(p.ratingCount ?? 0), 0)
     const totalRatingCount = profissionais.reduce((s, p) => s + Number(p.ratingCount ?? 0), 0)
+    const emFerias = profissionais.filter((p) => p.status === 'vacation').length
+    const inativos = profissionais.filter((p) => p.status === 'inactive').length
     return {
       total: profissionais.length,
+      ativos: ativos.length,
       ativosHoje: ativosHoje.length,
       faturamentoMes: faturamento,
       avgRating: totalRatingCount > 0 ? Math.round((totalRating / totalRatingCount) * 10) / 10 : 0,
+      emFerias,
+      inativos,
     }
   }, [profissionais])
 
@@ -140,20 +133,27 @@ export default function ProfissionaisPage() {
     <div className="flex h-full flex-col">
 
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white">
-        <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
-            Visão geral
-          </p>
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 pb-4 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              Visão geral
+            </p>
+            <KpiPeriodFilter
+              options={KPI_PERIODOS}
+              active={kpiPeriod}
+              onChange={(k) => setKpiPeriod(k as KpiPeriod)}
+            />
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setEspecialidadeOpen(true)}
               aria-label="Gerenciar especialidades"
               className={cn(
-                'flex items-center gap-1.5 rounded-md border border-[var(--color-border-primary)] bg-white px-3 py-1.5',
-                'text-[12px] font-semibold text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-secondary)]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+                'flex items-center gap-1.5 rounded-md border border-[#E2E8F0] bg-white px-3 py-1.5',
+                'text-[12px] font-semibold text-[#475569] transition-colors hover:bg-[#F8FAFC]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
               )}
             >
               <Plus size={13} aria-hidden="true" />
@@ -164,9 +164,9 @@ export default function ProfissionaisPage() {
               onClick={() => setSmartOpen(true)}
               aria-label="Novo profissional"
               className={cn(
-                'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
-                'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+                'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
+                'text-[12px] font-semibold text-white transition-colors hover:bg-[#1D4ED8]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
               )}
             >
               <Plus size={13} aria-hidden="true" />
@@ -175,32 +175,26 @@ export default function ProfissionaisPage() {
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
-          <KpiCard
-            label="Total"
-            value={stats.total}
-            sub="profissionais"
-          />
-          <KpiCard
-            label="Ativos Hoje"
-            value={stats.ativosHoje}
-            sub={`de ${profissionais.filter(p => p.status === 'active').length} ativos`}
-            accent
-          />
-          <KpiCard
-            label="Faturamento / Mês"
-            value={formatBRL(stats.faturamentoMes)}
-            sub="soma de todos este mês"
-          />
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <KpiCard label="Total" value={stats.total} sub="profissionais" color="blue" />
+          <KpiCard label="Ativos" value={stats.ativos} sub="status ativo" color="green" />
+          <KpiCard label="Trabalham Hoje" value={stats.ativosHoje} sub={`de ${stats.ativos} ativos`} />
+          <KpiCard label="Faturamento/Mês" value={formatBRL(stats.faturamentoMes)} sub="soma de todos" />
           <KpiCard
             label="Avaliação Média"
             value={
               <span className="flex items-center gap-1.5">
-                <Star size={20} className="fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
+                <Star size={16} className="fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
                 {stats.avgRating.toFixed(1)}
               </span>
             }
             sub="média ponderada"
+          />
+          <KpiCard
+            label="Em Férias / Inativos"
+            value={stats.emFerias + stats.inativos}
+            sub={`${stats.emFerias} férias · ${stats.inativos} inativos`}
+            color={stats.emFerias + stats.inativos > 0 ? 'red' : 'default'}
           />
         </div>
       </div>

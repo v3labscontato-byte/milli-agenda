@@ -23,4 +23,10 @@ export const produtosApi = {
 
   adjustStock: (id: string, delta: number) =>
     api.post(`/api/v1/products/${id}/stock`, { delta }),
+
+  createMovimento: (id: string, data: unknown) =>
+    api.post(`/api/v1/products/${id}/movimentacoes`, data),
+
+  listMovimentos: (id: string) =>
+    api.get(`/api/v1/products/${id}/movimentacoes`),
 }

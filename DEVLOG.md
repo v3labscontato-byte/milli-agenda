@@ -3370,3 +3370,35 @@ O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada
 ### Resultado esperado
 - Container sobe em ~1-2s (só `node dist/main`, sem migration overhead)
 - Migrations rodam no pipeline do Railway, com rollback automático se falharem antes do container subir
+
+---
+
+## [2026-07-01] Claude — feat(produtos): Onda D — movimentação manual de estoque com histórico
+
+**Status:** ✅ Concluído  
+**Branch:** homolog  
+**Arquivos:**
+- `packages/database/prisma/schema.prisma` — enum StockMovementType + model StockMovement + back-relations em Product e Tenant
+- `packages/database/prisma/migrations/20260701230000_add_stock_movements/migration.sql` — migration aplicada em homolog
+- `apps/api/src/modules/produtos/dto/stock-movement.dto.ts` — DTO com type, quantity, reason?, costPrice?
+- `apps/api/src/modules/produtos/produtos.service.ts` — createStockMovement + listStockMovements
+- `apps/api/src/modules/produtos/produtos.controller.ts` — POST/GET /api/v1/products/:id/movimentacoes
+- `apps/web/src/lib/api/produtos.ts` — createMovimento + listMovimentos
+- `apps/web/src/hooks/use-produtos.ts` — tipos StockMovement + StockMovementInput + createMovimento
+- `apps/web/src/components/produtos/movimentacao-estoque-modal.tsx` — modal com 4 tipos, preview de estoque, validações
+- `apps/web/src/app/(produtos)/produtos/page.tsx` — botão Movimentar em cada linha
+
+### Lógica de estoque
+- ENTRADA → stockQuantity + quantity
+- SAIDA → stockQuantity - quantity (valida saldo, retorna 400 se insuficiente)
+- AJUSTE / INVENTARIO → quantity (valor absoluto)
+- Transação atômica: cria StockMovement e atualiza Product em uma única $transaction
+
+### Frontend
+- Modal com seleção visual de tipo (4 cards coloridos)
+- Preview em tempo real: "Estoque atual 10 → 15 (+5)"
+- Motivo obrigatório para SAIDA e AJUSTE
+- Preço de custo opcional apenas para ENTRADA
+- Botão Movimentar (ArrowLeftRight) em cada linha da tabela
+
+### npx tsc --noEmit → 0 erros (backend e frontend)

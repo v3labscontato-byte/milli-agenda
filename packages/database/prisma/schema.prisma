@@ -77,6 +77,13 @@ enum ProductClassification {
   CONSUMABLE
 }
 
+enum StockMovementType {
+  ENTRADA
+  SAIDA
+  AJUSTE
+  INVENTARIO
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model Tenant {
@@ -140,6 +147,7 @@ model Tenant {
   chartOfAccounts     ChartOfAccount[]
   chartOfAccountEntries ChartOfAccountEntry[]
   expenses            Expense[]
+  stockMovements      StockMovement[]
 
   @@index([slug])
   @@map("tenants")
@@ -587,9 +595,10 @@ model Product {
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 
-  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  category     ServiceCategory? @relation(fields: [categoryId], references: [id])
-  commandItems CommandItem[]
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category       ServiceCategory? @relation(fields: [categoryId], references: [id])
+  commandItems   CommandItem[]
+  stockMovements StockMovement[]
 
   @@index([tenantId, active])
   @@map("products")
@@ -610,6 +619,24 @@ model Goal {
 
   @@index([tenantId])
   @@map("goals")
+}
+
+model StockMovement {
+  id          String            @id @default(cuid())
+  tenantId    String
+  productId   String
+  type        StockMovementType
+  quantity    Int
+  reason      String?
+  costPrice   Decimal?          @db.Decimal(10, 2)
+  createdAt   DateTime          @default(now())
+  createdBy   String
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([tenantId, productId])
+  @@map("stock_movements")
 }
 
 model Specialty {

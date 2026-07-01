@@ -5,6 +5,24 @@ import { produtosApi } from '@/lib/api/produtos'
 
 export type ProductUnit = 'UNIT' | 'ML' | 'G' | 'KG' | 'LITER'
 export type ProductClassification = 'RESALE' | 'INTERNAL_USE' | 'PROCEDURE' | 'CONSUMABLE'
+export type StockMovementType = 'ENTRADA' | 'SAIDA' | 'AJUSTE' | 'INVENTARIO'
+
+export interface StockMovement {
+  id: string
+  type: StockMovementType
+  quantity: number
+  reason: string | null
+  costPrice: number | null
+  createdAt: string
+  createdBy: string
+}
+
+export interface StockMovementInput {
+  type: StockMovementType
+  quantity: number
+  reason?: string
+  costPrice?: number
+}
 
 export interface Product {
   id: string
@@ -166,5 +184,10 @@ export function useProdutos(filters?: Record<string, string>) {
     await refetch()
   }, [refetch])
 
-  return { data, loading, error, stats, refetch, create, update, remove }
+  const createMovimento = useCallback(async (id: string, input: StockMovementInput) => {
+    await produtosApi.createMovimento(id, input)
+    await refetch()
+  }, [refetch])
+
+  return { data, loading, error, stats, refetch, create, update, remove, createMovimento }
 }

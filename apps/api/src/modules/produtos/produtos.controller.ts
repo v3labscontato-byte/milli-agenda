@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { ProdutosService } from './produtos.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
+import { CreateStockMovementDto } from './dto/stock-movement.dto'
 
 @UseGuards(JwtAuthGuard)
 @Controller('products')
@@ -66,5 +67,24 @@ export class ProdutosController {
     @Body('delta') delta: number,
   ) {
     return this.produtosService.adjustStock(tenantId, id, delta)
+  }
+
+  @Post(':id/movimentacoes')
+  createMovimento(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+    @Body() dto: CreateStockMovementDto,
+    @Req() req: { user: { email: string } },
+  ) {
+    const createdBy = req.user?.email ?? 'Sistema'
+    return this.produtosService.createStockMovement(tenantId, id, dto, createdBy)
+  }
+
+  @Get(':id/movimentacoes')
+  listMovimentos(
+    @TenantFromJwt() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.produtosService.listStockMovements(tenantId, id)
   }
 }

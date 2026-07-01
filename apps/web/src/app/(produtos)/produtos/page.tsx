@@ -1,10 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Search, Plus, X, Package, Pencil } from 'lucide-react'
+import { Search, Plus, X, Package, Pencil, ArrowLeftRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useProdutos, type Product } from '@/hooks/use-produtos'
+import { useProdutos, type Product, type StockMovementInput } from '@/hooks/use-produtos'
 import ProdutoModal from '@/components/produtos/produto-modal'
+import MovimentacaoEstoqueModal from '@/components/produtos/movimentacao-estoque-modal'
 import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 
 const formatBRL = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -37,9 +38,10 @@ export default function ProdutosPage() {
   const [lowStockFilter, setLowStockFilter] = useState(false)
   const [outOfStockFilter, setOutOfStockFilter] = useState(false)
   const [modalProduct, setModalProduct] = useState<Product | null | 'new'>(null)
+  const [movProduct, setMovProduct] = useState<Product | null>(null)
   const [kpiPeriod, setKpiPeriod] = useState<KpiPeriod>('mes')
 
-  const { data: products, loading, error, stats, create, update } = useProdutos()
+  const { data: products, loading, error, stats, create, update, createMovimento } = useProdutos()
 
   const kpiStats = useMemo(() => {
     const okCount = Math.max(0, stats.totalProducts - stats.lowStockCount - stats.outOfStockCount)
@@ -290,14 +292,26 @@ export default function ProdutosPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setModalProduct(p)}
-                      aria-label={`Editar ${p.name}`}
-                      className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
-                    >
-                      <Pencil size={14} aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setMovProduct(p)}
+                        aria-label={`Movimentar estoque de ${p.name}`}
+                        title="Movimentar estoque"
+                        className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[#7C3AED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F3E8FF]"
+                      >
+                        <ArrowLeftRight size={14} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setModalProduct(p)}
+                        aria-label={`Editar ${p.name}`}
+                        title="Editar produto"
+                        className="flex h-8 w-8 items-center justify-center rounded text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+                      >
+                        <Pencil size={14} aria-hidden="true" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -306,7 +320,7 @@ export default function ProdutosPage() {
         )}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── Modal edição ── */}
       <ProdutoModal
         open={modalProduct !== null}
         product={modalProduct === 'new' ? null : modalProduct}
@@ -317,6 +331,16 @@ export default function ProdutosPage() {
           } else {
             await update(modalProduct.id, input)
           }
+        }}
+      />
+
+      {/* ── Modal movimentação ── */}
+      <MovimentacaoEstoqueModal
+        open={movProduct !== null}
+        product={movProduct}
+        onClose={() => setMovProduct(null)}
+        onSave={async (input: StockMovementInput) => {
+          if (movProduct) await createMovimento(movProduct.id, input)
         }}
       />
     </div>

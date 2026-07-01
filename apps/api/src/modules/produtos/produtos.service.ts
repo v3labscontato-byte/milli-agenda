@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+import { StockMovementType } from '@prisma/client'
 import { DatabaseService } from '../../infra/database/database.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
+import { CreateStockMovementDto } from './dto/stock-movement.dto'
 
 interface FindAllFilters {
   onlyActive?: boolean
@@ -115,6 +117,52 @@ export class ProdutosService {
     return this.db.product.update({
       where: { id },
       data: { stockQuantity: newQuantity },
+    })
+  }
+
+  async createStockMovement(tenantId: string, productId: string, dto: CreateStockMovementDto, createdBy: string) {
+    const product = await this.findOne(tenantId, productId)
+
+    let newQuantity: number
+    if (dto.type === StockMovementType.ENTRADA) {
+      newQuantity = product.stockQuantity + dto.quantity
+    } else if (dto.type === StockMovementType.SAIDA) {
+      if (product.stockQuantity < dto.quantity) {
+        throw new BadRequestException(`Estoque insuficiente (disponível: ${product.stockQuantity})`)
+      }
+      newQuantity = product.stockQuantity - dto.quantity
+    } else {
+      // AJUSTE e INVENTARIO substituem o valor absoluto
+      newQuantity = dto.quantity
+    }
+
+    const [movement] = await this.db.$transaction([
+      this.db.stockMovement.create({
+        data: {
+          tenantId,
+          productId,
+          type: dto.type,
+          quantity: dto.quantity,
+          reason: dto.reason ?? null,
+          costPrice: dto.costPrice ?? null,
+          createdBy,
+        },
+      }),
+      this.db.product.update({
+        where: { id: productId },
+        data: { stockQuantity: newQuantity },
+      }),
+    ])
+
+    return movement
+  }
+
+  async listStockMovements(tenantId: string, productId: string) {
+    await this.findOne(tenantId, productId)
+    return this.db.stockMovement.findMany({
+      where: { tenantId, productId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     })
   }
 

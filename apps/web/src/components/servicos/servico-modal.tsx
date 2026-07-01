@@ -33,7 +33,7 @@ function TabDetalhes({ s }: { s: Servico }) {
 
       {/* Info row */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <span className="text-[11px] text-[#94A3B8]">Duração</span>
           <div className="flex items-center gap-1.5">
             <Clock size={13} className="text-[#475569]" aria-hidden="true" />
@@ -42,13 +42,13 @@ function TabDetalhes({ s }: { s: Servico }) {
             </span>
           </div>
         </div>
-        <div className="flex flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <span className="text-[11px] text-[#94A3B8]">Preço</span>
           <span className="font-tabular text-[14px] font-semibold text-[#0F172A]">
             {formatBRL(s.price)}
           </span>
         </div>
-        <div className="flex flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <span className="text-[11px] text-[#94A3B8]">Categoria</span>
           <CategoryBadge category={s.category} />
         </div>
@@ -56,11 +56,11 @@ function TabDetalhes({ s }: { s: Servico }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <span className="text-[11px] text-[#94A3B8]">Agendamentos este mês</span>
           <span className="font-tabular text-[16px] font-bold text-[#0F172A]">{s.bookingsThisMonth}</span>
         </div>
-        <div className="flex flex-col gap-1 rounded-lg border border-[#E2E8F0] bg-white px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <span className="text-[11px] text-[#94A3B8]">Faturamento este mês</span>
           <span className="font-tabular text-[16px] font-bold text-[#0F172A]">{formatBRL(s.revenueThisMonth)}</span>
         </div>
@@ -279,7 +279,7 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-start gap-4 border-b border-[#F1F5F9] px-6 py-4">
+        <div className="flex shrink-0 items-start gap-4 border-b border-[#E2E8F0] px-6 py-4">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-[16px] font-semibold text-[#0F172A]">{s.name}</h2>
@@ -295,14 +295,14 @@ export default function ServicoModal({ servico, onClose }: ServicoModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex shrink-0 border-b border-[#F1F5F9]" role="tablist">
+        <div className="flex shrink-0 border-b border-[#E2E8F0]" role="tablist">
           {tabs.map((t) => (
             <button
               key={t.id}

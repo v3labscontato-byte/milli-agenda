@@ -7,10 +7,10 @@ import type { ServicoStatus } from '@/lib/servicos-mock'
 import type { ServicoInput } from '@/hooks/use-servicos'
 import PhotoUpload from '@/components/shared/photo-upload'
 
-const LABEL = 'text-[12px] font-medium text-[#475569]'
+const LABEL = 'text-sm font-medium text-[#64748B]'
 const INPUT = cn(
-  'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
-  'placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
+  'w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-[13px] text-[#0F172A]',
+  'placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
 
 interface FormState {
@@ -134,18 +134,21 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-              <Scissors size={14} className="text-[#2563EB]" aria-hidden="true" />
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EFF6FF]">
+              <Scissors size={16} className="text-[#2563EB]" aria-hidden="true" />
             </div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Serviço</h2>
+            <div>
+              <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Serviço</h2>
+              <p className="text-[12px] text-[#64748B]">Preencha os dados do novo serviço</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -194,14 +197,14 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
                     <button
                       type="button"
                       onClick={handleCriarCategoria}
-                      className="px-3 py-2 bg-[#2563EB] text-white text-[12px] rounded-md whitespace-nowrap"
+                      className="rounded-xl bg-[#2563EB] px-3 py-2 text-[12px] font-semibold text-white whitespace-nowrap hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                     >
                       Criar
                     </button>
                     <button
                       type="button"
                       onClick={() => setNovaCategoria(false)}
-                      className="px-3 py-2 text-[12px] text-[#64748B] whitespace-nowrap"
+                      className="rounded-xl border border-[#E2E8F0] px-3 py-2 text-[12px] font-medium text-[#64748B] whitespace-nowrap hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                     >
                       Cancelar
                     </button>
@@ -251,7 +254,7 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
             </div>
 
             {/* Fotos */}
-            <div className="border-t border-[#F1F5F9] pt-5">
+            <div className="border-t border-[#E2E8F0] pt-5">
               <PhotoUpload
                 photos={form.photos}
                 onChange={(photos) => setForm((f) => ({ ...f, photos }))}
@@ -265,16 +268,16 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 flex-col gap-2 border-t border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 flex-col gap-2 border-t border-[#E2E8F0] px-5 py-4">
           {submitError && (
-            <p className="text-[12px] text-[#DC2626]" role="alert">{submitError}</p>
+            <p className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium text-[#DC2626]" role="alert">{submitError}</p>
           )}
           <div className="flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50"
+              className="rounded-xl border border-[#E2E8F0] px-4 py-2.5 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -282,10 +285,10 @@ export default function NovoServicoModal({ open, onClose, onCreate }: NovoServic
               type="submit"
               form="novo-serv-form"
               disabled={saving}
-              className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60"
             >
               <Scissors size={13} aria-hidden="true" />
-              {saving ? 'Cadastrando…' : 'Cadastrar'}
+              {saving ? 'Cadastrando…' : 'Cadastrar serviço'}
             </button>
           </div>
         </div>

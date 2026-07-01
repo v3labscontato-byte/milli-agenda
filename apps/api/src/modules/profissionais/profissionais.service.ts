@@ -130,7 +130,7 @@ export class ProfissionaisService {
   }
 
   async disponibilidade(tenantId: string, id: string, date: string, durationMin: number) {
-    await this.findOne(tenantId, id)
+    const prof = await this.findOne(tenantId, id)
     const dateObj = new Date(date)
 
     const [schedules, appointments, tenant] = await Promise.all([
@@ -159,7 +159,17 @@ export class ProfissionaisService {
     const maxDate = new Date(today.getTime() + maxAdvanceDays * 86_400_000)
     if (dateObj > maxDate) return []
 
-    const allSlots = getAvailableSlots(dateObj, schedules, appointments, durationMin, slotGapMinutes)
+    // Fallback: when no Schedule records exist, derive availability from workDays/workStart/workEnd
+    const effectiveSchedules =
+      schedules.length > 0
+        ? schedules
+        : prof.workDays.map((d) => ({
+            dayOfWeek: d,
+            startTime: prof.workStart ?? '08:00',
+            endTime: prof.workEnd ?? '18:00',
+          }))
+
+    const allSlots = getAvailableSlots(dateObj, effectiveSchedules, appointments, durationMin, slotGapMinutes)
 
     if (minAdvanceHours === 0) return allSlots
 

@@ -6,6 +6,17 @@ export interface UpdateSettingsData {
   document?: string
   email?: string
   logoUrl?: string
+  businessHours?: object
+  slotGapMinutes?: number
+  minAdvanceHours?: number
+  maxAdvanceDays?: number
+  acceptedPaymentMethods?: string[]
+  slogan?: string
+  address?: string
+  neighborhood?: string
+  cep?: string
+  city?: string
+  state?: string
 }
 
 export const configuracoesApi = {

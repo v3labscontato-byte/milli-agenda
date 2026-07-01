@@ -13,6 +13,17 @@ export interface TenantSettings {
   plan: string
   trialEndsAt: string | null
   createdAt: string
+  businessHours: object | null
+  slotGapMinutes: number
+  minAdvanceHours: number
+  maxAdvanceDays: number
+  acceptedPaymentMethods: string[]
+  slogan: string | null
+  address: string | null
+  neighborhood: string | null
+  cep: string | null
+  city: string | null
+  state: string | null
 }
 
 export function useConfiguracoes() {

@@ -2233,3 +2233,67 @@ Arquivo: `apps/web/src/components/configuracoes/section-categorias-servicos.tsx`
 ### Validação
 - `npx tsc --noEmit` → 0 erros
 - CRUD validado via Playwright pendente (requer servidor rodando)
+
+---
+
+## 2026-06-30 — ITEM 2: Horários de Funcionamento — persistência real
+
+### Causa raiz
+`section-horarios.tsx` usava `useSaveState()` (animação visual) e `MOCK_BUSINESS_HOURS` hardcoded. Nenhum dado era salvo no banco.
+
+### Solução
+**Backend:**
+- `update-settings.dto.ts`: novos campos `businessHours`, `slotGapMinutes`, `minAdvanceHours`, `maxAdvanceDays`, `acceptedPaymentMethods`, `slogan`, `address`, `neighborhood`, `cep`, `city`, `state`
+- `settings.service.ts`: `SETTINGS_SELECT` centralizado com todos os novos campos em `getSettings` e `updateSettings`
+
+**Frontend:**
+- `use-configuracoes.ts`: `TenantSettings` expandido com todos os novos campos
+- `lib/api/configuracoes.ts`: `UpdateSettingsData` expandido
+- `section-horarios.tsx`: substituído `useSaveState()` por `useConfiguracoes().update()`. `useEffect` popula state local a partir de `settings.businessHours` (JSONB) + campos escalares `slotGapMinutes`/`minAdvanceHours`/`maxAdvanceDays`. Fallback para `MOCK_BUSINESS_HOURS` quando campo ainda null no banco.
+
+### Estrutura salva no banco
+- `businessHours` JSONB: `{ days: DaySchedule[], lunchBreak: LunchBreak }`
+- `slotGapMinutes` / `minAdvanceHours` / `maxAdvanceDays`: colunas escalares (mais fácil consultar na agenda)
+
+### Validação
+- `npx tsc --noEmit` → 0 erros (web + api)
+
+---
+
+## 2026-06-30 — ITEM 3: Formas de Pagamento — persistência e reflexo na Comanda
+
+### Causa raiz
+`section-pagamentos.tsx` usava `useSaveState()` e estado local nunca persistido. `payment-modal.tsx` mostrava todos os 6 métodos sempre, ignorando configuração do salão.
+
+### Solução
+**`section-pagamentos.tsx`:**
+- `useConfiguracoes()` popula booleans de cada método a partir de `settings.acceptedPaymentMethods` (array de strings da API)
+- Mapping bidirecional `KEY_TO_METHOD` / `METHOD_TO_KEY` entre UI booleans e enum strings do backend
+- Salva PATCH /api/v1/settings com `{ acceptedPaymentMethods: string[] }`
+
+**`payment-modal.tsx`:**
+- Importa `configuracoesApi`; adiciona `acceptedIds` state (default: todos os 6)
+- `useEffect` busca settings ao abrir o modal → filtra `METHODS` por `acceptedIds`
+- Fallback silencioso: se fetch falhar, exibe todos os métodos
+
+### Validação
+- `npx tsc --noEmit` → 0 erros
+
+---
+
+## 2026-06-30 — ITEM 4: Meu Salão — slogan e endereço persistidos
+
+### Causa raiz
+`section-meu-salao.tsx` persistia apenas name/phone/email/document/logoUrl. Campos slogan/address/neighborhood/cep/city/state não existiam no schema (agora existem após migration 20260630200000).
+
+### Solução
+**`section-meu-salao.tsx`:**
+- `SalonForm` estendido com `slogan`, `address`, `neighborhood`, `cep`, `city`, `state`
+- `useEffect` popula todos os campos a partir de `settings`
+- `handleSave()` inclui todos os campos novos no PATCH
+- Novo `SectionCard "Endereço"` com campos CEP (1 col) + Logradouro (2 col) + Bairro + Cidade + Estado
+- Campo Slogan adicionado abaixo de Nome na seção Dados do Salão
+- `coverUrl`: mantido como preview local (persistência requer coluna no schema — Onda futura)
+
+### Validação
+- `npx tsc --noEmit` → 0 erros

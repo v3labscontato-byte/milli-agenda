@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MOCK_BUSINESS_HOURS, HOUR_OPTIONS, type BusinessHours, type DaySchedule } from '@/lib/configuracoes-mock'
-import { Toggle, SelectInput, SectionCard, SaveButton, useSaveState } from './_primitives'
+import { Toggle, SelectInput, SectionCard, SaveButton, type SaveState } from './_primitives'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
 
 function HourSelect({ id, value, onChange, label }: { id: string; value: string; onChange: (v: string) => void; label: string }) {
   return (
@@ -15,8 +16,22 @@ function HourSelect({ id, value, onChange, label }: { id: string; value: string;
 }
 
 export default function SectionHorarios() {
+  const { settings, loading, update } = useConfiguracoes()
   const [hours, setHours] = useState<BusinessHours>(MOCK_BUSINESS_HOURS)
-  const [saveState, triggerSave] = useSaveState()
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    if (!settings) return
+    const bh = settings.businessHours as { days?: DaySchedule[]; lunchBreak?: BusinessHours['lunchBreak'] } | null
+    setHours({
+      days: bh?.days ?? MOCK_BUSINESS_HOURS.days,
+      lunchBreak: bh?.lunchBreak ?? MOCK_BUSINESS_HOURS.lunchBreak,
+      slotGapMinutes: settings.slotGapMinutes ?? MOCK_BUSINESS_HOURS.slotGapMinutes,
+      minAdvanceHours: settings.minAdvanceHours ?? MOCK_BUSINESS_HOURS.minAdvanceHours,
+      maxAdvanceDays: settings.maxAdvanceDays ?? MOCK_BUSINESS_HOURS.maxAdvanceDays,
+    })
+  }, [settings])
 
   function updateDay(index: number, patch: Partial<DaySchedule>) {
     setHours((prev) => {
@@ -24,6 +39,36 @@ export default function SectionHorarios() {
       days[index] = { ...days[index], ...patch }
       return { ...prev, days }
     })
+  }
+
+  async function handleSave() {
+    setSaveError('')
+    setSaveState('saving')
+    const result = await update({
+      businessHours: { days: hours.days, lunchBreak: hours.lunchBreak },
+      slotGapMinutes: hours.slotGapMinutes,
+      minAdvanceHours: hours.minAdvanceHours,
+      maxAdvanceDays: hours.maxAdvanceDays,
+    })
+    if (result.success) {
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 2000)
+    } else {
+      setSaveError(result.error ?? 'Erro ao salvar')
+      setSaveState('error')
+      setTimeout(() => setSaveState('idle'), 3000)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl space-y-5 px-8 py-6">
+          <div className="h-6 w-48 animate-pulse rounded bg-[#E2E8F0]" />
+          <div className="h-64 animate-pulse rounded-lg bg-[#E2E8F0]" />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -182,8 +227,11 @@ export default function SectionHorarios() {
           </div>
         </SectionCard>
 
-        <div className="flex justify-end pb-6">
-          <SaveButton state={saveState} onClick={triggerSave} label="Salvar horários" />
+        <div className="flex flex-col items-end gap-2 pb-6">
+          {saveError && (
+            <p className="text-[12px] text-[#DC2626]" role="alert">{saveError}</p>
+          )}
+          <SaveButton state={saveState} onClick={() => { void handleSave() }} label="Salvar horários" />
         </div>
       </div>
     </div>

@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTenantSlug } from '@/components/booking/tenant-context'
 
-// Read at module level so Next.js DefinePlugin replaces at build time
-const TENANT_SLUG = process.env.NEXT_PUBLIC_TENANT_SLUG ?? ''
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
 export interface PublicTenant {
@@ -21,13 +20,14 @@ export interface PublicTenant {
 }
 
 export function usePublicTenant(): { tenant: PublicTenant | null; loading: boolean } {
+  const tenantSlug = useTenantSlug()
   const [tenant, setTenant] = useState<PublicTenant | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!TENANT_SLUG) { setLoading(false); return }
+    if (!tenantSlug) { setLoading(false); return }
 
-    fetch(`${API_BASE}/api/v1/settings/public/${TENANT_SLUG}`)
+    fetch(`${API_BASE}/api/v1/settings/public/${tenantSlug}`)
       .then((r) => r.json())
       .then((json: unknown) => {
         const raw = json as Record<string, unknown>
@@ -36,7 +36,7 @@ export function usePublicTenant(): { tenant: PublicTenant | null; loading: boole
       })
       .catch(() => { /* keep null — falls back to mock data */ })
       .finally(() => setLoading(false))
-  }, [])
+  }, [tenantSlug])
 
   return { tenant, loading }
 }

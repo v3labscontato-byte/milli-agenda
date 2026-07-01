@@ -63,8 +63,7 @@ export default function BookingShell({ children }: { children: React.ReactNode }
       <main
         id="main-content"
         aria-label="Conteúdo principal"
-        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}
-        className="pb-[70px]"
+        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
       >
         {children}
       </main>

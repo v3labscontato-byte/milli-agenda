@@ -3452,3 +3452,33 @@ O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada
 - BottomNav: `w-full shrink-0` — sempre visível, sem sobreposição
 
 ### npx tsc --noEmit → 0 erros
+
+---
+
+## [2026-07-01] Claude — fix(booking): P0 manifest middleware, P1 sticky CTA, P2 scrollbar e touch target
+
+**Status:** ✅ Concluído  
+**Branch:** homolog
+
+### Contexto
+Correções identificadas no Impeccable audit pós-deploy do commit 7cee8fb (PWA manifest + 100dvh).
+
+### P0 — manifest.json interceptado pelo middleware
+**Arquivo:** `apps/web/src/middleware.ts`  
+Adicionado `manifest\.json` à regex de exclusão do matcher:  
+`/((?!api|_next/static|_next/image|favicon.ico|manifest\.json).*)`  
+Sem isso, `/manifest.json` era redirecionado para `/login` (HTML 200), impedindo instalação do PWA.
+
+### P1 — Sticky CTA sobrepondo cards de profissionais
+**Arquivo:** `apps/web/src/app/(booking)/_booking-shell.tsx`  
+Removido `pb-[70px]` do `<main>`. O padding foi herdado da era do BottomNav fixo (necessário para conteúdo não ficar sob o nav). Com o nav como flex sibling, o padding criava um offset de 70px no sticky bottom-0, deslocando o CTA para cima e sobrepondo os cards de profissionais.
+
+### P2 — Scrollbar visível no main
+**Arquivo:** `apps/web/src/app/(booking)/_booking-shell.tsx` + `apps/web/src/app/globals.css`  
+Adicionado `scrollbarWidth: 'none'`, `msOverflowStyle: 'none'` no style inline do `<main>` e `#main-content::-webkit-scrollbar { display: none }` no globals.css.
+
+### P2 — Touch target bell icon
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+`h-10 w-10` (40px) → `h-11 w-11` (44px) no link do ícone de notificações. Alinha com WCAG 2.5.5 (44×44px mínimo).
+
+### npx tsc --noEmit → 0 erros

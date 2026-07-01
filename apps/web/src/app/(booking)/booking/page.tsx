@@ -103,7 +103,7 @@ export default function BookingHomePage() {
         <Link
           href="/booking/notificacoes"
           aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
-          className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#9c9899] transition-transform duration-100 hover:bg-[#f5f5f5] active:scale-90"
+          className="relative flex h-11 w-11 items-center justify-center rounded-full text-[#9c9899] transition-transform duration-100 hover:bg-[#f5f5f5] active:scale-90"
         >
           <Bell size={20} aria-hidden="true" />
           {unread > 0 && (

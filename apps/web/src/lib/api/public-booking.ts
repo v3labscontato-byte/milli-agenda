@@ -87,6 +87,54 @@ export function createPublicAppointment(
   })
 }
 
+export interface PublicClientInfo {
+  id: string
+  name: string
+  phone: string | null
+  email: string | null
+}
+
+export interface PublicAppointmentItem {
+  id: string
+  status: string
+  startAt: string
+  endAt: string
+  notes: string | null
+  service: { name: string; durationMin: number; price: string | number }
+  professional: { name: string; avatarUrl: string | null; specialty: string | null }
+}
+
+export interface PublicClientAppointments {
+  client: PublicClientInfo | null
+  appointments: PublicAppointmentItem[]
+}
+
+export function fetchPublicClientAppointments(
+  slug: string,
+  phone: string,
+): Promise<PublicClientAppointments> {
+  return apiFetch(`${API_BASE}/api/v1/public/${slug}/appointments?phone=${encodeURIComponent(phone)}`)
+}
+
+export function fetchPublicAppointmentById(
+  slug: string,
+  id: string,
+): Promise<PublicAppointmentItem> {
+  return apiFetch(`${API_BASE}/api/v1/public/${slug}/appointments/${id}`)
+}
+
+export function cancelPublicAppointment(
+  slug: string,
+  id: string,
+  phone: string,
+): Promise<{ id: string; status: string }> {
+  return apiFetch(`${API_BASE}/api/v1/public/${slug}/appointments/${id}/cancel`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone }),
+  })
+}
+
 export function slotToTimeStr(iso: string): string {
   const d = new Date(iso)
   return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`

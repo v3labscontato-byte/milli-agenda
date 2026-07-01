@@ -1,57 +1,86 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Calendar, User, Star, X, AlertTriangle } from 'lucide-react'
+import { Calendar, User, X, AlertTriangle, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  UPCOMING_APPOINTMENTS, PAST_APPOINTMENTS,
-  formatPrice, type BookingAppointment, type AppointmentStatus,
-} from '@/lib/booking-mock'
-import AvaliacaoModal from '@/components/booking/avaliacao-modal'
+  fetchPublicClientAppointments,
+  cancelPublicAppointment,
+  TENANT_SLUG,
+  type PublicAppointmentItem,
+} from '@/lib/api/public-booking'
+import { useBookingClient, type BookingClientInfo } from '@/hooks/use-booking-client'
+import { usePublicTenant } from '@/hooks/use-public-tenant'
+import PhoneIdentify from '@/components/booking/phone-identify'
 
+type ActiveStatus = 'SCHEDULED' | 'CONFIRMED' | 'CHECKED_IN' | 'IN_SERVICE' | 'AWAITING_PAYMENT'
+type DoneStatus   = 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
 type Tab = 'upcoming' | 'history'
 
-const STATUS_LABEL: Record<AppointmentStatus, string> = {
-  CONFIRMED: 'Confirmado', SCHEDULED: 'Agendado', COMPLETED: 'Concluído', CANCELLED: 'Cancelado',
-}
-const STATUS_COLOR: Record<AppointmentStatus, string> = {
-  CONFIRMED: 'bg-status-confirmed-bg text-status-confirmed-text',
-  SCHEDULED: 'bg-status-scheduled-bg text-status-scheduled-text',
-  COMPLETED: 'bg-background-secondary text-content-secondary',
-  CANCELLED: 'bg-status-cancelled-bg text-status-cancelled-text',
+const STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: 'Agendado', CONFIRMED: 'Confirmado', CHECKED_IN: 'Check-in',
+  IN_SERVICE: 'Em atendimento', AWAITING_PAYMENT: 'Aguardando pag.',
+  COMPLETED: 'Concluído', CANCELLED: 'Cancelado', NO_SHOW: 'Não compareceu',
 }
 
-const MOTIVOS = ['Compromisso imprevisto', 'Problema de saúde', 'Questão financeira', 'Mudança de planos', 'Outro']
-
-function isFreeCancel(date: Date): boolean {
-  return date.getTime() - Date.now() > 24 * 60 * 60 * 1000
+const STATUS_COLOR: Record<string, string> = {
+  SCHEDULED:        'bg-[#DBEAFE] text-[#2563EB]',
+  CONFIRMED:        'bg-[#DBEAFE] text-[#2563EB]',
+  CHECKED_IN:       'bg-[#DBEAFE] text-[#2563EB]',
+  IN_SERVICE:       'bg-[#DBEAFE] text-[#2563EB]',
+  AWAITING_PAYMENT: 'bg-[#FEF9C3] text-[#CA8A04]',
+  COMPLETED:        'bg-[#DCFCE7] text-[#16A34A]',
+  CANCELLED:        'bg-[#F1F5F9] text-[#64748B]',
+  NO_SHOW:          'bg-[#FEE2E2] text-[#DC2626]',
 }
 
-function StarRating({ n }: { n: number }) {
-  return (
-    <span className="flex items-center gap-0.5" aria-label={`${n} estrelas`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} size={12} className={cn('transition-colors', i < n ? 'fill-warning text-warning' : 'text-border')} aria-hidden="true" />
-      ))}
-    </span>
-  )
+const ACTIVE_STATUSES: string[] = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN', 'IN_SERVICE', 'AWAITING_PAYMENT']
+
+function isUpcoming(appt: PublicAppointmentItem): boolean {
+  return ACTIVE_STATUSES.includes(appt.status) && new Date(appt.startAt) > new Date()
 }
 
-interface CancelModalProps { appt: BookingAppointment; onConfirm: () => void; onClose: () => void }
+function formatApptDate(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }) +
+    ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
 
-function CancelModal({ appt, onConfirm, onClose }: CancelModalProps) {
-  const [motivo, setMotivo] = useState('')
+function formatPrice(value: string | number): string {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+// ─── Cancel Modal ────────────────────────────────────────────────────────────
+
+interface CancelModalProps {
+  appt: PublicAppointmentItem
+  phone: string
+  minHours: number
+  feePercent: number
+  onConfirm: (id: string) => void
+  onClose: () => void
+}
+
+function CancelModal({ appt, phone, minHours, feePercent, onConfirm, onClose }: CancelModalProps) {
   const [loading, setLoading] = useState(false)
-  const free = isFreeCancel(appt.date)
-  const fee  = free ? 0 : appt.price * 0.5
+  const [error, setError]     = useState('')
+
+  const hoursUntil = (new Date(appt.startAt).getTime() - Date.now()) / 3_600_000
+  const freeCancel = hoursUntil >= minHours
 
   async function handleConfirm() {
-    if (!motivo) return
+    setError('')
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 700))
-    onConfirm()
+    try {
+      await cancelPublicAppointment(TENANT_SLUG, appt.id, phone)
+      onConfirm(appt.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao cancelar. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -75,44 +104,40 @@ function CancelModal({ appt, onConfirm, onClose }: CancelModalProps) {
         </div>
 
         <p className="text-[14px] text-content-secondary">
-          {appt.serviceEmoji} {appt.service} · {appt.dateLabel}
+          {appt.service.name} · {formatApptDate(appt.startAt)}
         </p>
 
-        {/* Policy */}
-        <div className={cn('mt-4 flex items-start gap-3 rounded-2xl p-4', free ? 'bg-success-xlight' : 'bg-warning-light border border-warning-border')}>
-          <AlertTriangle size={18} className={free ? 'text-success-medium' : 'text-warning-medium'} aria-hidden="true" />
+        <div className={cn(
+          'mt-4 flex items-start gap-3 rounded-2xl p-4',
+          freeCancel ? 'bg-[#DCFCE7]' : 'bg-[#FEF9C3] border border-[#FDE68A]',
+        )}>
+          <AlertTriangle size={18} className={freeCancel ? 'text-[#16A34A]' : 'text-[#CA8A04]'} aria-hidden="true" />
           <div>
-            {free ? (
+            {freeCancel ? (
               <>
-                <p className="text-[13px] font-semibold text-success-medium">Cancelamento gratuito</p>
-                <p className="text-[12px] text-content-secondary">Agendamento com mais de 24h — sem cobrança.</p>
+                <p className="text-[13px] font-semibold text-[#16A34A]">Cancelamento gratuito</p>
+                <p className="text-[12px] text-content-secondary">
+                  Com mais de {minHours}h de antecedência — sem cobrança.
+                </p>
               </>
             ) : (
               <>
-                <p className="text-[13px] font-semibold text-warning-medium">Taxa de {formatPrice(fee)}</p>
-                <p className="text-[12px] text-content-secondary">Menos de 24h de antecedência — 50% do valor cobrado.</p>
+                <p className="text-[13px] font-semibold text-[#CA8A04]">Fora do prazo de cancelamento</p>
+                <p className="text-[12px] text-content-secondary">
+                  Cancelamentos devem ser feitos com pelo menos {minHours}h de antecedência.
+                  {feePercent > 0 && ` Taxa de ${feePercent}% pode ser cobrada.`}
+                </p>
               </>
             )}
           </div>
         </div>
 
-        {/* Motivo */}
-        <div className="mt-4">
-          <label htmlFor="cancel-motivo" className="mb-1.5 block text-[12px] font-medium text-content-secondary">
-            Motivo do cancelamento <span className="text-danger-medium">*</span>
-          </label>
-          <select
-            id="cancel-motivo"
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-4 py-3 text-body text-content-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-light"
-          >
-            <option value="">Selecione um motivo</option>
-            {MOTIVOS.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
+        {error && (
+          <p className="mt-3 rounded-xl border border-[#FEE2E2] bg-[#FEE2E2] px-4 py-2 text-[13px] text-[#DC2626]">
+            {error}
+          </p>
+        )}
 
-        {/* Actions */}
         <div className="mt-5 flex gap-2">
           <button
             type="button"
@@ -123,13 +148,13 @@ function CancelModal({ appt, onConfirm, onClose }: CancelModalProps) {
           </button>
           <button
             type="button"
-            disabled={!motivo || loading}
+            disabled={loading}
             onClick={handleConfirm}
             className={cn(
-              'flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-danger-border',
-              motivo && !loading
-                ? 'bg-danger-medium text-white hover:bg-danger-strong'
+              'flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#DC2626]',
+              !loading
+                ? 'bg-[#DC2626] text-white hover:bg-[#B91C1C]'
                 : 'cursor-not-allowed bg-background-secondary text-content-muted',
             )}
           >
@@ -142,11 +167,13 @@ function CancelModal({ appt, onConfirm, onClose }: CancelModalProps) {
   )
 }
 
+// ─── Appointment Cards ────────────────────────────────────────────────────────
+
 interface UpcomingCardProps {
-  appt: BookingAppointment
+  appt: PublicAppointmentItem
   idx: number
-  onCancelRequest: (appt: BookingAppointment) => void
-  onReschedule: (appt: BookingAppointment) => void
+  onCancelRequest: (appt: PublicAppointmentItem) => void
+  onReschedule: (appt: PublicAppointmentItem) => void
 }
 
 function UpcomingCard({ appt, idx, onCancelRequest, onReschedule }: UpcomingCardProps) {
@@ -156,20 +183,25 @@ function UpcomingCard({ appt, idx, onCancelRequest, onReschedule }: UpcomingCard
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
   )
   return (
-    <div className="animate-fade-in motion-reduce:animate-none rounded-2xl border border-border bg-white p-4" style={{ animationDelay: `${idx * 60}ms` }}>
+    <div
+      className="animate-fade-in motion-reduce:animate-none rounded-2xl border border-border bg-white p-4"
+      style={{ animationDelay: `${idx * 60}ms` }}
+    >
       <div className="mb-3 flex items-start justify-between gap-2">
-        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', STATUS_COLOR[appt.status])}>
-          {STATUS_LABEL[appt.status]}
+        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', STATUS_COLOR[appt.status] ?? 'bg-[#F1F5F9] text-[#64748B]')}>
+          {STATUS_LABEL[appt.status] ?? appt.status}
         </span>
-        <span className="tabular-nums text-[14px] font-bold text-content-primary">{formatPrice(appt.price)}</span>
+        <span className="tabular-nums text-[14px] font-bold text-content-primary">
+          {formatPrice(appt.service.price)}
+        </span>
       </div>
-      <p className="text-[16px] font-semibold text-content-primary">{appt.serviceEmoji} {appt.service}</p>
+      <p className="text-[16px] font-semibold text-content-primary">{appt.service.name}</p>
       <div className="mt-2 space-y-1">
         <p className="flex items-center gap-2 text-[13px] text-content-secondary">
-          <Calendar size={13} aria-hidden="true" />{appt.dateLabel}
+          <Calendar size={13} aria-hidden="true" />{formatApptDate(appt.startAt)}
         </p>
         <p className="flex items-center gap-2 text-[13px] text-content-secondary">
-          <User size={13} aria-hidden="true" />{appt.professional} · Salão Bella Vista
+          <User size={13} aria-hidden="true" />{appt.professional.name}
         </p>
       </div>
       <div className="mt-4 flex gap-2">
@@ -183,7 +215,7 @@ function UpcomingCard({ appt, idx, onCancelRequest, onReschedule }: UpcomingCard
         <button
           type="button"
           onClick={() => onCancelRequest(appt)}
-          className={cn(actionBtn, 'border-border text-danger-medium hover:border-danger-medium')}
+          className={cn(actionBtn, 'border-border text-[#DC2626] hover:border-[#DC2626]')}
         >
           Cancelar
         </button>
@@ -192,88 +224,121 @@ function UpcomingCard({ appt, idx, onCancelRequest, onReschedule }: UpcomingCard
   )
 }
 
-interface PastCardProps { appt: BookingAppointment; idx: number; onRate: (appt: BookingAppointment) => void }
-
-function PastCard({ appt, idx, onRate }: PastCardProps) {
+function PastCard({ appt, idx }: { appt: PublicAppointmentItem; idx: number }) {
   return (
-    <div className="animate-fade-in motion-reduce:animate-none rounded-2xl border border-border bg-white p-4" style={{ animationDelay: `${idx * 60}ms` }}>
+    <div
+      className="animate-fade-in motion-reduce:animate-none rounded-2xl border border-border bg-white p-4"
+      style={{ animationDelay: `${idx * 60}ms` }}
+    >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <span className="text-[11px] font-semibold text-content-subtle">✓ {STATUS_LABEL[appt.status]} · {appt.dateLabel}</span>
-        <span className="tabular-nums text-[13px] font-semibold text-content-secondary">{formatPrice(appt.price)}</span>
+        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', STATUS_COLOR[appt.status] ?? 'bg-[#F1F5F9] text-[#64748B]')}>
+          {STATUS_LABEL[appt.status] ?? appt.status}
+        </span>
+        <span className="tabular-nums text-[13px] font-semibold text-content-secondary">
+          {formatPrice(appt.service.price)}
+        </span>
       </div>
-      <p className="text-[14px] font-medium text-content-primary">{appt.serviceEmoji} {appt.service} · {appt.professional}</p>
-      <div className="mt-3 flex items-center gap-3">
-        {appt.rated ? (
-          <StarRating n={5} />
-        ) : (
-          <button
-            type="button"
-            onClick={() => onRate(appt)}
-            className={cn(
-              'flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border px-4',
-              'text-[13px] font-medium text-content-secondary',
-              'transition-colors hover:border-warning hover:text-warning-medium',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-light',
-            )}
-          >
-            <Star size={13} aria-hidden="true" />
-            Avaliar
-          </button>
-        )}
-      </div>
+      <p className="text-[14px] font-medium text-content-primary">{appt.service.name} · {appt.professional.name}</p>
+      <p className="mt-1 text-[12px] text-content-subtle">{formatApptDate(appt.startAt)}</p>
     </div>
   )
 }
 
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function Skeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#F1F5F9]" />
+      ))}
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
 export default function MeusAgendamentosPage() {
   const router = useRouter()
-  const [activeTab,   setActiveTab]   = useState<Tab>('upcoming')
-  const [upcoming,    setUpcoming]    = useState<BookingAppointment[]>(UPCOMING_APPOINTMENTS)
-  const [past,        setPast]        = useState<BookingAppointment[]>(PAST_APPOINTMENTS)
-  const [cancelTarget, setCancelTarget] = useState<BookingAppointment | null>(null)
-  const [ratingTarget, setRatingTarget] = useState<BookingAppointment | null>(null)
+  const { client, clearClient, ready } = useBookingClient()
+  const { tenant } = usePublicTenant()
 
-  function handleCancelConfirm() {
-    if (!cancelTarget) return
-    setUpcoming((prev) => prev.filter((a) => a.id !== cancelTarget.id))
+  const [appointments, setAppointments] = useState<PublicAppointmentItem[]>([])
+  const [loading, setLoading]           = useState(false)
+  const [activeTab, setActiveTab]       = useState<Tab>('upcoming')
+  const [cancelTarget, setCancelTarget] = useState<PublicAppointmentItem | null>(null)
+
+  const minHours   = tenant?.cancellationMinHours  ?? 24
+  const feePercent = tenant?.cancellationFeePercent ?? 0
+
+  const loadAppointments = useCallback(async (c: BookingClientInfo) => {
+    setLoading(true)
+    try {
+      const { appointments: list } = await fetchPublicClientAppointments(TENANT_SLUG, c.phone)
+      setAppointments(list)
+    } catch {
+      setAppointments([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (ready && client) loadAppointments(client)
+  }, [ready, client, loadAppointments])
+
+  function handleFound(c: BookingClientInfo) {
+    loadAppointments(c)
+  }
+
+  function handleCancelConfirm(id: string) {
+    setAppointments((prev) =>
+      prev.map((a) => a.id === id ? { ...a, status: 'CANCELLED' } : a),
+    )
     setCancelTarget(null)
   }
 
-  function handleReschedule(appt: BookingAppointment) {
-    sessionStorage.setItem('reschedule', JSON.stringify({
-      apptId: appt.id,
-      serviceId: appt.serviceId,
-      proId: appt.proId,
-    }))
+  function handleReschedule(appt: PublicAppointmentItem) {
+    sessionStorage.setItem('reschedule', JSON.stringify({ apptId: appt.id }))
     router.push('/booking/agendar')
   }
 
-  function handleRated(id: string) {
-    setPast((prev) => prev.map((a) => a.id === id ? { ...a, rated: true } : a))
-    setRatingTarget(null)
-  }
+  if (!ready) return null
+  if (!client) return <PhoneIdentify onFound={handleFound} />
+
+  const upcoming = appointments.filter(isUpcoming)
+  const history  = appointments.filter((a) => !isUpcoming(a))
 
   return (
     <div className="flex flex-col">
       {cancelTarget && (
         <CancelModal
           appt={cancelTarget}
+          phone={client.phone}
+          minHours={minHours}
+          feePercent={feePercent}
           onConfirm={handleCancelConfirm}
           onClose={() => setCancelTarget(null)}
         />
       )}
 
-      {ratingTarget && (
-        <AvaliacaoModal
-          appt={ratingTarget}
-          onClose={() => setRatingTarget(null)}
-          onSubmit={handleRated}
-        />
-      )}
-
       {/* Header */}
       <div className="border-b border-background-secondary px-5 pb-0 pt-6">
-        <h1 className="text-h2 font-bold text-content-primary">Meus Agendamentos</h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-h2 font-bold text-content-primary">Meus Agendamentos</h1>
+            <p className="mt-0.5 text-[12px] text-content-subtle">{client.name}</p>
+          </div>
+          <button
+            type="button"
+            onClick={clearClient}
+            aria-label="Sair da identificação"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-content-subtle transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border"
+          >
+            <LogOut size={16} aria-hidden="true" />
+          </button>
+        </div>
+
         <div className="mt-4 flex gap-1" role="tablist" aria-label="Abas de agendamentos">
           {(['upcoming', 'history'] as const).map((tab) => (
             <button
@@ -290,14 +355,18 @@ export default function MeusAgendamentosPage() {
                   : 'border-transparent text-content-subtle hover:text-content-secondary',
               )}
             >
-              {tab === 'upcoming' ? `Próximos (${upcoming.length})` : `Histórico (${past.length})`}
+              {tab === 'upcoming'
+                ? `Próximos${loading ? '' : ` (${upcoming.length})`}`
+                : `Histórico${loading ? '' : ` (${history.length})`}`}
             </button>
           ))}
         </div>
       </div>
 
       <div className="px-5 py-5">
-        {activeTab === 'upcoming' && (
+        {loading ? (
+          <Skeleton />
+        ) : activeTab === 'upcoming' ? (
           upcoming.length === 0 ? (
             <div className="flex flex-col items-center py-14 text-center">
               <span className="mb-3 text-[40px]" aria-hidden="true">📅</span>
@@ -313,20 +382,24 @@ export default function MeusAgendamentosPage() {
           ) : (
             <div className="space-y-3">
               {upcoming.map((a, i) => (
-                <UpcomingCard key={a.id} appt={a} idx={i} onCancelRequest={setCancelTarget} onReschedule={handleReschedule} />
+                <UpcomingCard
+                  key={a.id}
+                  appt={a}
+                  idx={i}
+                  onCancelRequest={setCancelTarget}
+                  onReschedule={handleReschedule}
+                />
               ))}
             </div>
           )
-        )}
-
-        {activeTab === 'history' && (
-          past.length === 0 ? (
+        ) : (
+          history.length === 0 ? (
             <div className="py-14 text-center">
               <p className="text-body text-content-subtle">Nenhum histórico ainda.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {past.map((a, i) => <PastCard key={a.id} appt={a} idx={i} onRate={setRatingTarget} />)}
+              {history.map((a, i) => <PastCard key={a.id} appt={a} idx={i} />)}
             </div>
           )
         )}

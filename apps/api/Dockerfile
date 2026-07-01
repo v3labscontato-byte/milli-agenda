@@ -28,4 +28,4 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/packages ./packages
 EXPOSE 3001
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma --skip-generate && node dist/main"]
+CMD ["node", "dist/main"]

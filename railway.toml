@@ -3,5 +3,6 @@ builder = "DOCKERFILE"
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
+preDeployCommand = "npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma --skip-generate"
 startCommand = "node dist/main"
 restartPolicyType = "ON_FAILURE"

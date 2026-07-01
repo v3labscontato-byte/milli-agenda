@@ -3350,3 +3350,23 @@ Step 4 (confirmação de agendamento) pedia nome, telefone e email novamente, me
 - `notes` (observações) mantido como único campo livre
 - `handleSubmit` passa `client.name/phone/email` para `createPublicAppointment` — backend encontra o cliente existente por telefone e cria o agendamento para ele
 - `tsc --noEmit` → 0 erros
+
+---
+
+## [2026-07-01] Claude — fix(infra): prisma migrate deploy movido para pre-deploy step
+
+**Status:** ✅ Concluído  
+**Branch:** homolog  
+**Arquivos:** `railway.toml`, `apps/api/Dockerfile`
+
+### Problema
+O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada reinício do container. Embora o Railway sobrescreva o CMD via `startCommand = "node dist/main"` no `railway.toml`, a migration não estava sendo executada de forma controlada no pipeline de deploy. O risco de lentidão no startup era real em qualquer deploy futuro que não usasse Railway.
+
+### Fix
+- `railway.toml`: adicionado `preDeployCommand = "npx prisma migrate deploy ..."` — Railway roda a migration UMA vez antes de trocar o container, não a cada restart
+- `apps/api/Dockerfile`: CMD simplificado para `["node", "dist/main"]` — sem migration, sem shell wrapper
+- Separação clara: deploy de schema (pre-deploy) ≠ startup da aplicação (startCommand)
+
+### Resultado esperado
+- Container sobe em ~1-2s (só `node dist/main`, sem migration overhead)
+- Migrations rodam no pipeline do Railway, com rollback automático se falharem antes do container subir

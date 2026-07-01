@@ -12,6 +12,7 @@ import AddItemModal from './add-item-modal'
 import {
   calculateSubtotal, calculateDiscount, calculateTotal, calculateChange, formatBRL,
 } from '@/lib/business-rules'
+import { configuracoesApi } from '@/lib/api/configuracoes'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,17 @@ export interface PaymentModalProps {
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
+
+const API_TO_METHOD_ID: Record<string, PaymentMethodId> = {
+  PIX: 'pix',
+  CASH: 'dinheiro',
+  CREDIT_CARD: 'credito',
+  DEBIT_CARD: 'debito',
+  VOUCHER: 'voucher',
+  BANK_TRANSFER: 'transferencia',
+}
+
+const ALL_METHOD_IDS: PaymentMethodId[] = ['pix', 'dinheiro', 'debito', 'credito', 'voucher', 'transferencia']
 
 const METHODS: MethodConfig[] = [
   { id: 'pix',           label: 'PIX',          emoji: '🔵', Icon: QrCode,          iconColor: '#2563EB', iconBg: '#EFF6FF' },
@@ -145,6 +157,7 @@ export default function PaymentModal({
   items, deposit, initialDiscount, isCompleted, onReopen,
 }: PaymentModalProps) {
   const [visible, setVisible]           = useState(false)
+  const [acceptedIds, setAcceptedIds]   = useState<PaymentMethodId[]>(ALL_METHOD_IDS)
   const [discountType, setDiscountType] = useState<DiscountType>('amount')
   const [discountInput, setDiscountInput] = useState('')
   const [appliedDiscount, setApplied]   = useState<{ type: DiscountType; value: number } | null>(null)
@@ -157,6 +170,17 @@ export default function PaymentModal({
   useEffect(() => {
     if (open) requestAnimationFrame(() => setVisible(true))
     else setVisible(false)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    configuracoesApi.get().then((data) => {
+      const raw = data as { acceptedPaymentMethods?: string[] }
+      const methods = raw.acceptedPaymentMethods
+      if (Array.isArray(methods) && methods.length > 0) {
+        setAcceptedIds(methods.map((m) => API_TO_METHOD_ID[m]).filter(Boolean) as PaymentMethodId[])
+      }
+    }).catch(() => { /* silently keep all methods */ })
   }, [open])
 
   // Reset state only when modal opens — intentionally excludes items/initialDiscount from deps to avoid
@@ -468,7 +492,7 @@ export default function PaymentModal({
             {!isCompleted && <div>
               <p className="mb-3 text-[13px] font-semibold text-[#0F172A]">Formas de Pagamento</p>
               <div className="grid grid-cols-3 gap-2" role="group" aria-label="Selecionar forma de pagamento">
-                {METHODS.map((m) => {
+                {METHODS.filter((m) => acceptedIds.includes(m.id)).map((m) => {
                   const active = entries.length === 1 && entries[0].method === m.id
                   return (
                     <button key={m.id} type="button" onClick={() => setEntries([{ ...newEntry(m.id) }])}

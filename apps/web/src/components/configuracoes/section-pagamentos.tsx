@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { type PaymentConfig } from '@/lib/configuracoes-mock'
-import { Toggle, TextInput, SelectInput, FieldLabel, SectionCard, SaveButton, useSaveState } from './_primitives'
+import { Toggle, TextInput, SelectInput, FieldLabel, SectionCard, SaveButton, type SaveState } from './_primitives'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
 
-// TODO: integração real via API
-const DEFAULT_PAYMENT_CONFIG: PaymentConfig = {
+const DEFAULT_CFG: PaymentConfig = {
   pix: false,
   pixKey: '',
   cash: false,
@@ -18,6 +18,25 @@ const DEFAULT_PAYMENT_CONFIG: PaymentConfig = {
   depositPercent: 30,
   freeCancelHours: 24,
   lateCancelFeePercent: 0,
+}
+
+// Maps between the API enum strings and the UI boolean keys
+const METHOD_TO_KEY: Record<string, keyof Pick<PaymentConfig, 'pix' | 'cash' | 'debit' | 'credit' | 'voucher' | 'transfer'>> = {
+  PIX: 'pix',
+  CASH: 'cash',
+  DEBIT_CARD: 'debit',
+  CREDIT_CARD: 'credit',
+  VOUCHER: 'voucher',
+  BANK_TRANSFER: 'transfer',
+}
+
+const KEY_TO_METHOD: Record<string, string> = {
+  pix: 'PIX',
+  cash: 'CASH',
+  debit: 'DEBIT_CARD',
+  credit: 'CREDIT_CARD',
+  voucher: 'VOUCHER',
+  transfer: 'BANK_TRANSFER',
 }
 
 interface PaymentRowProps {
@@ -40,11 +59,57 @@ function PaymentRow({ label, checked, onChange, children }: PaymentRowProps) {
 }
 
 export default function SectionPagamentos() {
-  const [cfg, setCfg] = useState<PaymentConfig>(DEFAULT_PAYMENT_CONFIG)
-  const [saveState, triggerSave] = useSaveState()
+  const { settings, loading, update } = useConfiguracoes()
+  const [cfg, setCfg] = useState<PaymentConfig>(DEFAULT_CFG)
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    if (!settings) return
+    const methods: string[] = Array.isArray(settings.acceptedPaymentMethods)
+      ? settings.acceptedPaymentMethods
+      : []
+    setCfg((prev) => ({
+      ...prev,
+      pix: methods.includes('PIX'),
+      cash: methods.includes('CASH'),
+      debit: methods.includes('DEBIT_CARD'),
+      credit: methods.includes('CREDIT_CARD'),
+      voucher: methods.includes('VOUCHER'),
+      transfer: methods.includes('BANK_TRANSFER'),
+    }))
+  }, [settings])
 
   function set<K extends keyof PaymentConfig>(field: K, value: PaymentConfig[K]) {
     setCfg((prev) => ({ ...prev, [field]: value }))
+  }
+
+  async function handleSave() {
+    setSaveError('')
+    setSaveState('saving')
+    const enabledMethods = (Object.keys(KEY_TO_METHOD) as Array<keyof typeof KEY_TO_METHOD>)
+      .filter((k) => cfg[k as keyof PaymentConfig] === true)
+      .map((k) => KEY_TO_METHOD[k])
+    const result = await update({ acceptedPaymentMethods: enabledMethods })
+    if (result.success) {
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 2000)
+    } else {
+      setSaveError(result.error ?? 'Erro ao salvar')
+      setSaveState('error')
+      setTimeout(() => setSaveState('idle'), 3000)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-2xl space-y-5 px-8 py-6">
+          <div className="h-6 w-48 animate-pulse rounded bg-[#E2E8F0]" />
+          <div className="h-64 animate-pulse rounded-lg bg-[#E2E8F0]" />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -180,8 +245,11 @@ export default function SectionPagamentos() {
           </div>
         </SectionCard>
 
-        <div className="flex justify-end pb-6">
-          <SaveButton state={saveState} onClick={triggerSave} label="Salvar configurações" />
+        <div className="flex flex-col items-end gap-2 pb-6">
+          {saveError && (
+            <p className="text-[12px] text-[#DC2626]" role="alert">{saveError}</p>
+          )}
+          <SaveButton state={saveState} onClick={() => { void handleSave() }} label="Salvar configurações" />
         </div>
       </div>
     </div>

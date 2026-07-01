@@ -3233,3 +3233,44 @@ Auditoria completa (`relatorios.controller.ts` + `relatorios.service.ts`) revelo
 ### TypeScript
 `npx tsc --noEmit` → 0 erros
 
+
+---
+
+## 2026-07-01 — fix(financeiro): KPIs reagem ao filtro, receita bruta via endpoint correto
+
+### Diagnóstico realizado (Playwright + network inspection)
+Via Playwright no homolog, captura de todos os requests `/api/v1/reports` para cada filtro:
+
+| Filtro | Requests enviados | `from` | `to` |
+|--------|-------------------|--------|------|
+| Este mês | commissions, cashflow, payments-by-method, top-services, payments | 2026-07-01 | 2026-07-01 |
+| Últimos 30 dias | commissions, cashflow, payments-by-method, top-services, payments | 2026-06-02 | 2026-07-01 |
+| Esta semana | commissions, cashflow, payments-by-method, top-services, payments | 2026-06-25 | 2026-07-01 |
+| Hoje | commissions, cashflow, payments-by-method, top-services, payments | 2026-07-01 | 2026-07-01 |
+
+**3 bugs encontrados:**
+
+**BUG 1** — `GET /reports/kpis` chamado 1x na carga sem parâmetros de data. Ao trocar filtro, KPIs não re-executa. Todos os 12 cards ficavam com valores estáticos do carregamento inicial.
+
+**BUG 2** — `receitaBruta` em `buildRealKpis` vinha de `totalEntradas` (soma das `entradas` do cashflow), não do endpoint `/reports/revenue`. Consequência: "Receita Bruta" e "Receita do Mês" mostravam o valor do cashflow (R$1.730 para 30 dias), mas "Método de Pagamento" e "Top Procedimentos" mostravam R$2.650 (via payments-by-method/top-services) — inconsistência visível na mesma tela.
+
+**BUG 3** — `periodToRange('ultimos30')` usava `d.getDate() - 29` (29 dias atrás) em vez de `d.getDate() - 30` (30 dias atrás). Enviava `from=2026-06-02` quando deveria ser `from=2026-06-01`.
+
+### Fixes implementados
+
+**`apps/web/src/hooks/use-relatorios.ts`:**
+- `'ultimos30'` case: `d.getDate() - 29` → `d.getDate() - 30`
+- Adicionado estado `revenueTotal` + `revenueLoading` + `revenueError`
+- Adicionado callback `fetchRevenue(from, to)` → chama `relatoriosApi.revenue({ from, to })` e extrai `r.total`
+- Exportado `revenueTotal, revenueLoading, revenueError, fetchRevenue` no return
+
+**`apps/web/src/app/(financeiro)/financeiro/page.tsx`:**
+- `buildRealKpis` recebe novo parâmetro `revenueTotal: number`
+- `receitaBruta` e `receitaMes` agora usam `revenueTotal` (não `totalEntradas` do cashflow)
+- `lucroLiquido` e `margem` derivados de `revenueTotal`
+- `metaAting` calculado sobre `revenueTotal`
+- `fetchRevenue` adicionado ao `useEffect` principal → re-executa junto com os outros fetches ao trocar filtro
+- `buildRealKpis` chamado com `rel.revenueTotal`
+
+### TypeScript
+`npx tsc --noEmit` → 0 erros

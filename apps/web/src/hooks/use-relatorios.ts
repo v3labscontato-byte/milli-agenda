@@ -111,7 +111,7 @@ export function periodToRange(period: Period, customFrom = '', customTo = ''): D
     }
     case 'ultimos30': {
       const d = new Date(today)
-      d.setDate(d.getDate() - 29)
+      d.setDate(d.getDate() - 30)
       return { from: ymd(d), to }
     }
     case 'custom':
@@ -196,6 +196,10 @@ export function useRelatorios(from?: string, to?: string) {
   const [payments, setPayments]                 = useState<PaymentRow[]>([])
   const [paymentsLoading, setPaymentsLoading]   = useState(false)
   const [paymentsError, setPaymentsError]       = useState<string | null>(null)
+
+  const [revenueTotal, setRevenueTotal]           = useState<number>(0)
+  const [revenueLoading, setRevenueLoading]       = useState(false)
+  const [revenueError, setRevenueError]           = useState<string | null>(null)
 
   const [period, setPeriod]         = useState<Period>('mes')
   const [customFrom, setCustomFrom] = useState('')
@@ -292,6 +296,20 @@ export function useRelatorios(from?: string, to?: string) {
       .finally(() => setPaymentsLoading(false))
   }, [])
 
+  const fetchRevenue = useCallback((from?: string, to?: string) => {
+    const token = localStorage.getItem('accessToken')
+    if (!token) return
+    setRevenueLoading(true)
+    setRevenueError(null)
+    relatoriosApi.revenue({ from, to })
+      .then((res: unknown) => {
+        const r = (res ?? {}) as { total?: number }
+        setRevenueTotal(Number(r.total ?? 0))
+      })
+      .catch(() => setRevenueError('Erro ao carregar receita'))
+      .finally(() => setRevenueLoading(false))
+  }, [])
+
   const range = periodToRange(period, customFrom, customTo)
 
   return {
@@ -303,6 +321,7 @@ export function useRelatorios(from?: string, to?: string) {
     methodData, methodLoading, methodError, fetchMethodData,
     topServices, topServicesLoading, topServicesError, fetchTopServices,
     payments, paymentsLoading, paymentsError, fetchPayments,
+    revenueTotal, revenueLoading, revenueError, fetchRevenue,
     period, setPeriod, customFrom, setCustomFrom, customTo, setCustomTo, range,
   }
 }

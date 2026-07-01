@@ -216,6 +216,7 @@ function buildRealKpis(
   overdueCount: number,
   cashflow: CashflowResponse | null,
   goals: GoalRaw[],
+  revenueTotal: number,
 ): FinanceiroKpis {
   const k = raw ?? {}
   const entries = cashflow?.entries ?? []
@@ -242,13 +243,13 @@ function buildRealKpis(
   const metaMensal = currentGoal ? Number(currentGoal.valor) : 0
   const metaDiaria = metaMensal > 0 ? Math.round(metaMensal / daysInMonth) : 0
   const metaSemanal = metaDiaria > 0 ? metaDiaria * 7 : 0
-  const metaAting = metaMensal > 0 ? Math.min(Math.round((totalEntradas / metaMensal) * 100), 100) : 0
+  const metaAting = metaMensal > 0 ? Math.min(Math.round((revenueTotal / metaMensal) * 100), 100) : 0
 
   const totalClients = k.totalClients ?? 0
   const inadimplenciaPct = totalClients > 0 ? Math.round((overdueCount / totalClients) * 100) : 0
 
   return {
-    receitaMes:        totalEntradas,
+    receitaMes:        revenueTotal,
     receitaMesTrend:   '',
     receitaMesTrendUp: true,
     receitaHoje:       k.todayRevenue ?? 0,
@@ -262,10 +263,10 @@ function buildRealKpis(
     ticketMedio:       k.ticketMedio ?? 0,
     ticketTrend:       '',
     ticketTrendUp:     true,
-    receitaBruta:      totalEntradas,
+    receitaBruta:      revenueTotal,
     despesas:          totalSaidas,
-    lucroLiquido:      totalEntradas - totalSaidas,
-    margem:            totalEntradas > 0 ? Math.round(((totalEntradas - totalSaidas) / totalEntradas) * 100) : 0,
+    lucroLiquido:      revenueTotal - totalSaidas,
+    margem:            revenueTotal > 0 ? Math.round(((revenueTotal - totalSaidas) / revenueTotal) * 100) : 0,
     metaAting,
     inadimplenciaPct,
     totalEntradas,
@@ -290,7 +291,7 @@ export default function FinanceiroPage() {
     [period, customFrom, customTo],
   )
 
-  const { fetchCommissions, fetchCashflow, fetchOverdue, fetchMethodData, fetchTopServices, fetchPayments } = rel
+  const { fetchCommissions, fetchCashflow, fetchOverdue, fetchMethodData, fetchTopServices, fetchPayments, fetchRevenue } = rel
   useEffect(() => {
     if (!FEATURES.realRelatorios) return
     if (period === 'custom' && (!customFrom || !customTo)) return
@@ -299,7 +300,8 @@ export default function FinanceiroPage() {
     fetchMethodData(range.from, range.to)
     fetchTopServices(range.from, range.to)
     fetchPayments(range.from, range.to)
-  }, [fetchCommissions, fetchCashflow, fetchMethodData, fetchTopServices, fetchPayments, range.from, range.to, period, customFrom, customTo])
+    fetchRevenue(range.from, range.to)
+  }, [fetchCommissions, fetchCashflow, fetchMethodData, fetchTopServices, fetchPayments, fetchRevenue, range.from, range.to, period, customFrom, customTo])
 
   useEffect(() => {
     if (FEATURES.realRelatorios) fetchOverdue()
@@ -310,7 +312,7 @@ export default function FinanceiroPage() {
     relatoriosApi.goals().then((r) => setGoals(r as GoalRaw[])).catch(() => {})
   }, [])
 
-  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length, rel.cashflow, goals) : FINANCEIRO_KPIS
+  const kpis = FEATURES.realRelatorios ? buildRealKpis(rel.kpis, rel.overdue.length, rel.cashflow, goals, rel.revenueTotal) : FINANCEIRO_KPIS
 
   return (
     <>

@@ -2297,3 +2297,31 @@ Arquivo: `apps/web/src/components/configuracoes/section-categorias-servicos.tsx`
 
 ### Validação
 - `npx tsc --noEmit` → 0 erros
+
+---
+
+## 2026-07-01 — Validação Playwright Onda 1 — TODOS OS 4 ITENS APROVADOS
+
+### Ambiente validado
+- Frontend: https://frontend-nextjs-milli-homolog.up.railway.app
+- Tenant: studio-homolog (ddpobre@gmail.com)
+
+### ITEM 1 — Crash em Categorias de Serviço: APROVADO
+- Fix: 3 pontos de unwrap do envelope `{ success, data }` corrigidos em `section-categorias-servicos.tsx`
+- Validado em sessão anterior (lista de categorias renderiza sem crash)
+
+### ITEM 2 — Horários de Funcionamento: APROVADO
+- Persistência real via PATCH /api/v1/settings (campos businessHours JSONB + slotGapMinutes/minAdvanceHours/maxAdvanceDays)
+- Evidência: Segunda 18:00→17:00 sobreviveu reload de página
+
+### ITEM 3 — Formas de Pagamento: APROVADO
+- PIX desabilitado em Configurações → PATCH 200 → abrir comanda → modal mostrou apenas: Dinheiro, Débito, Crédito, Voucher, Transferência (**PIX ausente**)
+- PIX re-habilitado ao final (PATCH 200)
+
+### ITEM 4 — Meu Salão (slogan + endereço): APROVADO
+- Campos preenchidos: Slogan="Beleza e cuidado para você", CEP=01310-100, Logradouro="Av. Paulista, 1000", Bairro="Bela Vista", Cidade="São Paulo", Estado=SP
+- PATCH 200 → reload → todos os campos persistiram no banco
+- Screenshot confirma seção "Endereço" populada após reload
+
+### Status
+Onda 1 completa — pronto para merge em main aguardando aprovação do usuário.

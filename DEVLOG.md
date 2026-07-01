@@ -3330,3 +3330,23 @@ git checkout main && git merge homolog && git push origin main && git checkout h
 3. KPI Margem Média no dashboard
 
 ### npx tsc --noEmit → 0 erros (frontend e backend)
+
+---
+
+## [2026-07-01] Claude — Booking Step 4: usa dados do cliente logado
+
+**Status:** ✅ Concluído  
+**Branch:** homolog  
+**Arquivo:** `apps/web/src/components/booking/step-confirm.tsx`
+
+### Problema
+Step 4 (confirmação de agendamento) pedia nome, telefone e email novamente, mesmo que o cliente já tivesse se identificado via `useBookingClient` (sessão salva em `sessionStorage`).
+
+### Fix
+- Removidos os estados `name`, `phone`, `email` e seus inputs do formulário
+- Importado `useBookingClient` — usa `client.name`, `client.phone`, `client.email` direto
+- Exibição read-only do cliente: avatar com inicial, nome, telefone, botão "Não sou eu" (chama `clearClient()`)
+- Se sessão expirada (`client === null`): aviso de erro + botão submit desabilitado
+- `notes` (observações) mantido como único campo livre
+- `handleSubmit` passa `client.name/phone/email` para `createPublicAppointment` — backend encontra o cliente existente por telefone e cria o agendamento para ele
+- `tsc --noEmit` → 0 erros

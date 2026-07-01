@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, CheckCircle2, Tag } from 'lucide-react'
+import { ChevronLeft, CheckCircle2, Tag, User } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { applyCoupon, type BookingService, type BookingProfessional } from '@/lib/booking-mock'
 import { createPublicAppointment, TENANT_SLUG } from '@/lib/api/public-booking'
 import { usePublicTenant } from '@/hooks/use-public-tenant'
+import { useBookingClient } from '@/hooks/use-booking-client'
 
 function formatDateFull(iso: string, time: string): string {
   const d = new Date(iso + 'T12:00:00')
@@ -74,10 +75,8 @@ export function SuccessScreen({ service, professional, date, time, onNew }: Succ
 
 export default function StepConfirm({ service, professional, date, time, isReschedule, onConfirm, onBack }: StepConfirmProps) {
   const { tenant } = usePublicTenant()
+  const { client, clearClient } = useBookingClient()
 
-  const [name,  setName]  = useState('')
-  const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -109,13 +108,14 @@ export default function StepConfirm({ service, professional, date, time, isResch
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!client) return
     setError('')
     setLoading(true)
     try {
       await createPublicAppointment(TENANT_SLUG, {
-        name,
-        phone,
-        email: email || undefined,
+        name: client.name,
+        phone: client.phone,
+        email: client.email ?? undefined,
         serviceId: service.id,
         professionalId: professional.id,
         date,
@@ -183,36 +183,43 @@ export default function StepConfirm({ service, professional, date, time, isResch
           </div>
         </div>
 
-        {/* Client fields */}
-        <p className="mb-3 text-[14px] font-semibold text-content-primary">Seus dados</p>
-        <div className="space-y-3">
-          <div>
-            <label htmlFor="c-name" className="mb-1 block text-[12px] font-medium text-content-secondary">Nome completo *</label>
-            <input id="c-name" type="text" required placeholder="ex: Maria Silva" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+        {/* Client identity — read-only */}
+        {client ? (
+          <div className="mb-5 flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-light">
+              <User size={16} className="text-primary" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[14px] font-semibold text-content-primary">{client.name}</p>
+              <p className="text-[12px] text-content-secondary">{client.phone}</p>
+            </div>
+            <button
+              type="button"
+              onClick={clearClient}
+              className="shrink-0 text-[12px] font-medium text-danger-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
+            >
+              Não sou eu
+            </button>
           </div>
-          <div>
-            <label htmlFor="c-phone" className="mb-1 block text-[12px] font-medium text-content-secondary">Telefone *</label>
-            <input id="c-phone" type="tel" required placeholder="(00) 00000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
-          </div>
-          <div>
-            <label htmlFor="c-email" className="mb-1 block text-[12px] font-medium text-content-secondary">
-              Email <span className="font-normal text-content-subtle">(opcional)</span>
-            </label>
-            <input id="c-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
-          </div>
-          <div>
-            <label htmlFor="c-notes" className="mb-1 block text-[12px] font-medium text-content-secondary">
-              Observações <span className="font-normal text-content-subtle">(opcional)</span>
-            </label>
-            <textarea
-              id="c-notes"
-              placeholder="ex: prefiro franja mais curta"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className={cn(inputCls, 'resize-none')}
-            />
-          </div>
+        ) : (
+          <p className="mb-4 rounded-xl border border-danger-light bg-danger-light px-4 py-3 text-[13px] text-danger-medium">
+            Sessão expirada. Volte e identifique-se novamente.
+          </p>
+        )}
+
+        {/* Notes */}
+        <div className="mb-5">
+          <label htmlFor="c-notes" className="mb-1.5 block text-[12px] font-medium text-content-secondary">
+            Observações <span className="font-normal text-content-subtle">(opcional)</span>
+          </label>
+          <textarea
+            id="c-notes"
+            placeholder="ex: prefiro franja mais curta"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className={cn(inputCls, 'resize-none')}
+          />
         </div>
 
         {/* Coupon section */}
@@ -281,7 +288,7 @@ export default function StepConfirm({ service, professional, date, time, isResch
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !client}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
         >
           {loading

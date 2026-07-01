@@ -3154,3 +3154,21 @@ Colunas adicionadas diretamente via ALTER TABLE (sem migration) foram formalizad
 DATABASE_URL="postgresql://postgres:hOGBtroRlGeRQKCYqSCFQscXfdMnWaYu@thomas.proxy.rlwy.net:56217/railway" \
 npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 ```
+
+---
+
+## [2026-07-01] Migrations aplicadas em produção — restauração de emergência
+
+### Status: ✅ Concluído
+
+**Migrations aplicadas:**
+1. `20260701200000_add_tenant_image_color` — coverImageUrl + primaryColor no tenant
+2. `20260701210000_fix_missing_columns_professionals_clients` — 11 colunas ausentes
+
+**Validação:**
+```
+GET /api/v1/public/bella-vista/professionals
+→ 200 OK — 4 profissionais retornados com campo workDays presente ✅
+```
+
+**Status final produção:** 11/11 migrations aplicadas — `Database schema is up to date!`

@@ -2325,3 +2325,25 @@ Arquivo: `apps/web/src/components/configuracoes/section-categorias-servicos.tsx`
 
 ### Status
 Onda 1 completa — pronto para merge em main aguardando aprovação do usuário.
+
+---
+
+## 2026-07-01 — Migration produção: 20260630200000_add_tenant_settings_fields
+
+### Ação
+`prisma migrate deploy` executado via DATABASE_URL pública de produção fornecida pelo usuário.
+
+### Migration aplicada
+`20260630200000_add_tenant_settings_fields` — adiciona ao model Tenant:
+- `businessHours` JSONB, `slotGapMinutes` INT DEFAULT 30, `minAdvanceHours` INT DEFAULT 0, `maxAdvanceDays` INT DEFAULT 60
+- `acceptedPaymentMethods` JSONB DEFAULT '["PIX","CASH","CREDIT_CARD","DEBIT_CARD","VOUCHER","BANK_TRANSFER"]'
+- `slogan` TEXT, `address` TEXT, `neighborhood` TEXT, `cep` TEXT, `city` TEXT, `state` TEXT
+
+### Resultado
+All migrations have been successfully applied (8 total, 1 nova).
+A URL pública de produção NÃO foi commitada em nenhum arquivo do repositório.
+
+### Status Onda 1 em Produção
+- Código (main): deploiado via Railway após o push anterior
+- Schema: migração agora aplicada
+- Configurações de Horários/Pagamentos/Meu Salão funcionais em produção

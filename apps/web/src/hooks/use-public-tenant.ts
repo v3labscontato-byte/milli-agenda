@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTenantSlug } from '@/components/booking/tenant-context'
 
+// Falls back to 'studio-homolog' when env var is not baked in at build time
+const TENANT_SLUG = process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'studio-homolog'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+
+export interface PublicTenantBusinessHours {
+  days: Array<{ day: string; dayLabel: string; open: boolean; start: string; end: string }>
+  lunchBreak: { active: boolean; start: string; end: string }
+}
 
 export interface PublicTenant {
   name: string
@@ -15,19 +21,24 @@ export interface PublicTenant {
   city: string | null
   state: string | null
   phone: string | null
-  businessHours: unknown
+  businessHours: PublicTenantBusinessHours | null
   acceptedPaymentMethods: string[]
+  depositRequired: boolean
+  depositType: string
+  depositValue: number | null
+  cancellationMinHours: number
+  cancellationFeePercent: number
+  cancellationRefundSignal: boolean
 }
 
 export function usePublicTenant(): { tenant: PublicTenant | null; loading: boolean } {
-  const tenantSlug = useTenantSlug()
   const [tenant, setTenant] = useState<PublicTenant | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!tenantSlug) { setLoading(false); return }
+    if (!TENANT_SLUG) { setLoading(false); return }
 
-    fetch(`${API_BASE}/api/v1/settings/public/${tenantSlug}`)
+    fetch(`${API_BASE}/api/v1/settings/public/${TENANT_SLUG}`)
       .then((r) => r.json())
       .then((json: unknown) => {
         const raw = json as Record<string, unknown>
@@ -36,7 +47,7 @@ export function usePublicTenant(): { tenant: PublicTenant | null; loading: boole
       })
       .catch(() => { /* keep null — falls back to mock data */ })
       .finally(() => setLoading(false))
-  }, [tenantSlug])
+  }, [])
 
   return { tenant, loading }
 }

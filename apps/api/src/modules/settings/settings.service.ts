@@ -44,6 +44,12 @@ const PUBLIC_TENANT_SELECT = {
   phone: true,
   businessHours: true,
   acceptedPaymentMethods: true,
+  depositRequired: true,
+  depositType: true,
+  depositValue: true,
+  cancellationMinHours: true,
+  cancellationFeePercent: true,
+  cancellationRefundSignal: true,
 } as const
 
 @Injectable()

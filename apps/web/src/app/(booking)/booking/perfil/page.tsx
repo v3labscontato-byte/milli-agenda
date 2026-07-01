@@ -104,7 +104,7 @@ export default function PerfilPage() {
             icon={<span className="text-[16px]">🏆</span>}
             label="Fidelidade"
             sublabel={`${CLIENT.pontos.toLocaleString('pt-BR')} pts · ${loyaltyCfg.label}`}
-            href="/booking/perfil"
+            href="/booking/fidelidade"
           />
           <MenuItem
             icon={<Users size={18} />}
@@ -125,8 +125,8 @@ export default function PerfilPage() {
             href="/booking/notificacoes"
           />
           <MenuItem icon={<Bell size={18} />}     label="Notificações"         href="/booking/notificacoes" />
-          <MenuItem icon={<User size={18} />}     label="Meus dados" />
-          <MenuItem icon={<FileText size={18} />} label="Políticas do salão" />
+          <MenuItem icon={<User size={18} />}     label="Meus dados"         href="/booking/meus-dados" />
+          <MenuItem icon={<FileText size={18} />} label="Políticas do salão"  href="/booking/politicas" />
         </nav>
 
         <div className="pt-2">

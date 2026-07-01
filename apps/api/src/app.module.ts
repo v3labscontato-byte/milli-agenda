@@ -15,6 +15,7 @@ import { RelatoriosModule } from './modules/relatorios/relatorios.module'
 import { SettingsModule } from './modules/settings/settings.module'
 import { TemplateEngineModule } from './modules/template-engine/template-engine.module'
 import { ProdutosModule } from './modules/produtos/produtos.module'
+import { PublicModule } from './modules/public/public.module'
 
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
@@ -34,6 +35,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     SettingsModule,
     TemplateEngineModule,
     ProdutosModule,
+    PublicModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

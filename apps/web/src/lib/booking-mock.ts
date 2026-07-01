@@ -7,11 +7,13 @@ export type AffiliateStatus  = 'completed' | 'pending'
 export type PontosType       = 'earned' | 'redeemed'
 
 export interface BookingService {
-  id: string; name: string; emoji: string; category: string; durationMins: number; price: number; photos?: string[]
+  id: string; name: string; emoji?: string; category: string; durationMins: number; price: number
+  photos?: string[]; description?: string
 }
 export interface BookingProfessional {
-  id: string; name: string; initials: string; avatarBg: string
-  role: string; rating: number; reviews: number; nextAvailable: string
+  id: string; name: string; initials?: string; avatarBg?: string
+  role: string; rating?: number; reviews?: number; nextAvailable?: string
+  workDays?: number[]
 }
 export interface BookingAppointment {
   id: string; service: string; serviceEmoji: string; serviceId?: string

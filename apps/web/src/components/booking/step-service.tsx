@@ -1,16 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Search, ChevronRight, Camera, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { SERVICES, formatDuration, formatPrice, type BookingService } from '@/lib/booking-mock'
-
-const CATEGORY_LABELS: Record<string, string> = {
-  CABELO:   'Cabelo',
-  UNHAS:    'Unhas',
-  ESTÉTICA: 'Estética',
-  BARBA:    'Barba',
-}
+import { type BookingService } from '@/lib/booking-mock'
+import { fetchPublicServices, TENANT_SLUG } from '@/lib/api/public-booking'
 
 const CATEGORY_ICONS: Record<string, string> = {
   CABELO:   '✂',
@@ -19,10 +13,9 @@ const CATEGORY_ICONS: Record<string, string> = {
   BARBA:    '🪒',
 }
 
-const CATEGORY_ORDER = ['CABELO', 'UNHAS', 'ESTÉTICA', 'BARBA']
-
-// Derive available categories from the mock in preferred order
-const CATEGORIES = CATEGORY_ORDER.filter((cat) => SERVICES.some((s) => s.category === cat))
+function categoryIcon(name: string): string {
+  return CATEGORY_ICONS[name.toUpperCase()] ?? '🔧'
+}
 
 interface StepServiceProps {
   onSelect: (service: BookingService) => void
@@ -62,16 +55,38 @@ function PhotoGallerySheet({ service, onClose }: { service: BookingService; onCl
 }
 
 export default function StepService({ onSelect }: StepServiceProps) {
+  const [services, setServices]     = useState<BookingService[]>([])
+  const [loading, setLoading]       = useState(true)
   const [query, setQuery]           = useState('')
-  const [selectedCat, setSelectedCat] = useState('') // '' = Todos
+  const [selectedCat, setSelectedCat] = useState('')
   const [galleryService, setGalleryService] = useState<BookingService | null>(null)
+
+  useEffect(() => {
+    fetchPublicServices(TENANT_SLUG)
+      .then((data) =>
+        setServices(
+          data.map((s) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description ?? undefined,
+            category: s.category?.name ?? 'Outros',
+            durationMins: s.durationMin,
+            price: Number(s.price),
+          })),
+        ),
+      )
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const categories = useMemo(() => Array.from(new Set(services.map((s) => s.category))), [services])
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
-    let result = selectedCat ? SERVICES.filter((s) => s.category === selectedCat) : SERVICES
+    let result = selectedCat ? services.filter((s) => s.category === selectedCat) : services
     if (q) result = result.filter((s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q))
     return result
-  }, [query, selectedCat])
+  }, [query, selectedCat, services])
 
   const grouped = useMemo(() => {
     const map = new Map<string, BookingService[]>()
@@ -90,6 +105,16 @@ export default function StepService({ onSelect }: StepServiceProps) {
       : 'border border-border bg-white text-content-secondary hover:border-primary-light hover:text-primary',
   )
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-3 px-4 py-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-16 animate-pulse rounded-xl bg-[#F1F5F9]" />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <>
     {galleryService && (
@@ -100,7 +125,6 @@ export default function StepService({ onSelect }: StepServiceProps) {
         <h2 className="text-[18px] font-semibold text-content-primary">Escolha o serviço</h2>
       </div>
 
-      {/* Search */}
       <div className="px-4 pb-3">
         <label htmlFor="svc-search" className="sr-only">Buscar serviço</label>
         <div className="relative">
@@ -116,34 +140,25 @@ export default function StepService({ onSelect }: StepServiceProps) {
         </div>
       </div>
 
-      {/* Category pills */}
-      <div
-        className="flex gap-2 overflow-x-auto px-4 pb-4"
-        role="group"
-        aria-label="Filtrar por categoria"
-      >
-        <button
-          type="button"
-          onClick={() => setSelectedCat('')}
-          aria-pressed={selectedCat === ''}
-          className={pillCls(selectedCat === '')}
-        >
-          ✨ Todos
-        </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setSelectedCat(selectedCat === cat ? '' : cat)}
-            aria-pressed={selectedCat === cat}
-            className={pillCls(selectedCat === cat)}
-          >
-            {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat] ?? cat}
+      {categories.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto px-4 pb-4" role="group" aria-label="Filtrar por categoria">
+          <button type="button" onClick={() => setSelectedCat('')} aria-pressed={selectedCat === ''} className={pillCls(selectedCat === '')}>
+            ✨ Todos
           </button>
-        ))}
-      </div>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCat(selectedCat === cat ? '' : cat)}
+              aria-pressed={selectedCat === cat}
+              className={pillCls(selectedCat === cat)}
+            >
+              {categoryIcon(cat)} {cat}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Grouped list — key forces remount on category change, restarting stagger animations */}
       <div key={selectedCat} className="flex-1">
         {grouped.size === 0 && (
           <p className="px-4 py-8 text-center text-body text-content-subtle">
@@ -152,22 +167,26 @@ export default function StepService({ onSelect }: StepServiceProps) {
         )}
         {(() => {
           let staggerIdx = 0
-          return Array.from(grouped.entries()).map(([cat, services]) => (
+          return Array.from(grouped.entries()).map(([cat, svcs]) => (
             <div key={cat}>
-              <div className="bg-background px-4 py-2">
-                <p className="text-caption text-content-subtle">
-                  {CATEGORY_LABELS[cat] ?? cat}
-                </p>
-              </div>
-              {services.map((svc, i) => {
+              {categories.length > 1 && (
+                <div className="bg-background px-4 py-2">
+                  <p className="text-caption text-content-subtle">{cat}</p>
+                </div>
+              )}
+              {svcs.map((svc, i) => {
                 const idx = staggerIdx++
                 const hasPhotos = (svc.photos?.length ?? 0) > 0
+                const durationLabel = svc.durationMins >= 60
+                  ? `${Math.floor(svc.durationMins / 60)}h${svc.durationMins % 60 ? ` ${svc.durationMins % 60}min` : ''}`
+                  : `${svc.durationMins}min`
+                const priceLabel = svc.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
                 return (
                   <div
                     key={svc.id}
                     className={cn(
                       'flex items-center animate-fade-in motion-reduce:animate-none',
-                      i < services.length - 1 && 'border-b border-background-secondary',
+                      i < svcs.length - 1 && 'border-b border-background-secondary',
                     )}
                     style={{ animationDelay: `${idx * 40}ms` }}
                   >
@@ -181,12 +200,12 @@ export default function StepService({ onSelect }: StepServiceProps) {
                       )}
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-xlight text-[20px]" aria-hidden="true">
-                        {svc.emoji}
+                        {svc.emoji ?? categoryIcon(svc.category)}
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-[15px] font-medium text-content-primary">{svc.name}</p>
                         <p className="mt-0.5 text-[13px] text-content-subtle">
-                          {formatDuration(svc.durationMins)} · {formatPrice(svc.price)}
+                          {durationLabel} · {priceLabel}
                         </p>
                       </div>
                       <ChevronRight size={18} className="shrink-0 text-content-muted" aria-hidden="true" />

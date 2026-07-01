@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { ChevronLeft, CheckCircle2, Tag } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { SALON, formatDuration, formatPrice, applyCoupon, type BookingService, type BookingProfessional } from '@/lib/booking-mock'
+import { applyCoupon, type BookingService, type BookingProfessional } from '@/lib/booking-mock'
+import { createPublicAppointment, TENANT_SLUG } from '@/lib/api/public-booking'
+import { usePublicTenant } from '@/hooks/use-public-tenant'
 
 function formatDateFull(iso: string, time: string): string {
   const d = new Date(iso + 'T12:00:00')
@@ -12,15 +14,13 @@ function formatDateFull(iso: string, time: string): string {
   return `${label.charAt(0).toUpperCase()}${label.slice(1)} · ${time}`
 }
 
-interface ConfirmData { name: string; phone: string; email: string; notes: string }
-
 interface StepConfirmProps {
   service: BookingService
   professional: BookingProfessional
   date: string
   time: string
   isReschedule?: boolean
-  onConfirm: (data: ConfirmData) => void
+  onConfirm: () => void
   onBack: () => void
 }
 
@@ -43,7 +43,7 @@ export function SuccessScreen({ service, professional, date, time, onNew }: Succ
       </div>
       <h2 className="text-[22px] font-bold text-content-primary">Agendamento confirmado!</h2>
       <p className="mt-2 text-body text-content-subtle">
-        {service.emoji} {service.name} com {professional.name}
+        {service.emoji ?? ''} {service.name} com {professional.name}
       </p>
       <p className="mt-1 text-body font-medium text-content-primary">
         {label.charAt(0).toUpperCase()}{label.slice(1)} às {time}
@@ -73,11 +73,14 @@ export function SuccessScreen({ service, professional, date, time, onNew }: Succ
 }
 
 export default function StepConfirm({ service, professional, date, time, isReschedule, onConfirm, onBack }: StepConfirmProps) {
-  const [name,  setName]  = useState('Maria Silva')
-  const [phone, setPhone] = useState('(11) 99999-9999')
-  const [email, setEmail] = useState('maria@email.com')
+  const { tenant } = usePublicTenant()
+
+  const [name,  setName]  = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
 
   const [showCoupon,    setShowCoupon]    = useState(false)
   const [couponInput,   setCouponInput]   = useState('')
@@ -106,9 +109,25 @@ export default function StepConfirm({ service, professional, date, time, isResch
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError('')
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 900))
-    onConfirm({ name, phone, email, notes })
+    try {
+      await createPublicAppointment(TENANT_SLUG, {
+        name,
+        phone,
+        email: email || undefined,
+        serviceId: service.id,
+        professionalId: professional.id,
+        date,
+        time,
+        notes: notes || undefined,
+      })
+      onConfirm()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao confirmar agendamento. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputCls = [
@@ -116,6 +135,13 @@ export default function StepConfirm({ service, professional, date, time, isResch
     'text-body text-content-primary placeholder:text-content-subtle',
     'focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-light',
   ].join(' ')
+
+  const priceLabel = service.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const finalLabel = finalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const discountLabel = discount > 0 ? discount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : ''
+  const durationLabel = service.durationMins >= 60
+    ? `${Math.floor(service.durationMins / 60)}h${service.durationMins % 60 ? ` ${service.durationMins % 60}min` : ''}`
+    : `${service.durationMins}min`
 
   return (
     <div className="flex flex-col">
@@ -129,27 +155,29 @@ export default function StepConfirm({ service, professional, date, time, isResch
       </button>
 
       <form onSubmit={handleSubmit} className="px-4 pb-6">
-        <p className="mb-4 text-[16px] font-bold text-content-primary">{SALON.emoji} {SALON.name}</p>
+        {tenant?.name && (
+          <p className="mb-4 text-[16px] font-bold text-content-primary">{tenant.name}</p>
+        )}
 
         {/* Summary card */}
         <div className="mb-5 rounded-xl border border-border bg-background p-4">
           <div className="flex items-start gap-3">
-            <span className="text-[24px]" aria-hidden="true">{service.emoji}</span>
+            <span className="text-[24px]" aria-hidden="true">{service.emoji ?? '✂'}</span>
             <div className="min-w-0 flex-1 space-y-1">
               <p className="text-[15px] font-semibold text-content-primary">{service.name}</p>
               <p className="text-[13px] text-content-secondary">📅 {formatDateFull(date, time)}</p>
               <p className="text-[13px] text-content-secondary">👤 {professional.name}</p>
-              <p className="text-[13px] text-content-secondary">⏱ {formatDuration(service.durationMins)}</p>
+              <p className="text-[13px] text-content-secondary">⏱ {durationLabel}</p>
               {discount > 0 ? (
                 <div className="flex items-baseline gap-2">
-                  <p className="tabular-nums text-[13px] text-content-subtle line-through">{formatPrice(service.price)}</p>
-                  <p className="tabular-nums text-[15px] font-bold text-success-medium">{formatPrice(finalPrice)}</p>
+                  <p className="tabular-nums text-[13px] text-content-subtle line-through">{priceLabel}</p>
+                  <p className="tabular-nums text-[15px] font-bold text-success-medium">{finalLabel}</p>
                   <span className="rounded-full bg-success-xlight px-1.5 py-0.5 text-[10px] font-semibold text-success-medium">
-                    −{formatPrice(discount)}
+                    −{discountLabel}
                   </span>
                 </div>
               ) : (
-                <p className="tabular-nums text-[14px] font-semibold text-content-primary">💰 {formatPrice(service.price)}</p>
+                <p className="tabular-nums text-[14px] font-semibold text-content-primary">💰 {priceLabel}</p>
               )}
             </div>
           </div>
@@ -159,16 +187,18 @@ export default function StepConfirm({ service, professional, date, time, isResch
         <p className="mb-3 text-[14px] font-semibold text-content-primary">Seus dados</p>
         <div className="space-y-3">
           <div>
-            <label htmlFor="c-name" className="mb-1 block text-[12px] font-medium text-content-secondary">Nome completo</label>
+            <label htmlFor="c-name" className="mb-1 block text-[12px] font-medium text-content-secondary">Nome completo *</label>
             <input id="c-name" type="text" required placeholder="ex: Maria Silva" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="c-phone" className="mb-1 block text-[12px] font-medium text-content-secondary">Telefone</label>
+            <label htmlFor="c-phone" className="mb-1 block text-[12px] font-medium text-content-secondary">Telefone *</label>
             <input id="c-phone" type="tel" required placeholder="(00) 00000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label htmlFor="c-email" className="mb-1 block text-[12px] font-medium text-content-secondary">Email</label>
-            <input id="c-email" type="email" required placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
+            <label htmlFor="c-email" className="mb-1 block text-[12px] font-medium text-content-secondary">
+              Email <span className="font-normal text-content-subtle">(opcional)</span>
+            </label>
+            <input id="c-email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
           </div>
           <div>
             <label htmlFor="c-notes" className="mb-1 block text-[12px] font-medium text-content-secondary">
@@ -230,10 +260,9 @@ export default function StepConfirm({ service, professional, date, time, isResch
                     : 'Aplicar'}
                 </button>
               </div>
-
               {applied?.valid && (
                 <p className="mt-2 flex items-center gap-1 text-[12px] font-medium text-success-medium">
-                  ✅ {applied.label} — {formatPrice(applied.discount)} de desconto
+                  ✅ {applied.label} — {discountLabel} de desconto
                 </p>
               )}
               {couponError && (
@@ -242,6 +271,12 @@ export default function StepConfirm({ service, professional, date, time, isResch
             </div>
           )}
         </div>
+
+        {error && (
+          <p className="mt-4 rounded-xl border border-danger-light bg-danger-light px-4 py-3 text-[13px] text-danger-medium">
+            {error}
+          </p>
+        )}
 
         {/* Submit */}
         <button

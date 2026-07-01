@@ -6,7 +6,7 @@ import StepService from '@/components/booking/step-service'
 import StepProfessional from '@/components/booking/step-professional'
 import StepDatetime from '@/components/booking/step-datetime'
 import StepConfirm, { SuccessScreen } from '@/components/booking/step-confirm'
-import { SERVICES, PROFESSIONALS, type BookingService, type BookingProfessional } from '@/lib/booking-mock'
+import { type BookingService, type BookingProfessional } from '@/lib/booking-mock'
 
 type Step = 1 | 2 | 3 | 4 | 5
 
@@ -43,13 +43,9 @@ export default function AgendarPage() {
     const raw = sessionStorage.getItem('reschedule')
     if (!raw) return
     try {
-      const data = JSON.parse(raw) as { apptId?: string; serviceId?: string; proId?: string }
-      const svc  = SERVICES.find((s) => s.id === data.serviceId)      ?? null
-      const pro  = PROFESSIONALS.find((p) => p.id === data.proId)     ?? null
-      if (svc)  setService(svc)
-      if (pro)  setProfessional(pro)
+      const data = JSON.parse(raw) as { apptId?: string }
+      void data
       setIsReschedule(true)
-      setStep(svc && pro ? 3 : svc ? 2 : 1)
       sessionStorage.removeItem('reschedule')
     } catch { /* ignore malformed data */ }
   }, [])
@@ -67,7 +63,6 @@ export default function AgendarPage() {
     <div className="flex flex-col">
       <ProgressBar step={step} />
 
-      {/* Reschedule banner */}
       {isReschedule && step < 5 && (
         <div className="mx-5 mt-3 rounded-xl border border-warning-border bg-warning-light px-3 py-2">
           <p className="text-[12px] font-semibold text-warning-medium">
@@ -77,7 +72,6 @@ export default function AgendarPage() {
         </div>
       )}
 
-      {/* key forces remount → restarts animate-fade-in on every step change */}
       <div key={step} className="animate-fade-in motion-reduce:animate-none">
         {step === 1 && (
           <StepService onSelect={(svc) => { setService(svc); setStep(2) }} />

@@ -3185,3 +3185,24 @@ Adicionado ao CLAUDE.md (raiz):
   3. Validação de login pós-mudança de variáveis
 
 Motivação: incidente de 2026-07-01 onde banco homolog estava vazio, CORS errado, e 2 migrations pendentes em produção causaram crash.
+
+---
+
+## [2026-07-01] chore(homolog): massa de dados realista no banco homolog
+
+### Status: ✅ Concluído
+
+**Arquivo:** `packages/database/prisma/seed-homolog-data.ts`
+
+**Dados criados:**
+- 50 clientes com nomes brasileiros, telefones no formato 119XXXXXXXX, 70% com email
+- 5 profissionais adicionais (IDs prof-homolog-3 a 7): Fernanda Lima, Roberto Alves, Camila Souza, Diego Martins, Patricia Costa
+- Total: 7 profissionais ativos com workDays [1-6] e enabledServices configurados
+- 5 produtos: Shampoo Profissional, Condicionador Hidratação, Máscara Capilar, Tinta Louro Dourado, Finalizador Brilho
+- 35 agendamentos (7 profis × 5): distribuídos nos últimos 60 dias, 70% COMPLETED com comanda fechada + pagamento PAID, 20% CONFIRMED, 10% CANCELLED
+
+**Validação:**
+```
+GET /api/v1/clients → 52 clientes ✅
+Login ddpobre@gmail.com → accessToken ✅
+```

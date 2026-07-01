@@ -2506,3 +2506,52 @@ Toggle "Devolver sinal em caso de cancelamento dentro do prazo" na seção Polí
 ### Próximos passos
 - Merge homolog → main (aprovado pelo usuário)
 - Apply migration `20260701000000_add_deposit_and_cancellation_policy` em produção (aguardando DATABASE_URL pública)
+
+---
+
+## 2026-07-01 — Onda 3: Módulo Público de Agendamento — Validação Playwright APROVADA
+
+### Contexto
+Implementação dos endpoints públicos (sem JWT) e integração do PWA de booking com dados reais (Onda 3, sessão anterior).
+Branch: `homolog`. Commit base: `dae2289`.
+
+### Problema descoberto pós-deploy
+`GET /public/:slug/professionals/:id/slots` retornava `[]` para todos os profissionais.
+Causa: `profissionais.service.ts disponibilidade()` chamava `getAvailableSlots(schedules=[])` — sem `Schedule` records no banco homolog → sempre 0 slots.
+
+### Fix aplicado (commit `69cb1ae`)
+`apps/api/src/modules/profissionais/profissionais.service.ts`:
+- Capturado retorno de `findOne()` (`const prof = await this.findOne(...)`)
+- Fallback: quando `schedules.length === 0` e `prof.workDays.length > 0`, sintetiza entries a partir de `workDays`/`workStart`/`workEnd` do profissional
+- Arthur: `workDays=[1,2,3,4,5,6]`, `workStart="08:00"`, `workEnd="18:00"` → 19 slots/dia
+
+### Validação endpoints (pós-deploy)
+- `GET /public/studio-homolog/services` → 11 serviços ✅
+- `GET /public/studio-homolog/professionals?serviceId=<escova>` → 1 profissional (Arthur) ✅
+- `GET /public/studio-homolog/professionals/Arthur/slots?date=2026-07-03&durationMin=45` → 19 slots ✅
+- Domingos corretamente excluídos (fora de workDays) ✅
+
+### Validação Playwright — Fluxo completo ponta a ponta
+URL: https://frontend-nextjs-milli-homolog.up.railway.app/booking/agendar
+
+| Passo | Resultado |
+|-------|-----------|
+| Step 1 — Serviços | 11 serviços reais carregados, categorias dinâmicas (Bronzeamento, Cabelo, Unhas, Sobrancelhas) ✅ |
+| Step 2 — Profissionais | Filtrado por serviceId: apenas Arthur para "Escova" ✅ |
+| Step 3 — Data/Hora | Calendário jul/26 com domingos disabled (workDays), 19 slots em sex 03/07 ✅ |
+| Step 4 — Confirmação | Resumo: Escova · Sex 3 jul · 10:00 · Arthur · 45min · R$ 70,00 ✅ |
+| Step 5 — Sucesso | "Agendamento confirmado! Escova com Arthur · Sexta-feira, 3 de julho às 10:00" ✅ |
+
+### Verificação no banco (homolog)
+`GET /api/v1/appointments?month=2026-07` → appointment encontrado:
+`2026-07-03T10:00 | Escova | Arthur | Cliente Playwright Teste` ✅
+Client criado/encontrado por phone → find-or-create funcionando ✅
+
+### Status
+- ✅ Todos os 4 steps do booking conectados a dados reais
+- ✅ POST /public/:slug/appointments criando registros no banco
+- ✅ Fallback de workDays funcionando sem necessidade de Schedule records
+- ⚠️ Limitação: profissionais sem workDays configurado retornam 0 slots (esperado — precisam configurar agenda no admin)
+
+### Próximo passo
+Aguardando aprovação para merge homolog → main.

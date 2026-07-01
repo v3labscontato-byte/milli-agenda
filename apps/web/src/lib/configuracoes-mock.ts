@@ -70,6 +70,7 @@ export interface PaymentConfig {
   depositPercent: number
   freeCancelHours: number
   lateCancelFeePercent: number
+  cancellationRefundSignal: boolean
 }
 
 export interface BookingSiteConfig {
@@ -187,6 +188,7 @@ export const MOCK_PAYMENT_CONFIG: PaymentConfig = {
   depositPercent: 30,
   freeCancelHours: 24,
   lateCancelFeePercent: 50,
+  cancellationRefundSignal: true,
 }
 
 export const MOCK_BOOKING_SITE: BookingSiteConfig = {

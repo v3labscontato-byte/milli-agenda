@@ -24,6 +24,12 @@ export interface TenantSettings {
   cep: string | null
   city: string | null
   state: string | null
+  depositRequired: boolean
+  depositType: string
+  depositValue: number | null
+  cancellationMinHours: number
+  cancellationFeePercent: number
+  cancellationRefundSignal: boolean
 }
 
 export function useConfiguracoes() {

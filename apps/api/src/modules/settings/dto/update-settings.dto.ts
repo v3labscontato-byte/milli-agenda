@@ -1,4 +1,4 @@
-import { IsArray, IsEmail, IsInt, IsOptional, IsString } from 'class-validator'
+import { IsArray, IsBoolean, IsEmail, IsInt, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -63,4 +63,28 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsString()
   state?: string
+
+  @IsOptional()
+  @IsBoolean()
+  depositRequired?: boolean
+
+  @IsOptional()
+  @IsString()
+  depositType?: string
+
+  @IsOptional()
+  @IsNumber()
+  depositValue?: number
+
+  @IsOptional()
+  @IsInt()
+  cancellationMinHours?: number
+
+  @IsOptional()
+  @IsInt()
+  cancellationFeePercent?: number
+
+  @IsOptional()
+  @IsBoolean()
+  cancellationRefundSignal?: boolean
 }

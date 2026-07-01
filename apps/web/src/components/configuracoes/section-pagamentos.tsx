@@ -18,9 +18,9 @@ const DEFAULT_CFG: PaymentConfig = {
   depositPercent: 30,
   freeCancelHours: 24,
   lateCancelFeePercent: 0,
+  cancellationRefundSignal: true,
 }
 
-// Maps between the API enum strings and the UI boolean keys
 const METHOD_TO_KEY: Record<string, keyof Pick<PaymentConfig, 'pix' | 'cash' | 'debit' | 'credit' | 'voucher' | 'transfer'>> = {
   PIX: 'pix',
   CASH: 'cash',
@@ -77,6 +77,13 @@ export default function SectionPagamentos() {
       credit: methods.includes('CREDIT_CARD'),
       voucher: methods.includes('VOUCHER'),
       transfer: methods.includes('BANK_TRANSFER'),
+      requireDeposit: settings.depositRequired ?? false,
+      depositPercent: settings.depositType === 'percentage'
+        ? (settings.depositValue ?? 30)
+        : 30,
+      freeCancelHours: settings.cancellationMinHours ?? 24,
+      lateCancelFeePercent: settings.cancellationFeePercent ?? 0,
+      cancellationRefundSignal: settings.cancellationRefundSignal ?? true,
     }))
   }, [settings])
 
@@ -90,7 +97,16 @@ export default function SectionPagamentos() {
     const enabledMethods = (Object.keys(KEY_TO_METHOD) as Array<keyof typeof KEY_TO_METHOD>)
       .filter((k) => cfg[k as keyof PaymentConfig] === true)
       .map((k) => KEY_TO_METHOD[k])
-    const result = await update({ acceptedPaymentMethods: enabledMethods })
+
+    const result = await update({
+      acceptedPaymentMethods: enabledMethods,
+      depositRequired: cfg.requireDeposit,
+      depositType: cfg.requireDeposit ? 'percentage' : 'none',
+      depositValue: cfg.requireDeposit ? cfg.depositPercent : null,
+      cancellationMinHours: cfg.freeCancelHours,
+      cancellationFeePercent: cfg.lateCancelFeePercent,
+      cancellationRefundSignal: cfg.cancellationRefundSignal,
+    })
     if (result.success) {
       setSaveState('saved')
       setTimeout(() => setSaveState('idle'), 2000)
@@ -241,6 +257,15 @@ export default function SectionPagamentos() {
                 <option value={100}>100%</option>
               </SelectInput>
               <span className="text-[13px] text-[#64748B]">do valor</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Toggle
+                checked={cfg.cancellationRefundSignal}
+                onChange={(v) => set('cancellationRefundSignal', v)}
+                label="Devolver sinal em caso de cancelamento dentro do prazo"
+              />
+              <span className="text-[13px] text-[#0F172A]">Devolver sinal em caso de cancelamento dentro do prazo</span>
             </div>
           </div>
         </SectionCard>

@@ -24,6 +24,12 @@ const SETTINGS_SELECT = {
   cep: true,
   city: true,
   state: true,
+  depositRequired: true,
+  depositType: true,
+  depositValue: true,
+  cancellationMinHours: true,
+  cancellationFeePercent: true,
+  cancellationRefundSignal: true,
 } as const
 
 const PUBLIC_TENANT_SELECT = {

@@ -17,6 +17,12 @@ export interface UpdateSettingsData {
   cep?: string
   city?: string
   state?: string
+  depositRequired?: boolean
+  depositType?: string
+  depositValue?: number | null
+  cancellationMinHours?: number
+  cancellationFeePercent?: number
+  cancellationRefundSignal?: boolean
 }
 
 export const configuracoesApi = {

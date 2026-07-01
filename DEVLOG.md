@@ -2392,3 +2392,44 @@ A URL pública de produção NÃO foi commitada em nenhum arquivo do repositóri
 
 ### TypeScript
 - `npx tsc --noEmit` → 0 erros (frontend e backend)
+
+---
+
+## 2026-07-01 — Onda 2 ITEMs 3 e 4: Política de Sinal e Cancelamento
+
+### Migration criada (aguardando deploy em homolog)
+Arquivo: `packages/database/prisma/migrations/20260701000000_add_deposit_and_cancellation_policy/migration.sql`
+Campos adicionados ao model Tenant:
+- `depositRequired` BOOLEAN DEFAULT false
+- `depositType` TEXT DEFAULT 'none'
+- `depositValue` DECIMAL(10,2) nullable
+- `cancellationMinHours` INT DEFAULT 24
+- `cancellationFeePercent` INT DEFAULT 0
+- `cancellationRefundSignal` BOOLEAN DEFAULT true
+
+### Backend
+- `update-settings.dto.ts`: 6 novos campos com validators (@IsBoolean, @IsString, @IsNumber, @IsInt)
+- `settings.service.ts` SETTINGS_SELECT: 6 novos campos incluídos
+
+### Frontend
+- `use-configuracoes.ts` TenantSettings: 6 novos campos tipados
+- `configuracoes.ts` UpdateSettingsData: 6 novos campos
+- `configuracoes-mock.ts` PaymentConfig + MOCK_PAYMENT_CONFIG: campo `cancellationRefundSignal` adicionado
+- `section-pagamentos.tsx`: `useEffect` carrega os 6 campos da API; `handleSave` persiste via PATCH
+
+### Mapeamento UI → API
+- `requireDeposit = true` → `depositRequired: true, depositType: 'percentage', depositValue: depositPercent`
+- `requireDeposit = false` → `depositRequired: false, depositType: 'none', depositValue: null`
+- `freeCancelHours` → `cancellationMinHours`
+- `lateCancelFeePercent` → `cancellationFeePercent`
+- `cancellationRefundSignal` → `cancellationRefundSignal`
+
+### Novo campo de UI adicionado
+Toggle "Devolver sinal em caso de cancelamento dentro do prazo" na seção Política de Cancelamento.
+
+### TypeScript
+- `npx tsc --noEmit` → 0 erros (frontend e backend)
+
+### Pendente
+- Migration ainda não aplicada em homolog (aguardando DATABASE_URL)
+- Validação Playwright após aplicar migration

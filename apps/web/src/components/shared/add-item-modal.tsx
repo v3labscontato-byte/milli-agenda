@@ -153,15 +153,15 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
 
       <div className="relative z-10 flex w-full max-w-md flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-xl" style={{ maxHeight: '80vh' }}>
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
           <p className="text-[15px] font-semibold text-[#0F172A]">Adicionar item</p>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+          <button type="button" onClick={onClose} aria-label="Fechar" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
             <X size={16} aria-hidden="true" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex shrink-0 border-b border-[#F1F5F9]" role="tablist">
+        <div className="flex shrink-0 border-b border-[#E2E8F0]" role="tablist">
           {TABS.map((t) => (
             <button
               key={t}
@@ -185,12 +185,12 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
           {tab === 'adjustment' ? (
             <div className="space-y-4 px-5 py-4">
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-[#475569]">Descrição</label>
-                <input type="text" value={adjName} onChange={(e) => setAdjName(e.target.value)} placeholder="Ex: Gorjeta especial" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                <label className="mb-1.5 block text-sm font-medium text-[#64748B]">Descrição</label>
+                <input type="text" value={adjName} onChange={(e) => setAdjName(e.target.value)} placeholder="Ex: Gorjeta especial" className="w-full rounded-xl border border-[#E2E8F0] px-3 py-2 text-[13px] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-medium text-[#475569]">Valor (R$)</label>
-                <input type="number" min="0" step="0.01" value={adjPrice} onChange={(e) => setAdjPrice(e.target.value)} placeholder="0,00" className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-[13px] font-tabular placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                <label className="mb-1.5 block text-sm font-medium text-[#64748B]">Valor (R$)</label>
+                <input type="number" min="0" step="0.01" value={adjPrice} onChange={(e) => setAdjPrice(e.target.value)} placeholder="0,00" className="w-full rounded-xl border border-[#E2E8F0] px-3 py-2 text-[13px] font-tabular placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
               </div>
             </div>
           ) : (
@@ -198,7 +198,7 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
               <div className="shrink-0 px-4 pt-3 pb-2">
                 <div className="relative">
                   <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
-                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar…" className="w-full rounded-md border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-[13px] placeholder:text-[#64748B] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                  <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar…" className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-[13px] placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                 </div>
               </div>
 
@@ -251,14 +251,14 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
               )}
 
               {selected && (
-                <div className="flex gap-3 border-t border-[#F1F5F9] px-5 py-4">
+                <div className="flex gap-3 border-t border-[#E2E8F0] px-5 py-4">
                   <div className="flex-1">
                     <label className="mb-1 block text-[11px] font-medium text-[#475569]">Qtd.</label>
-                    <input type="number" min="1" max={tab === 'product' && selected?.stock != null ? selected.stock : undefined} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                    <input type="number" min="1" max={tab === 'product' && selected?.stock != null ? selected.stock : undefined} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="w-full rounded-xl border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                   </div>
                   <div className="flex-1">
                     <label className="mb-1 block text-[11px] font-medium text-[#475569]">Preço (R$)</label>
-                    <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
+                    <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-xl border border-[#E2E8F0] px-3 py-1.5 text-[13px] font-tabular focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]" />
                   </div>
                 </div>
               )}
@@ -267,8 +267,8 @@ export default function AddItemModal({ open, onClose, onAdd }: AddItemModalProps
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-[#F1F5F9] px-5 py-4">
-          <button type="button" onClick={handleAdd} disabled={!canAdd} className={cn('w-full rounded-md py-2.5 text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1', canAdd ? 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]' : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}>
+        <div className="shrink-0 border-t border-[#E2E8F0] px-5 py-4">
+          <button type="button" onClick={handleAdd} disabled={!canAdd} className={cn('w-full rounded-xl py-2.5 text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1', canAdd ? 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]' : 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}>
             Adicionar
           </button>
         </div>

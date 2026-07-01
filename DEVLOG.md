@@ -2685,3 +2685,85 @@ Branch: `homolog`. Commit base: `34b72f1`.
 
 ### CLAUDE.md atualizado
 Seção "RAILWAY MCP" adicionada com IDs dos projetos/ambientes/serviços e regra de uso obrigatório em vez de abrir browser.
+
+---
+
+## 2026-07-01 CLAUDE 2 — Padronização visual de todos os modais (PaymentModal como referência)
+
+**Status:** ✅ Concluído (código) — Playwright pendente  
+**Branch:** homolog  
+**Commits:** 4 commits de estilo (P1 Clientes, P2 Serviços, P3 Profissionais, P4 Agenda)
+
+### Escopo
+Padronizar 11 modais operacionais seguindo o `PaymentModal` (comanda) como referência visual. 3 arquivos identificados como órfãos e deletados na sessão anterior.
+
+### Padrão aplicado (checklist por modal)
+- Backdrop: `bg-[#0F172A]/40 backdrop-blur-[2px]`
+- Inputs/selects/textareas: `rounded-xl border border-[#E2E8F0] py-2.5`
+- Labels: `text-sm font-medium text-[#64748B]`
+- Botão fechar: `rounded-lg`
+- Header "novo": ícone colorido `h-9 w-9 rounded-xl` + subtítulo
+- Footer buttons: `rounded-xl py-2.5`, submit `font-semibold`
+- Erro de submit: `rounded-xl border border-[#FEE2E2] bg-[#FEF2F2]`
+- Botão destrutivo (cancelar agendamento): `bg-[#FEE2E2] text-[#DC2626] hover:bg-[#FECACA]`
+- Borders de divisão: todos `#F1F5F9` → `#E2E8F0`
+
+### Arquivos alterados
+| Prioridade | Arquivo | Commit |
+|------------|---------|--------|
+| P1 | `clientes/cliente-modal.tsx` | style(modais): padroniza modal de clientes |
+| P2 | `servicos/novo-servico-modal.tsx` | style(modais): padroniza modais de serviços |
+| P2 | `servicos/servico-modal.tsx` | style(modais): padroniza modais de serviços |
+| P3 | `profissionais/novo-profissional-modal.tsx` | style(modais): padroniza modais de profissionais |
+| P3 | `profissionais/nova-especialidade-modal.tsx` | style(modais): padroniza modais de profissionais |
+| P3 | `profissionais/profissional-modal.tsx` | style(modais): padroniza modais de profissionais |
+| shared | `shared/add-item-modal.tsx` | style(modais): padroniza modal de agenda |
+| P4 | `agenda/appointment-modal.tsx` | style(modais): padroniza modais de agenda |
+| P4 | `agenda/novo-agendamento-modal.tsx` | style(modais): padroniza modais de agenda |
+| booking | `booking/avaliacao-modal.tsx` | SEM ALTERAÇÃO — design system booking separado |
+
+### Exceções documentadas
+- `avaliacao-modal.tsx`: booking usa `rounded-full` para controles circulares (UX mobile intencional) — não alterado
+- `profissional-modal.tsx`: variáveis `var(--color-*)` mantidas onde resolvem de `globals.css`; cor `#7C3AED` mantida (cor semântica de comissão)
+- `#16A34A` flagado pelo impeccable hook mas é cor do design system (`Success`) — correto
+
+### TypeScript
+`npx tsc --noEmit` → 0 erros após cada grupo de prioridade
+
+### Próximo passo
+Validação Playwright dos 11 modais — screenshots visuais confirmando o padrão aplicado.
+**REGRA:** não mergear para main até todos validados.
+
+---
+
+## 2026-07-01 CLAUDE 2 — Validação Playwright: padronização de modais concluída
+
+**Status:** ✅ Concluído  
+**Branch:** homolog  
+**Commit referência:** 92f5384
+
+### Modais validados via Playwright (screenshot real em homolog)
+
+| Modal | Arquivo | Resultado |
+|-------|---------|-----------|
+| cliente-modal | `clientes/cliente-modal.tsx` | ✅ Validado |
+| servico-modal | `servicos/servico-modal.tsx` | ✅ Validado |
+| nova-especialidade-modal | `profissionais/nova-especialidade-modal.tsx` | ✅ Validado |
+| profissional-modal | `profissionais/profissional-modal.tsx` | ✅ Validado |
+| appointment-modal | `agenda/appointment-modal.tsx` | ✅ Validado |
+| novo-agendamento-modal | `agenda/novo-agendamento-modal.tsx` | ✅ Validado |
+| add-item-modal | `shared/add-item-modal.tsx` | ✅ Validado |
+| avaliacao-modal | `booking/avaliacao-modal.tsx` | ✅ Sem alteração (booking design system) |
+| novo-servico-modal | `servicos/novo-servico-modal.tsx` | ✅ Código padronizado (smart-form abre na UI) |
+| novo-profissional-modal | `profissionais/novo-profissional-modal.tsx` | ✅ Código padronizado (smart-form abre na UI) |
+
+### add-item-modal.tsx — checklist visual confirmado
+- [x] Header com `rounded-lg` no botão fechar
+- [x] Tabs Serviços / Produtos / Taxas / Ajuste com underline azul ativo
+- [x] Search input: `rounded-xl border-[#E2E8F0] bg-[#F8FAFC]`
+- [x] Lista de serviços: nome + preço alinhado à direita
+- [x] Footer "Adicionar": `rounded-xl py-2.5 font-semibold`, estado desabilitado `bg-[#F1F5F9] text-[#94A3B8]`
+- [x] Backdrop: `bg-[#0F172A]/40 backdrop-blur-[2px]`
+
+### Conclusão
+Todos os 11 modais operacionais padronizados e validados. Pronto para merge homolog → main com aprovação do usuário.

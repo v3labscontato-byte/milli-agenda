@@ -252,3 +252,33 @@ Forms multi-step em `apps/web/src/components/shared/`:
 
 ### Configurações primitivos
 `src/components/configuracoes/_primitives.tsx`: `Toggle`, `SaveButton`, `FieldLabel`, `TextInput`, `SelectInput`, `SectionCard`, `useSaveState`. Usar em todos os componentes de configurações.
+
+## RAILWAY MCP — Configurado e disponível
+
+Railway MCP instalado via Local MCP (`railway mcp install`).
+Autenticado como: `v3labs.contato@gmail.com`
+
+### Estrutura do projeto no Railway
+- **Nome do projeto Railway:** `backend-NestJS` (project ID: `3b43af67-dd83-4586-92ac-8ff0b90105b3`)
+- **Ambiente homolog:** `Milli-Homolog` (env ID: `d4159a32-77cf-4037-a07e-bd1a6543a8a2`)
+- **Ambiente produção:** `production` (env ID: `fb1e2ad5-1edd-441d-8912-c9c5e0817954`)
+- **Serviços:**
+  - `backend NestJS` (ID: `36eb0a49-dfc8-4780-a48f-d547eb5d2d4d`)
+  - `frontend Next.js` (ID: `565b271e-645c-46fa-a7fc-af73b1125e06`)
+  - `Redis` (ID: `8f5f86b2-1c4b-4715-aee7-772560e9da47`)
+  - `Postgres` (ID: `b2c1b95f-6029-47cb-a358-328ef9c28b06`)
+
+### Uso nas sessões
+- **Listar serviços/projetos:** via Railway MCP tools (disponíveis após restart de sessão)
+- **Adicionar/editar variáveis de ambiente:** via Railway MCP (sem abrir browser)
+- **Ver logs de deploy:** via Railway MCP
+- **Verificar status de deploy:** via Railway MCP antes de validar Playwright
+
+**REGRA:** toda vez que precisar adicionar variável de ambiente, verificar logs ou conferir status de deploy — usar Railway MCP em vez de pedir ao usuário para abrir o browser.
+
+### Fallback via CLI (sempre disponível)
+```bash
+railway whoami                    # confirmar autenticação
+railway project list              # listar projetos
+railway logs --service <nome>     # ver logs de um serviço
+```

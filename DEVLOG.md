@@ -2666,3 +2666,22 @@ Branch: `homolog`. Commit base: `34b72f1`.
 - [ ] **Auth WhatsApp OTP** — alternativa ao Google OAuth para identificação de clientes
 - [ ] Reagendamento (editar agendamento existente)
 - [ ] Programa de fidelidade real (schema implementado mas sem endpoints)
+
+---
+
+## 2026-07-01 — Railway MCP configurado
+
+### Instalação
+- Remote MCP (`https://mcp.railway.com`) removido — exige OAuth via browser, inviável em sessões automatizadas
+- `railway login --browserless` → autenticado como Vilson Carneiro (`v3labs.contato@gmail.com`)
+- `railway mcp install` → Local MCP configurado em `~/.claude.json` como stdio
+- `claude mcp list`: `railway: railway mcp - √ Connected` ✅
+
+### Estrutura descoberta via GraphQL Railway API
+- Projeto Railway: `backend-NestJS` (project ID: `3b43af67`)
+- Ambientes: `Milli-Homolog` + `production`
+- Serviços: backend NestJS, frontend Next.js, Redis, Postgres
+- Variáveis lidas (read-only): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_USE_REAL_API=true`, `RAILWAY_ENVIRONMENT=Milli-Homolog` ✅
+
+### CLAUDE.md atualizado
+Seção "RAILWAY MCP" adicionada com IDs dos projetos/ambientes/serviços e regra de uso obrigatório em vez de abrir browser.

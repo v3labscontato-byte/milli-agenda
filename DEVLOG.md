@@ -2836,3 +2836,19 @@ Crash: `FST_ERR_PLUGIN_VERSION_MISMATCH` — servidor não subia.
 ### Fix
 `npm install @fastify/multipart@8` (v8.x suporta Fastify 4.x)  
 `npx tsc --noEmit` → 0 erros
+
+## 2026-07-01 CLAUDE 2 — fix(upload): substituir @fastify/multipart por busboy nativo
+
+**Status:** ✅ Fix aplicado — deploy em progresso  
+**Branch:** homolog  
+
+### Causa raiz do build failure
+`@fastify/multipart` instalado em `apps/api/node_modules` mas NÃO hoistado para `node_modules` raiz.  
+O build do Railway (que roda do root) não encontrava o módulo no TypeScript compilation.
+
+### Fix definitivo
+- Removido `@fastify/multipart` de `apps/api/package.json` e `main.ts`
+- `busboy@1.6.0` já disponível em `node_modules/busboy` (dep transitiva do Fastify)
+- `main.ts`: `addContentTypeParser(/^multipart\/form-data/)` — aceita a content-type sem parsear
+- `upload.controller.ts`: `require('busboy')` direto + `raw.pipe(bb)` — parse do stream no controller
+- Zero novas dependências externas

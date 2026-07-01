@@ -14,29 +14,16 @@ import ServicoList from '@/components/servicos/servico-list'
 import ServicoModal from '@/components/servicos/servico-modal'
 import NovoServicoModal from '@/components/servicos/novo-servico-modal'
 import SmartFormServico from '@/components/shared/smart-form-servico'
+import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 
-// ─── KPI card ─────────────────────────────────────────────────────────────────
+type KpiPeriod = 'hoje' | 'semana' | 'mes' | '30d'
 
-interface KpiCardProps { label: string; value: React.ReactNode; sub: string; accent?: boolean }
-
-function KpiCard({ label, value, sub, accent }: KpiCardProps) {
-  return (
-    <div className={cn(
-      'flex flex-col rounded-xl border p-5',
-      accent ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]' : 'border-[var(--color-border-primary)] bg-white',
-    )}>
-      <span className={cn('font-tabular text-3xl font-bold leading-none', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
-        {value}
-      </span>
-      <span className={cn('mt-1.5 text-sm font-semibold', accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-primary)]')}>
-        {label}
-      </span>
-      <span className={cn('mt-0.5 text-[11px]', accent ? 'text-[var(--color-brand-dark)]' : 'text-[var(--color-text-tertiary)]')}>
-        {sub}
-      </span>
-    </div>
-  )
-}
+const KPI_PERIODOS: Array<{ key: KpiPeriod; label: string }> = [
+  { key: 'hoje',   label: 'Hoje'            },
+  { key: 'semana', label: 'Esta semana'     },
+  { key: 'mes',    label: 'Este mês'        },
+  { key: '30d',    label: 'Últimos 30 dias' },
+]
 
 // ─── Filter config ────────────────────────────────────────────────────────────
 
@@ -66,18 +53,23 @@ export default function ServicosPage() {
   const [selected, setSelected]         = useState<Servico | null>(null)
   const [novoOpen, setNovoOpen]         = useState(false)
   const [smartOpen, setSmartOpen]       = useState(false)
+  const [kpiPeriod, setKpiPeriod]       = useState<KpiPeriod>('mes')
 
   const { data: servicos, loading, error, create, update, remove, toggleStatus } = useServicos()
   const stats = useMemo(() => {
     const ativos = servicos.filter((s) => s.status === 'active')
+    const inativos = servicos.filter((s) => s.status === 'inactive').length
     const precos = ativos.map((s) => s.price)
     const avgPrice = precos.length > 0 ? precos.reduce((a, b) => a + b, 0) / precos.length : 0
     const top = [...servicos].sort((a, b) => b.bookingsThisMonth - a.bookingsThisMonth)[0]
+    const totalBookings = servicos.reduce((s, sv) => s + sv.bookingsThisMonth, 0)
     return {
       total: servicos.length,
       ativos: ativos.length,
+      inativos,
       avgPrice: Math.round(avgPrice * 100) / 100,
       topServico: top ?? null,
+      totalBookings,
     }
   }, [servicos])
 
@@ -126,19 +118,26 @@ export default function ServicosPage() {
     <div className="flex h-full flex-col">
 
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white">
-        <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">
-            Visão geral
-          </p>
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 pb-4 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              Visão geral
+            </p>
+            <KpiPeriodFilter
+              options={KPI_PERIODOS}
+              active={kpiPeriod}
+              onChange={(k) => setKpiPeriod(k as KpiPeriod)}
+            />
+          </div>
           <button
             type="button"
             onClick={() => setSmartOpen(true)}
             aria-label="Novo serviço"
             className={cn(
-              'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
-              'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+              'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
+              'text-[12px] font-semibold text-white transition-colors hover:bg-[#1D4ED8]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
             )}
           >
             <Plus size={13} aria-hidden="true" />
@@ -146,35 +145,25 @@ export default function ServicosPage() {
           </button>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <KpiCard label="Total" value={stats.total} sub="serviços cadastrados" color="blue" />
+          <KpiCard label="Ativos" value={stats.ativos} sub={`de ${stats.total} cadastrados`} color="green" />
           <KpiCard
-            label="Total"
-            value={stats.total}
-            sub="serviços cadastrados"
+            label="Inativos"
+            value={stats.inativos}
+            sub="fora de catálogo"
+            color={stats.inativos > 0 ? 'red' : 'default'}
           />
-          <KpiCard
-            label="Ativos"
-            value={stats.ativos}
-            sub={`de ${stats.total} cadastrados`}
-            accent
-          />
-          <KpiCard
-            label="Ticket Médio"
-            value={formatBRL(stats.avgPrice)}
-            sub="média dos serviços ativos"
-          />
+          <KpiCard label="Ticket Médio" value={formatBRL(stats.avgPrice)} sub="média dos ativos" />
+          <KpiCard label="Agend./Mês" value={stats.totalBookings} sub="total de agendamentos" />
           <KpiCard
             label="Mais Pedido"
             value={
               stats.topServico
-                ? <span className="truncate text-[22px]">{stats.topServico.name}</span>
+                ? <span className="block truncate text-[18px] leading-tight">{stats.topServico.name}</span>
                 : '—'
             }
-            sub={
-              stats.topServico
-                ? `${stats.topServico.bookingsThisMonth} agend. este mês`
-                : 'sem dados'
-            }
+            sub={stats.topServico ? `${stats.topServico.bookingsThisMonth} agend. este mês` : 'sem dados'}
           />
         </div>
       </div>

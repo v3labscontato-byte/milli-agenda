@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Phone, Mail, CreditCard, Calendar, Clock, Trash2 } from 'lucide-react'
+import { X, Phone, Mail, CreditCard, Calendar, Clock, Trash2, User, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Cliente } from '@/lib/clientes-mock'
 import { formatDate, age, clienteSinceLabel } from '@/lib/clientes-mock'
@@ -14,9 +14,9 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'financeiro', label: 'Financeiro' },
 ]
 
-const inputCls = 'w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]'
-const btnSave = 'rounded-md bg-[#2563EB] px-3 py-1.5 text-[12px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
-const btnCancel = 'rounded-md border border-[#E2E8F0] px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
+const inputCls = 'w-full border border-[#E2E8F0] rounded-xl px-3 py-2.5 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#DBEAFE] focus:border-[#2563EB] placeholder:text-[#94A3B8]'
+const btnSave = 'rounded-xl bg-[#2563EB] px-3 py-2 text-[13px] font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
+const btnCancel = 'rounded-xl border border-[#E2E8F0] px-3 py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]'
 
 function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id: string; name: string }> }) {
   const [editingDados, setEditingDados] = useState(false)
@@ -69,13 +69,18 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
   const profFavoritoNome = profissionais.find((p) => p.id === editFavProf)?.name ?? ''
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Dados Pessoais */}
-      <div>
+      <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] font-medium text-[#64748B]">Dados Pessoais</p>
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#DBEAFE]">
+              <User size={12} className="text-[#2563EB]" aria-hidden="true" />
+            </div>
+            <p className="text-[13px] font-semibold text-[#0F172A]">Dados Pessoais</p>
+          </div>
           {!editingDados && (
-            <button type="button" onClick={() => setEditingDados(true)} className="text-[11px] text-[#2563EB] hover:underline">
+            <button type="button" onClick={() => setEditingDados(true)} className="text-[12px] font-medium text-[#2563EB] hover:underline focus-visible:outline-none">
               Editar
             </button>
           )}
@@ -84,27 +89,27 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
         {editingDados ? (
           <div className="space-y-3">
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Nome</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Nome</label>
               <input value={editName} onChange={e => setEditName(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Email</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Email</label>
               <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Telefone</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Telefone</label>
               <input value={editPhone} onChange={e => setEditPhone(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">CPF</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">CPF</label>
               <input value={editCpf} onChange={e => setEditCpf(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Nascimento</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Nascimento</label>
               <input type="date" value={editBirth} onChange={e => setEditBirth(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Observações</label>
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Observações</label>
               <textarea value={editNotes} onChange={e => setEditNotes(e.target.value)} rows={3} className={`${inputCls} resize-none`} />
             </div>
             <div className="flex gap-2 pt-1">
@@ -160,11 +165,16 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
       </div>
 
       {/* Preferências */}
-      <div className="border-t border-[#F1F5F9] pt-4">
+      <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[12px] font-medium text-[#64748B]">Preferências</p>
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#FCE7F3]">
+              <Heart size={12} className="text-[#DB2777]" aria-hidden="true" />
+            </div>
+            <p className="text-[13px] font-semibold text-[#0F172A]">Preferências</p>
+          </div>
           {!editingPref && (
-            <button type="button" onClick={() => setEditingPref(true)} className="text-[11px] text-[#2563EB] hover:underline">
+            <button type="button" onClick={() => setEditingPref(true)} className="text-[12px] font-medium text-[#2563EB] hover:underline focus-visible:outline-none">
               Editar
             </button>
           )}
@@ -173,9 +183,8 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
         {editingPref ? (
           <div className="space-y-3">
             <div>
-              <label className="text-[11px] text-[#94A3B8] block mb-0.5">Profissional favorito</label>
-              <select value={editFavProf} onChange={e => setEditFavProf(e.target.value)}
-                className="w-full border border-[#E2E8F0] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[#2563EB]">
+              <label className="text-sm font-medium text-[#64748B] block mb-1">Profissional favorito</label>
+              <select value={editFavProf} onChange={e => setEditFavProf(e.target.value)} className={inputCls}>
                 <option value="">Nenhum</option>
                 {profissionais.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
@@ -193,7 +202,7 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
           <div className="space-y-2">
             <div className="flex justify-between text-[13px]">
               <span className="text-[#64748B]">Profissional favorito</span>
-              <span className="text-[#0F172A] font-medium">{profFavoritoNome || '—'}</span>
+              <span className="font-medium text-[#0F172A]">{profFavoritoNome || '—'}</span>
             </div>
             <div className="flex justify-between text-[13px]">
               <span className="text-[#64748B]">Serviço mais frequente</span>
@@ -201,7 +210,7 @@ function TabPerfil({ c, profissionais }: { c: Cliente; profissionais: Array<{ id
             </div>
             {c.tags.length > 0 && (
               <div className="pt-1">
-                <p className="mb-1.5 text-[11px] text-[#94A3B8]">Tags</p>
+                <p className="mb-1.5 text-[12px] font-medium text-[#64748B]">Tags</p>
                 <div className="flex flex-wrap gap-1.5">
                   {c.tags.map((t) => <ClienteTagBadge key={t} tag={t} />)}
                 </div>
@@ -434,11 +443,11 @@ export default function ClienteModal({ cliente, onClose, onDelete }: ClienteModa
                 <span className="text-[12px] text-[#475569]">Excluir?</span>
                 <button type="button" disabled={deleting}
                   onClick={async () => { setDeleting(true); try { await onDelete(cliente.id) } finally { setDeleting(false); setConfirming(false) } }}
-                  className="rounded-md bg-[#DC2626] px-2.5 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#B91C1C] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                  className="rounded-xl bg-[#FEE2E2] px-2.5 py-1.5 text-[12px] font-medium text-[#DC2626] transition-colors hover:bg-[#FECACA] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
                   {deleting ? 'Excluindo…' : 'Confirmar'}
                 </button>
                 <button type="button" disabled={deleting} onClick={() => setConfirming(false)}
-                  className="rounded-md border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
+                  className="rounded-xl border border-[#E2E8F0] px-2.5 py-1.5 text-[12px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]">
                   Cancelar
                 </button>
               </div>

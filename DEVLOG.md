@@ -3274,3 +3274,32 @@ Via Playwright no homolog, captura de todos os requests `/api/v1/reports` para c
 
 ### TypeScript
 `npx tsc --noEmit` → 0 erros
+
+---
+
+## [2026-07-01] Claude — Regressão pré-merge: 3 fluxos críticos validados em homolog
+
+**Status:** ✅ Concluído  
+**Ambiente:** Homolog (Playwright)  
+**Commit de referência:** 642dbef (fix financeiro KPIs)
+
+### Resultado dos testes
+
+| Fluxo | Resultado | Evidência |
+|-------|-----------|-----------|
+| Flow 1 — Comanda completa | ✅ PASSOU | POST `/api/v1/commands/cmr2hei5e0003124kwugzn0no/close` → 201 |
+| Flow 2 — Financeiro com filtros | ✅ PASSOU | Receita Bruta: Hoje=R$70, Últimos 30d=R$1.730, Este mês=R$70, Esta semana=R$70~R$1.730 |
+| Flow 3 — Agenda semana | ✅ PASSOU | Semana atual e semana anterior exibem agendamentos corretamente |
+
+### Detalhes Flow 1 (Comanda completa)
+1. Criado agendamento: Ana Silva / Camila Souza / Escova / 11:00 / 01/07/2026 → POST /appointments 201
+2. Abriu comanda do agendamento
+3. Adicionado item: Manicure R$50,00 → comanda com 2 itens (Escova R$70 + Manicure R$50 = R$120)
+4. Confirmou pagamento PIX R$120 → POST /close 201
+5. Linha da agenda atualizada: status Pago, valor R$120, atendimento Realizado
+
+### Ação pós-regressão
+Merge homolog → main executado:
+```
+git checkout main && git merge homolog && git push origin main && git checkout homolog
+```

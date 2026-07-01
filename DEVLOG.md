@@ -2958,3 +2958,53 @@ ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "primaryColor" TEXT DEFAULT '#3D2
 - `primaryColor`: TEXT DEFAULT '#3D2B1F' ✅
 
 Arquivo de tracking criado: `packages/database/prisma/migrations/20260701200000_add_tenant_image_color/migration.sql`
+
+## 2026-07-01 CLAUDE — feat(booking): auth guard global + fluxo de login correto
+
+**Commit:** b3abe68  
+**Branch:** homolog  
+**Status:** ✅ Validado via Playwright (5/5 cenários)
+
+### O que foi feito
+
+**Problema:** O PWA booking não tinha proteção de autenticação global. Cada página gerenciava seu próprio estado de login (meus-agendamentos tinha o PhoneIdentify como gate). Sem login, `/booking` mostrava a home com mock data.
+
+**Solução:** Auth guard no layout + login centralizado no PhoneIdentify.
+
+### Mudanças
+
+**`(booking)/layout.tsx`** → tornou Client Component com auth guard:
+- `PUBLIC_ROUTES = ['/booking/login']` — login sempre acessível sem auth
+- `!ready` → skeleton `bg-[#FAF7F4] animate-pulse` (evita flash)
+- `ready && !client && !isPublic` → `router.replace('/booking/login')`
+- Login page: sem BottomNav (layout diferenciado)
+- Removido `export const metadata` (incompatível com Client Component)
+
+**`booking/login/page.tsx`** → substituído AuthScreen (mock email/senha) por PhoneIdentify:
+- `handleFound(c)` → `setClient(c)` + `window.location.replace('/booking')`
+- `window.location.replace` (não `router.push`) garante reload completo — necessário porque layout e page têm instâncias separadas de `useBookingClient`
+
+**`booking/meus-agendamentos/page.tsx`** → removido gate:
+- Removido `PhoneIdentify` e `handleFound`
+- Removido `if (!client) return <PhoneIdentify />`
+- `if (!ready || !client) return <Skeleton />` (proteção contra flash no primeiro tick)
+- Logout: `clearClient()` + `window.location.replace('/booking/login')`
+
+**`booking/page.tsx`** → home usa dados reais:
+- `useBookingClient()` para `client.name` na saudação
+- Cover hero: `tenant?.coverImageUrl` (quando FEATURES.realBooking) ou gradient `#C9B8A8→#8B7355`
+- Saudação: `Olá, {(client?.name ?? 'você').split(' ')[0]}! 👋`
+
+### Validação Playwright
+
+| Cenário | Resultado |
+|---------|-----------|
+| 1. `/booking` sem login → redirect `/booking/login` | ✅ |
+| 2. Com client no sessionStorage → home mostra "Olá, Maria! 👋" | ✅ |
+| 3. `/booking/meus-agendamentos` → lista direta (sem gate PhoneIdentify) | ✅ |
+| 4. Logout → redirect `/booking/login` | ✅ |
+| 5. `/booking/perfil` sem login → redirect `/booking/login` | ✅ |
+
+### Nota sobre homolog
+Login com `ddpobre@gmail.com` / `123456789` falha com "Invalid credentials" — problema pré-existente na DB de homolog (não relacionado a esta tarefa). Validação feita via simulação de sessionStorage.
+

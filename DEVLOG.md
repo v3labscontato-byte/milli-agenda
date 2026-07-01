@@ -3068,3 +3068,50 @@ Login com `ddpobre@gmail.com` / `123456789` falha com "Invalid credentials" — 
 
 ### TypeScript
 `npx tsc --noEmit` → 0 erros
+
+---
+
+## [2026-07-01] Seed completo do banco homolog + fix CORS
+
+### Status: ✅ Concluído
+
+### Contexto
+O banco homolog estava vazio (nunca teve dados). As tabelas existiam (criadas via `prisma db push` em algum ponto anterior) mas sem dados e sem `_prisma_migrations`. Login retornava 401 pois nenhum tenant/user existia.
+
+### O que foi feito
+
+**1. Diagnóstico:**
+- Banco homolog (TCP proxy `reseau.proxy.rlwy.net:47381`) com todas as tabelas zeradas
+- `_prisma_migrations` não existia — P3005 ao tentar `migrate deploy`
+- `CORS_ORIGIN` apontava para produção (`milli-agenda-production.up.railway.app`)
+- Colunas ausentes nas tabelas: `professionals` (workDays, workStart, workEnd, enabledServices, etc.) e `clients` (clientNumber, cpf, favoriteProfessionalId)
+
+**2. Baseline de migrations:**
+- 10 migrations marcadas como aplicadas via `prisma migrate resolve --applied`
+- `prisma migrate deploy` confirmou: "No pending migrations"
+
+**3. Colunas faltantes adicionadas via ALTER TABLE:**
+- `professionals`: workDays, workStart, workEnd, cpf, birthDate, vinculo, enabledServices, allowSimultaneous
+- `clients`: clientNumber, cpf, favoriteProfessionalId
+
+**4. Seed executado (`packages/database/prisma/seed-homolog.ts`):**
+- Tenant: `studio-homolog` (Studio Homolog)
+- User admin: `ddpobre@gmail.com` / `123456789` / role `TENANT_ADMIN`
+- 4 serviços: Corte Feminino, Escova, Coloração, Manicure
+- 2 profissionais: Arthur Silva, Maria Santos
+- 1 cliente de teste: Vilson Carneiro (11991560898)
+
+**5. CORS corrigido:**
+- `CORS_ORIGIN` → `https://frontend-nextjs-milli-homolog.up.railway.app`
+
+**6. Validação:**
+```
+POST /api/v1/auth/login {"email":"ddpobre@gmail.com","password":"123456789"}
+→ 200 OK com accessToken ✅
+```
+
+### Credenciais homolog
+- **Tenant:** `studio-homolog`
+- **Email:** `ddpobre@gmail.com`
+- **Senha:** `123456789`
+- **Role:** `TENANT_ADMIN`

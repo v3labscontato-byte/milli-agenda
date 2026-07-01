@@ -2919,3 +2919,21 @@ npx prisma migrate dev --schema=packages/database/prisma/schema.prisma
   - Aba Cadastrar: nome + telefone + e-mail → POST /clients → redireciona
   - Botão Google → toast "Em breve"
   - primaryColor do tenant aplicado em tabs + botões
+
+### Validação Playwright — 2026-07-01
+| Teste | Resultado |
+|-------|-----------|
+| 1. Tel existente → lista de agendamentos | ✅ |
+| 2. Tel inexistente → aba Cadastrar pré-preenchida + mensagem | ✅ |
+| 3. Nome + tel novo → conta criada → lista vazia com CTA | ✅ |
+| 4. Botão Google → toast "Em breve" | ✅ |
+
+**Status final:** ✅ APROVADO — tela de acesso premium em produção em homolog
+
+**Pendente (schema):**
+Confirmar quando rodar a migration em homolog:
+```
+npx prisma migrate dev --schema=packages/database/prisma/schema.prisma
+```
+Campos novos (coverImageUrl, primaryColor) retornam null até a migration.
+Fallback: gradiente bege/marrom + cor padrão #3D2B1F (correto visualmente).

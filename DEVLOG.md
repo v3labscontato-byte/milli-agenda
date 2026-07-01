@@ -2600,3 +2600,49 @@ Aguardando DATABASE_URL de produção do usuário para rodar `prisma migrate dep
 `20260701000000_add_deposit_and_cancellation_policy` aplicada via `prisma migrate deploy` contra banco de produção (Railway).
 Status final: `Database schema is up to date!` — 9/9 migrations aplicadas.
 DATABASE_URL fornecida pontualmente pelo usuário, não commitada em nenhum arquivo.
+
+---
+
+## 2026-07-01 — Onda 4: "Meus Agendamentos" com dados reais — Validação Playwright APROVADA
+
+### Contexto
+Implementação de identificação por telefone no PWA de booking (Onda 4).
+Branch: `homolog`. Commit base: `34b72f1`.
+
+### Funcionalidades implementadas
+
+**Backend (`apps/api/src/modules/public/`):**
+- `GET /api/v1/public/:slug/appointments?phone=` → busca cliente por telefone (match exato + fallback dígitos normalizados), retorna `{ client, appointments[] }`
+- `GET /api/v1/public/:slug/appointments/:id` → detalhe de um agendamento (valida tenantId)
+- `PATCH /api/v1/public/:slug/appointments/:id/cancel` → cancela com validação de posse por telefone + política de `cancellationMinHours`
+- `findOrCreateClientByEmail()` stub para futura integração Google OAuth (não exposto)
+
+**Frontend (`apps/web/`):**
+- `src/hooks/use-booking-client.ts` — hook useState + sessionStorage para persistir identidade entre navegações
+- `src/components/booking/phone-identify.tsx` — tela de identificação com máscara `(XX) XXXXX-XXXX`, estado de não encontrado, placeholder Google OAuth
+- `src/app/(booking)/booking/meus-agendamentos/page.tsx` — reescrita completa: PhoneIdentify → lista real de agendamentos; abas Próximos/Histórico; modal de cancelamento com política de horas/taxa
+- `src/app/(booking)/booking/perfil/page.tsx` — reescrita: sem cliente → "Identificar-me"; com cliente → avatar com iniciais, nome/telefone/email reais, botão "Sair"
+
+**Bug fix crítico (estado):**
+`useBookingClient` usa useState (componente-local). PhoneIdentify tinha instância própria → `setClient` não atualizava o pai. Solução: removido hook de PhoneIdentify; componente chama `onFound(clientInfo)`; pai faz `setClient(c)` + `loadAppointments(c)` na mesma função `handleFound`.
+
+### Validação Playwright — Todos os cenários aprovados
+
+| Cenário | Resultado |
+|---------|-----------|
+| Tela PhoneIdentify sem cliente identificado | ✅ Ícone 📅 + form + Google OAuth desabilitado |
+| Máscara de telefone durante digitação | ✅ `(11) 99999-9999` formatado corretamente |
+| Busca com telefone existente → lista real | ✅ "Próximos (1) · Escova · Arthur · R$ 70,00" |
+| Modal de cancelamento com política | ✅ "Cancelamento gratuito — Com mais de 48h" |
+| Confirmar cancelamento | ✅ Próximos(0) vazio + Histórico(1) badge "Cancelado" |
+| Telefone inexistente | ✅ "Nenhum agendamento encontrado para este telefone." |
+| Perfil sem cliente | ✅ "Minha conta · Identificar-me" |
+| Perfil com cliente real | ✅ Avatar "VC", "Vilson Carneiro", telefone, menu, "Sair", footer "Studio Homolog · Versão 1.0.0" |
+| Botão "Sair da identificação" | ✅ Volta à PhoneIdentify, limpa sessionStorage |
+
+### TypeScript
+- Frontend: 0 erros (`npx tsc --noEmit`) ✅
+- Backend: 0 erros (`npx tsc --noEmit`) ✅
+
+### Status
+✅ Onda 4 completa — aguardando aprovação para merge homolog → main

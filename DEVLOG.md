@@ -2790,3 +2790,34 @@ Todos os 11 modais operacionais padronizados e validados. Pronto para merge homo
 - `PATCH /appointments/{id}` → 200
 
 ### Próximo: Produtos — Ondas C, D e E
+
+---
+
+## 2026-07-01 CLAUDE 2 — feat(upload): módulo R2 para upload de imagens via Cloudflare
+
+**Status:** ✅ Concluído (backend) — deploy em progresso  
+**Branch:** homolog  
+
+### Implementação
+- `apps/api/src/modules/upload/upload.service.ts`: S3Client apontando para R2, valida mimetype (jpeg/png/webp) e tamanho (max 5MB), gera chave `{folder}/{uuid}.{ext}`, retorna URL pública
+- `apps/api/src/modules/upload/upload.controller.ts`: `POST /api/v1/upload/image`, JwtAuthGuard, extrai arquivo via `@fastify/multipart`
+- `apps/api/src/modules/upload/upload.module.ts`: registra controller + service, exporta UploadService
+- `apps/api/src/app.module.ts`: UploadModule adicionado
+- `apps/api/src/main.ts`: `@fastify/multipart` registrado (cast `as any` para contornar mismatch de versão de tipos)
+
+### Nota técnica
+Backend usa Fastify — `multer` é Express-only e incompatível. Substituído por `@fastify/multipart` (suporte nativo). `@types/multer` não instalado; tipagem local `MultipartFile` no controller.
+
+### Teste após deploy
+```bash
+TOKEN=$(curl -s -X POST https://backend-nestjs-milli-homolog.up.railway.app/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ddpobre@gmail.com","password":"123456789"}' | jq -r '.data.accessToken')
+
+curl -X POST https://backend-nestjs-milli-homolog.up.railway.app/api/v1/upload/image \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@imagem.jpg" \
+  -F "folder=logos"
+```
+
+### Próximo: Produtos — Ondas C, D e E

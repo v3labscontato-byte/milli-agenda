@@ -12,6 +12,7 @@ export interface Product {
   description: string
   notes: string
   price: number
+  costPrice: number | null
   stockQuantity: number
   minStockAlert: number
   maxStock: number | null
@@ -39,6 +40,7 @@ export interface ProductInput {
   description?: string
   notes?: string
   price: number
+  costPrice?: number | null
   stockQuantity?: number
   minStockAlert?: number
   maxStock?: number | null
@@ -59,6 +61,7 @@ interface ApiProduct {
   description: string | null
   notes: string | null
   price: number | string
+  costPrice: number | string | null
   stockQuantity: number
   minStockAlert: number
   maxStock: number | null
@@ -81,6 +84,7 @@ function toProduct(api: ApiProduct): Product {
     description: api.description ?? '',
     notes: api.notes ?? '',
     price: Number(api.price ?? 0),
+    costPrice: api.costPrice != null ? Number(api.costPrice) : null,
     stockQuantity: api.stockQuantity ?? 0,
     minStockAlert: api.minStockAlert ?? 0,
     maxStock: api.maxStock ?? null,

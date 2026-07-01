@@ -46,7 +46,11 @@ export default function ProdutosPage() {
     const avgPrice = products.length > 0
       ? Math.round(products.reduce((s, p) => s + p.price, 0) / products.length * 100) / 100
       : 0
-    return { okCount, avgPrice }
+    const withCost = products.filter(p => p.costPrice != null && p.costPrice > 0 && p.price > 0)
+    const avgMargin = withCost.length > 0
+      ? withCost.reduce((s, p) => s + ((p.price - p.costPrice!) / p.price) * 100, 0) / withCost.length
+      : null
+    return { okCount, avgPrice, avgMargin, withCostCount: withCost.length }
   }, [products, stats])
 
   const filtered = useMemo(() => {
@@ -69,8 +73,8 @@ export default function ProdutosPage() {
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
       <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {[0,1,2,3,4,5].map(i => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
+          {[0,1,2,3,4,5,6].map(i => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
         </div>
       </div>
       <div className="flex-1 space-y-3 p-6">
@@ -116,7 +120,7 @@ export default function ProdutosPage() {
           </button>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
           <KpiCard label="Total" value={stats.totalProducts} sub="produtos cadastrados" color="blue" />
           <KpiCard
             label="OK"
@@ -138,6 +142,14 @@ export default function ProdutosPage() {
           />
           <KpiCard label="Valor em estoque" value={formatBRL(stats.totalStockValue)} sub="preço × quantidade" />
           <KpiCard label="Preço médio" value={formatBRL(kpiStats.avgPrice)} sub="média dos produtos" />
+          <KpiCard
+            label="Margem média"
+            value={kpiStats.avgMargin != null
+              ? kpiStats.avgMargin.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%'
+              : '—'}
+            sub={kpiStats.withCostCount > 0 ? `${kpiStats.withCostCount} com custo` : 'sem custo definido'}
+            color={kpiStats.avgMargin == null ? 'default' : kpiStats.avgMargin > 30 ? 'green' : kpiStats.avgMargin >= 10 ? 'yellow' : 'red'}
+          />
         </div>
       </div>
 

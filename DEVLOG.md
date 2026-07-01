@@ -3303,3 +3303,30 @@ Merge homolog → main executado:
 ```
 git checkout main && git merge homolog && git push origin main && git checkout homolog
 ```
+
+---
+
+## [2026-07-01] Claude — Onda C: costPrice, margem e markup em produtos
+
+**Status:** ✅ Concluído  
+**Branch:** homolog
+
+### Migration
+- `20260701220000_add_product_cost_price` — `ALTER TABLE "products" ADD COLUMN "costPrice" DECIMAL(10,2);`
+- Aplicada em homolog (12 migrations total, database up to date)
+
+### Backend
+- `create-product.dto.ts`: `costPrice?: number | null` com `@IsOptional @IsNumber @Min(0)`
+- `produtos.service.ts`: `costPrice` incluído em `create()` e `update()`
+
+### Frontend
+- `use-produtos.ts`: `costPrice: number | null` em `Product`, `ProductInput` e `ApiProduct`; `toProduct()` com guard null
+- `produto-modal.tsx`: campo "Preço de custo" no Card 2 (ao lado de "Preço de venda"); indicador em tempo real de Margem e Markup com cor (verde >30%, amarelo 10-30%, vermelho <10%)
+- `produtos/page.tsx`: KPI "Margem Média" — 7º card, calculado no frontend (média das margens dos produtos com costPrice preenchido)
+
+### Validação pendente (Playwright)
+1. Criar produto preço R$100, custo R$60 → Margem 40%, Markup 66,7%
+2. Editar produto existente com custo → valores aparecem
+3. KPI Margem Média no dashboard
+
+### npx tsc --noEmit → 0 erros (frontend e backend)

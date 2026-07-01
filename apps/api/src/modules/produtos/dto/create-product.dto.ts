@@ -18,6 +18,11 @@ export class CreateProductDto {
   price: number
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPrice?: number | null
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   stockQuantity?: number

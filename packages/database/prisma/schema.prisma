@@ -572,6 +572,7 @@ model Product {
   description     String?
   notes           String?
   price           Decimal                 @db.Decimal(10, 2)
+  costPrice       Decimal?                @db.Decimal(10, 2)
   stockQuantity   Int                     @default(0)
   minStockAlert   Int                     @default(0)
   maxStock        Int?

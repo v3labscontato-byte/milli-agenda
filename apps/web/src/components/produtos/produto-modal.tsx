@@ -69,14 +69,14 @@ function CardIcon({ bg, color, children }: { bg: string; color: string; children
 
 interface FormState {
   name: string; categoryId: string; sku: string; brand: string; supplierName: string
-  unit: ProductUnit; price: string; active: boolean
+  unit: ProductUnit; price: string; costPrice: string; active: boolean
   stockQuantity: string; minStockAlert: string; maxStock: string; location: string
   classifications: ProductClassification[]; description: string; notes: string; imageUrl: string
 }
 
 const EMPTY: FormState = {
   name: '', categoryId: '', sku: '', brand: '', supplierName: '',
-  unit: 'UNIT', price: '', active: true,
+  unit: 'UNIT', price: '', costPrice: '', active: true,
   stockQuantity: '0', minStockAlert: '0', maxStock: '',
   location: '', classifications: [], description: '', notes: '', imageUrl: '',
 }
@@ -85,10 +85,21 @@ function toFormState(p: Product): FormState {
   return {
     name: p.name, categoryId: p.categoryId ?? '', sku: p.sku, brand: p.brand,
     supplierName: p.supplierName, unit: p.unit, price: String(p.price), active: p.active,
+    costPrice: p.costPrice != null ? String(p.costPrice) : '',
     stockQuantity: String(p.stockQuantity), minStockAlert: String(p.minStockAlert),
     maxStock: p.maxStock !== null ? String(p.maxStock) : '',
     location: p.location, classifications: p.classifications ?? [],
     description: p.description, notes: p.notes, imageUrl: p.imageUrl,
+  }
+}
+
+function calcMargin(price: string, costPrice: string): { margem: number; markup: number } | null {
+  const p = Number(price)
+  const c = Number(costPrice)
+  if (!price || !costPrice || p <= 0 || c <= 0 || c >= p) return null
+  return {
+    margem: ((p - c) / p) * 100,
+    markup: ((p - c) / c) * 100,
   }
 }
 
@@ -168,6 +179,7 @@ export default function ProdutoModal({ open, product, onClose, onSave }: Props) 
         description: form.description.trim() || undefined,
         notes: form.notes.trim() || undefined,
         price: Number(form.price),
+        costPrice: form.costPrice ? Number(form.costPrice) : null,
         stockQuantity: Number(form.stockQuantity) || 0,
         minStockAlert: Number(form.minStockAlert) || 0,
         maxStock: form.maxStock ? Number(form.maxStock) : null,
@@ -282,12 +294,36 @@ export default function ProdutoModal({ open, product, onClose, onSave }: Props) 
               icon={<CardIcon bg="#ECFDF5" color="#16A34A"><Tag size={14} aria-hidden /></CardIcon>}
               title="Preço e Unidade"
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="p-price" className={LABEL}>Preço (R$) *</label>
+                  <label htmlFor="p-price" className={LABEL}>Preço de venda (R$) *</label>
                   <input id="p-price" type="number" required min="0.01" step="0.01"
                     value={form.price} onChange={setField('price')} placeholder="0,00" className={INPUT} />
                 </div>
+                <div>
+                  <label htmlFor="p-cost" className={LABEL}>Preço de custo (R$)</label>
+                  <input id="p-cost" type="number" min="0" step="0.01"
+                    value={form.costPrice} onChange={setField('costPrice')} placeholder="0,00" className={INPUT} />
+                </div>
+              </div>
+              {(() => {
+                const m = calcMargin(form.price, form.costPrice)
+                if (!m) return null
+                const color = m.margem > 30 ? '#16A34A' : m.margem >= 10 ? '#CA8A04' : '#DC2626'
+                const bg    = m.margem > 30 ? '#DCFCE7' : m.margem >= 10 ? '#FEF9C3' : '#FEE2E2'
+                return (
+                  <div className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ backgroundColor: bg }}>
+                    <span className="text-[12px] font-semibold" style={{ color }}>
+                      Margem: {m.margem.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                    </span>
+                    <span className="text-[12px] text-[#475569]">·</span>
+                    <span className="text-[12px] font-semibold" style={{ color }}>
+                      Markup: {m.markup.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                    </span>
+                  </div>
+                )
+              })()}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="p-unit" className={LABEL}>Unidade</label>
                   <select id="p-unit" value={form.unit} onChange={setField('unit')} className={INPUT}>

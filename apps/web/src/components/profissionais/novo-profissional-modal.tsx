@@ -16,10 +16,10 @@ const WEEK_DAYS = [
   { value: 0, label: 'Dom' },
 ]
 
-const LABEL = 'text-[12px] font-medium text-[#475569]'
+const LABEL = 'text-sm font-medium text-[#64748B]'
 const INPUT = cn(
-  'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
-  'placeholder:text-[#64748B] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
+  'w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-[13px] text-[#0F172A]',
+  'placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
 )
 
 interface FormState {
@@ -126,18 +126,21 @@ export default function NovoProfissionalModal({ open, onClose, onCreate }: NovoP
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#EFF6FF]">
-              <UserPlus size={14} className="text-[#2563EB]" aria-hidden="true" />
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EFF6FF]">
+              <UserPlus size={16} className="text-[#2563EB]" aria-hidden="true" />
             </div>
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Profissional</h2>
+            <div>
+              <h2 className="text-[15px] font-semibold text-[#0F172A]">Novo Profissional</h2>
+              <p className="text-[12px] text-[#64748B]">Preencha os dados do novo profissional</p>
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -212,7 +215,7 @@ export default function NovoProfissionalModal({ open, onClose, onCreate }: NovoP
                       onClick={() => toggleDay(day.value)}
                       aria-pressed={active}
                       className={cn(
-                        'h-8 w-10 rounded-md border text-[12px] font-medium transition-colors',
+                        'h-8 w-10 rounded-lg border text-[12px] font-medium transition-colors',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                         active
                           ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB]'
@@ -258,19 +261,21 @@ export default function NovoProfissionalModal({ open, onClose, onCreate }: NovoP
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 flex items-center justify-end gap-2.5 border-t border-[#F1F5F9] px-5 py-4">
+        <div className="shrink-0 flex flex-col gap-2 border-t border-[#E2E8F0] px-5 py-4">
           {submitError && (
-            <p className="mr-auto text-[12px] text-[#DC2626]">{submitError}</p>
+            <p className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-2 text-[12px] font-medium text-[#DC2626]">{submitError}</p>
           )}
-          <button type="button" onClick={onClose} disabled={saving}
-            className="rounded-md border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50">
-            Cancelar
-          </button>
-          <button type="submit" form="novo-prof-form" disabled={saving}
-            className="flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60">
-            <UserPlus size={13} aria-hidden="true" />
-            {saving ? 'Cadastrando…' : 'Cadastrar'}
-          </button>
+          <div className="flex items-center justify-end gap-2.5">
+            <button type="button" onClick={onClose} disabled={saving}
+              className="rounded-xl border border-[#E2E8F0] px-4 py-2.5 text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] disabled:opacity-50">
+              Cancelar
+            </button>
+            <button type="submit" form="novo-prof-form" disabled={saving}
+              className="flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1 disabled:opacity-60">
+              <UserPlus size={13} aria-hidden="true" />
+              {saving ? 'Cadastrando…' : 'Cadastrar profissional'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

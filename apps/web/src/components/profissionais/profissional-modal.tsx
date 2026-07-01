@@ -32,11 +32,11 @@ function EditActions({ onCancel, onSave }: { onCancel: () => void; onSave: () =>
   return (
     <div className="flex gap-2 justify-end mt-2">
       <button type="button" onClick={onCancel}
-        className="px-2.5 py-1 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-md hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
+        className="px-2.5 py-1 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
         Cancelar
       </button>
       <button type="button" onClick={onSave}
-        className="px-2.5 py-1 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
+        className="px-2.5 py-1 text-[11px] text-white bg-[var(--color-brand)] rounded-lg hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
         Salvar
       </button>
     </div>
@@ -159,13 +159,13 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
                 <div key={label}>
                   <label htmlFor={id} className="block text-[11px] text-[var(--color-text-tertiary)] mb-0.5">{label}</label>
                   <input id={id} type={type} value={value} onChange={e => set(e.target.value)}
-                    className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-[var(--color-brand)]" />
+                    className="w-full border border-[var(--color-border-primary)] rounded-lg px-2 py-1 text-[12px] focus:outline-none focus:border-[var(--color-brand)]" />
                 </div>
               ))}
               <div>
                 <label htmlFor="edit-vinculo" className="block text-[11px] text-[var(--color-text-tertiary)] mb-0.5">Tipo de vínculo</label>
                 <select id="edit-vinculo" value={editVinculo} onChange={e => setEditVinculo(e.target.value)}
-                  className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1.5 text-[12px] bg-white appearance-none focus:outline-none focus:border-[var(--color-brand)]">
+                  className="w-full border border-[var(--color-border-primary)] rounded-lg px-2 py-1.5 text-[12px] bg-white appearance-none focus:outline-none focus:border-[var(--color-brand)]">
                   <option value="">Selecionar...</option>
                   {VINCULOS.map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
@@ -174,7 +174,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
             </div>
           )}
           {p.bio && !editingDados && (
-            <div className="mt-4 rounded-lg bg-[var(--color-surface-secondary)] px-3 py-2.5">
+            <div className="mt-4 rounded-xl bg-[#F8FAFC] px-3 py-2.5">
               <p className="text-[12px] leading-relaxed text-[var(--color-text-secondary)]">{p.bio}</p>
             </div>
           )}
@@ -268,11 +268,11 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
               </table>
               <div className="flex gap-2 justify-end mt-3">
                 <button type="button" onClick={() => setEditingHorario(false)}
-                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-md hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
+                  className="px-3 py-1.5 text-[11px] text-[var(--color-text-secondary)] border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                   Cancelar
                 </button>
                 <button type="button" onClick={() => void saveHorario()}
-                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-md hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
+                  className="px-3 py-1.5 text-[11px] text-white bg-[var(--color-brand)] rounded-lg hover:bg-[var(--color-brand-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]">
                   Salvar
                 </button>
               </div>
@@ -282,7 +282,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
       </div>
 
       {/* Toggle atendimento simultâneo */}
-      <div className="flex items-center justify-between rounded-lg border border-[var(--color-border-primary)] px-4 py-3">
+      <div className="flex items-center justify-between rounded-xl border border-[#E2E8F0] px-4 py-3">
         <div>
           <p className="text-[13px] font-medium text-[var(--color-text-primary)]">Atendimento simultâneo</p>
           <p className="text-[11px] text-[var(--color-text-tertiary)]">
@@ -315,7 +315,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
 
       {/* ZONA 2 — Especialidades + Comissão */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5">
+        <div className="rounded-xl border border-[#E2E8F0] px-3 py-2.5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Especialidade</p>
             {!editingEspec && (
@@ -338,7 +338,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
             <div className="space-y-2">
               {roles.length > 0 ? (
                 <select value={editEspec} onChange={e => setEditEspec(e.target.value)}
-                  className="w-full border border-[var(--color-border-primary)] rounded-md px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[var(--color-brand)]">
+                  className="w-full border border-[var(--color-border-primary)] rounded-lg px-2 py-1.5 text-[12px] bg-white focus:outline-none focus:border-[var(--color-brand)]">
                   <option value="">Selecionar especialidade...</option>
                   {roles.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
@@ -353,7 +353,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
           )}
         </div>
 
-        <div className="rounded-lg border border-[var(--color-border-primary)] px-3 py-2.5">
+        <div className="rounded-xl border border-[#E2E8F0] px-3 py-2.5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-medium text-[var(--color-text-tertiary)]">Comissão</p>
             {!editingComissao && (
@@ -380,7 +380,7 @@ function TabPerfil({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }) 
               <div className="flex items-center gap-2 mt-2">
                 <input type="number" min="0" max="100" value={editComissao}
                   onChange={e => setEditComissao(e.target.value)}
-                  className="w-20 border border-[var(--color-border-primary)] rounded-md px-2 py-1 text-[13px] text-center focus:outline-none focus:border-[var(--color-brand)]" />
+                  className="w-20 border border-[var(--color-border-primary)] rounded-lg px-2 py-1 text-[13px] text-center focus:outline-none focus:border-[var(--color-brand)]" />
                 <span className="text-[13px] text-[var(--color-text-secondary)]">% sobre serviços</span>
               </div>
               <EditActions onCancel={() => setEditingComissao(false)} onSave={() => void saveComissao()} />
@@ -439,7 +439,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
         {/* KPI chips */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {kpis.map(({ label, value }) => (
-            <div key={label} className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
+            <div key={label} className="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
               <p className="text-[11px] text-[var(--color-text-tertiary)]">{label}</p>
               <p className="mt-1 font-tabular text-[16px] font-bold text-[var(--color-text-primary)]">{value}</p>
             </div>
@@ -447,7 +447,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
         </div>
 
         {/* Resumo por status */}
-        <div className="rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3 space-y-2">
+        <div className="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 space-y-2">
           <p className="text-[12px] font-medium text-[#64748B] mb-3">Resumo de agendamentos</p>
           <div className="flex justify-between text-[13px]">
             <span className="text-[#64748B]">Total agendados</span>
@@ -455,7 +455,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
           </div>
           <div className="flex justify-between text-[13px]">
             <span className="text-[#64748B]">Finalizados</span>
-            <span className="font-medium text-[#15803D]">{p.totalFinalizados ?? 0}</span>
+            <span className="font-medium text-[#16A34A]">{p.totalFinalizados ?? 0}</span>
           </div>
           <div className="flex justify-between text-[13px]">
             <span className="text-[#64748B]">Pendentes</span>
@@ -468,7 +468,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
         </div>
 
         {/* Rating */}
-        <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-primary)] bg-white px-4 py-3">
+        <div className="flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3">
           <Star size={16} className="shrink-0 fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
           <div>
             <p className="text-[11px] text-[var(--color-text-tertiary)]">Avaliação dos clientes</p>
@@ -500,7 +500,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
             <tbody>
               {([
                 { label: 'Agendados',   key: 'totalAgendamentos', color: '#0F172A', isCurrency: false },
-                { label: 'Finalizados', key: 'finalizados',        color: '#15803D', isCurrency: false },
+                { label: 'Finalizados', key: 'finalizados',        color: '#16A34A', isCurrency: false },
                 { label: 'Pendentes',   key: 'pendentes',          color: '#92400E', isCurrency: false },
                 { label: 'Cancelados',  key: 'cancelados',         color: '#DC2626', isCurrency: false },
                 { label: 'Faturado',    key: 'revenue',            color: '#0F172A', isCurrency: true  },
@@ -546,7 +546,7 @@ function TabDesempenho({ p }: { p: Profissional }) {
               <button
                 type="button"
                 onClick={() => setMonthModal(null)}
-                className="text-[#94A3B8] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] rounded"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
               >✕</button>
             </div>
 
@@ -644,7 +644,7 @@ function TabComissao({ p }: { p: Profissional }) {
 
       <div>
         <p className="mb-3 text-[12px] font-medium text-[var(--color-text-secondary)]">Histórico por mês</p>
-        <div className="overflow-hidden rounded-lg border border-[var(--color-border-primary)]">
+        <div className="overflow-hidden rounded-xl border border-[#E2E8F0]">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-[var(--color-border-primary)] bg-[#F8FAFC]">
@@ -721,7 +721,7 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
 
   if (!FEATURES.realProfissionais) {
     return (
-      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-border-primary)]">
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#E2E8F0]">
         <p className="text-[13px] text-[var(--color-text-tertiary)]">Disponível com API real</p>
         <p className="text-[11px] text-[var(--color-text-disabled)]">Configure NEXT_PUBLIC_USE_REAL_API=true</p>
       </div>
@@ -730,7 +730,7 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
 
   if (allServices.length === 0) {
     return (
-      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[var(--color-border-primary)]">
+      <div className="flex h-40 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#E2E8F0]">
         <p className="text-[13px] text-[var(--color-text-tertiary)]">Nenhum serviço cadastrado</p>
         <p className="text-[11px] text-[var(--color-text-disabled)]">Configure em Serviços → Novo Serviço</p>
       </div>
@@ -750,7 +750,7 @@ function TabServicos({ p, onUpdate }: { p: Profissional; onUpdate?: () => void }
             onClick={(e) => { e.stopPropagation(); void toggleServico(s.id) }}
             disabled={saving === s.id}
             className={cn(
-              'flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors',
+              'flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left transition-colors',
               habilitado
                 ? 'border-[var(--color-brand)] bg-[var(--color-brand-light)]'
                 : 'border-[var(--color-border-primary)] bg-white hover:bg-[var(--color-surface-secondary)]',
@@ -811,7 +811,7 @@ export default function ProfissionalModal({ profissional, onClose, onUpdate }: P
       aria-label={`Perfil: ${p.name}`}
     >
       <div
-        className="absolute inset-0 bg-[var(--color-text-primary)]/60"
+        className="absolute inset-0 bg-[#0F172A]/40 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -822,7 +822,7 @@ export default function ProfissionalModal({ profissional, onClose, onUpdate }: P
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center gap-4 border-b border-[var(--color-surface-tertiary)] px-6 py-4">
+        <div className="flex shrink-0 items-center gap-4 border-b border-[#E2E8F0] px-6 py-4">
           <ProfissionalAvatar name={p.name} size={44} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -840,14 +840,14 @@ export default function ProfissionalModal({ profissional, onClose, onUpdate }: P
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--color-text-secondary)] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--color-text-secondary)] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)]"
           >
             <X size={16} aria-hidden="true" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex shrink-0 border-b border-[var(--color-surface-tertiary)]" role="tablist">
+        <div className="flex shrink-0 border-b border-[#E2E8F0]" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.id}

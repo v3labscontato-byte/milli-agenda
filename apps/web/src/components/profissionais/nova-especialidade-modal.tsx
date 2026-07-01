@@ -123,13 +123,13 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
         style={{ maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#F1F5F9] px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[#E2E8F0] px-6 py-4">
           <div className="flex items-center gap-2">
             {view !== 'list' && (
               <button
                 type="button"
                 onClick={() => setView(view === 'step2' ? 'step1' : 'list')}
-                className="flex h-7 w-7 items-center justify-center rounded text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                 aria-label="Voltar"
               >
                 <ChevronLeft size={16} aria-hidden="true" />
@@ -148,7 +148,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -164,7 +164,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                 type="button"
                 onClick={() => { setView('step1'); setNome(''); setSelectedProfIds([]) }}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-lg border border-dashed border-[#CBD5E1] px-4 py-3',
+                  'flex w-full items-center gap-2 rounded-xl border border-dashed border-[#CBD5E1] px-4 py-3',
                   'text-[13px] font-medium text-[#2563EB] transition-colors hover:border-[#2563EB] hover:bg-[#EFF6FF]',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                 )}
@@ -178,7 +178,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
               )}
 
               {!loading && specialties.length === 0 && (
-                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-[#E2E8F0]">
+                <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-[#E2E8F0]">
                   <p className="text-[13px] text-[#94A3B8]">Nenhuma especialidade cadastrada</p>
                 </div>
               )}
@@ -189,7 +189,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                 return (
                   <div
                     key={sp.id}
-                    className="rounded-lg border border-[#E2E8F0] bg-white px-4 py-3"
+                    className="rounded-xl border border-[#E2E8F0] bg-white px-4 py-3"
                   >
                     {isEditing ? (
                       <div className="flex items-center gap-2">
@@ -198,13 +198,13 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                           value={editingName}
                           onChange={(e) => setEditingName(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveEditName(sp.id); if (e.key === 'Escape') setEditingId(null) }}
-                          className="flex-1 rounded border border-[#E2E8F0] px-2 py-1 text-[13px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
+                          className="flex-1 rounded-lg border border-[#E2E8F0] px-2 py-1.5 text-[13px] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]"
                         />
                         <button
                           type="button"
                           onClick={() => void handleSaveEditName(sp.id)}
                           disabled={saving}
-                          className="flex h-7 w-7 items-center justify-center rounded bg-[#2563EB] text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                           aria-label="Salvar nome"
                         >
                           <Check size={13} aria-hidden="true" />
@@ -212,7 +212,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
-                          className="flex h-7 w-7 items-center justify-center rounded text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-[#475569] hover:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
                           aria-label="Cancelar"
                         >
                           <X size={13} aria-hidden="true" />
@@ -270,7 +270,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                 Dê um nome para a nova especialidade. Ex: "Corte Feminino", "Escova", "Depilação".
               </p>
               <div>
-                <label htmlFor="esp-nome" className="mb-1.5 block text-[12px] font-medium text-[#0F172A]">
+                <label htmlFor="esp-nome" className="mb-1.5 block text-sm font-medium text-[#64748B]">
                   Nome da especialidade
                 </label>
                 <input
@@ -281,7 +281,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                   onKeyDown={(e) => { if (e.key === 'Enter' && nome.trim()) setView('step2') }}
                   placeholder="Ex: Coloração"
                   className={cn(
-                    'w-full rounded-lg border border-[#E2E8F0] px-3 py-2 text-[13px] text-[#0F172A]',
+                    'w-full rounded-xl border border-[#E2E8F0] px-3 py-2.5 text-[13px] text-[#0F172A]',
                     'placeholder:text-[#94A3B8]',
                     'focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#DBEAFE]',
                   )}
@@ -308,7 +308,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                       type="button"
                       onClick={() => toggleProf(p.id)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left transition-colors',
+                        'flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-colors',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                         selected
                           ? 'border-[#2563EB] bg-[#EFF6FF]'
@@ -335,11 +335,11 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
 
         {/* Footer */}
         {view !== 'list' && (
-          <div className="flex shrink-0 items-center justify-between border-t border-[#F1F5F9] px-6 py-4">
+          <div className="flex shrink-0 items-center justify-between border-t border-[#E2E8F0] px-6 py-4">
             <button
               type="button"
               onClick={() => setView(view === 'step2' ? 'step1' : 'list')}
-              className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
+              className="rounded-xl border border-[#E2E8F0] px-4 py-2.5 text-[13px] font-medium text-[#475569] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]"
             >
               Voltar
             </button>
@@ -350,7 +350,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                 disabled={!nome.trim()}
                 onClick={() => setView('step2')}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors',
+                  'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                   nome.trim()
                     ? 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]'
@@ -368,7 +368,7 @@ export default function NovaEspecialidadeModal({ open, onClose, profissionais, o
                 disabled={saving}
                 onClick={() => void handleCreate()}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors',
+                  'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE]',
                   saving
                     ? 'cursor-not-allowed bg-[#E2E8F0] text-[#94A3B8]'

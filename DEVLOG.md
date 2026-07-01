@@ -3206,3 +3206,30 @@ Motivação: incidente de 2026-07-01 onde banco homolog estava vazio, CORS errad
 GET /api/v1/clients → 52 clientes ✅
 Login ddpobre@gmail.com → accessToken ✅
 ```
+
+---
+
+## 2026-07-01 — fix(relatorios): period param, default 30d e fonte de receita
+
+### Problema identificado via auditoria banco vs API
+Auditoria completa (`relatorios.controller.ts` + `relatorios.service.ts`) revelou 3 bugs:
+
+1. **`?period=30d` ignorado silenciosamente** — controller aceitava apenas `?from=&to=`; qualquer chamada com `?period=` caia no default errado
+2. **Default sem params = 1º do mês corrente** — `receita()` usava `new Date(year, month, 1)` como `dateFrom`, retornando apenas o dia atual quando chamado no dia 1 do mês
+3. **Fonte de dados errada em `receita()`** — calculava receita de `appointment.startAt + service.price` em vez de `payment.paidAt + payment.amount`, ignorando descontos e comandas complexas
+
+### Fixes implementados
+
+**`relatorios.controller.ts`** — helper `parsePeriod()` adicionado; aceita `?period=7d|30d|90d|este-mes` em todos os endpoints com `from`/`to` (revenue, appointments, professionals, commissions, cashflow, payments-by-method, top-services, payments). `period` tem precedência sobre `from`/`to` explícito.
+
+**`relatorios.service.ts` — `receita()`:**
+- Default `dateFrom` alterado para `now - 30 dias` (era `1º do mês`)
+- Query trocada de `appointment.findMany (startAt + service.price)` para `payment.findMany (paidAt + amount)`
+
+### Validação banco (pré-deploy)
+- `period=30d` → esperado R$1.730 / 16 pagamentos (banco confirmado)
+- Total histórico: R$2.650 / 28 pagamentos
+
+### TypeScript
+`npx tsc --noEmit` → 0 erros
+

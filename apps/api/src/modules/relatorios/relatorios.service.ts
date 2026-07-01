@@ -81,36 +81,32 @@ export class RelatoriosService {
   }
 
   async receita(tenantId: string, from?: string, to?: string) {
-    const dateFrom = from ? new Date(from + 'T00:00:00.000Z') : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    const default30d = () => { const d = new Date(); d.setDate(d.getDate() - 30); d.setHours(0, 0, 0, 0); return d }
+    const dateFrom = from ? new Date(from + 'T00:00:00.000Z') : default30d()
     const dateTo = to ? new Date(to + 'T23:59:59.999Z') : new Date()
 
-    const appts = await this.db.appointment.findMany({
+    const paid = await this.db.payment.findMany({
       where: {
         tenantId,
-        status: AppointmentStatus.COMPLETED,
-        startAt: { gte: dateFrom, lte: dateTo },
+        status: PaymentStatus.PAID,
+        paidAt: { gte: dateFrom, lte: dateTo },
       },
-      include: { service: { select: { price: true } } },
-      orderBy: { startAt: 'asc' },
+      select: { amount: true, method: true, paidAt: true },
+      orderBy: { paidAt: 'asc' },
     })
 
-    const total = appts.reduce((s, a) => s + Number(a.service?.price ?? 0), 0)
+    const total = paid.reduce((s, p) => s + Number(p.amount), 0)
 
-    const byDay: Record<string, number> = {}
-    for (const a of appts) {
-      const day = a.startAt.toISOString().slice(0, 10)
-      byDay[day] = (byDay[day] ?? 0) + Number(a.service?.price ?? 0)
+    return {
+      from: dateFrom,
+      to: dateTo,
+      total,
+      payments: paid.map((p) => ({
+        amount: String(Number(p.amount)),
+        method: p.method,
+        paidAt: p.paidAt,
+      })),
     }
-
-    const payments = Object.entries(byDay)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, amount]) => ({
-        amount: String(amount),
-        method: 'MIXED',
-        paidAt: new Date(date + 'T12:00:00.000Z'),
-      }))
-
-    return { from: dateFrom, to: dateTo, total, payments }
   }
 
   async ocupacao(tenantId: string, from?: string, to?: string) {

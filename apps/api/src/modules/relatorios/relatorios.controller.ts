@@ -3,6 +3,30 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { RelatoriosService } from './relatorios.service'
 
+function parsePeriod(period?: string, from?: string, to?: string): { from?: string; to?: string } {
+  if (!period) return { from, to }
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const toStr = fmt(now)
+  if (period === '7d') {
+    const d = new Date(now); d.setDate(d.getDate() - 7)
+    return { from: fmt(d), to: toStr }
+  }
+  if (period === '30d') {
+    const d = new Date(now); d.setDate(d.getDate() - 30)
+    return { from: fmt(d), to: toStr }
+  }
+  if (period === '90d') {
+    const d = new Date(now); d.setDate(d.getDate() - 90)
+    return { from: fmt(d), to: toStr }
+  }
+  if (period === 'este-mes') {
+    return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: toStr }
+  }
+  return { from, to }
+}
+
 @UseGuards(JwtAuthGuard)
 @Controller('reports')
 export class RelatoriosController {
@@ -18,8 +42,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.receita(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.receita(tenantId, range.from, range.to)
   }
 
   @Get('appointments')
@@ -27,8 +53,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.ocupacao(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.ocupacao(tenantId, range.from, range.to)
   }
 
   @Get('professionals')
@@ -36,8 +64,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.professionals(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.professionals(tenantId, range.from, range.to)
   }
 
   @Get('commissions')
@@ -45,8 +75,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.commissions(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.commissions(tenantId, range.from, range.to)
   }
 
   @Post('commissions/:professionalId/pay')
@@ -63,8 +95,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.cashflow(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.cashflow(tenantId, range.from, range.to)
   }
 
   @Get('overdue')
@@ -77,8 +111,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.paymentsByMethod(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.paymentsByMethod(tenantId, range.from, range.to)
   }
 
   @Get('top-services')
@@ -86,8 +122,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.topServices(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.topServices(tenantId, range.from, range.to)
   }
 
   @Get('payments')
@@ -95,8 +133,10 @@ export class RelatoriosController {
     @TenantFromJwt() tenantId: string,
     @Query('from') from?: string,
     @Query('to') to?: string,
+    @Query('period') period?: string,
   ) {
-    return this.relatoriosService.listPayments(tenantId, from, to)
+    const range = parsePeriod(period, from, to)
+    return this.relatoriosService.listPayments(tenantId, range.from, range.to)
   }
 
   @Post('expenses')

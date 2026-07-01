@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { extname } from 'path'
 import { randomUUID } from 'crypto'
@@ -45,14 +45,19 @@ export class UploadService {
     const ext = extname(file.originalname) || MIME_TO_EXT[file.mimetype] || '.jpg'
     const key = `${folder}/${randomUUID()}${ext}`
 
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: 'milli-uploads',
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-      }),
-    )
+    try {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: 'milli-uploads',
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        }),
+      )
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      throw new InternalServerErrorException(`Falha ao enviar para o storage: ${msg}`)
+    }
 
     return `${process.env.R2_PUBLIC_URL}/${key}`
   }

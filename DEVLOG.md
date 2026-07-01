@@ -2866,3 +2866,20 @@ Crash: `Cannot find module 'busboy'` ao iniciar o servidor no Railway.
 ### Fix
 `cd apps/api && npm install busboy` → adicionou `"busboy": "^1.6.0"` a `apps/api/package.json`  
 `npx tsc --noEmit` → 0 erros confirmados após a instalação
+
+## 2026-07-01 CLAUDE 2 — Teste do endpoint upload/image — R2 SignatureDoesNotMatch
+
+**Status:** ⚠️ Endpoint funcional, credenciais R2 incorretas  
+**Branch:** homolog  
+
+### Resultado do teste
+- `POST /api/v1/upload/image?folder=logos` atingiu o R2 com sucesso (busboy ok, arquivo parseado)
+- Erro: `SignatureDoesNotMatch` — `R2_SECRET_ACCESS_KEY` configurado no Railway está incorreto
+- Backend crashava a cada upload falho (`[UNHANDLED ERROR]` → `process.exit(1)`)
+
+### Fix aplicado
+`upload.service.ts`: S3 `send()` agora envolto em `try/catch` — erros de R2 viram `InternalServerErrorException` (NestJS os trata como 500 controlado, sem unhandledRejection)
+
+### Ação necessária
+Corrigir `R2_SECRET_ACCESS_KEY` no Railway Milli-Homolog (serviço backend NestJS).  
+Variáveis necessárias: `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL`

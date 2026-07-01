@@ -5,27 +5,18 @@ import { Search, Plus, X, Package, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useProdutos, type Product } from '@/hooks/use-produtos'
 import ProdutoModal from '@/components/produtos/produto-modal'
+import { KpiCard, KpiPeriodFilter } from '@/components/shared/kpi-card'
 
 const formatBRL = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-// ─── KPI card ─────────────────────────────────────────────────────────────────
+type KpiPeriod = 'hoje' | 'semana' | 'mes' | '30d'
 
-interface KpiCardProps { label: string; value: React.ReactNode; sub: string; accent?: 'default' | 'warn' | 'danger' }
-
-function KpiCard({ label, value, sub, accent }: KpiCardProps) {
-  const colors = {
-    default: { border: 'border-[var(--color-border-primary)] bg-white', val: 'text-[var(--color-text-primary)]', label: 'text-[var(--color-text-primary)]', sub: 'text-[var(--color-text-tertiary)]' },
-    warn:    { border: 'border-[#F59E0B] bg-[#FFFBEB]', val: 'text-[#B45309]', label: 'text-[#92400E]', sub: 'text-[#A16207]' },
-    danger:  { border: 'border-[#EF4444] bg-[#FFF5F5]', val: 'text-[#DC2626]', label: 'text-[#991B1B]', sub: 'text-[#B91C1C]' },
-  }[accent ?? 'default']
-  return (
-    <div className={cn('flex flex-col rounded-xl border p-5', colors.border)}>
-      <span className={cn('font-tabular text-3xl font-bold leading-none', colors.val)}>{value}</span>
-      <span className={cn('mt-1.5 text-sm font-semibold', colors.label)}>{label}</span>
-      <span className={cn('mt-0.5 text-[11px]', colors.sub)}>{sub}</span>
-    </div>
-  )
-}
+const KPI_PERIODOS: Array<{ key: KpiPeriod; label: string }> = [
+  { key: 'hoje',   label: 'Hoje'            },
+  { key: 'semana', label: 'Esta semana'     },
+  { key: 'mes',    label: 'Este mês'        },
+  { key: '30d',    label: 'Últimos 30 dias' },
+]
 
 // ─── Stock badge ──────────────────────────────────────────────────────────────
 
@@ -46,8 +37,17 @@ export default function ProdutosPage() {
   const [lowStockFilter, setLowStockFilter] = useState(false)
   const [outOfStockFilter, setOutOfStockFilter] = useState(false)
   const [modalProduct, setModalProduct] = useState<Product | null | 'new'>(null)
+  const [kpiPeriod, setKpiPeriod] = useState<KpiPeriod>('mes')
 
   const { data: products, loading, error, stats, create, update } = useProdutos()
+
+  const kpiStats = useMemo(() => {
+    const okCount = Math.max(0, stats.totalProducts - stats.lowStockCount - stats.outOfStockCount)
+    const avgPrice = products.length > 0
+      ? Math.round(products.reduce((s, p) => s + p.price, 0) / products.length * 100) / 100
+      : 0
+    return { okCount, avgPrice }
+  }, [products, stats])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -68,20 +68,20 @@ export default function ProdutosPage() {
 
   if (loading) return (
     <div className="flex h-full flex-col animate-pulse">
-      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white px-6 py-5">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[0,1,2,3].map(i => <div key={i} className="h-20 rounded-xl bg-[var(--color-surface-tertiary)]" />)}
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 py-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          {[0,1,2,3,4,5].map(i => <div key={i} className="h-20 rounded-xl bg-[#F1F5F9]" />)}
         </div>
       </div>
       <div className="flex-1 space-y-3 p-6">
-        {[0,1,2,3,4,5].map(i => <div key={i} className="h-12 rounded-lg bg-[var(--color-surface-tertiary)]" />)}
+        {[0,1,2,3,4,5].map(i => <div key={i} className="h-12 rounded-lg bg-[#F1F5F9]" />)}
       </div>
     </div>
   )
 
   if (error) return (
     <div className="flex h-full items-center justify-center">
-      <p className="text-[14px] text-[var(--color-danger)]">{error}</p>
+      <p className="text-[14px] text-[#DC2626]">{error}</p>
     </div>
   )
 
@@ -89,27 +89,55 @@ export default function ProdutosPage() {
     <div className="flex h-full flex-col">
 
       {/* ── KPI strip ── */}
-      <div className="shrink-0 border-b border-[var(--color-border-primary)] bg-white">
-        <div className="flex items-center justify-between px-6 pb-3 pt-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-text-tertiary)]">Visão geral</p>
+      <div className="shrink-0 border-b border-[#E2E8F0] bg-white px-6 pb-4 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#94A3B8]">
+              Visão geral
+            </p>
+            <KpiPeriodFilter
+              options={KPI_PERIODOS}
+              active={kpiPeriod}
+              onChange={(k) => setKpiPeriod(k as KpiPeriod)}
+            />
+          </div>
           <button
             type="button"
             onClick={() => setModalProduct('new')}
+            aria-label="Novo produto"
             className={cn(
-              'flex items-center gap-1.5 rounded-md bg-[var(--color-brand)] px-3 py-1.5',
-              'text-[12px] font-semibold text-white transition-colors hover:bg-[var(--color-brand-dark)]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-light)] focus-visible:ring-offset-1',
+              'flex items-center gap-1.5 rounded-md bg-[#2563EB] px-3 py-1.5',
+              'text-[12px] font-semibold text-white transition-colors hover:bg-[#1D4ED8]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DBEAFE] focus-visible:ring-offset-1',
             )}
           >
             <Plus size={13} aria-hidden="true" />
             Novo Produto
           </button>
         </div>
-        <div className="grid w-full grid-cols-2 gap-3 px-6 pb-5 lg:grid-cols-4 lg:gap-4">
-          <KpiCard label="Total" value={stats.totalProducts} sub="produtos ativos" />
-          <KpiCard label="Estoque baixo" value={stats.lowStockCount} sub="abaixo do mínimo" accent={stats.lowStockCount > 0 ? 'warn' : 'default'} />
-          <KpiCard label="Sem estoque" value={stats.outOfStockCount} sub="quantidade zero" accent={stats.outOfStockCount > 0 ? 'danger' : 'default'} />
-          <KpiCard label="Valor em estoque" value={<span className="text-[22px]">{formatBRL(stats.totalStockValue)}</span>} sub="preço × quantidade" />
+
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <KpiCard label="Total" value={stats.totalProducts} sub="produtos cadastrados" color="blue" />
+          <KpiCard
+            label="OK"
+            value={kpiStats.okCount}
+            sub="estoque suficiente"
+            color={kpiStats.okCount > 0 ? 'green' : 'default'}
+          />
+          <KpiCard
+            label="Estoque baixo"
+            value={stats.lowStockCount}
+            sub="abaixo do mínimo"
+            color={stats.lowStockCount > 0 ? 'yellow' : 'default'}
+          />
+          <KpiCard
+            label="Sem estoque"
+            value={stats.outOfStockCount}
+            sub="quantidade zero"
+            color={stats.outOfStockCount > 0 ? 'red' : 'default'}
+          />
+          <KpiCard label="Valor em estoque" value={formatBRL(stats.totalStockValue)} sub="preço × quantidade" />
+          <KpiCard label="Preço médio" value={formatBRL(kpiStats.avgPrice)} sub="média dos produtos" />
         </div>
       </div>
 

@@ -11,7 +11,7 @@ export interface KpiCardProps {
   sub?: React.ReactNode
   trend?: string
   trendUp?: boolean
-  color?: 'default' | 'blue' | 'green' | 'red'
+  color?: 'default' | 'blue' | 'green' | 'red' | 'yellow'
   progress?: number
 }
 
@@ -19,7 +19,9 @@ export function KpiCard({ label, value, sub, trend, trendUp, color = 'default', 
   const bg =
     color === 'blue'
       ? 'border-[#2563EB] bg-[#EFF6FF]'
-      : 'border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]'
+      : color === 'yellow'
+        ? 'border-[#CA8A04] bg-[#FEF9C3]'
+        : 'border-[#E2E8F0] bg-white shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]'
   const vc =
     color === 'blue'
       ? 'text-[#2563EB]'
@@ -27,7 +29,9 @@ export function KpiCard({ label, value, sub, trend, trendUp, color = 'default', 
         ? 'text-[#16A34A]'
         : color === 'red'
           ? 'text-[#DC2626]'
-          : 'text-[#0F172A]'
+          : color === 'yellow'
+            ? 'text-[#CA8A04]'
+            : 'text-[#0F172A]'
   return (
     <div className={cn('flex flex-col rounded-xl border p-4', bg)}>
       <p className="text-[11px] font-medium text-[#64748B]">{label}</p>

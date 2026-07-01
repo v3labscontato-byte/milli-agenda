@@ -3115,3 +3115,42 @@ POST /api/v1/auth/login {"email":"ddpobre@gmail.com","password":"123456789"}
 - **Email:** `ddpobre@gmail.com`
 - **Senha:** `123456789`
 - **Role:** `TENANT_ADMIN`
+
+---
+
+## [2026-07-01] fix(migrations): colunas ausentes em professionals e clients
+
+### Status: ✅ Concluído em homolog / ⏳ Aguarda aprovação em produção
+
+### Contexto
+Colunas adicionadas diretamente via ALTER TABLE (sem migration) foram formalizadas como migration Prisma.
+
+### Migration criada
+`20260701210000_fix_missing_columns_professionals_clients`
+
+**professionals** — 8 colunas:
+- `workDays INTEGER[] DEFAULT []`
+- `workStart TEXT DEFAULT '08:00'`
+- `workEnd TEXT DEFAULT '18:00'`
+- `cpf TEXT`
+- `birthDate TEXT`
+- `vinculo TEXT`
+- `enabledServices TEXT[] DEFAULT []`
+- `allowSimultaneous BOOLEAN DEFAULT false`
+
+**clients** — 3 colunas:
+- `clientNumber INTEGER`
+- `cpf TEXT`
+- `favoriteProfessionalId TEXT`
+
+### Status por ambiente
+- **Homolog**: migração aplicada com sucesso (IF NOT EXISTS — colunas já existiam via ALTER TABLE)
+- **Produção**: 2 migrations pendentes aguardando aprovação:
+  1. `20260701200000_add_tenant_image_color`
+  2. `20260701210000_fix_missing_columns_professionals_clients`
+
+### Para aplicar em produção (requer aprovação explícita)
+```bash
+DATABASE_URL="postgresql://postgres:hOGBtroRlGeRQKCYqSCFQscXfdMnWaYu@thomas.proxy.rlwy.net:56217/railway" \
+npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+```

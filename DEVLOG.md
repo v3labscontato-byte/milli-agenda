@@ -2937,3 +2937,24 @@ npx prisma migrate dev --schema=packages/database/prisma/schema.prisma
 ```
 Campos novos (coverImageUrl, primaryColor) retornam null até a migration.
 Fallback: gradiente bege/marrom + cor padrão #3D2B1F (correto visualmente).
+
+## 2026-07-01 CLAUDE 2 — migration: add_tenant_image_color aplicada em homolog e produção
+
+**Status:** ✅ Aplicada via SQL direto (IF NOT EXISTS)  
+**Ambientes:** homolog + produção  
+
+### Contexto
+DB criado via `prisma db push` (sem tracking). `migrate deploy` retornava todas as 9 migrations como "not applied".  
+Aplicado via `prisma.$executeRawUnsafe` com `IF NOT EXISTS` para idempotência.
+
+### SQL aplicado
+```sql
+ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "coverImageUrl" TEXT;
+ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "primaryColor" TEXT DEFAULT '#3D2B1F';
+```
+
+### Verificação (homolog e produção)
+- `coverImageUrl`: TEXT NULL ✅
+- `primaryColor`: TEXT DEFAULT '#3D2B1F' ✅
+
+Arquivo de tracking criado: `packages/database/prisma/migrations/20260701200000_add_tenant_image_color/migration.sql`

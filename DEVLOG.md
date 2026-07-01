@@ -2464,3 +2464,45 @@ Toggle "Devolver sinal em caso de cancelamento dentro do prazo" na seção Polí
 
 ### Commits pendentes
 - Onda 2 completa ainda não commitada — aguardando ITEM 2 validado antes de commitar + merge para main
+
+---
+
+## 2026-07-01 — Onda 3: PWA Booking (4 ITEMs) + Regressão Comandas
+
+### ITEM 1 — Dados reais do tenant no PWA ✅
+- `use-public-tenant.ts`: `const TENANT_SLUG = process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'studio-homolog'`
+- Fallback hardcoded resolve ausência de DefinePlugin no build Railway (variável nunca foi injetada no bundle)
+- `undefined ?? 'studio-homolog'` = `'studio-homolog'` em runtime — funciona independente do deploy
+- Validado: `/booking` exibe "Studio Homolog" + "Av. Paulista, 1000 — São Paulo"
+- `GET /api/v1/settings/public/studio-homolog → 200` confirmado no network log
+
+### ITEM 2 — /booking/fidelidade ✅
+- Página nova: saldo (1.240 pts) + emoji nível + barra de progressão + 4 níveis + 8 entradas de histórico
+- Dados 100% mock via `HISTORICO_PONTOS`, `getLoyaltyConfig()`, `CLIENT` de `booking-mock.ts`
+- Fidelidade real requer campo `loyaltyPoints` no schema (migration pendente de aprovação)
+
+### ITEM 3 — /booking/meus-dados ✅
+- Formulário: nome, e-mail, telefone, data de nascimento
+- Dados do `CLIENT` mock; salvar simula async (800ms) — TODO: PATCH /api/v1/clients/me quando auth de cliente existir
+
+### ITEM 4 — /booking/politicas ✅
+- Usa `usePublicTenant()` — dados reais via API pública
+- Exibe: horários (Segunda–Sábado via `businessHours`), formas de pagamento (PIX, Dinheiro, etc.), sinal (30%), cancelamento (48h / 50% / devolução)
+- Backend: 6 campos adicionados a `PUBLIC_TENANT_SELECT` em `settings.service.ts`
+
+### Links do /booking/perfil atualizados
+- Fidelidade → `/booking/fidelidade`
+- Meus dados → `/booking/meus-dados`
+- Políticas do salão → `/booking/politicas`
+
+### Regressão de Comandas ✅
+- Teste: abrir comanda "Teste reabertura de comanda" (Pendente/Confirmado) → fechar sem alterar (Escape)
+- Resultado: ZERO `POST /payments` disparados — apenas `GET /commands/:id` + `GET /settings`
+- Comanda permanece Pendente/Confirmado após fechar modal sem confirmar
+
+### Commit
+- `932c552` feat(booking): conecta dados reais do tenant + páginas fidelidade, meus-dados e políticas
+
+### Próximos passos
+- Merge homolog → main (aprovado pelo usuário)
+- Apply migration `20260701000000_add_deposit_and_cancellation_policy` em produção (aguardando DATABASE_URL pública)

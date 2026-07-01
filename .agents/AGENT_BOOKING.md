@@ -12,19 +12,27 @@ cat DEVLOG.md | tail -100
 - apps/web/src/app/(booking)/ (todos)
 - apps/web/src/components/booking/ (todos)
 
-## ENDPOINTS DO MEU MÓDULO (quando implementados)
-- GET /api/v1/public/salon/:slug → info pública do salão
+## ENDPOINTS DO MEU MÓDULO
+### Real (em uso)
+- GET /api/v1/settings/public/:slug → info pública do salão (tenant, horários, pagamentos, políticas)
+  - Hook: `apps/web/src/hooks/use-public-tenant.ts`
+  - Slug: `process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'studio-homolog'`
+
+### A implementar
 - GET /api/v1/public/services → serviços disponíveis
 - GET /api/v1/public/professionals → profissionais disponíveis
 - POST /api/v1/public/appointments → criar agendamento como cliente
 - POST /api/v1/auth/client/login → auth de cliente (a implementar)
+- GET/PATCH /api/v1/clients/me → perfil do cliente (requer auth de cliente)
 
 ## ESTADO ATUAL DO MÓDULO
-⚠️ 100% mock — sem API real ainda
-- /booking → home com SALON mock
-- /booking/agendar → wizard 4 steps (service, professional, datetime, confirm)
+- /booking → home com dados REAIS do tenant (nome, endereço) via `usePublicTenant()`
+- /booking/agendar → wizard 4 steps (service, professional, datetime, confirm) — mock
 - /booking/meus-agendamentos → lista mock
 - /booking/perfil → perfil mock
+- /booking/fidelidade → saldo, progressão, histórico — mock (fidelidade real requer migration)
+- /booking/meus-dados → formulário de perfil — mock (backend requer auth de cliente)
+- /booking/politicas → horários, pagamentos, sinal, cancelamento — dados REAIS via `usePublicTenant()`
 - /booking/pacotes → pacotes mock
 - /booking/afiliados → afiliados mock
 - /booking/notificacoes → notificações mock
@@ -53,5 +61,5 @@ cat DEVLOG.md | tail -100
 
 ## PASSO FINAL OBRIGATÓRIO
 npx tsc --noEmit → 0 erros
-git add apps/web/src/app/(booking)/ apps/web/src/components/booking/ DEVLOG.md
-git commit -m "tipo(booking): desc" && git checkout homolog && git merge main && git push origin homolog && git checkout main
+git add apps/web/src/app/(booking)/ apps/web/src/components/booking/ apps/web/src/hooks/use-public-tenant.ts DEVLOG.md .agents/AGENT_BOOKING.md
+git commit -m "tipo(booking): desc"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Bell, Calendar } from 'lucide-react'
 import { usePublicTenant } from '@/hooks/use-public-tenant'
@@ -65,11 +65,29 @@ export default function BookingHomePage() {
   const [professionals, setProfessionals] = useState<ProfCard[]>([])
   const [activeCard, setActiveCard] = useState(0)
 
+  const carouselRef   = useRef<HTMLDivElement>(null)
+  const activeCardRef = useRef(0)
+  const isPausedRef   = useRef(false)
+
   function handleCarouselScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget
     const pct = el.scrollLeft / (el.scrollWidth - el.clientWidth)
-    setActiveCard(Math.round(pct * 3))
+    const idx = Math.round(pct * 3)
+    setActiveCard(idx)
+    activeCardRef.current = idx
   }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isPausedRef.current) return
+      const next = activeCardRef.current >= 3 ? 0 : activeCardRef.current + 1
+      const el = carouselRef.current
+      if (el) el.scrollTo({ left: next * (150 + 12), behavior: 'smooth' })
+      setActiveCard(next)
+      activeCardRef.current = next
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     fetchPublicProfessionals(TENANT_SLUG)
@@ -185,7 +203,10 @@ export default function BookingHomePage() {
             Acesso rápido
           </p>
           <div
+            ref={carouselRef}
             onScroll={handleCarouselScroll}
+            onTouchStart={() => { isPausedRef.current = true }}
+            onTouchEnd={() => { setTimeout(() => { isPausedRef.current = false }, 5000) }}
             className="mt-2.5 flex gap-3 overflow-x-auto px-[14px] pb-2"
             style={{ scrollbarWidth: 'none' }}
           >

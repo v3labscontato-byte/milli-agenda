@@ -3590,3 +3590,7 @@ Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header
 ### [2026-07-02] AGENT_PWA — dots carrossel (complemento)
 **Status:** ✅ Concluído
 **Fix:** onScroll + dots pill no carrossel de acesso rápido (FIX 3 complemento — estado activeCard e handler já existiam, faltava wirear onScroll e renderizar dots)
+
+### [2026-07-02] AGENT_PWA — auto-scroll carrossel + rating profissionais
+**Status:** ✅ Concluído
+**Fixes:** carrossel auto-scroll 3s com loop (pausa 5s ao toque), rating ★ abaixo do nome (já existia, campo null da API não exibe estrela)

@@ -83,6 +83,14 @@
     /* Milli Design System — shadows */
     --shadow-sm:                0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md:                0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+    /* Booking app warm palette */
+    --bk-ink:           #2e2a2b;
+    --bk-muted:         #9c9899;
+    --bk-border:        #eaebec;
+    --bk-border-hover:  #d0cac9;
+    --bk-surface:       #fafafa;
+    --bk-hover:         #faf8f7;
   }
 }
 
@@ -92,6 +100,7 @@
   *::after {
     box-sizing: border-box;
     border-color: #E2E8F0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -101,6 +110,11 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  button, a, input, textarea, select {
+    touch-action: manipulation;
   }
 
   :focus-visible {
@@ -111,6 +125,10 @@
 
 @layer utilities {
   .font-tabular { font-variant-numeric: tabular-nums; }
+}
+
+#main-content::-webkit-scrollbar {
+  display: none;
 }
 
 /* Respect user motion preferences — required for WCAG 2.3.3 */

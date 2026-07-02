@@ -1,20 +1,25 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Search, ChevronRight, Camera, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type BookingService } from '@/lib/booking-mock'
 import { fetchPublicServices, TENANT_SLUG } from '@/lib/api/public-booking'
+import { usePublicTenant } from '@/hooks/use-public-tenant'
 
 const CATEGORY_ICONS: Record<string, string> = {
-  CABELO:   '✂',
-  UNHAS:    '💅',
-  ESTÉTICA: '🌿',
-  BARBA:    '🪒',
+  CABELO:      '✂️',
+  UNHAS:       '💅',
+  ESTÉTICA:    '🌿',
+  BARBA:       '🪒',
+  SOBRANCELHA: '👁️',
+  MASSAGEM:    '💆',
+  MAQUIAGEM:   '💄',
+  COLORAÇÃO:   '🎨',
 }
 
 function categoryIcon(name: string): string {
-  return CATEGORY_ICONS[name.toUpperCase()] ?? '🔧'
+  return CATEGORY_ICONS[name.toUpperCase()] ?? '✨'
 }
 
 interface StepServiceProps {
@@ -55,11 +60,29 @@ function PhotoGallerySheet({ service, onClose }: { service: BookingService; onCl
 }
 
 export default function StepService({ onSelect }: StepServiceProps) {
-  const [services, setServices]     = useState<BookingService[]>([])
-  const [loading, setLoading]       = useState(true)
-  const [query, setQuery]           = useState('')
-  const [selectedCat, setSelectedCat] = useState('')
+  const { tenant: tenantData } = usePublicTenant()
+  const primaryColor = tenantData?.primaryColor ?? '#81736f'
+
+  const [services, setServices]           = useState<BookingService[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [query, setQuery]                 = useState('')
+  const [activeCategories, setActiveCategories] = useState<string[]>([])
+  const [chipIndex, setChipIndex]         = useState(0)
   const [galleryService, setGalleryService] = useState<BookingService | null>(null)
+
+  const chipsRef = useRef<HTMLDivElement>(null)
+
+  function toggleCategory(cat: string) {
+    setActiveCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
+    )
+  }
+
+  function handleChipsScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const pct = el.scrollLeft / Math.max(1, el.scrollWidth - el.clientWidth)
+    setChipIndex(Math.round(pct * Math.max(0, Math.ceil(categories.length / 3) - 1)))
+  }
 
   useEffect(() => {
     fetchPublicServices(TENANT_SLUG)
@@ -83,10 +106,12 @@ export default function StepService({ onSelect }: StepServiceProps) {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
-    let result = selectedCat ? services.filter((s) => s.category === selectedCat) : services
+    let result = activeCategories.length > 0
+      ? services.filter((s) => activeCategories.includes(s.category))
+      : services
     if (q) result = result.filter((s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q))
     return result
-  }, [query, selectedCat, services])
+  }, [query, activeCategories, services])
 
   const grouped = useMemo(() => {
     const map = new Map<string, BookingService[]>()
@@ -97,17 +122,9 @@ export default function StepService({ onSelect }: StepServiceProps) {
     return map
   }, [filtered])
 
-  const pillCls = (active: boolean) => cn(
-    'flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-[13px] font-medium transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light',
-    active
-      ? 'bg-primary text-white'
-      : 'border border-border bg-white text-content-secondary hover:border-primary-light hover:text-primary',
-  )
-
   if (loading) {
     return (
-      <div className="flex flex-col gap-3 px-4 py-6">
+      <div className="flex flex-col gap-3 px-4 py-6" role="status" aria-label="Carregando serviços...">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-16 animate-pulse rounded-xl bg-[#F1F5F9]" />
         ))}
@@ -141,25 +158,52 @@ export default function StepService({ onSelect }: StepServiceProps) {
       </div>
 
       {categories.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto px-4 pb-4" role="group" aria-label="Filtrar por categoria">
-          <button type="button" onClick={() => setSelectedCat('')} aria-pressed={selectedCat === ''} className={pillCls(selectedCat === '')}>
-            ✨ Todos
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setSelectedCat(selectedCat === cat ? '' : cat)}
-              aria-pressed={selectedCat === cat}
-              className={pillCls(selectedCat === cat)}
-            >
-              {categoryIcon(cat)} {cat}
-            </button>
-          ))}
+        <div role="group" aria-label="Filtrar por categoria">
+          <div
+            ref={chipsRef}
+            onScroll={handleChipsScroll}
+            className="flex gap-2 overflow-x-auto px-4 pb-2"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {categories.map((cat) => {
+              const active = activeCategories.includes(cat)
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => toggleCategory(cat)}
+                  aria-pressed={active}
+                  className="flex h-[30px] flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-3 text-[11px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
+                  style={{
+                    background:   active ? primaryColor : '#fff',
+                    borderColor:  active ? primaryColor : '#E2E8F0',
+                    color:        active ? '#fff' : '#64748B',
+                  }}
+                >
+                  <span aria-hidden="true">{categoryIcon(cat)}</span>
+                  {cat}
+                </button>
+              )
+            })}
+          </div>
+          {Math.ceil(categories.length / 3) > 1 && (
+            <div className="flex items-center justify-center gap-1 pb-2 pt-1">
+              {Array.from({ length: Math.ceil(categories.length / 3) }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[5px] rounded-full transition-all duration-200"
+                  style={{
+                    width:      chipIndex === i ? 14 : 5,
+                    background: chipIndex === i ? primaryColor : '#E2E8F0',
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      <div key={selectedCat} className="flex-1">
+      <div key={activeCategories.join(',')} className="flex-1">
         {grouped.size === 0 && (
           <p className="px-4 py-8 text-center text-body text-content-subtle">
             Nenhum serviço encontrado.

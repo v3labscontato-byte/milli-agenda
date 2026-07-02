@@ -91,20 +91,20 @@ function CancelModal({ appt, phone, minHours, feePercent, primaryColor, onConfir
     >
       <div className="w-full max-w-md animate-fade-in rounded-t-3xl bg-white p-6 pb-8 motion-reduce:animate-none">
         <div className="mb-4 flex items-center justify-between">
-          <h2 id="cancel-modal-title" className="text-[16px] font-bold text-[#2e2a2b]">
+          <h2 id="cancel-modal-title" className="text-[16px] font-bold text-[var(--bk-ink)]">
             Cancelar agendamento
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#9c9899] transition-colors hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--bk-muted)] transition-colors hover:bg-[var(--bk-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-border)]"
           >
             <X size={18} aria-hidden="true" />
           </button>
         </div>
 
-        <p className="text-[14px] text-[#9c9899]">
+        <p className="text-[14px] text-[var(--bk-muted)]">
           {appt.service.name} · {formatApptDate(appt.startAt)}
         </p>
 
@@ -121,14 +121,14 @@ function CancelModal({ appt, phone, minHours, feePercent, primaryColor, onConfir
             {freeCancel ? (
               <>
                 <p className="text-[13px] font-semibold text-[#16A34A]">Cancelamento gratuito</p>
-                <p className="text-[12px] text-[#9c9899]">
+                <p className="text-[12px] text-[var(--bk-muted)]">
                   Com mais de {minHours}h de antecedência — sem cobrança.
                 </p>
               </>
             ) : (
               <>
                 <p className="text-[13px] font-semibold text-[#CA8A04]">Fora do prazo de cancelamento</p>
-                <p className="text-[12px] text-[#9c9899]">
+                <p className="text-[12px] text-[var(--bk-muted)]">
                   Cancelamentos devem ser feitos com pelo menos {minHours}h de antecedência.
                   {feePercent > 0 && ` Taxa de ${feePercent}% pode ser cobrada.`}
                 </p>
@@ -147,7 +147,7 @@ function CancelModal({ appt, phone, minHours, feePercent, primaryColor, onConfir
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-[#eaebec] py-3 text-[14px] font-medium text-[#9c9899] transition-colors hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]"
+            className="flex-1 rounded-xl border border-[var(--bk-border)] py-3 text-[14px] font-medium text-[var(--bk-muted)] transition-colors hover:bg-[var(--bk-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-border)]"
           >
             Voltar
           </button>
@@ -160,7 +160,7 @@ function CancelModal({ appt, phone, minHours, feePercent, primaryColor, onConfir
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#DC2626]',
               !loading
                 ? 'bg-[#DC2626] text-white hover:bg-[#B91C1C]'
-                : 'cursor-not-allowed bg-[#F1F5F9] text-[#9c9899]',
+                : 'cursor-not-allowed bg-[#F1F5F9] text-[var(--bk-muted)]',
             )}
           >
             {loading && (
@@ -187,23 +187,23 @@ interface UpcomingCardProps {
 function UpcomingCard({ appt, idx, primaryColor, onCancelRequest, onReschedule }: UpcomingCardProps) {
   return (
     <div
-      className="animate-fade-in motion-reduce:animate-none rounded-[8px] border border-[#eaebec] bg-white p-4"
+      className="animate-fade-in motion-reduce:animate-none rounded-[8px] border border-[var(--bk-border)] bg-white p-4"
       style={{ animationDelay: `${idx * 60}ms`, boxShadow: '0px 2px 48px rgba(0,0,0,0.04)' }}
     >
       <div className="mb-3 flex items-start justify-between gap-2">
         <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', STATUS_COLOR[appt.status] ?? 'bg-[#F1F5F9] text-[#64748B]')}>
           {STATUS_LABEL[appt.status] ?? appt.status}
         </span>
-        <span className="tabular-nums text-[14px] font-bold text-[#2e2a2b]">
+        <span className="tabular-nums text-[14px] font-bold text-[var(--bk-ink)]">
           {formatPrice(appt.service.price)}
         </span>
       </div>
-      <p className="text-[16px] font-semibold text-[#2e2a2b]">{appt.service.name}</p>
+      <p className="text-[16px] font-semibold text-[var(--bk-ink)]">{appt.service.name}</p>
       <div className="mt-2 space-y-1">
-        <p className="flex items-center gap-2 text-[13px] text-[#9c9899]">
+        <p className="flex items-center gap-2 text-[13px] text-[var(--bk-muted)]">
           <Calendar size={13} aria-hidden="true" />{formatApptDate(appt.startAt)}
         </p>
-        <p className="flex items-center gap-2 text-[13px] text-[#9c9899]">
+        <p className="flex items-center gap-2 text-[13px] text-[var(--bk-muted)]">
           <User size={13} aria-hidden="true" />{appt.professional.name}
         </p>
       </div>
@@ -211,7 +211,7 @@ function UpcomingCard({ appt, idx, primaryColor, onCancelRequest, onReschedule }
         <button
           type="button"
           onClick={() => onReschedule(appt)}
-          className="flex flex-1 min-h-[44px] items-center justify-center rounded-xl border border-[#eaebec] text-[13px] font-medium text-[#9c9899] transition-colors hover:border-[#d0cac9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]"
+          className="flex flex-1 min-h-[44px] items-center justify-center rounded-xl border border-[var(--bk-border)] text-[13px] font-medium text-[var(--bk-muted)] transition-colors hover:border-[#d0cac9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-border)]"
           style={{ '--hover-color': primaryColor } as React.CSSProperties}
         >
           Reagendar
@@ -219,7 +219,7 @@ function UpcomingCard({ appt, idx, primaryColor, onCancelRequest, onReschedule }
         <button
           type="button"
           onClick={() => onCancelRequest(appt)}
-          className="flex flex-1 min-h-[44px] items-center justify-center rounded-xl border border-[#eaebec] text-[13px] font-medium text-[#DC2626] transition-colors hover:border-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FEE2E2]"
+          className="flex flex-1 min-h-[44px] items-center justify-center rounded-xl border border-[var(--bk-border)] text-[13px] font-medium text-[#DC2626] transition-colors hover:border-[#DC2626] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FEE2E2]"
         >
           Cancelar
         </button>
@@ -231,21 +231,21 @@ function UpcomingCard({ appt, idx, primaryColor, onCancelRequest, onReschedule }
 function PastCard({ appt, idx }: { appt: PublicAppointmentItem; idx: number }) {
   return (
     <div
-      className="animate-fade-in motion-reduce:animate-none rounded-[8px] border border-[#eaebec] bg-white p-4"
+      className="animate-fade-in motion-reduce:animate-none rounded-[8px] border border-[var(--bk-border)] bg-white p-4"
       style={{ animationDelay: `${idx * 60}ms`, boxShadow: '0px 2px 48px rgba(0,0,0,0.04)' }}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', STATUS_COLOR[appt.status] ?? 'bg-[#F1F5F9] text-[#64748B]')}>
           {STATUS_LABEL[appt.status] ?? appt.status}
         </span>
-        <span className="tabular-nums text-[13px] font-semibold text-[#9c9899]">
+        <span className="tabular-nums text-[13px] font-semibold text-[var(--bk-muted)]">
           {formatPrice(appt.service.price)}
         </span>
       </div>
-      <p className="text-[14px] font-medium text-[#2e2a2b]">
+      <p className="text-[14px] font-medium text-[var(--bk-ink)]">
         {appt.service.name} · {appt.professional.name}
       </p>
-      <p className="mt-1 text-[12px] text-[#9c9899]">{formatApptDate(appt.startAt)}</p>
+      <p className="mt-1 text-[12px] text-[var(--bk-muted)]">{formatApptDate(appt.startAt)}</p>
     </div>
   )
 }
@@ -254,7 +254,7 @@ function PastCard({ appt, idx }: { appt: PublicAppointmentItem; idx: number }) {
 
 function Skeleton() {
   return (
-    <div className="space-y-3">
+    <div role="status" aria-label="Carregando agendamentos..." className="space-y-3">
       {[1, 2, 3].map((i) => (
         <div key={i} className="h-28 animate-pulse rounded-[8px] bg-[#F1F5F9]" />
       ))}
@@ -327,17 +327,17 @@ export default function MeusAgendamentosPage() {
       )}
 
       {/* Header */}
-      <div className="border-b border-[#eaebec] px-[14px] pb-0 pt-6">
+      <div className="border-b border-[var(--bk-border)] px-[14px] pb-0 pt-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[16px] font-semibold text-[#2e2a2b]">Meus Agendamentos</h1>
-            <p className="mt-0.5 text-[12px] text-[#9c9899]">{client.name}</p>
+            <h1 className="text-[16px] font-semibold text-[var(--bk-ink)]">Meus Agendamentos</h1>
+            <p className="mt-0.5 text-[12px] text-[var(--bk-muted)]">{client.name}</p>
           </div>
           <button
             type="button"
             aria-label="Sair da identificação"
             onClick={() => { clearClient(); window.location.replace('/booking/login') }}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#9c9899] transition-colors hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--bk-muted)] transition-colors hover:bg-[var(--bk-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-border)]"
           >
             <LogOut size={16} aria-hidden="true" />
           </button>
@@ -353,8 +353,8 @@ export default function MeusAgendamentosPage() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 'border-b-2 px-4 pb-3 text-[14px] font-medium transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#eaebec]',
-                activeTab !== tab && 'border-transparent text-[#9c9899] hover:text-[#2e2a2b]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--bk-border)]',
+                activeTab !== tab && 'border-transparent text-[var(--bk-muted)] hover:text-[var(--bk-ink)]',
               )}
               style={activeTab === tab ? { borderBottomColor: primaryColor, color: primaryColor } : undefined}
             >
@@ -372,9 +372,9 @@ export default function MeusAgendamentosPage() {
         ) : activeTab === 'upcoming' ? (
           upcoming.length === 0 ? (
             <div className="flex flex-col items-center py-14 text-center">
-              <Calendar size={48} className="mb-3 text-[#9c9899]" aria-hidden="true" />
-              <p className="text-[15px] font-medium text-[#2e2a2b]">Nenhum agendamento próximo</p>
-              <p className="mt-1 text-[13px] text-[#9c9899]">Que tal marcar um horário?</p>
+              <Calendar size={48} className="mb-3 text-[var(--bk-muted)]" aria-hidden="true" />
+              <p className="text-[15px] font-medium text-[var(--bk-ink)]">Nenhum agendamento próximo</p>
+              <p className="mt-1 text-[13px] text-[var(--bk-muted)]">Que tal marcar um horário?</p>
               <Link
                 href="/booking/agendar"
                 className="mt-4 flex h-[48px] items-center rounded-[24px] px-6 text-[14px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
@@ -400,7 +400,7 @@ export default function MeusAgendamentosPage() {
         ) : (
           history.length === 0 ? (
             <div className="py-14 text-center">
-              <p className="text-[14px] text-[#9c9899]">Nenhum histórico ainda.</p>
+              <p className="text-[14px] text-[var(--bk-muted)]">Nenhum histórico ainda.</p>
             </div>
           ) : (
             <div className="space-y-3">

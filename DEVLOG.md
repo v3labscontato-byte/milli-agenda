@@ -3426,3 +3426,175 @@ O Dockerfile CMD rodava `prisma migrate deploy` antes de `node dist/main` a cada
 ### Próximo
 - Correções Impeccable (design system audit)
 - Teste E2E completo (agenda, booking, financeiro, produtos)
+
+---
+
+## [2026-07-01] Claude — PWA: manifest, viewport 100dvh e sensação de app nativo
+
+**Status:** ✅ Concluído  
+**Branch:** homolog
+
+### Arquivos criados
+- `apps/web/public/manifest.json` — PWA manifest (name, start_url, display:standalone, icons, theme_color)
+- `apps/web/src/app/(booking)/_booking-shell.tsx` — client shell extraído do layout (100dvh, flex column)
+- `apps/web/src/components/booking/install-banner.tsx` — banner Android "Instalar app" (beforeinstallprompt, localStorage)
+
+### Arquivos atualizados
+- `apps/web/src/app/(booking)/layout.tsx` — reescrito como server component com `metadata` (manifest, appleWebApp, icons) e `viewport` (themeColor, viewport-fit=cover)
+- `apps/web/src/components/booking/bottom-nav.tsx` — removido `fixed bottom-0 left-0 right-0`; agora é flex child (`w-full shrink-0`) dentro do container 100dvh
+- `apps/web/src/app/globals.css` — `overscroll-behavior: none` no body, `-webkit-tap-highlight-color: transparent` global, `touch-action: manipulation` em inputs/botões/links
+- `apps/web/src/app/(booking)/booking/page.tsx` — `active:scale-9x` em ícone notificação, card agendamento, chips de serviço e cards de profissional; sticky CTA movido de `bottom-[70px]` → `bottom-0` (BottomNav deixou de ser fixed)
+
+### Arquitetura PWA
+- layout.tsx (server) exporta metadata/viewport → BookingShell (client) renderiza a UI
+- Container: `height: 100dvh; overflow: hidden; flex-direction: column`
+- main: `flex: 1; overflow-y: auto; pb-[70px]`
+- BottomNav: `w-full shrink-0` — sempre visível, sem sobreposição
+
+### npx tsc --noEmit → 0 erros
+
+---
+
+## [2026-07-01] Claude — fix(booking): P0 manifest middleware, P1 sticky CTA, P2 scrollbar e touch target
+
+**Status:** ✅ Concluído  
+**Branch:** homolog
+
+### Contexto
+Correções identificadas no Impeccable audit pós-deploy do commit 7cee8fb (PWA manifest + 100dvh).
+
+### P0 — manifest.json interceptado pelo middleware
+**Arquivo:** `apps/web/src/middleware.ts`  
+Adicionado `manifest\.json` à regex de exclusão do matcher:  
+`/((?!api|_next/static|_next/image|favicon.ico|manifest\.json).*)`  
+Sem isso, `/manifest.json` era redirecionado para `/login` (HTML 200), impedindo instalação do PWA.
+
+### P1 — Sticky CTA sobrepondo cards de profissionais
+**Arquivo:** `apps/web/src/app/(booking)/_booking-shell.tsx`  
+Removido `pb-[70px]` do `<main>`. O padding foi herdado da era do BottomNav fixo (necessário para conteúdo não ficar sob o nav). Com o nav como flex sibling, o padding criava um offset de 70px no sticky bottom-0, deslocando o CTA para cima e sobrepondo os cards de profissionais.
+
+### P2 — Scrollbar visível no main
+**Arquivo:** `apps/web/src/app/(booking)/_booking-shell.tsx` + `apps/web/src/app/globals.css`  
+Adicionado `scrollbarWidth: 'none'`, `msOverflowStyle: 'none'` no style inline do `<main>` e `#main-content::-webkit-scrollbar { display: none }` no globals.css.
+
+### P2 — Touch target bell icon
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+`h-10 w-10` (40px) → `h-11 w-11` (44px) no link do ícone de notificações. Alinha com WCAG 2.5.5 (44×44px mínimo).
+
+### npx tsc --noEmit → 0 erros
+
+---
+
+## [2026-07-01] PWA Booking — Fase 2: Tokens, A11y, Performance e Polish
+
+**Branch:** homolog  
+**Objetivo:** Atingir ≥18/20 em todas as telas do booking (meta: 20/20 Impeccable)  
+**npx tsc --noEmit → 0 erros**
+
+### Theming — CSS Variables para paleta warm do booking
+**Arquivo:** `apps/web/src/app/globals.css`  
+Adicionados tokens `--bk-ink`, `--bk-muted`, `--bk-border`, `--bk-border-hover`, `--bk-surface`, `--bk-hover` no `:root`.  
+Substituídos `#2e2a2b`, `#9c9899`, `#eaebec`, `#d0cac9`, `#fafafa`, `#faf8f7` pelos respectivos `var(--bk-*)` nos arquivos:  
+`booking/page.tsx`, `meus-agendamentos/page.tsx`, `perfil/page.tsx`, `bottom-nav.tsx`, `_booking-shell.tsx`.
+
+### Performance — Remover backdrop-blur-sm do CTA sticky
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+`bg-white/95 backdrop-blur-sm` → `bg-white`. Eliminado GPU repaint a cada scroll.
+
+### A11y — Labels sr-only em todos os inputs do login
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Adicionados `<label htmlFor="e-phone" className="sr-only">` (aba Entrar) e labels para `c-name`, `c-phone`, `c-email` (aba Cadastrar). Inputs associados via `id`. Inputs sem label visível violavam WCAG 1.3.1.
+
+### A11y — Toast com aria-live
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Toast refatorado: sempre presente no DOM com `role="status" aria-live="polite" aria-atomic="true"`, visibilidade via `opacity-0/opacity-100`. Screen readers agora anunciam "Em breve" quando Google button é acionado.
+
+### A11y — Skeletons com role="status"
+**Arquivos:** `step-service.tsx`, `meus-agendamentos/page.tsx`  
+Adicionado `role="status" aria-label="Carregando..."` nos wrappers dos skeletons de loading.
+
+### A11y — Touch targets 44px nos botões ícone
+**Arquivo:** `apps/web/src/app/(booking)/booking/meus-agendamentos/page.tsx`  
+`h-9 w-9` (36px) → `h-11 w-11` (44px) no botão LogOut (header) e botão Fechar (CancelModal).
+
+### Anti-padrões — Category icons expandido
+**Arquivos:** `step-service.tsx`, `booking/page.tsx`  
+Adicionados `SOBRANCELHA → '👁️'`, `MASSAGEM → '💆'`, `MAQUIAGEM → '💄'` ao mapa de ícones.  
+Fallback alterado de `'🔧'` para `'✨'`.
+
+### Anti-padrões — Google button indica status
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Adicionado `(em breve)` visível e `aria-label="Login com Google — em breve disponível"` nos botões Google (Entrar e Cadastrar).
+
+## [2026-07-01] PWA Booking — Home Redesign v2 + Timeline Fixa no Agendamento
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+### OBJETIVO 1 — Redesign da Home do PWA (/booking)
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+Reescrita completa com nova estrutura:
+- **Header fixo** (`sticky top-0`): nome do salão + sino de notificações (badge de não-lidas), rating + endereço, saudação com primeiro nome do cliente. Fundo: `primaryColor` do tenant.
+- **Card de próximo agendamento**: data relativa (Hoje/Amanhã/Em N dias) com `primaryColor`. Estado vazio com CTA para histórico.
+- **Carrossel Explorar** (scroll horizontal): 4 cards × 110px — Serviços, Promoções (highlight com `primaryColor`), Indique e ganhe, Meus pontos.
+- **Seção Profissionais** (scroll horizontal): avatares 44×44px com foto real ou initials. Specialty real do tenant (`p.specialty ?? 'Especialista'`). Carregado via `fetchPublicProfessionals`.
+- **Footer fixo** (`sticky bottom-0`): botão "Agendar agora" (flex:1, Calendar icon, `primaryColor`) + botão WhatsApp (44×44px, `#25D366`, inline SVG). WhatsApp href via `tenant.phone` stripped de não-dígitos + prefixo `55`.
+- WhatsApp button condicional: só renderiza se `tenant.phone` existir.
+
+### OBJETIVO 2 — Timeline Fixa no Fluxo de Agendamento
+**Arquivo:** `apps/web/src/app/(booking)/booking/agendar/page.tsx`  
+- Container raiz: `flex h-full flex-col` — ocupa 100% do `<main>` sem criar scroll extra.
+- **ProgressBar** refatorado: barra única animada (de segmentos separados para uma `div` com `width: (step/4)*100%` e `transition-all duration-300`). Cor: `primaryColor` do tenant via `usePublicTenant()`. Background unfilled: `bg-[#E2E8F0]`.
+- Label movida acima da barra (`Serviço · Passo 1 de 4`) em `text-[11px] text-[#64748B]`.
+- **Conteúdo dos steps**: `flex-1 overflow-y-auto` — rola independentemente enquanto o indicador permanece fixo.
+- Banner de reagendamento: cores hex diretas (`bg-[#FEF9C3] border-[#FDE047] text-[#CA8A04]`), `shrink-0` para não empurrar o progress bar.
+
+## [2026-07-02] PWA Booking — Login v5: auto-detect telefone, sem tabs, cadastro automático
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Reescrita completa do componente de login do PWA:
+
+- **Removido:** tabs "Entrar / Cadastrar" — fluxo é linear agora
+- **Hero:** 170px com `primaryColor` do tenant como fundo (não mais cover image). Gradiente de baixo para cima. Logo/iniciais do salão em 40×40px com borda branca. "⭐ Aceita novos clientes" (10px, branco 65%).
+- **Campo telefone:** 50px altura, `border: 2px solid primaryColor`, padding-left 42px, ícone Phone colorido com primaryColor. Placeholder `(11) 9 0000-0000`.
+- **Auto-detect 11 dígitos:** onChange → `maskPhone` → `digits.length === 11` → `lookup()` automático. Sem botão "Continuar".
+- **Estado `loading`:** overlay `bg-white/90` sobre o formulário com spinner animado, "Verificando...", phone em pill colorida.
+- **Estado `register`:** tela de cadastro completa — botão "← Voltar" (limpa phone), "Primeiro acesso", phone em pill não-editável, campo nome (obrigatório), campo email (opcional), botão "Criar conta e entrar" com `primaryColor`.
+- **Google + Apple:** ambos com toast "Em breve", botões 42px com ícones SVG inline.
+- **Layout:** `h-full flex flex-col` — cabe em 100dvh sem scroll (hero 170px + body flex-1).
+- **`triggered` ref:** previne double-trigger na lookup; resetado ao voltar ou ao deletar dígito.
+
+## [2026-07-02] PWA Booking — bugs logout+mock + home redesign v4
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+### BUG 1 — Logout sem redirect (fix)
+**Arquivos:** `perfil/page.tsx:127`, `step-confirm.tsx:198`  
+`onClick={clearClient}` → `onClick={() => { clearClient(); window.location.replace('/booking/login') }}`  
+Ambos os pontos de logout agora redirecionam imediatamente para `/booking/login`.
+
+### BUG 2 — Flash de dados mock (fix)
+**Arquivo:** `booking/page.tsx`  
+Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header exibe skeleton `animate-pulse` com divs `rgba(255,255,255,0.25)`. Nome, endereço e rating só aparecem quando `tenantData` retorna da API — sem fallback para mock. Rating omitido da UI (API não retorna esse campo).
+
+### Redesign Home v4
+**Arquivo:** `booking/page.tsx`  
+- Label "Explorar" removido; substituído por "ACESSO RÁPIDO" (9px uppercase tracking-widest #94A3B8)
+- Cards do carrossel: 110px → 150×90px, emoji 26px, label 12px semibold
+- Profissionais: rating condicional — se `pro.rating !== null` mostra ⭐ SVG #F59E0B + valor 9px; senão mostra especialidade. API não retorna rating, então specialty aparece por ora.
+
+### [2026-07-02] AGENT_PWA — dots carrossel (complemento)
+**Status:** ✅ Concluído
+**Fix:** onScroll + dots pill no carrossel de acesso rápido (FIX 3 complemento — estado activeCard e handler já existiam, faltava wirear onScroll e renderizar dots)
+
+### [2026-07-02] AGENT_PWA — auto-scroll carrossel + rating profissionais
+**Status:** ✅ Concluído
+**Fixes:** carrossel auto-scroll 3s com loop (pausa 5s ao toque), rating ★ abaixo do nome (já existia, campo null da API não exibe estrela)
+
+### [2026-07-02] AGENT_PWA — filtro de especialidade no step 1
+**Status:** ✅ Concluído
+**Fixes:** chips toggle multi-select por categoria (sem botão Todos), dots indicador pill, filtro múltiplo simultâneo, primaryColor inline style

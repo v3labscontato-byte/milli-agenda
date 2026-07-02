@@ -17,24 +17,24 @@ interface MenuItemProps {
 
 function MenuItem({ icon, label, sublabel, danger, href, onClick }: MenuItemProps) {
   const cls = cn(
-    'flex w-full items-center gap-3 rounded-[8px] border border-[#eaebec] bg-white px-4 py-4 transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#eaebec]',
+    'flex w-full items-center gap-3 rounded-[8px] border border-[var(--bk-border)] bg-white px-4 py-4 transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bk-border)]',
     danger
       ? 'hover:border-[#FEE2E2] hover:bg-[#FEE2E2]'
-      : 'hover:border-[#d0cac9] hover:bg-[#faf8f7]',
+      : 'hover:border-[var(--bk-border-hover)] hover:bg-[var(--bk-hover)]',
   )
   const inner = (
     <>
-      <span className={cn('shrink-0', danger ? 'text-[#DC2626]' : 'text-[#9c9899]')} aria-hidden="true">
+      <span className={cn('shrink-0', danger ? 'text-[#DC2626]' : 'text-[var(--bk-muted)]')} aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0 flex-1 text-left">
-        <p className={cn('text-[14px] font-medium', danger ? 'text-[#DC2626]' : 'text-[#2e2a2b]')}>
+        <p className={cn('text-[14px] font-medium', danger ? 'text-[#DC2626]' : 'text-[var(--bk-ink)]')}>
           {label}
         </p>
-        {sublabel && <p className="text-[11px] text-[#9c9899]">{sublabel}</p>}
+        {sublabel && <p className="text-[11px] text-[var(--bk-muted)]">{sublabel}</p>}
       </div>
-      {!danger && <ChevronRight size={16} className="shrink-0 text-[#9c9899]" aria-hidden="true" />}
+      {!danger && <ChevronRight size={16} className="shrink-0 text-[var(--bk-muted)]" aria-hidden="true" />}
     </>
   )
   if (href) return <Link href={href} className={cls}>{inner}</Link>
@@ -55,8 +55,8 @@ export default function PerfilPage() {
     return (
       <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
         <span className="mb-4 text-[40px]" aria-hidden="true">👤</span>
-        <h2 className="text-[18px] font-bold text-[#2e2a2b]">Minha conta</h2>
-        <p className="mt-1 text-[14px] text-[#9c9899]">
+        <h2 className="text-[18px] font-bold text-[var(--bk-ink)]">Minha conta</h2>
+        <p className="mt-1 text-[14px] text-[var(--bk-muted)]">
           Identifique-se para ver seus dados e agendamentos.
         </p>
         <Link
@@ -82,11 +82,11 @@ export default function PerfilPage() {
           >
             {initials(client.name)}
           </div>
-          <h1 className="mt-3 text-[20px] font-bold text-[#2e2a2b]">{client.name}</h1>
+          <h1 className="mt-3 text-[20px] font-bold text-[var(--bk-ink)]">{client.name}</h1>
           {client.email && (
-            <p className="mt-0.5 text-[14px] text-[#9c9899]">{client.email}</p>
+            <p className="mt-0.5 text-[14px] text-[var(--bk-muted)]">{client.email}</p>
           )}
-          <p className="text-[14px] text-[#9c9899]">{client.phone}</p>
+          <p className="text-[14px] text-[var(--bk-muted)]">{client.phone}</p>
         </div>
       </div>
 
@@ -124,11 +124,11 @@ export default function PerfilPage() {
             label="Sair"
             sublabel="Limpar identificação desta sessão"
             danger
-            onClick={clearClient}
+            onClick={() => { clearClient(); window.location.replace('/booking/login') }}
           />
         </div>
 
-        <p className="pt-2 text-center text-[11px] text-[#9c9899]">
+        <p className="pt-2 text-center text-[11px] text-[var(--bk-muted)]">
           {tenant?.name ?? 'Milli Agenda'} · Versão 1.0.0
         </p>
       </div>

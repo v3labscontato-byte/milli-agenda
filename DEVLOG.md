@@ -3525,3 +3525,26 @@ Fallback alterado de `'🔧'` para `'✨'`.
 ### Anti-padrões — Google button indica status
 **Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
 Adicionado `(em breve)` visível e `aria-label="Login com Google — em breve disponível"` nos botões Google (Entrar e Cadastrar).
+
+## [2026-07-01] PWA Booking — Home Redesign v2 + Timeline Fixa no Agendamento
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+### OBJETIVO 1 — Redesign da Home do PWA (/booking)
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+Reescrita completa com nova estrutura:
+- **Header fixo** (`sticky top-0`): nome do salão + sino de notificações (badge de não-lidas), rating + endereço, saudação com primeiro nome do cliente. Fundo: `primaryColor` do tenant.
+- **Card de próximo agendamento**: data relativa (Hoje/Amanhã/Em N dias) com `primaryColor`. Estado vazio com CTA para histórico.
+- **Carrossel Explorar** (scroll horizontal): 4 cards × 110px — Serviços, Promoções (highlight com `primaryColor`), Indique e ganhe, Meus pontos.
+- **Seção Profissionais** (scroll horizontal): avatares 44×44px com foto real ou initials. Specialty real do tenant (`p.specialty ?? 'Especialista'`). Carregado via `fetchPublicProfessionals`.
+- **Footer fixo** (`sticky bottom-0`): botão "Agendar agora" (flex:1, Calendar icon, `primaryColor`) + botão WhatsApp (44×44px, `#25D366`, inline SVG). WhatsApp href via `tenant.phone` stripped de não-dígitos + prefixo `55`.
+- WhatsApp button condicional: só renderiza se `tenant.phone` existir.
+
+### OBJETIVO 2 — Timeline Fixa no Fluxo de Agendamento
+**Arquivo:** `apps/web/src/app/(booking)/booking/agendar/page.tsx`  
+- Container raiz: `flex h-full flex-col` — ocupa 100% do `<main>` sem criar scroll extra.
+- **ProgressBar** refatorado: barra única animada (de segmentos separados para uma `div` com `width: (step/4)*100%` e `transition-all duration-300`). Cor: `primaryColor` do tenant via `usePublicTenant()`. Background unfilled: `bg-[#E2E8F0]`.
+- Label movida acima da barra (`Serviço · Passo 1 de 4`) em `text-[11px] text-[#64748B]`.
+- **Conteúdo dos steps**: `flex-1 overflow-y-auto` — rola independentemente enquanto o indicador permanece fixo.
+- Banner de reagendamento: cores hex diretas (`bg-[#FEF9C3] border-[#FDE047] text-[#CA8A04]`), `shrink-0` para não empurrar o progress bar.

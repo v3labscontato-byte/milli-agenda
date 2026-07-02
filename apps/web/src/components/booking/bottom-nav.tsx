@@ -23,7 +23,7 @@ export default function BottomNav({ primaryColor = '#81736f' }: BottomNavProps) 
       aria-label="Navegação principal"
       className="w-full shrink-0 bg-white"
       style={{
-        borderTop: '1px solid #eaebec',
+        borderTop: '1px solid var(--bk-border)',
         boxShadow: '0px 2px 48px rgba(0,0,0,0.12)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}

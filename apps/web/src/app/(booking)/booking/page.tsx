@@ -17,7 +17,8 @@ import { FEATURES } from '@/lib/features'
 const unread = NOTIFICACOES.filter((n) => !n.read).length
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  CABELO: '✂️', UNHAS: '💅', ESTÉTICA: '🌿', BARBA: '🪒', OUTROS: '✨',
+  CABELO: '✂️', UNHAS: '💅', ESTÉTICA: '🌿', BARBA: '🪒',
+  SOBRANCELHA: '👁️', MASSAGEM: '💆', MAQUIAGEM: '💄', OUTROS: '✨',
 }
 
 function getRelativeDate(date: Date): string {
@@ -93,17 +94,17 @@ export default function BookingHomePage() {
   }, [])
 
   return (
-    <div className="flex min-h-full flex-col bg-[#fafafa]">
+    <div className="flex min-h-full flex-col bg-[var(--bk-surface)]">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between bg-white px-[14px] pb-3 pt-4">
-        <h1 className="text-[20px] font-semibold text-[#2e2a2b]" style={{ letterSpacing: '0.5px' }}>
+        <h1 className="text-[20px] font-semibold text-[var(--bk-ink)]" style={{ letterSpacing: '0.5px' }}>
           Olá, {firstName}! 👋
         </h1>
         <Link
           href="/booking/notificacoes"
           aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
-          className="relative flex h-11 w-11 items-center justify-center rounded-full text-[#9c9899] transition-transform duration-100 hover:bg-[#f5f5f5] active:scale-90"
+          className="relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--bk-muted)] transition-transform duration-100 hover:bg-[var(--bk-surface)] active:scale-90"
         >
           <Bell size={20} aria-hidden="true" />
           {unread > 0 && (
@@ -144,30 +145,30 @@ export default function BookingHomePage() {
       <div className="px-[14px] pt-4">
         <Link
           href="/booking/meus-agendamentos"
-          className="block rounded-[8px] border border-[#eaebec] bg-white px-4 py-3 transition-transform duration-100 hover:border-[#d0cac9] active:scale-[0.98]"
+          className="block rounded-[8px] border border-[var(--bk-border)] bg-white px-4 py-3 transition-transform duration-100 hover:border-[var(--bk-border-hover)] active:scale-[0.98]"
           style={{ boxShadow: '0px 2px 48px rgba(0,0,0,0.04)' }}
         >
           {next ? (
             <>
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[12px] font-medium text-[#9c9899]">Próximo agendamento</p>
+                <p className="text-[12px] font-medium text-[var(--bk-muted)]">Próximo agendamento</p>
                 <p className="text-[11px] font-semibold" style={{ color: primaryColor }}>
                   {getRelativeDate(next.date)}
                 </p>
               </div>
-              <p className="mt-1 text-[14px] font-semibold text-[#2e2a2b]">
+              <p className="mt-1 text-[14px] font-semibold text-[var(--bk-ink)]">
                 {next.serviceEmoji} {next.service}
               </p>
-              <p className="mt-0.5 text-[12px] text-[#9c9899]">
+              <p className="mt-0.5 text-[12px] text-[var(--bk-muted)]">
                 {next.startTime} · {next.professional}
               </p>
             </>
           ) : (
             <>
-              <p className="text-[13px] font-semibold text-[#2e2a2b]">
+              <p className="text-[13px] font-semibold text-[var(--bk-ink)]">
                 {loyaltyCfg.emoji} {CLIENT.pontos.toLocaleString('pt-BR')} pts · {loyaltyCfg.label}
               </p>
-              <p className="mt-0.5 text-[12px] text-[#9c9899]">Nenhum agendamento próximo · Agendar →</p>
+              <p className="mt-0.5 text-[12px] text-[var(--bk-muted)]">Nenhum agendamento próximo · Agendar →</p>
             </>
           )}
         </Link>
@@ -176,7 +177,7 @@ export default function BookingHomePage() {
       {/* ── Serviços populares ── */}
       <div className="pt-5">
         <div className="flex items-center justify-between px-[14px]">
-          <h2 className="text-[16px] font-semibold text-[#2e2a2b]">Serviços</h2>
+          <h2 className="text-[16px] font-semibold text-[var(--bk-ink)]">Serviços</h2>
           <Link
             href="/booking/agendar"
             className="flex items-center gap-0.5 text-[12px] font-medium"
@@ -201,7 +202,7 @@ export default function BookingHomePage() {
               >
                 {svc.emoji}
               </div>
-              <span className="max-w-[64px] text-center text-[12px] font-medium leading-tight text-[#2e2a2b]">
+              <span className="max-w-[64px] text-center text-[12px] font-medium leading-tight text-[var(--bk-ink)]">
                 {svc.name}
               </span>
             </Link>
@@ -212,7 +213,7 @@ export default function BookingHomePage() {
       {/* ── Nossos profissionais ── */}
       <div className="pb-4 pt-5">
         <div className="px-[14px]">
-          <h2 className="text-[16px] font-semibold text-[#2e2a2b]">Nossos profissionais</h2>
+          <h2 className="text-[16px] font-semibold text-[var(--bk-ink)]">Nossos profissionais</h2>
         </div>
         <div
           className="mt-3 flex gap-4 overflow-x-auto px-[14px] pb-2"
@@ -231,12 +232,12 @@ export default function BookingHomePage() {
                 {pro.initials}
               </div>
               <div className="max-w-[100px] text-center">
-                <p className="truncate text-[14px] font-medium text-[#2e2a2b]">{pro.name}</p>
-                <p className="text-[12px] text-[#9c9899]">{pro.role}</p>
+                <p className="truncate text-[14px] font-medium text-[var(--bk-ink)]">{pro.name}</p>
+                <p className="text-[12px] text-[var(--bk-muted)]">{pro.role}</p>
                 {pro.rating > 0 && (
                   <div className="flex items-center justify-center gap-0.5">
                     <Star size={11} className="fill-[#F59E0B] text-[#F59E0B]" aria-hidden="true" />
-                    <span className="text-[11px] font-medium text-[#2e2a2b]">{pro.rating.toFixed(1)}</span>
+                    <span className="text-[11px] font-medium text-[var(--bk-ink)]">{pro.rating.toFixed(1)}</span>
                   </div>
                 )}
               </div>
@@ -247,8 +248,8 @@ export default function BookingHomePage() {
 
       {/* ── Sticky CTA ── */}
       <div
-        className="sticky bottom-0 bg-white/95 px-[14px] py-3 backdrop-blur-sm"
-        style={{ borderTop: '1px solid #f1f5f9' }}
+        className="sticky bottom-0 bg-white px-[14px] py-3"
+        style={{ borderTop: '1px solid var(--bk-border)' }}
       >
         <Link
           href="/booking/agendar"

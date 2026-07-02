@@ -3482,3 +3482,46 @@ Adicionado `scrollbarWidth: 'none'`, `msOverflowStyle: 'none'` no style inline d
 `h-10 w-10` (40px) → `h-11 w-11` (44px) no link do ícone de notificações. Alinha com WCAG 2.5.5 (44×44px mínimo).
 
 ### npx tsc --noEmit → 0 erros
+
+---
+
+## [2026-07-01] PWA Booking — Fase 2: Tokens, A11y, Performance e Polish
+
+**Branch:** homolog  
+**Objetivo:** Atingir ≥18/20 em todas as telas do booking (meta: 20/20 Impeccable)  
+**npx tsc --noEmit → 0 erros**
+
+### Theming — CSS Variables para paleta warm do booking
+**Arquivo:** `apps/web/src/app/globals.css`  
+Adicionados tokens `--bk-ink`, `--bk-muted`, `--bk-border`, `--bk-border-hover`, `--bk-surface`, `--bk-hover` no `:root`.  
+Substituídos `#2e2a2b`, `#9c9899`, `#eaebec`, `#d0cac9`, `#fafafa`, `#faf8f7` pelos respectivos `var(--bk-*)` nos arquivos:  
+`booking/page.tsx`, `meus-agendamentos/page.tsx`, `perfil/page.tsx`, `bottom-nav.tsx`, `_booking-shell.tsx`.
+
+### Performance — Remover backdrop-blur-sm do CTA sticky
+**Arquivo:** `apps/web/src/app/(booking)/booking/page.tsx`  
+`bg-white/95 backdrop-blur-sm` → `bg-white`. Eliminado GPU repaint a cada scroll.
+
+### A11y — Labels sr-only em todos os inputs do login
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Adicionados `<label htmlFor="e-phone" className="sr-only">` (aba Entrar) e labels para `c-name`, `c-phone`, `c-email` (aba Cadastrar). Inputs associados via `id`. Inputs sem label visível violavam WCAG 1.3.1.
+
+### A11y — Toast com aria-live
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Toast refatorado: sempre presente no DOM com `role="status" aria-live="polite" aria-atomic="true"`, visibilidade via `opacity-0/opacity-100`. Screen readers agora anunciam "Em breve" quando Google button é acionado.
+
+### A11y — Skeletons com role="status"
+**Arquivos:** `step-service.tsx`, `meus-agendamentos/page.tsx`  
+Adicionado `role="status" aria-label="Carregando..."` nos wrappers dos skeletons de loading.
+
+### A11y — Touch targets 44px nos botões ícone
+**Arquivo:** `apps/web/src/app/(booking)/booking/meus-agendamentos/page.tsx`  
+`h-9 w-9` (36px) → `h-11 w-11` (44px) no botão LogOut (header) e botão Fechar (CancelModal).
+
+### Anti-padrões — Category icons expandido
+**Arquivos:** `step-service.tsx`, `booking/page.tsx`  
+Adicionados `SOBRANCELHA → '👁️'`, `MASSAGEM → '💆'`, `MAQUIAGEM → '💄'` ao mapa de ícones.  
+Fallback alterado de `'🔧'` para `'✨'`.
+
+### Anti-padrões — Google button indica status
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Adicionado `(em breve)` visível e `aria-label="Login com Google — em breve disponível"` nos botões Google (Entrar e Cadastrar).

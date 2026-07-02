@@ -56,7 +56,7 @@ export default function BookingShell({ children }: { children: React.ReactNode }
 
   return (
     <div
-      className="relative mx-auto max-w-md bg-[#fafafa] shadow-[0_0_40px_0_rgb(0_0_0/0.08)]"
+      className="relative mx-auto max-w-md bg-[var(--bk-surface)] shadow-[0_0_40px_0_rgb(0_0_0/0.08)]"
       style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
     >
       <InstallBanner />

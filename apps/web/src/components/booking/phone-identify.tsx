@@ -133,12 +133,18 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
   return (
     <div className="flex min-h-svh flex-col bg-[#FAF7F4] pb-20">
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#0F172A] px-5 py-2 text-[13px] text-white shadow-lg">
-          {toast}
-        </div>
-      )}
+      {/* Toast — always in DOM so screen readers announce changes */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className={cn(
+          'fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#0F172A] px-5 py-2 text-[13px] text-white shadow-lg transition-opacity duration-200',
+          toast ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
+      >
+        {toast}
+      </div>
 
       {/* Hero */}
       <div
@@ -225,12 +231,14 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
             </div>
 
             <div className="relative">
+              <label htmlFor="e-phone" className="sr-only">Telefone</label>
               <Phone
                 size={16}
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
                 aria-hidden="true"
               />
               <input
+                id="e-phone"
                 type="tel"
                 inputMode="numeric"
                 placeholder="(00) 00000-0000"
@@ -273,10 +281,12 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
             <button
               type="button"
               onClick={() => showToast('Em breve')}
+              aria-label="Login com Google — em breve disponível"
               className="flex h-12 w-full items-center justify-center gap-3 rounded-[14px] border border-[#E2E8F0] bg-white text-[14px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
             >
               <GoogleIcon />
               Continuar com Google
+              <span className="text-[11px] text-[#94A3B8]">(em breve)</span>
             </button>
 
             <div className="flex items-center justify-center gap-2 pb-2 pt-1 text-[12px] text-[#94A3B8]">
@@ -308,12 +318,14 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
             )}
 
             <div className="relative">
+              <label htmlFor="c-name" className="sr-only">Nome completo</label>
               <User
                 size={16}
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
                 aria-hidden="true"
               />
               <input
+                id="c-name"
                 type="text"
                 placeholder="Nome completo"
                 value={cName}
@@ -325,12 +337,14 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
             </div>
 
             <div className="relative">
+              <label htmlFor="c-phone" className="sr-only">Telefone</label>
               <Phone
                 size={16}
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
                 aria-hidden="true"
               />
               <input
+                id="c-phone"
                 type="tel"
                 inputMode="numeric"
                 placeholder="(00) 00000-0000"
@@ -342,12 +356,14 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
             </div>
 
             <div className="relative">
+              <label htmlFor="c-email" className="sr-only">E-mail (opcional)</label>
               <Mail
                 size={16}
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
                 aria-hidden="true"
               />
               <input
+                id="c-email"
                 type="email"
                 placeholder="E-mail (opcional)"
                 value={cEmail}

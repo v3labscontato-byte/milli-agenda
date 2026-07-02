@@ -7,14 +7,17 @@ import { type BookingService } from '@/lib/booking-mock'
 import { fetchPublicServices, TENANT_SLUG } from '@/lib/api/public-booking'
 
 const CATEGORY_ICONS: Record<string, string> = {
-  CABELO:   '✂',
-  UNHAS:    '💅',
-  ESTÉTICA: '🌿',
-  BARBA:    '🪒',
+  CABELO:      '✂',
+  UNHAS:       '💅',
+  ESTÉTICA:    '🌿',
+  BARBA:       '🪒',
+  SOBRANCELHA: '👁️',
+  MASSAGEM:    '💆',
+  MAQUIAGEM:   '💄',
 }
 
 function categoryIcon(name: string): string {
-  return CATEGORY_ICONS[name.toUpperCase()] ?? '🔧'
+  return CATEGORY_ICONS[name.toUpperCase()] ?? '✨'
 }
 
 interface StepServiceProps {
@@ -107,7 +110,7 @@ export default function StepService({ onSelect }: StepServiceProps) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-3 px-4 py-6">
+      <div className="flex flex-col gap-3 px-4 py-6" role="status" aria-label="Carregando serviços...">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-16 animate-pulse rounded-xl bg-[#F1F5F9]" />
         ))}

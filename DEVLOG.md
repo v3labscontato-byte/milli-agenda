@@ -3594,3 +3594,7 @@ Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header
 ### [2026-07-02] AGENT_PWA — auto-scroll carrossel + rating profissionais
 **Status:** ✅ Concluído
 **Fixes:** carrossel auto-scroll 3s com loop (pausa 5s ao toque), rating ★ abaixo do nome (já existia, campo null da API não exibe estrela)
+
+### [2026-07-02] AGENT_PWA — filtro de especialidade no step 1
+**Status:** ✅ Concluído
+**Fixes:** chips toggle multi-select por categoria (sem botão Todos), dots indicador pill, filtro múltiplo simultâneo, primaryColor inline style

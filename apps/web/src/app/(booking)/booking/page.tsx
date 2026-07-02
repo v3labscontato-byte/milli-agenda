@@ -2,19 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bell, Calendar, Star } from 'lucide-react'
+import { Bell, Calendar } from 'lucide-react'
 import { usePublicTenant } from '@/hooks/use-public-tenant'
 import { useBookingClient } from '@/hooks/use-booking-client'
-import {
-  SALON as SALON_MOCK, UPCOMING_APPOINTMENTS, NOTIFICACOES,
-} from '@/lib/booking-mock'
-import {
-  fetchPublicProfessionals, TENANT_SLUG,
-} from '@/lib/api/public-booking'
+import { UPCOMING_APPOINTMENTS, NOTIFICACOES } from '@/lib/booking-mock'
+import { fetchPublicProfessionals, TENANT_SLUG } from '@/lib/api/public-booking'
 
 const unread = NOTIFICACOES.filter((n) => !n.read).length
 
-const EXPLORE_ITEMS = [
+const QUICK_ACCESS = [
   { emoji: '✂️', label: 'Serviços',        href: '/booking/agendar',    highlight: false },
   { emoji: '🏷️', label: 'Promoções',       href: '/booking/promocoes',  highlight: true  },
   { emoji: '🤝', label: 'Indique e ganhe', href: '/booking/afiliados',  highlight: false },
@@ -43,22 +39,28 @@ function WhatsAppIcon() {
   )
 }
 
-type ProfCard = { id: string; name: string; role: string; initials: string; avatarUrl: string | null }
+type ProfCard = {
+  id: string
+  name: string
+  role: string
+  rating: number | null
+  initials: string
+  avatarUrl: string | null
+}
 
 export default function BookingHomePage() {
-  const { tenant: tenantData } = usePublicTenant()
+  const { tenant: tenantData, loading } = usePublicTenant()
   const { client } = useBookingClient()
 
-  const primaryColor  = tenantData?.primaryColor ?? '#81736f'
-  const salonName     = tenantData?.name ?? SALON_MOCK.name
-  const salonAddress  = tenantData?.address
+  const primaryColor = tenantData?.primaryColor ?? '#81736f'
+  const salonName    = tenantData?.name ?? ''
+  const salonAddress = tenantData?.address
     ? [tenantData.address, tenantData.city].filter(Boolean).join(' — ')
-    : SALON_MOCK.address
-  const tenantPhone   = (tenantData?.phone ?? '').replace(/\D/g, '')
-  const whatsappHref  = tenantPhone ? `https://wa.me/55${tenantPhone}` : null
-  const firstName     = (client?.name ?? 'você').split(' ')[0]
-
-  const next = UPCOMING_APPOINTMENTS[0] ?? null
+    : ''
+  const tenantPhone  = (tenantData?.phone ?? '').replace(/\D/g, '')
+  const whatsappHref = tenantPhone ? `https://wa.me/55${tenantPhone}` : null
+  const firstName    = (client?.name ?? 'você').split(' ')[0]
+  const next         = UPCOMING_APPOINTMENTS[0] ?? null
 
   const [professionals, setProfessionals] = useState<ProfCard[]>([])
 
@@ -71,6 +73,7 @@ export default function BookingHomePage() {
               id: p.id,
               name: p.name,
               role: p.specialty ?? 'Especialista',
+              rating: null,
               initials: getInitials(p.name),
               avatarUrl: p.avatarUrl,
             })),
@@ -88,38 +91,49 @@ export default function BookingHomePage() {
         className="sticky top-0 z-10 px-[14px] pb-3 pt-4"
         style={{ backgroundColor: primaryColor }}
       >
-        <div className="flex items-center justify-between">
-          <h1 className="text-[16px] font-bold text-white" style={{ letterSpacing: '0.3px' }}>
-            {salonName}
-          </h1>
-          <Link
-            href="/booking/notificacoes"
-            aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-100 active:scale-90"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
-          >
-            <Bell size={20} aria-hidden="true" />
-            {unread > 0 && (
-              <span
-                className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                aria-hidden="true"
-                style={{ backgroundColor: '#DC2626' }}
+        {loading ? (
+          <div className="animate-pulse space-y-2 py-0.5">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-36 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.25)' }} />
+              <div className="h-9 w-9 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            </div>
+            <div className="h-3 w-48 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            <div className="h-3 w-28 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <h1 className="text-[16px] font-bold text-white" style={{ letterSpacing: '0.3px' }}>
+                {salonName}
+              </h1>
+              <Link
+                href="/booking/notificacoes"
+                aria-label={`Notificações${unread > 0 ? ` — ${unread} não lidas` : ''}`}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-100 active:scale-90"
+                style={{ color: 'rgba(255,255,255,0.85)' }}
               >
-                {unread}
-              </span>
+                <Bell size={20} aria-hidden="true" />
+                {unread > 0 && (
+                  <span
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                    aria-hidden="true"
+                    style={{ backgroundColor: '#DC2626' }}
+                  >
+                    {unread}
+                  </span>
+                )}
+              </Link>
+            </div>
+
+            {salonAddress && (
+              <p className="mt-0.5 text-[11px] text-white/70">{salonAddress}</p>
             )}
-          </Link>
-        </div>
 
-        <div className="mt-0.5 flex items-center gap-1.5">
-          <Star size={11} className="fill-[#FBBF24] text-[#FBBF24]" aria-hidden="true" />
-          <span className="text-[12px] font-semibold text-white/90">{SALON_MOCK.rating}</span>
-          <span className="text-[11px] text-white/70">· {salonAddress}</span>
-        </div>
-
-        <p className="mt-1.5 text-[14px] font-medium text-white/85">
-          Olá, {firstName}! 👋
-        </p>
+            <p className="mt-1.5 text-[14px] font-medium text-white/85">
+              Olá, {firstName}! 👋
+            </p>
+          </>
+        )}
       </div>
 
       {/* ── Conteúdo scrollável ── */}
@@ -158,27 +172,30 @@ export default function BookingHomePage() {
           </Link>
         </div>
 
-        {/* Explorar */}
+        {/* Acesso rápido */}
         <div className="pt-5">
-          <h2 className="px-[14px] text-[14px] font-semibold text-[var(--bk-ink)]">Explorar</h2>
+          <p className="px-[14px] text-[9px] font-semibold uppercase tracking-widest text-[#94A3B8]">
+            Acesso rápido
+          </p>
           <div
-            className="mt-3 flex gap-3 overflow-x-auto px-[14px] pb-2"
+            className="mt-2.5 flex gap-3 overflow-x-auto px-[14px] pb-2"
             style={{ scrollbarWidth: 'none' }}
           >
-            {EXPLORE_ITEMS.map((item) => (
+            {QUICK_ACCESS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex shrink-0 flex-col items-center gap-2 rounded-[10px] border px-3 py-3 transition-transform duration-100 active:scale-95"
+                className="flex shrink-0 flex-col items-center justify-center gap-2 rounded-[12px] border transition-transform duration-100 active:scale-95"
                 style={{
-                  width: 110,
+                  width: 150,
+                  height: 90,
                   borderColor: item.highlight ? primaryColor : '#E2E8F0',
                   backgroundColor: item.highlight ? primaryColor : '#ffffff',
                 }}
               >
-                <span className="text-[22px] leading-none">{item.emoji}</span>
+                <span className="text-[26px] leading-none">{item.emoji}</span>
                 <span
-                  className="text-center text-[11px] font-medium leading-tight"
+                  className="text-center text-[12px] font-semibold leading-tight"
                   style={{ color: item.highlight ? '#ffffff' : 'var(--bk-ink)' }}
                 >
                   {item.label}
@@ -217,12 +234,21 @@ export default function BookingHomePage() {
                       {pro.initials}
                     </div>
                   )}
-                  <p className="mt-0.5 max-w-[64px] truncate text-center text-[10px] font-semibold text-[var(--bk-ink)]">
+                  <p className="mt-0.5 max-w-[68px] truncate text-center text-[10px] font-semibold text-[var(--bk-ink)]">
                     {pro.name.split(' ')[0]}
                   </p>
-                  <p className="max-w-[64px] truncate text-center text-[10px] leading-tight text-[var(--bk-muted)]">
-                    {pro.role}
-                  </p>
+                  {pro.rating !== null ? (
+                    <p className="flex items-center gap-0.5 text-[9px] text-[#64748B]">
+                      <svg width="9" height="9" viewBox="0 0 12 12" aria-hidden="true">
+                        <path fill="#F59E0B" d="M6 0l1.545 3.13 3.455.502-2.5 2.436.59 3.44L6 7.88l-3.09 1.628.59-3.44L1 3.632l3.455-.502z"/>
+                      </svg>
+                      {pro.rating.toFixed(1)}
+                    </p>
+                  ) : (
+                    <p className="max-w-[68px] truncate text-center text-[9px] leading-tight text-[var(--bk-muted)]">
+                      {pro.role}
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>

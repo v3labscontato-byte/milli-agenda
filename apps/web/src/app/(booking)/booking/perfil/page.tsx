@@ -124,7 +124,7 @@ export default function PerfilPage() {
             label="Sair"
             sublabel="Limpar identificação desta sessão"
             danger
-            onClick={clearClient}
+            onClick={() => { clearClient(); window.location.replace('/booking/login') }}
           />
         </div>
 

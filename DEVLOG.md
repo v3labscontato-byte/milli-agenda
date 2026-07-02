@@ -3566,3 +3566,23 @@ Reescrita completa do componente de login do PWA:
 - **Google + Apple:** ambos com toast "Em breve", botões 42px com ícones SVG inline.
 - **Layout:** `h-full flex flex-col` — cabe em 100dvh sem scroll (hero 170px + body flex-1).
 - **`triggered` ref:** previne double-trigger na lookup; resetado ao voltar ou ao deletar dígito.
+
+## [2026-07-02] PWA Booking — bugs logout+mock + home redesign v4
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+### BUG 1 — Logout sem redirect (fix)
+**Arquivos:** `perfil/page.tsx:127`, `step-confirm.tsx:198`  
+`onClick={clearClient}` → `onClick={() => { clearClient(); window.location.replace('/booking/login') }}`  
+Ambos os pontos de logout agora redirecionam imediatamente para `/booking/login`.
+
+### BUG 2 — Flash de dados mock (fix)
+**Arquivo:** `booking/page.tsx`  
+Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header exibe skeleton `animate-pulse` com divs `rgba(255,255,255,0.25)`. Nome, endereço e rating só aparecem quando `tenantData` retorna da API — sem fallback para mock. Rating omitido da UI (API não retorna esse campo).
+
+### Redesign Home v4
+**Arquivo:** `booking/page.tsx`  
+- Label "Explorar" removido; substituído por "ACESSO RÁPIDO" (9px uppercase tracking-widest #94A3B8)
+- Cards do carrossel: 110px → 150×90px, emoji 26px, label 12px semibold
+- Profissionais: rating condicional — se `pro.rating !== null` mostra ⭐ SVG #F59E0B + valor 9px; senão mostra especialidade. API não retorna rating, então specialty aparece por ora.

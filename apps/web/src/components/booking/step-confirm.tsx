@@ -195,7 +195,7 @@ export default function StepConfirm({ service, professional, date, time, isResch
             </div>
             <button
               type="button"
-              onClick={clearClient}
+              onClick={() => { clearClient(); window.location.replace('/booking/login') }}
               className="shrink-0 text-[12px] font-medium text-danger-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light"
             >
               Não sou eu

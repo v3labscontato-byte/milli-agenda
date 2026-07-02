@@ -63,6 +63,13 @@ export default function BookingHomePage() {
   const next         = UPCOMING_APPOINTMENTS[0] ?? null
 
   const [professionals, setProfessionals] = useState<ProfCard[]>([])
+  const [activeCard, setActiveCard] = useState(0)
+
+  function handleCarouselScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const pct = el.scrollLeft / (el.scrollWidth - el.clientWidth)
+    setActiveCard(Math.round(pct * 3))
+  }
 
   useEffect(() => {
     fetchPublicProfessionals(TENANT_SLUG)
@@ -178,6 +185,7 @@ export default function BookingHomePage() {
             Acesso rápido
           </p>
           <div
+            onScroll={handleCarouselScroll}
             className="mt-2.5 flex gap-3 overflow-x-auto px-[14px] pb-2"
             style={{ scrollbarWidth: 'none' }}
           >
@@ -201,6 +209,18 @@ export default function BookingHomePage() {
                   {item.label}
                 </span>
               </Link>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center justify-center gap-[5px]">
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-[6px] rounded-full transition-all duration-200"
+                style={{
+                  width: activeCard === i ? 18 : 6,
+                  background: activeCard === i ? primaryColor : '#E2E8F0',
+                }}
+              />
             ))}
           </div>
         </div>

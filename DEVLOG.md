@@ -3586,3 +3586,7 @@ Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header
 - Label "Explorar" removido; substituído por "ACESSO RÁPIDO" (9px uppercase tracking-widest #94A3B8)
 - Cards do carrossel: 110px → 150×90px, emoji 26px, label 12px semibold
 - Profissionais: rating condicional — se `pro.rating !== null` mostra ⭐ SVG #F59E0B + valor 9px; senão mostra especialidade. API não retorna rating, então specialty aparece por ora.
+
+### [2026-07-02] AGENT_PWA — dots carrossel (complemento)
+**Status:** ✅ Concluído
+**Fix:** onScroll + dots pill no carrossel de acesso rápido (FIX 3 complemento — estado activeCard e handler já existiam, faltava wirear onScroll e renderizar dots)

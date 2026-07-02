@@ -97,6 +97,12 @@ model Tenant {
   logoUrl       String?
   coverImageUrl String?
   primaryColor  String?  @default("#3D2B1F")
+  instagram           String?
+  acceptingNewClients Boolean  @default(true)
+  welcomeMessage      String?
+  googlePlaceId       String?
+  referralBonus       Decimal?  @db.Decimal(10, 2)
+  pointsPerReal       Int       @default(1)
   active               Boolean   @default(true)
   trialEndsAt          DateTime?
   onboardingCompleted  Boolean   @default(false)

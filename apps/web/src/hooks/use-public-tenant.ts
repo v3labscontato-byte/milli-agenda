@@ -31,6 +31,12 @@ export interface PublicTenant {
   cancellationMinHours: number
   cancellationFeePercent: number
   cancellationRefundSignal: boolean
+  instagram: string | null
+  acceptingNewClients: boolean
+  welcomeMessage: string | null
+  googlePlaceId: string | null
+  referralBonus: string | null
+  pointsPerReal: number
 }
 
 export function usePublicTenant(): { tenant: PublicTenant | null; loading: boolean } {

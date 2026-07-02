@@ -30,6 +30,13 @@ const SETTINGS_SELECT = {
   cancellationMinHours: true,
   cancellationFeePercent: true,
   cancellationRefundSignal: true,
+  primaryColor: true,
+  instagram: true,
+  acceptingNewClients: true,
+  welcomeMessage: true,
+  googlePlaceId: true,
+  referralBonus: true,
+  pointsPerReal: true,
 } as const
 
 const PUBLIC_TENANT_SELECT = {
@@ -52,6 +59,12 @@ const PUBLIC_TENANT_SELECT = {
   cancellationMinHours: true,
   cancellationFeePercent: true,
   cancellationRefundSignal: true,
+  instagram: true,
+  acceptingNewClients: true,
+  welcomeMessage: true,
+  googlePlaceId: true,
+  referralBonus: true,
+  pointsPerReal: true,
 } as const
 
 @Injectable()
@@ -73,6 +86,25 @@ export class SettingsService {
       data: dto,
       select: { ...SETTINGS_SELECT, updatedAt: true },
     })
+  }
+
+  async findGooglePlace(address: string) {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY
+    if (!apiKey) return null
+    const input = encodeURIComponent(address ?? '')
+    const url =
+      `https://maps.googleapis.com/maps/api/place/findplacefromtext/json` +
+      `?input=${input}&inputtype=textquery` +
+      `&fields=place_id,name,rating,user_ratings_total&key=${apiKey}`
+    try {
+      const res = await fetch(url)
+      const json = await res.json() as { candidates?: Array<{ place_id: string; name: string; rating: number; user_ratings_total: number }> }
+      const c = json.candidates?.[0]
+      if (!c) return null
+      return { placeId: c.place_id, name: c.name, rating: c.rating, totalRatings: c.user_ratings_total }
+    } catch {
+      return null
+    }
   }
 
   async getPublicTenant(slug: string) {

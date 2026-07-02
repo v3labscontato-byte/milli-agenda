@@ -10,13 +10,6 @@ import { fetchPublicProfessionals, TENANT_SLUG } from '@/lib/api/public-booking'
 
 const unread = NOTIFICACOES.filter((n) => !n.read).length
 
-const QUICK_ACCESS = [
-  { emoji: '✂️', label: 'Serviços',        href: '/booking/agendar',    highlight: false },
-  { emoji: '🏷️', label: 'Promoções',       href: '/booking/promocoes',  highlight: true  },
-  { emoji: '🤝', label: 'Indique e ganhe', href: '/booking/afiliados',  highlight: false },
-  { emoji: '⭐', label: 'Meus pontos',     href: '/booking/fidelidade', highlight: false },
-]
-
 function getRelativeDate(date: Date): string {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -52,8 +45,19 @@ export default function BookingHomePage() {
   const { tenant: tenantData, loading } = usePublicTenant()
   const { client } = useBookingClient()
 
-  const primaryColor = tenantData?.primaryColor ?? '#81736f'
-  const salonName    = tenantData?.name ?? ''
+  const primaryColor  = tenantData?.primaryColor ?? '#81736f'
+  const salonName     = tenantData?.name ?? ''
+  const referralBonus = tenantData?.referralBonus
+    ? `R$ ${Number(tenantData.referralBonus).toFixed(0)}`
+    : 'R$ 20'
+
+  const QUICK_ACCESS = [
+    { emoji: '✂️', label: 'Serviços',        sub: null,          href: '/booking/agendar',    highlight: false },
+    { emoji: '🏷️', label: 'Promoções',       sub: null,          href: '/booking/promocoes',  highlight: true  },
+    { emoji: '🤝', label: 'Indique e ganhe', sub: referralBonus, href: '/booking/afiliados',  highlight: false },
+    { emoji: '⭐', label: 'Meus pontos',     sub: null,          href: '/booking/fidelidade', highlight: false },
+  ]
+
   const salonAddress = tenantData?.address
     ? [tenantData.address, tenantData.city].filter(Boolean).join(' — ')
     : ''
@@ -229,6 +233,14 @@ export default function BookingHomePage() {
                 >
                   {item.label}
                 </span>
+                {item.sub && (
+                  <span
+                    className="text-center text-[10px] font-medium leading-none"
+                    style={{ color: item.highlight ? 'rgba(255,255,255,0.8)' : primaryColor }}
+                  >
+                    {item.sub}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

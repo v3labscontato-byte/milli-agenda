@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { MOCK_AFILIADOS_CONFIG, type AfiliadosConfig } from '@/lib/configuracoes-mock'
 import { Toggle, SectionCard, SaveButton, useSaveState, FieldLabel, SelectInput } from './_primitives'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
 
 const EXPIRATION_OPTIONS = [
   { value: 3,  label: '3 meses'  },
@@ -20,6 +21,7 @@ const NUM = cn(
 )
 
 export default function SectionAfiliados() {
+  const { settings, update } = useConfiguracoes()
   const [cfg, setCfg] = useState<AfiliadosConfig>(MOCK_AFILIADOS_CONFIG)
   const [saveState, triggerSave] = useSaveState()
 
@@ -28,6 +30,8 @@ export default function SectionAfiliados() {
   }
 
   const expiryLabel = EXPIRATION_OPTIONS.find((o) => o.value === cfg.expirationMonths)?.label ?? ''
+
+  const referralBonus = settings ? Number(settings.referralBonus ?? 0) : 0
 
   return (
     <div className="h-full overflow-y-auto">
@@ -135,6 +139,31 @@ export default function SectionAfiliados() {
             </ul>
           </div>
         )}
+
+        <SectionCard title="Bônus de Indicação">
+          <div className="space-y-1.5">
+            <FieldLabel htmlFor="aff-bonus">Valor do bônus por indicação (R$)</FieldLabel>
+            <div className="relative">
+              <span
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#94A3B8]"
+                aria-hidden="true"
+              >
+                R$
+              </span>
+              <input
+                id="aff-bonus"
+                type="number"
+                min={0}
+                step={1}
+                value={referralBonus}
+                onChange={(e) => void update({ referralBonus: e.target.value ? Number(e.target.value) : null })}
+                disabled={!cfg.active}
+                className={cn(NUM, 'pl-9', !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
+              />
+            </div>
+            <p className="text-[11px] text-[#94A3B8]">Crédito creditado ao cliente que indica um amigo</p>
+          </div>
+        </SectionCard>
 
         <div className="flex justify-end pb-6">
           <SaveButton state={saveState} onClick={triggerSave} />

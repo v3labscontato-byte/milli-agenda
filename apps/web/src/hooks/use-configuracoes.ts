@@ -30,6 +30,13 @@ export interface TenantSettings {
   cancellationMinHours: number
   cancellationFeePercent: number
   cancellationRefundSignal: boolean
+  primaryColor: string | null
+  instagram: string | null
+  acceptingNewClients: boolean
+  welcomeMessage: string | null
+  googlePlaceId: string | null
+  referralBonus: string | null
+  pointsPerReal: number
 }
 
 export function useConfiguracoes() {

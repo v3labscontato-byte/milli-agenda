@@ -87,4 +87,32 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsBoolean()
   cancellationRefundSignal?: boolean
+
+  @IsOptional()
+  @IsString()
+  instagram?: string
+
+  @IsOptional()
+  @IsBoolean()
+  acceptingNewClients?: boolean
+
+  @IsOptional()
+  @IsString()
+  welcomeMessage?: string
+
+  @IsOptional()
+  @IsString()
+  googlePlaceId?: string
+
+  @IsOptional()
+  @IsNumber()
+  referralBonus?: number
+
+  @IsOptional()
+  @IsInt()
+  pointsPerReal?: number
+
+  @IsOptional()
+  @IsString()
+  primaryColor?: string
 }

@@ -3598,3 +3598,9 @@ Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header
 ### [2026-07-02] AGENT_PWA — filtro de especialidade no step 1
 **Status:** ✅ Concluído
 **Fixes:** chips toggle multi-select por categoria (sem botão Todos), dots indicador pill, filtro múltiplo simultâneo, primaryColor inline style
+
+### [2026-07-02] AGENT — fix 3 bugs E2E (history URL, specialties migration, produtos)
+**Status:** ✅ Concluído
+**BUG 8 (URL mismatch):** `clientes.ts:28` — `/clients/${id}/history` → `/clients/${id}/historico` (rota backend é `@Get(':id/historico')`)
+**BUG 6 (specialties 500):** Tabela `specialties` e `professional_specialties` não existiam no banco homolog. Migration criada (`20260702010000_add_specialties`) e aplicada. `GET /professionals/specialties` → 200 `[]`
+**BUG 9 (POST /products 400):** Já estava corrigido — frontend envia `price`+`stockQuantity` corretos, POST retorna 200

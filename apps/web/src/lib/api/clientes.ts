@@ -25,5 +25,5 @@ export const clientesApi = {
     api.delete(`/api/v1/clients/${id}`),
 
   history: (id: string) =>
-    api.get(`/api/v1/clients/${id}/history`),
+    api.get(`/api/v1/clients/${id}/historico`),
 }

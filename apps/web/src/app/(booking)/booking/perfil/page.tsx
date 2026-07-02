@@ -90,6 +90,15 @@ export default function PerfilPage() {
         </div>
       </div>
 
+      {tenant?.welcomeMessage && (
+        <div
+          className="mx-[14px] mt-4 rounded-xl px-4 py-3 text-center text-[13px] font-medium text-white"
+          style={{ backgroundColor: primaryColor }}
+        >
+          {tenant.welcomeMessage}
+        </div>
+      )}
+
       <div className="space-y-4 px-[14px] pb-6 pt-2">
         {/* Menu */}
         <nav aria-label="Menu do perfil" className="space-y-2">

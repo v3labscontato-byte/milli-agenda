@@ -3604,3 +3604,7 @@ Removido `SALON_MOCK` e `Star` completamente. Enquanto `loading: true`, o header
 **BUG 8 (URL mismatch):** `clientes.ts:28` — `/clients/${id}/history` → `/clients/${id}/historico` (rota backend é `@Get(':id/historico')`)
 **BUG 6 (specialties 500):** Tabela `specialties` e `professional_specialties` não existiam no banco homolog. Migration criada (`20260702010000_add_specialties`) e aplicada. `GET /professionals/specialties` → 200 `[]`
 **BUG 9 (POST /products 400):** Já estava corrigido — frontend envia `price`+`stockQuantity` corretos, POST retorna 200
+
+### [2026-07-02] AGENT_CONFIGURACOES — App do Cliente completo
+**Status:** ✅ Concluído
+**Fixes:** migration 6 campos (instagram, acceptingNewClients, welcomeMessage, googlePlaceId, referralBonus, pointsPerReal), nova aba App do Cliente no menu, color picker HSV com preview ao vivo (pwa-preview.tsx), Google Places auto-detect, afiliados/fidelidade conectados à API real, badge acceptingNewClients dinâmico no PWA login, bonus indique-e-ganhe dinâmico no carrossel, welcomeMessage no perfil

@@ -15,6 +15,7 @@ import SectionApi          from '@/components/configuracoes/section-api'
 import SectionLgpd         from '@/components/configuracoes/section-lgpd'
 import SectionAfiliados    from '@/components/configuracoes/section-afiliados'
 import SectionFidelidade   from '@/components/configuracoes/section-fidelidade'
+import SectionAppCliente   from '@/components/configuracoes/section-app-cliente'
 
 export default function ConfiguracoesPage() {
   const [activeTab, setActiveTab] = useState<TabId>('meu-salao')
@@ -41,6 +42,7 @@ export default function ConfiguracoesPage() {
           {activeTab === 'plano'        && <SectionPlano />}
           {activeTab === 'api'          && <SectionApi />}
           {activeTab === 'lgpd'         && <SectionLgpd />}
+          {activeTab === 'app-cliente'  && <SectionAppCliente />}
           {activeTab === 'afiliados'    && <SectionAfiliados />}
           {activeTab === 'fidelidade'   && <SectionFidelidade />}
         </div>

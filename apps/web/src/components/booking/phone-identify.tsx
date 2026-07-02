@@ -148,7 +148,9 @@ export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
           </div>
           <div>
             <p className="text-[16px] font-bold leading-tight text-white">{salonName}</p>
-            <p className="mt-0.5 text-[10px] text-white/65">⭐ Aceita novos clientes</p>
+            {(tenant?.acceptingNewClients ?? true) && (
+              <p className="mt-0.5 text-[10px] text-white/65">⭐ Aceita novos clientes</p>
+            )}
           </div>
         </div>
       </div>

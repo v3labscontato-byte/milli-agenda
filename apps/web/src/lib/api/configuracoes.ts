@@ -23,6 +23,20 @@ export interface UpdateSettingsData {
   cancellationMinHours?: number
   cancellationFeePercent?: number
   cancellationRefundSignal?: boolean
+  primaryColor?: string
+  instagram?: string
+  acceptingNewClients?: boolean
+  welcomeMessage?: string
+  googlePlaceId?: string
+  referralBonus?: number | null
+  pointsPerReal?: number
+}
+
+export interface GooglePlaceResult {
+  placeId: string
+  name: string
+  rating: number
+  totalRatings: number
 }
 
 export const configuracoesApi = {
@@ -30,4 +44,7 @@ export const configuracoesApi = {
 
   update: (data: UpdateSettingsData) =>
     api.patch('/api/v1/settings', data),
+
+  getGooglePlace: (address: string): Promise<GooglePlaceResult | null> =>
+    api.get(`/api/v1/settings/google-place?address=${encodeURIComponent(address)}`),
 }

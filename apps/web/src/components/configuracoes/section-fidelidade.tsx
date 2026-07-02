@@ -5,6 +5,7 @@ import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_FIDELIDADE_CONFIG, type FidelidadeConfig } from '@/lib/configuracoes-mock'
 import { Toggle, SectionCard, SaveButton, useSaveState, FieldLabel } from './_primitives'
+import { useConfiguracoes } from '@/hooks/use-configuracoes'
 
 const NUM = cn(
   'w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-[13px] text-[#0F172A]',
@@ -14,6 +15,7 @@ const NUM = cn(
 )
 
 export default function SectionFidelidade() {
+  const { settings, update } = useConfiguracoes()
   const [cfg, setCfg] = useState<FidelidadeConfig>(MOCK_FIDELIDADE_CONFIG)
   const [saveState, triggerSave] = useSaveState()
 
@@ -64,8 +66,11 @@ export default function SectionFidelidade() {
                 type="number"
                 min={1}
                 step={1}
-                value={cfg.pointsPerReal}
-                onChange={(e) => set('pointsPerReal', Number(e.target.value))}
+                value={settings?.pointsPerReal ?? cfg.pointsPerReal}
+                onChange={(e) => {
+                  set('pointsPerReal', Number(e.target.value))
+                  void update({ pointsPerReal: Number(e.target.value) })
+                }}
                 disabled={!cfg.active}
                 className={cn(NUM, !cfg.active && 'cursor-not-allowed bg-[#F1F5F9] text-[#94A3B8]')}
               />

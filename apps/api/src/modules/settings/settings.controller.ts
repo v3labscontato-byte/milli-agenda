@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards, Param } from '@nestjs/common'
+import { Controller, Get, Patch, Body, UseGuards, Param, Query } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { TenantFromJwt } from '../../common/decorators/tenant.decorator'
 import { SettingsService } from './settings.service'
@@ -23,5 +23,11 @@ export class SettingsController {
   @Patch()
   updateSettings(@TenantFromJwt() tenantId: string, @Body() dto: UpdateSettingsDto) {
     return this.settingsService.updateSettings(tenantId, dto)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('google-place')
+  getGooglePlace(@Query('address') address: string) {
+    return this.settingsService.findGooglePlace(address)
   }
 }

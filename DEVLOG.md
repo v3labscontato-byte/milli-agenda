@@ -3548,3 +3548,21 @@ Reescrita completa com nova estrutura:
 - Label movida acima da barra (`Serviço · Passo 1 de 4`) em `text-[11px] text-[#64748B]`.
 - **Conteúdo dos steps**: `flex-1 overflow-y-auto` — rola independentemente enquanto o indicador permanece fixo.
 - Banner de reagendamento: cores hex diretas (`bg-[#FEF9C3] border-[#FDE047] text-[#CA8A04]`), `shrink-0` para não empurrar o progress bar.
+
+## [2026-07-02] PWA Booking — Login v5: auto-detect telefone, sem tabs, cadastro automático
+
+**Branch:** homolog  
+**npx tsc --noEmit → 0 erros**
+
+**Arquivo:** `apps/web/src/components/booking/phone-identify.tsx`  
+Reescrita completa do componente de login do PWA:
+
+- **Removido:** tabs "Entrar / Cadastrar" — fluxo é linear agora
+- **Hero:** 170px com `primaryColor` do tenant como fundo (não mais cover image). Gradiente de baixo para cima. Logo/iniciais do salão em 40×40px com borda branca. "⭐ Aceita novos clientes" (10px, branco 65%).
+- **Campo telefone:** 50px altura, `border: 2px solid primaryColor`, padding-left 42px, ícone Phone colorido com primaryColor. Placeholder `(11) 9 0000-0000`.
+- **Auto-detect 11 dígitos:** onChange → `maskPhone` → `digits.length === 11` → `lookup()` automático. Sem botão "Continuar".
+- **Estado `loading`:** overlay `bg-white/90` sobre o formulário com spinner animado, "Verificando...", phone em pill colorida.
+- **Estado `register`:** tela de cadastro completa — botão "← Voltar" (limpa phone), "Primeiro acesso", phone em pill não-editável, campo nome (obrigatório), campo email (opcional), botão "Criar conta e entrar" com `primaryColor`.
+- **Google + Apple:** ambos com toast "Em breve", botões 42px com ícones SVG inline.
+- **Layout:** `h-full flex flex-col` — cabe em 100dvh sem scroll (hero 170px + body flex-1).
+- **`triggered` ref:** previne double-trigger na lookup; resetado ao voltar ou ao deletar dígito.

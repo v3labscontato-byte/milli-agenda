@@ -1,31 +1,18 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, type FormEvent } from 'react'
 import { ArrowLeft, Phone, User, Mail, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchPublicClientAppointments, createPublicClient, TENANT_SLUG } from '@/lib/api/public-booking'
-import type { PublicTenant, PublicTenantBusinessHours } from '@/hooks/use-public-tenant'
+import type { PublicTenant } from '@/hooks/use-public-tenant'
 import { type BookingClientInfo } from '@/hooks/use-booking-client'
 
 function maskPhone(raw: string): string {
   const d = raw.replace(/\D/g, '').slice(0, 11)
-  if (d.length <= 2) return d.length ? `(${d}` : ''
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 2)  return d.length ? `(${d}` : ''
+  if (d.length <= 6)  return `(${d.slice(0, 2)}) ${d.slice(2)}`
   if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
-}
-
-function isOpenNow(bh: PublicTenantBusinessHours | null | undefined): boolean {
-  if (!bh?.days) return false
-  const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-  const today = dayNames[new Date().getDay()]
-  const cfg = bh.days.find((d) => d.day === today)
-  if (!cfg?.open) return false
-  const [sh, sm] = cfg.start.split(':').map(Number)
-  const [eh, em] = cfg.end.split(':').map(Number)
-  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
-  return nowMin >= sh * 60 + sm && nowMin < eh * 60 + em
 }
 
 function GoogleIcon() {
@@ -39,7 +26,18 @@ function GoogleIcon() {
   )
 }
 
-type AccessTab = 'entrar' | 'cadastrar'
+function AppleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.42c1.29.07 2.18.79 2.93.8.95-.19 1.84-.92 3.15-.99 2.04.17 3.57 1.43 4.05 3.56-1.78.97-2.63 2.57-2.29 4.43.28 1.63 1.08 2.91 2.16 3.06zM15.01 3.3C14.93 5.14 13.55 6.73 12 6.85c-.28-1.7 1.16-3.44 3.01-3.55z"
+      />
+    </svg>
+  )
+}
+
+type UIState = 'idle' | 'loading' | 'register' | 'creating'
 
 interface PhoneIdentifyProps {
   onFound: (client: BookingClientInfo) => void
@@ -47,376 +45,295 @@ interface PhoneIdentifyProps {
 }
 
 export default function PhoneIdentify({ onFound, tenant }: PhoneIdentifyProps) {
-  const router = useRouter()
+  const primary   = tenant?.primaryColor ?? '#81736f'
+  const salonName = tenant?.name ?? 'Salão'
+  const logoUrl   = tenant?.logoUrl ?? null
+  const initials  = salonName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase()
 
-  const primary      = tenant?.primaryColor ?? '#3D2B1F'
-  const salonName    = tenant?.name ?? 'Salão'
-  const coverUrl     = tenant?.coverImageUrl ?? null
-  const logoUrl      = tenant?.logoUrl ?? null
-  const city         = tenant?.city ?? ''
-  const state        = tenant?.state ?? ''
-  const openNow      = isOpenNow(tenant?.businessHours)
-  const locationStr  = [city, state].filter(Boolean).join(', ')
-  const initials     = salonName.replace(/\s+/g, '').slice(0, 2).toUpperCase()
-
-  const [tab, setTab] = useState<AccessTab>('entrar')
-  const [toast, setToast] = useState('')
-
-  // Entrar
-  const [ePhone, setEPhone] = useState('')
-  const [eLoading, setELoading] = useState(false)
-  const [eError, setEError] = useState('')
-
-  // Cadastrar
-  const [cName, setCName] = useState('')
-  const [cPhone, setCPhone] = useState('')
-  const [cEmail, setCEmail] = useState('')
-  const [cLoading, setCLoading] = useState(false)
-  const [cError, setCError] = useState('')
-  const [cMsg, setCMsg] = useState('')
+  const [phone,   setPhone]   = useState('')
+  const [uiState, setUiState] = useState<UIState>('idle')
+  const [name,    setName]    = useState('')
+  const [email,   setEmail]   = useState('')
+  const [error,   setError]   = useState('')
+  const [toast,   setToast]   = useState('')
+  const triggered = useRef(false)
 
   function showToast(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(''), 2200)
   }
 
-  async function handleContinuar(e: FormEvent) {
-    e.preventDefault()
-    if (ePhone.replace(/\D/g, '').length < 10) return
-    setELoading(true)
-    setEError('')
+  function handlePhoneChange(raw: string) {
+    const masked = maskPhone(raw)
+    setPhone(masked)
+    setError('')
+    const digits = masked.replace(/\D/g, '')
+    if (digits.length < 11) { triggered.current = false; return }
+    if (!triggered.current) { triggered.current = true; void lookup(digits) }
+  }
+
+  async function lookup(digits: string) {
+    setUiState('loading')
     try {
-      const { client } = await fetchPublicClientAppointments(TENANT_SLUG, ePhone)
+      const { client } = await fetchPublicClientAppointments(TENANT_SLUG, digits)
       if (client) {
-        onFound({ id: client.id, name: client.name, phone: client.phone ?? ePhone, email: client.email })
+        onFound({ id: client.id, name: client.name, phone: client.phone ?? digits, email: client.email })
       } else {
-        setCPhone(ePhone)
-        setCMsg('Telefone não encontrado. Crie sua conta para continuar.')
-        setTab('cadastrar')
+        setUiState('register')
       }
     } catch {
-      setEError('Erro ao verificar telefone. Tente novamente.')
-    } finally {
-      setELoading(false)
+      setError('Erro ao verificar. Tente novamente.')
+      setUiState('idle')
+      triggered.current = false
     }
   }
 
-  async function handleCriarConta(e: FormEvent) {
+  async function handleCreateAccount(e: FormEvent) {
     e.preventDefault()
-    if (!cName.trim() || cPhone.replace(/\D/g, '').length < 10) return
-    setCLoading(true)
-    setCError('')
+    if (!name.trim()) return
+    setUiState('creating')
+    setError('')
     try {
       const client = await createPublicClient(TENANT_SLUG, {
-        name: cName.trim(),
-        phone: cPhone,
-        email: cEmail.trim() || undefined,
+        name: name.trim(),
+        phone: phone.replace(/\D/g, ''),
+        email: email.trim() || undefined,
       })
-      onFound({ id: client.id, name: client.name, phone: client.phone ?? cPhone, email: client.email })
+      onFound({ id: client.id, name: client.name, phone: client.phone ?? phone, email: client.email })
     } catch (err) {
-      setCError(err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.')
-    } finally {
-      setCLoading(false)
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.')
+      setUiState('register')
     }
   }
 
-  const inputCls = [
-    'w-full h-12 rounded-[14px] border border-[#E2E8F0] bg-white pl-10 pr-4',
+  const fieldCls = [
+    'w-full h-12 rounded-[12px] border border-[#E2E8F0] bg-white pl-11 pr-4',
     'text-[14px] text-[#0F172A] placeholder:text-[#94A3B8]',
-    'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#D4B896] focus:border-transparent',
-    'transition-colors',
+    'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#E2E8F0] transition-colors',
   ].join(' ')
 
-  const eCanSubmit = ePhone.replace(/\D/g, '').length >= 10 && !eLoading
-  const cCanSubmit = cName.trim().length > 0 && cPhone.replace(/\D/g, '').length >= 10 && !cLoading
-
   return (
-    <div className="flex min-h-svh flex-col bg-[#FAF7F4] pb-20">
+    <div className="flex h-full flex-col bg-white">
 
-      {/* Toast — always in DOM so screen readers announce changes */}
+      {/* Toast — sempre no DOM para aria-live funcionar */}
       <div
         role="status"
         aria-live="polite"
         aria-atomic="true"
         className={cn(
-          'fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#0F172A] px-5 py-2 text-[13px] text-white shadow-lg transition-opacity duration-200',
+          'fixed bottom-8 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#0F172A] px-5 py-2 text-[13px] text-white shadow-lg transition-opacity duration-200',
           toast ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
         {toast}
       </div>
 
-      {/* Hero */}
+      {/* ── HERO 170px ── */}
       <div
-        className="relative h-60 w-full flex-shrink-0"
-        style={
-          coverUrl
-            ? { backgroundImage: `url(${coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-            : { background: 'linear-gradient(135deg, #FAF7F4 0%, #D4B896 55%, #3D2B1F 100%)' }
-        }
+        className="relative h-[170px] shrink-0"
+        style={{ backgroundColor: primary }}
       >
-        {/* Back button */}
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="Voltar"
-          className="absolute left-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-sm transition-colors hover:bg-black/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <ArrowLeft size={18} aria-hidden="true" />
-        </button>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-
-        {/* Salon info */}
         <div className="absolute bottom-4 left-4 flex items-end gap-3">
           <div
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white/80 text-[13px] font-bold"
-            style={logoUrl ? {} : { backgroundColor: primary, color: '#FAF7F4' }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-[13px] font-bold text-white"
+            style={{ backgroundColor: 'rgba(255,255,255,0.20)', border: '2px solid rgba(255,255,255,0.80)' }}
           >
             {logoUrl
+              // eslint-disable-next-line @next/next/no-img-element
               ? <img src={logoUrl} alt={salonName} className="h-full w-full object-cover" />
               : initials
             }
           </div>
           <div>
             <p className="text-[16px] font-bold leading-tight text-white">{salonName}</p>
-            <p className="text-[12px] text-white/80">
-              <span className={openNow ? 'text-[#86EFAC]' : 'text-white/60'}>
-                {openNow ? '● Aberto agora' : '○ Fechado'}
-              </span>
-              {locationStr ? ` · ${locationStr}` : ''}
-            </p>
+            <p className="mt-0.5 text-[10px] text-white/65">⭐ Aceita novos clientes</p>
           </div>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col px-5">
+      {/* ── TELA DE CADASTRO ── */}
+      {uiState === 'register' || uiState === 'creating' ? (
+        <form
+          onSubmit={handleCreateAccount}
+          className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-8 pt-5"
+        >
+          <button
+            type="button"
+            onClick={() => { setUiState('idle'); setPhone(''); setError(''); triggered.current = false }}
+            className="flex w-fit items-center gap-1.5 text-[13px] font-medium text-[#475569] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
+          >
+            <ArrowLeft size={15} aria-hidden="true" />
+            Voltar
+          </button>
 
-        {/* Tabs */}
-        <div className="flex border-b border-[#E2E8F0]" role="tablist" aria-label="Acesso à conta">
-          {(['entrar', 'cadastrar'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              role="tab"
-              aria-selected={tab === t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'flex-1 border-b-2 pb-3 pt-4 text-[14px] font-semibold transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#D4B896]',
-                tab !== t && 'border-transparent text-[#94A3B8] hover:text-[#475569]',
-              )}
-              style={tab === t ? { borderBottomColor: primary, color: primary } : {}}
-            >
-              {t === 'entrar' ? 'Entrar' : 'Cadastrar'}
-            </button>
-          ))}
-        </div>
+          <div>
+            <h2 className="text-[18px] font-bold text-[#0F172A]">Primeiro acesso</h2>
+            <p className="mt-0.5 text-[13px] text-[#475569]">Crie sua conta em segundos</p>
+          </div>
 
-        {/* ── ABA ENTRAR ── */}
-        {tab === 'entrar' && (
-          <form onSubmit={handleContinuar} className="flex flex-col gap-4 pt-6">
-            <div>
-              <h2
-                className="text-[22px] font-bold text-[#0F172A]"
-                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-              >
-                Olá, bem-vindo
-              </h2>
-              <p className="mt-1 text-[14px] text-[#475569]">
-                Informe seu telefone para acessar seus agendamentos
-              </p>
-            </div>
+          <div
+            className="flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold text-white"
+            style={{ backgroundColor: primary }}
+          >
+            <Phone size={11} aria-hidden="true" />
+            {phone}
+          </div>
 
-            <div className="relative">
-              <label htmlFor="e-phone" className="sr-only">Telefone</label>
-              <Phone
-                size={16}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+          <div className="relative">
+            <label htmlFor="r-name" className="sr-only">Nome completo</label>
+            <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
+            <input
+              id="r-name"
+              type="text"
+              placeholder="Nome completo"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={fieldCls}
+              autoComplete="name"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div className="relative">
+            <label htmlFor="r-email" className="sr-only">E-mail (opcional)</label>
+            <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" aria-hidden="true" />
+            <input
+              id="r-email"
+              type="email"
+              placeholder="E-mail (opcional)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={fieldCls}
+              autoComplete="email"
+            />
+          </div>
+
+          {error && (
+            <p className="rounded-[10px] border border-[#FEE2E2] bg-[#FEE2E2] px-4 py-2.5 text-[12px] text-[#DC2626]">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={!name.trim() || uiState === 'creating'}
+            className={cn(
+              'h-[50px] w-full rounded-[14px] text-[15px] font-semibold text-white transition-opacity',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+              (!name.trim() || uiState === 'creating') && 'cursor-not-allowed opacity-40',
+            )}
+            style={{ backgroundColor: primary }}
+          >
+            {uiState === 'creating'
+              ? <span className="inline-flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />Criando conta...</span>
+              : 'Criar conta e entrar'
+            }
+          </button>
+
+          <div className="flex items-center justify-center gap-2 text-[11px] text-[#94A3B8]">
+            <Shield size={12} aria-hidden="true" />
+            <span>Seus dados estão protegidos</span>
+          </div>
+        </form>
+      ) : (
+        /* ── FORM PRINCIPAL (idle / loading) ── */
+        <div className="relative flex flex-1 flex-col px-5 pb-6 pt-6">
+
+          {/* Overlay verificando */}
+          {uiState === 'loading' && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/90">
+              <span
+                className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#E2E8F0]"
+                style={{ borderTopColor: primary }}
                 aria-hidden="true"
               />
-              <input
-                id="e-phone"
-                type="tel"
-                inputMode="numeric"
-                placeholder="(00) 00000-0000"
-                value={ePhone}
-                onChange={(e) => { setEPhone(maskPhone(e.target.value)); setEError('') }}
-                className={inputCls}
-                autoComplete="tel"
-                autoFocus
-              />
+              <p className="text-[14px] font-semibold text-[#0F172A]">Verificando...</p>
+              <div
+                className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold text-white"
+                style={{ backgroundColor: primary }}
+              >
+                <Phone size={11} aria-hidden="true" />
+                {phone}
+              </div>
             </div>
+          )}
 
-            {eError && (
-              <p className="rounded-[14px] border border-[#FEE2E2] bg-[#FEE2E2] px-4 py-2.5 text-[13px] text-[#DC2626]">
-                {eError}
-              </p>
-            )}
+          <h2 className="text-[18px] font-bold text-[#0F172A]">Agende seus serviços</h2>
+          <p className="mt-0.5 text-[13px] text-[#475569]">Informe seu telefone para entrar ou criar conta</p>
 
-            <button
-              type="submit"
-              disabled={!eCanSubmit}
-              className={cn(
-                'h-12 w-full rounded-[14px] text-[15px] font-semibold text-[#FAF7F4] transition-opacity',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-                !eCanSubmit && 'cursor-not-allowed opacity-40',
-              )}
-              style={{ backgroundColor: primary }}
-            >
-              {eLoading
-                ? <span className="inline-flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />Verificando...</span>
-                : 'Continuar'
-              }
-            </button>
+          <div className="relative mt-5">
+            <label htmlFor="l-phone" className="sr-only">Telefone</label>
+            <Phone
+              size={16}
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+              style={{ color: primary }}
+              aria-hidden="true"
+            />
+            <input
+              id="l-phone"
+              type="tel"
+              inputMode="numeric"
+              placeholder="(11) 9 0000-0000"
+              value={phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              disabled={uiState === 'loading'}
+              className="w-full rounded-[12px] bg-white pl-11 pr-4 text-[15px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors disabled:opacity-50"
+              style={{
+                height: 50,
+                border: `2px solid ${primary}`,
+                '--tw-ring-color': primary,
+              } as React.CSSProperties}
+              autoComplete="tel"
+              autoFocus
+            />
+          </div>
+          <p className="mt-1.5 text-[11px] text-[#94A3B8]">Login automático ao digitar 11 dígitos</p>
 
-            <div className="relative flex items-center gap-3 py-1">
-              <div className="h-px flex-1 bg-[#E2E8F0]" />
-              <span className="text-[12px] text-[#94A3B8]">ou acesse com</span>
-              <div className="h-px flex-1 bg-[#E2E8F0]" />
-            </div>
+          {error && (
+            <p className="mt-2 rounded-[10px] border border-[#FEE2E2] bg-[#FEE2E2] px-4 py-2.5 text-[12px] text-[#DC2626]">
+              {error}
+            </p>
+          )}
 
+          <div className="relative mt-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-[#E2E8F0]" />
+            <span className="text-[12px] text-[#94A3B8]">ou acesse com</span>
+            <div className="h-px flex-1 bg-[#E2E8F0]" />
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2.5">
             <button
               type="button"
               onClick={() => showToast('Em breve')}
               aria-label="Login com Google — em breve disponível"
-              className="flex h-12 w-full items-center justify-center gap-3 rounded-[14px] border border-[#E2E8F0] bg-white text-[14px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
+              className="flex h-[42px] w-full items-center justify-center gap-2.5 rounded-[12px] border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
             >
               <GoogleIcon />
               Continuar com Google
               <span className="text-[11px] text-[#94A3B8]">(em breve)</span>
             </button>
 
-            <div className="flex items-center justify-center gap-2 pb-2 pt-1 text-[12px] text-[#94A3B8]">
-              <Shield size={13} aria-hidden="true" />
-              <span>Seus dados estão protegidos</span>
-            </div>
-          </form>
-        )}
-
-        {/* ── ABA CADASTRAR ── */}
-        {tab === 'cadastrar' && (
-          <form onSubmit={handleCriarConta} className="flex flex-col gap-4 pt-6">
-            <div>
-              <h2
-                className="text-[22px] font-bold text-[#0F172A]"
-                style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-              >
-                Primeiro acesso
-              </h2>
-              <p className="mt-1 text-[14px] text-[#475569]">
-                Crie sua conta para gerenciar seus agendamentos
-              </p>
-            </div>
-
-            {cMsg && (
-              <div className="rounded-[14px] border border-[#E2E8F0] bg-white px-4 py-3 text-[13px] text-[#475569]">
-                {cMsg}
-              </div>
-            )}
-
-            <div className="relative">
-              <label htmlFor="c-name" className="sr-only">Nome completo</label>
-              <User
-                size={16}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
-                aria-hidden="true"
-              />
-              <input
-                id="c-name"
-                type="text"
-                placeholder="Nome completo"
-                value={cName}
-                onChange={(e) => setCName(e.target.value)}
-                className={inputCls}
-                autoComplete="name"
-                autoFocus
-              />
-            </div>
-
-            <div className="relative">
-              <label htmlFor="c-phone" className="sr-only">Telefone</label>
-              <Phone
-                size={16}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
-                aria-hidden="true"
-              />
-              <input
-                id="c-phone"
-                type="tel"
-                inputMode="numeric"
-                placeholder="(00) 00000-0000"
-                value={cPhone}
-                onChange={(e) => { setCPhone(maskPhone(e.target.value)); setCError('') }}
-                className={inputCls}
-                autoComplete="tel"
-              />
-            </div>
-
-            <div className="relative">
-              <label htmlFor="c-email" className="sr-only">E-mail (opcional)</label>
-              <Mail
-                size={16}
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
-                aria-hidden="true"
-              />
-              <input
-                id="c-email"
-                type="email"
-                placeholder="E-mail (opcional)"
-                value={cEmail}
-                onChange={(e) => setCEmail(e.target.value)}
-                className={inputCls}
-                autoComplete="email"
-              />
-            </div>
-
-            {cError && (
-              <p className="rounded-[14px] border border-[#FEE2E2] bg-[#FEE2E2] px-4 py-2.5 text-[13px] text-[#DC2626]">
-                {cError}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={!cCanSubmit}
-              className={cn(
-                'h-12 w-full rounded-[14px] text-[15px] font-semibold text-[#FAF7F4] transition-opacity',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-                !cCanSubmit && 'cursor-not-allowed opacity-40',
-              )}
-              style={{ backgroundColor: primary }}
-            >
-              {cLoading
-                ? <span className="inline-flex items-center justify-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />Criando conta...</span>
-                : 'Criar conta'
-              }
-            </button>
-
-            <div className="relative flex items-center gap-3 py-1">
-              <div className="h-px flex-1 bg-[#E2E8F0]" />
-              <span className="text-[12px] text-[#94A3B8]">ou cadastre com</span>
-              <div className="h-px flex-1 bg-[#E2E8F0]" />
-            </div>
-
             <button
               type="button"
               onClick={() => showToast('Em breve')}
-              className="flex h-12 w-full items-center justify-center gap-3 rounded-[14px] border border-[#E2E8F0] bg-white text-[14px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
+              aria-label="Login com Apple — em breve disponível"
+              className="flex h-[42px] w-full items-center justify-center gap-2.5 rounded-[12px] border border-[#E2E8F0] bg-white text-[13px] font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E2E8F0]"
             >
-              <GoogleIcon />
-              Cadastrar com Google
+              <AppleIcon />
+              Continuar com Apple
+              <span className="text-[11px] text-[#94A3B8]">(em breve)</span>
             </button>
+          </div>
 
-            <div className="flex items-center justify-center gap-2 pb-2 pt-1 text-[12px] text-[#94A3B8]">
-              <Shield size={13} aria-hidden="true" />
-              <span>Seus dados estão protegidos</span>
-            </div>
-          </form>
-        )}
-      </div>
+          <div className="mt-auto flex items-center justify-center gap-2 pt-4 text-[11px] text-[#94A3B8]">
+            <Shield size={12} aria-hidden="true" />
+            <span>Seus dados estão protegidos</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
